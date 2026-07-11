@@ -7,5 +7,10 @@
 
 export * from './category.ts';
 export * from './createCategoryRequest.ts';
+export * from './createUserRequest.ts';
 export * from './errorResponse.ts';
+export * from './passwordHash.ts';
 export * from './productId.ts';
+export * from './user.ts';
+export * from './userId.ts';
+export * from './userStatus.ts';

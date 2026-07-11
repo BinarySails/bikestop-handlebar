@@ -21,3 +21,25 @@ export const CreateCategoryRequestResponse = zod.object({
   "parent_id": zod.union([zod.null(),zod.uuid()]).optional(),
   "slug": zod.string()
 })
+
+
+export const CreateUserRequestBody = zod.object({
+  "email": zod.string(),
+  "father_last_name": zod.string(),
+  "mother_last_name": zod.string(),
+  "name": zod.string(),
+  "password": zod.string(),
+  "username": zod.string()
+})
+
+export const CreateUserRequestResponse = zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "email": zod.string(),
+  "father_last_name": zod.string(),
+  "id": zod.uuid(),
+  "mother_last_name": zod.string(),
+  "name": zod.string(),
+  "password": zod.string(),
+  "status": zod.enum(['Active', 'Inactive']),
+  "username": zod.string()
+})

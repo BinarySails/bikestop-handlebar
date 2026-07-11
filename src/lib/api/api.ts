@@ -16,7 +16,9 @@ import type {
 import type {
   Category,
   CreateCategoryRequest,
-  ErrorResponse
+  CreateUserRequest,
+  ErrorResponse,
+  User
 } from './schemas';
 
 export type createCategoryRequestResponse201 = {
@@ -90,6 +92,86 @@ export const useCreateCategoryRequest = <TError = Promise<ErrorResponse | void>>
 
   const swrKey = swrOptions?.swrKey ?? getCreateCategoryRequestMutationKey();
   const swrFn = getCreateCategoryRequestMutationFetcher(fetchOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type createUserRequestResponse201 = {
+  data: User
+  status: 201
+}
+
+export type createUserRequestResponse400 = {
+  data: ErrorResponse
+  status: 400
+}
+
+export type createUserRequestResponse500 = {
+  data: void
+  status: 500
+}
+
+export type createUserRequestResponseSuccess = (createUserRequestResponse201) & {
+  headers: Headers;
+};
+export type createUserRequestResponseError = (createUserRequestResponse400 | createUserRequestResponse500) & {
+  headers: Headers;
+};
+
+export type createUserRequestResponse = (createUserRequestResponseSuccess | createUserRequestResponseError)
+
+export const getCreateUserRequestUrl = () => {
+
+
+
+
+  return `http://localhost:8080/api/v1/user`
+}
+
+export const createUserRequest = async (createUserRequest: CreateUserRequest, options?: RequestInit): Promise<createUserRequestResponse> => {
+
+  const res = await fetch(getCreateUserRequestUrl(),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(createUserRequest)
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: createUserRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as createUserRequestResponse
+}
+
+
+
+
+export const getCreateUserRequestMutationFetcher = ( options?: RequestInit) => {
+  return (_: Key, { arg }: { arg: CreateUserRequest }) => {
+    return createUserRequest(arg, options);
+  }
+}
+export const getCreateUserRequestMutationKey = () => [`http://localhost:8080/api/v1/user`] as const;
+
+export type CreateUserRequestMutationResult = NonNullable<Awaited<ReturnType<typeof createUserRequest>>>
+
+export const useCreateUserRequest = <TError = Promise<ErrorResponse | void>>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof createUserRequest>>, TError, Key, CreateUserRequest, Awaited<ReturnType<typeof createUserRequest>>> & { swrKey?: string }, fetch?: RequestInit}
+) => {
+
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getCreateUserRequestMutationKey();
+  const swrFn = getCreateUserRequestMutationFetcher(fetchOptions);
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
