@@ -14,7 +14,9 @@ import type {
 } from 'swr/mutation';
 
 import type {
+  Brand,
   Category,
+  CreateBrandRequest,
   CreateCategoryRequest,
   ErrorResponse
 } from './schemas';
@@ -90,6 +92,77 @@ export const useCreateCategoryRequest = <TError = Promise<ErrorResponse | void>>
 
   const swrKey = swrOptions?.swrKey ?? getCreateCategoryRequestMutationKey();
   const swrFn = getCreateCategoryRequestMutationFetcher(fetchOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type createBrandRequestResponse201 = {
+  data: Brand
+  status: 201
+}
+
+export type createBrandRequestResponse400 = {
+  data: ErrorResponse
+  status: 400
+}
+
+export type createBrandRequestResponse500 = {
+  data: void
+  status: 500
+}
+
+export type createBrandRequestResponseSuccess = (createBrandRequestResponse201) & {
+  headers: Headers;
+};
+export type createBrandRequestResponseError = (createBrandRequestResponse400 | createBrandRequestResponse500) & {
+  headers: Headers;
+};
+
+export type createBrandRequestResponse = (createBrandRequestResponseSuccess | createBrandRequestResponseError)
+
+export const getCreateBrandRequestUrl = () => {
+  return `http://localhost:8080/api/v1/products/brands`
+}
+
+export const createBrandRequest = async (createBrandRequest: CreateBrandRequest, options?: RequestInit): Promise<createBrandRequestResponse> => {
+
+  const res = await fetch(getCreateBrandRequestUrl(),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(createBrandRequest)
+  }
+)
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+  const data: createBrandRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as createBrandRequestResponse
+}
+
+export const getCreateBrandRequestMutationFetcher = ( options?: RequestInit) => {
+  return (_: Key, { arg }: { arg: CreateBrandRequest }) => {
+    return createBrandRequest(arg, options);
+  }
+}
+export const getCreateBrandRequestMutationKey = () => [`http://localhost:8080/api/v1/products/brands`] as const;
+
+export type CreateBrandRequestMutationResult = NonNullable<Awaited<ReturnType<typeof createBrandRequest>>>
+
+export const useCreateBrandRequest = <TError = Promise<ErrorResponse | void>>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof createBrandRequest>>, TError, Key, CreateBrandRequest, Awaited<ReturnType<typeof createBrandRequest>>> & { swrKey?: string }, fetch?: RequestInit}
+) => {
+
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getCreateBrandRequestMutationKey();
+  const swrFn = getCreateBrandRequestMutationFetcher(fetchOptions);
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions)
 

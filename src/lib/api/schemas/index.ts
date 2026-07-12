@@ -9,3 +9,6 @@ export * from './category.ts';
 export * from './createCategoryRequest.ts';
 export * from './errorResponse.ts';
 export * from './productId.ts';
+
+export * from './brand.ts';
+export * from './createBrandRequest.ts';
