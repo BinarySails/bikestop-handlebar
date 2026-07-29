@@ -13,23 +13,33 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { createLocalityRequest, useCreateStateRequest } from "@/lib/api/api"
 
 export function CreateStateLocalityDialog() {
   const [open, setOpen] = useState(false)
+  const { trigger: createState } = useCreateStateRequest()
 
   const form = useForm({
     defaultValues: {
       stateDisplayName: "",
       localityDisplayName: "",
     },
-    onSubmit: () => undefined,
+    onSubmit: async ({ value }) => {
+      const stateResponse = await createState({
+        display_name: value.stateDisplayName,
+      })
+
+      if (stateResponse.status !== 201) return
+
+      await createLocalityRequest(stateResponse.data.id, {
+        display_name: value.localityDisplayName,
+      })
+    },
   })
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button />}>
-        New State / Locality
-      </DialogTrigger>
+      <DialogTrigger render={<Button />}>New State / Locality</DialogTrigger>
 
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
@@ -101,7 +111,15 @@ export function CreateStateLocalityDialog() {
             >
               Cancel
             </Button>
-            <Button type="submit">Create State and Locality</Button>
+            <form.Subscribe selector={(state) => state.isSubmitting}>
+              {(isSubmitting) => (
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting
+                    ? "Creating State and Locality..."
+                    : "Create State and Locality"}
+                </Button>
+              )}
+            </form.Subscribe>
           </DialogFooter>
         </form>
       </DialogContent>
