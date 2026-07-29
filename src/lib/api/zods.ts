@@ -4,42 +4,53 @@
  * ciclo
  * OpenAPI spec version: 0.1.0
  */
-import * as zod from 'zod';
+import * as zod from "zod"
 
 export const CreateCategoryRequestBody = zod.object({
-  "description": zod.string().nullish(),
-  "display_name": zod.string(),
-  "parent_id": zod.union([zod.null(),zod.uuid()]).optional(),
-  "slug": zod.string()
+  description: zod.string().nullish(),
+  display_name: zod.string(),
+  parent_id: zod.union([zod.null(), zod.uuid()]).optional(),
+  slug: zod.string(),
 })
 
 export const CreateCategoryRequestResponse = zod.object({
-  "created_at": zod.iso.datetime({"offset":true}),
-  "description": zod.string().nullish(),
-  "display_name": zod.string(),
-  "id": zod.uuid(),
-  "parent_id": zod.union([zod.null(),zod.uuid()]).optional(),
-  "slug": zod.string()
+  created_at: zod.iso.datetime({ offset: true }),
+  description: zod.string().nullish(),
+  display_name: zod.string(),
+  id: zod.uuid(),
+  parent_id: zod.union([zod.null(), zod.uuid()]).optional(),
+  slug: zod.string(),
 })
 
-
 export const CreateUserRequestBody = zod.object({
-  "email": zod.string(),
-  "father_last_name": zod.string(),
-  "mother_last_name": zod.string(),
-  "name": zod.string(),
-  "password": zod.string(),
-  "username": zod.string()
+  email: zod.string(),
+  father_last_name: zod.string(),
+  mother_last_name: zod.string(),
+  name: zod.string(),
+  password: zod.string(),
+  username: zod.string(),
 })
 
 export const CreateUserRequestResponse = zod.object({
-  "created_at": zod.iso.datetime({"offset":true}),
-  "email": zod.string(),
-  "father_last_name": zod.string(),
-  "id": zod.uuid(),
-  "mother_last_name": zod.string(),
-  "name": zod.string(),
-  "password": zod.string(),
-  "status": zod.enum(['Active', 'Inactive']),
-  "username": zod.string()
+  created_at: zod.iso.datetime({ offset: true }),
+  email: zod.string(),
+  father_last_name: zod.string(),
+  id: zod.uuid(),
+  mother_last_name: zod.string(),
+  name: zod.string(),
+  password: zod.string(),
+  status: zod.enum(["Active", "Inactive"]),
+  username: zod.string(),
+})
+
+export const CreateBrandRequestBody = zod.object({
+  display_name: zod.string(),
+  image_url: zod.string().nullish(),
+})
+
+export const CreateBrandRequestResponse = zod.object({
+  created_at: zod.iso.datetime({ offset: true }),
+  display_name: zod.string(),
+  image_url: zod.string().nullish(),
+  id: zod.uuid(),
 })

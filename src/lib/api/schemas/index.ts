@@ -5,12 +5,14 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export * from './category.ts';
-export * from './createCategoryRequest.ts';
-export * from './createUserRequest.ts';
-export * from './errorResponse.ts';
-export * from './passwordHash.ts';
-export * from './productId.ts';
-export * from './user.ts';
-export * from './userId.ts';
-export * from './userStatus.ts';
+export * from "./category.ts"
+export * from "./createBrandRequest.ts"
+export * from "./createCategoryRequest.ts"
+export * from "./createUserRequest.ts"
+export * from "./errorResponse.ts"
+export * from "./passwordHash.ts"
+export * from "./productId.ts"
+export * from "./brand.ts"
+export * from "./user.ts"
+export * from "./userId.ts"
+export * from "./userStatus.ts"
