@@ -1,24 +1,18 @@
-import { createFileRoute } from "@tanstack/react-router"
+import { Link, createFileRoute } from "@tanstack/react-router"
 import { Button } from "@/components/ui/button"
-import { CreateCategoryDialog } from "@/components/features/products/create-category-modal"
-import { CreateBrandDialog } from "@/components/features/products/create-brand-modal"
 
 export const Route = createFileRoute("/")({ component: App })
 
 function App() {
   return (
-    <div className="flex min-h-svh p-6">
-      <div className="flex max-w-md min-w-0 flex-col gap-4 text-sm leading-loose">
-        <div>
-          <h1 className="font-medium">Project ready!</h1>
-          <p>You may now add components and start building.</p>
-          <p>We&apos;ve already added the button component for you.</p>
-          <Button className="mt-2">Button</Button>
-
-          <CreateCategoryDialog />
-          <CreateBrandDialog />
-        </div>
-      </div>
-    </div>
+    <main className="container mx-auto max-w-4xl p-6">
+      <h1 className="text-2xl font-semibold tracking-tight">BikeStop</h1>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Administración del catálogo.
+      </p>
+      <Button className="mt-4" render={<Link to="/locations" />}>
+        Ir a ubicaciones
+      </Button>
+    </main>
   )
 }

@@ -23,9 +23,9 @@ import {
 function validateDisplayName(value: string) {
   const displayName = value.trim()
 
-  if (!displayName) return "Display name is required"
+  if (!displayName) return "El nombre es obligatorio"
   if (displayName.length < 3) {
-    return "Display name must be at least 3 characters"
+    return "El nombre debe tener al menos 3 caracteres"
   }
 
   return undefined
@@ -37,7 +37,17 @@ function getErrorMessage(data: unknown, fallback: string) {
   const error = data as { content?: unknown; message?: unknown }
 
   if (typeof error.message === "string" && error.message.trim()) {
-    return error.message
+    const translations: Record<string, string> = {
+      "could not save locality": "No se pudo guardar la localidad",
+      "could not save state": "No se pudo guardar el estado",
+      "error while validating": fallback,
+      "locality already exists in this state":
+        "La localidad ya existe dentro de este estado",
+      "state already exists": "El estado ya existe",
+      "state not found": "No se encontró el estado",
+    }
+
+    return translations[error.message.toLowerCase()] ?? error.message
   }
 
   if (typeof error.content === "string" && error.content.trim()) {
@@ -77,10 +87,10 @@ export function CreateStateLocalityDialog() {
           if (stateResponse.status !== 201) {
             const fallback =
               stateResponse.status === 400
-                ? "The State display name is invalid"
+                ? "El nombre del estado no es válido"
                 : stateResponse.status === 409
-                  ? "State already exists"
-                  : "Could not save State"
+                  ? "El estado ya existe"
+                  : "No se pudo guardar el estado"
             const message = getErrorMessage(stateResponse.data, fallback)
 
             if (stateResponse.status === 400) {
@@ -94,7 +104,7 @@ export function CreateStateLocalityDialog() {
           stateId = stateResponse.data.id
           setCreatedStateId(stateId)
         } catch {
-          toast.error("Could not connect to the server while saving State")
+          toast.error("No se pudo conectar al servidor al guardar el estado")
           return
         }
       }
@@ -107,12 +117,12 @@ export function CreateStateLocalityDialog() {
         if (localityResponse.status !== 201) {
           const fallback =
             localityResponse.status === 400
-              ? "The Locality display name is invalid"
+              ? "El nombre de la localidad no es válido"
               : localityResponse.status === 404
-                ? "State not found"
+                ? "No se encontró el estado"
                 : localityResponse.status === 409
-                  ? "Locality already exists in this State"
-                  : "Could not save Locality"
+                  ? "La localidad ya existe dentro de este estado"
+                  : "No se pudo guardar la localidad"
           const message = getErrorMessage(localityResponse.data, fallback)
 
           if (localityResponse.status === 400) {
@@ -123,13 +133,13 @@ export function CreateStateLocalityDialog() {
           return
         }
 
-        toast.success("State and Locality created successfully")
+        toast.success("El estado y la localidad se crearon correctamente")
         form.reset()
         setCreatedStateId(null)
         setServerErrors({})
         setOpen(false)
       } catch {
-        toast.error("Could not connect to the server while saving Locality")
+        toast.error("No se pudo conectar al servidor al guardar la localidad")
       }
     },
   })
@@ -146,13 +156,15 @@ export function CreateStateLocalityDialog() {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger render={<Button />}>New State / Locality</DialogTrigger>
+      <DialogTrigger render={<Button />}>
+        Nuevo estado / localidad
+      </DialogTrigger>
 
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>New State / Locality</DialogTitle>
+          <DialogTitle>Nuevo estado / localidad</DialogTitle>
           <DialogDescription>
-            Create a State first, then create its Locality.
+            Primero crea el estado y después la localidad que le pertenece.
           </DialogDescription>
         </DialogHeader>
 
@@ -181,12 +193,12 @@ export function CreateStateLocalityDialog() {
             {(field) => (
               <div className="grid gap-2">
                 <div>
-                  <p className="font-medium">1. State</p>
+                  <p className="font-medium">1. Estado</p>
                   <p className="text-sm text-muted-foreground">
-                    Enter the State that will own the new Locality.
+                    Ingresa el estado al que pertenecerá la nueva localidad.
                   </p>
                 </div>
-                <Label htmlFor={field.name}>Display name *</Label>
+                <Label htmlFor={field.name}>Nombre *</Label>
                 <Input
                   id={field.name}
                   name={field.name}
@@ -223,7 +235,7 @@ export function CreateStateLocalityDialog() {
                 )}
                 {createdStateId && (
                   <p className="text-sm text-muted-foreground">
-                    State created. Retrying will only create the Locality.
+                    Estado creado. El reintento solo creará la localidad.
                   </p>
                 )}
               </div>
@@ -246,12 +258,12 @@ export function CreateStateLocalityDialog() {
             {(field) => (
               <div className="grid gap-2 border-t pt-5">
                 <div>
-                  <p className="font-medium">2. Locality</p>
+                  <p className="font-medium">2. Localidad</p>
                   <p className="text-sm text-muted-foreground">
-                    This Locality will be created inside the State above.
+                    Esta localidad se creará dentro del estado anterior.
                   </p>
                 </div>
-                <Label htmlFor={field.name}>Display name *</Label>
+                <Label htmlFor={field.name}>Nombre *</Label>
                 <Input
                   id={field.name}
                   name={field.name}
@@ -295,18 +307,18 @@ export function CreateStateLocalityDialog() {
               variant="outline"
               onClick={() => handleOpenChange(false)}
             >
-              Cancel
+              Cancelar
             </Button>
             <form.Subscribe selector={(state) => state.isSubmitting}>
               {(isSubmitting) => (
                 <Button type="submit" disabled={isSubmitting}>
                   {isSubmitting
                     ? createdStateId
-                      ? "Creating Locality..."
-                      : "Creating State and Locality..."
+                      ? "Creando localidad..."
+                      : "Creando estado y localidad..."
                     : createdStateId
-                      ? "Retry Locality"
-                      : "Create State and Locality"}
+                      ? "Reintentar localidad"
+                      : "Crear estado y localidad"}
                 </Button>
               )}
             </form.Subscribe>
