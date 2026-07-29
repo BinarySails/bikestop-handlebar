@@ -118,19 +118,37 @@ describe("CreateStateLocalityDialog", () => {
     )
   })
 
-  it("shows a State conflict and does not create the Locality", async () => {
+  it("continues with the existing State returned by an idempotent response", async () => {
     api.createState.mockResolvedValue({
-      data: { type: "conflict", message: "state already exists" },
-      status: 409,
+      data: {
+        id: "existing-state-id",
+        display_name: "Jalisco",
+        created_at: "",
+      },
+      status: 200,
+    })
+    api.createLocality.mockResolvedValue({
+      data: {
+        id: "locality-id",
+        state_id: "existing-state-id",
+        display_name: "Guadalajara",
+        created_at: "",
+      },
+      status: 201,
     })
 
     await fillValidForm()
     submitForm()
 
     await waitFor(() => {
-      expect(notifications.error).toHaveBeenCalledWith("El estado ya existe")
+      expect(api.createLocality).toHaveBeenCalledWith("existing-state-id", {
+        display_name: "Guadalajara",
+      })
     })
-    expect(api.createLocality).not.toHaveBeenCalled()
+    expect(notifications.error).not.toHaveBeenCalled()
+    expect(notifications.success).toHaveBeenCalledWith(
+      "El estado y la localidad se crearon correctamente"
+    )
   })
 
   it("shows the backend validation error next to the State field", async () => {

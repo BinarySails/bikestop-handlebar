@@ -43,7 +43,6 @@ function getErrorMessage(data: unknown, fallback: string) {
       "error while validating": fallback,
       "locality already exists in this state":
         "La localidad ya existe dentro de este estado",
-      "state already exists": "El estado ya existe",
       "state not found": "No se encontró el estado",
     }
 
@@ -83,14 +82,13 @@ export function CreateStateLocalityDialog() {
           const stateResponse = await createState({
             display_name: value.stateDisplayName.trim(),
           })
+          const stateStatus = Number(stateResponse.status)
 
-          if (stateResponse.status !== 201) {
+          if (stateStatus !== 200 && stateStatus !== 201) {
             const fallback =
               stateResponse.status === 400
                 ? "El nombre del estado no es válido"
-                : stateResponse.status === 409
-                  ? "El estado ya existe"
-                  : "No se pudo guardar el estado"
+                : "No se pudo guardar el estado"
             const message = getErrorMessage(stateResponse.data, fallback)
 
             if (stateResponse.status === 400) {
@@ -101,7 +99,7 @@ export function CreateStateLocalityDialog() {
             return
           }
 
-          stateId = stateResponse.data.id
+          stateId = (stateResponse.data as { id: string }).id
           setCreatedStateId(stateId)
         } catch {
           toast.error("No se pudo conectar al servidor al guardar el estado")

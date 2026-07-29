@@ -34,11 +34,6 @@ export type createStateRequestResponse400 = {
   status: 400
 }
 
-export type createStateRequestResponse409 = {
-  data: ErrorResponse
-  status: 409
-}
-
 export type createStateRequestResponse500 = {
   data: void
   status: 500
@@ -47,7 +42,7 @@ export type createStateRequestResponse500 = {
 export type createStateRequestResponseSuccess = (createStateRequestResponse201) & {
   headers: Headers;
 };
-export type createStateRequestResponseError = (createStateRequestResponse400 | createStateRequestResponse409 | createStateRequestResponse500) & {
+export type createStateRequestResponseError = (createStateRequestResponse400 | createStateRequestResponse500) & {
   headers: Headers;
 };
 
