@@ -14,12 +14,191 @@ import type {
 } from 'swr/mutation';
 
 import type {
-  Brand,
   Category,
-  CreateBrandRequest,
   CreateCategoryRequest,
-  ErrorResponse
+  CreateLocalityRequest,
+  CreateStateRequest,
+  ErrorResponse,
+  Locality,
+  State,
+  StateId
 } from './schemas';
+
+export type createStateRequestResponse201 = {
+  data: State
+  status: 201
+}
+
+export type createStateRequestResponse400 = {
+  data: ErrorResponse
+  status: 400
+}
+
+export type createStateRequestResponse409 = {
+  data: ErrorResponse
+  status: 409
+}
+
+export type createStateRequestResponse500 = {
+  data: void
+  status: 500
+}
+
+export type createStateRequestResponseSuccess = (createStateRequestResponse201) & {
+  headers: Headers;
+};
+export type createStateRequestResponseError = (createStateRequestResponse400 | createStateRequestResponse409 | createStateRequestResponse500) & {
+  headers: Headers;
+};
+
+export type createStateRequestResponse = (createStateRequestResponseSuccess | createStateRequestResponseError)
+
+export const getCreateStateRequestUrl = () => {
+
+
+
+
+  return `http://localhost:8080/api/v1/locations/states`
+}
+
+export const createStateRequest = async (createStateRequest: CreateStateRequest, options?: RequestInit): Promise<createStateRequestResponse> => {
+
+  const res = await fetch(getCreateStateRequestUrl(),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(createStateRequest)
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: createStateRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as createStateRequestResponse
+}
+
+
+
+
+export const getCreateStateRequestMutationFetcher = ( options?: RequestInit) => {
+  return (_: Key, { arg }: { arg: CreateStateRequest }) => {
+    return createStateRequest(arg, options);
+  }
+}
+export const getCreateStateRequestMutationKey = () => [`http://localhost:8080/api/v1/locations/states`] as const;
+
+export type CreateStateRequestMutationResult = NonNullable<Awaited<ReturnType<typeof createStateRequest>>>
+
+export const useCreateStateRequest = <TError = Promise<ErrorResponse | void>>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof createStateRequest>>, TError, Key, CreateStateRequest, Awaited<ReturnType<typeof createStateRequest>>> & { swrKey?: string }, fetch?: RequestInit}
+) => {
+
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getCreateStateRequestMutationKey();
+  const swrFn = getCreateStateRequestMutationFetcher(fetchOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type createLocalityRequestResponse201 = {
+  data: Locality
+  status: 201
+}
+
+export type createLocalityRequestResponse400 = {
+  data: ErrorResponse
+  status: 400
+}
+
+export type createLocalityRequestResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type createLocalityRequestResponse409 = {
+  data: ErrorResponse
+  status: 409
+}
+
+export type createLocalityRequestResponse500 = {
+  data: void
+  status: 500
+}
+
+export type createLocalityRequestResponseSuccess = (createLocalityRequestResponse201) & {
+  headers: Headers;
+};
+export type createLocalityRequestResponseError = (createLocalityRequestResponse400 | createLocalityRequestResponse404 | createLocalityRequestResponse409 | createLocalityRequestResponse500) & {
+  headers: Headers;
+};
+
+export type createLocalityRequestResponse = (createLocalityRequestResponseSuccess | createLocalityRequestResponseError)
+
+export const getCreateLocalityRequestUrl = (stateId: StateId,) => {
+
+
+
+
+  return `http://localhost:8080/api/v1/locations/states/${stateId}/localities`
+}
+
+export const createLocalityRequest = async (stateId: StateId,
+    createLocalityRequest: CreateLocalityRequest, options?: RequestInit): Promise<createLocalityRequestResponse> => {
+
+  const res = await fetch(getCreateLocalityRequestUrl(stateId),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(createLocalityRequest)
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: createLocalityRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as createLocalityRequestResponse
+}
+
+
+
+
+export const getCreateLocalityRequestMutationFetcher = (stateId: StateId, options?: RequestInit) => {
+  return (_: Key, { arg }: { arg: CreateLocalityRequest }) => {
+    return createLocalityRequest(stateId, arg, options);
+  }
+}
+export const getCreateLocalityRequestMutationKey = (stateId: StateId,) => [`http://localhost:8080/api/v1/locations/states/${stateId}/localities`] as const;
+
+export type CreateLocalityRequestMutationResult = NonNullable<Awaited<ReturnType<typeof createLocalityRequest>>>
+
+export const useCreateLocalityRequest = <TError = Promise<ErrorResponse | void>>(
+  stateId: StateId, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof createLocalityRequest>>, TError, Key, CreateLocalityRequest, Awaited<ReturnType<typeof createLocalityRequest>>> & { swrKey?: string }, fetch?: RequestInit}
+) => {
+
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getCreateLocalityRequestMutationKey(stateId);
+  const swrFn = getCreateLocalityRequestMutationFetcher(stateId, fetchOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
 
 export type createCategoryRequestResponse201 = {
   data: Category
@@ -92,77 +271,6 @@ export const useCreateCategoryRequest = <TError = Promise<ErrorResponse | void>>
 
   const swrKey = swrOptions?.swrKey ?? getCreateCategoryRequestMutationKey();
   const swrFn = getCreateCategoryRequestMutationFetcher(fetchOptions);
-
-  const query = useSWRMutation(swrKey, swrFn, swrOptions)
-
-  return {
-    swrKey,
-    ...query
-  }
-}
-
-export type createBrandRequestResponse201 = {
-  data: Brand
-  status: 201
-}
-
-export type createBrandRequestResponse400 = {
-  data: ErrorResponse
-  status: 400
-}
-
-export type createBrandRequestResponse500 = {
-  data: void
-  status: 500
-}
-
-export type createBrandRequestResponseSuccess = (createBrandRequestResponse201) & {
-  headers: Headers;
-};
-export type createBrandRequestResponseError = (createBrandRequestResponse400 | createBrandRequestResponse500) & {
-  headers: Headers;
-};
-
-export type createBrandRequestResponse = (createBrandRequestResponseSuccess | createBrandRequestResponseError)
-
-export const getCreateBrandRequestUrl = () => {
-  return `http://localhost:8080/api/v1/products/brands`
-}
-
-export const createBrandRequest = async (createBrandRequest: CreateBrandRequest, options?: RequestInit): Promise<createBrandRequestResponse> => {
-
-  const res = await fetch(getCreateBrandRequestUrl(),
-  {
-      credentials: 'include',
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(createBrandRequest)
-  }
-)
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-  const data: createBrandRequestResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as createBrandRequestResponse
-}
-
-export const getCreateBrandRequestMutationFetcher = ( options?: RequestInit) => {
-  return (_: Key, { arg }: { arg: CreateBrandRequest }) => {
-    return createBrandRequest(arg, options);
-  }
-}
-export const getCreateBrandRequestMutationKey = () => [`http://localhost:8080/api/v1/products/brands`] as const;
-
-export type CreateBrandRequestMutationResult = NonNullable<Awaited<ReturnType<typeof createBrandRequest>>>
-
-export const useCreateBrandRequest = <TError = Promise<ErrorResponse | void>>(
-   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof createBrandRequest>>, TError, Key, CreateBrandRequest, Awaited<ReturnType<typeof createBrandRequest>>> & { swrKey?: string }, fetch?: RequestInit}
-) => {
-
-  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
-
-  const swrKey = swrOptions?.swrKey ?? getCreateBrandRequestMutationKey();
-  const swrFn = getCreateBrandRequestMutationFetcher(fetchOptions);
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions)
 

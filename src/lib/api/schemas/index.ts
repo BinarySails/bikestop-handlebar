@@ -6,9 +6,12 @@
  */
 
 export * from './category.ts';
+export * from './categoryId.ts';
 export * from './createCategoryRequest.ts';
+export * from './createLocalityRequest.ts';
+export * from './createStateRequest.ts';
 export * from './errorResponse.ts';
-export * from './productId.ts';
-
-export * from './brand.ts';
-export * from './createBrandRequest.ts';
+export * from './locality.ts';
+export * from './localityId.ts';
+export * from './state.ts';
+export * from './stateId.ts';
