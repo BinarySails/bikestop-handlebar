@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useForm, useSelector } from "@tanstack/react-form";
+import { useForm } from "@tanstack/react-form";
 import { toast } from "sonner";
 import { useCreateBrandRequest } from "@/lib/api/api";
 import { CreateBrandRequestBody } from "@/lib/api/zods";
@@ -46,9 +46,6 @@ export function CreateBrandDialog() {
             }
         },
     });
-
-    const displayName = useSelector(form.baseStore, (state) => state.values.displayName);
-    const slug = displayName.toLowerCase().replace(/\s+/g, "-");
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>

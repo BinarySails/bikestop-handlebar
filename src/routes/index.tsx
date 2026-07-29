@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router"
 import { Button } from "@/components/ui/button"
 import { CreateCategoryDialog } from "@/components/features/products/create-category-modal"
 import { CreateBrandDialog } from "@/components/features/products/create-brand-modal"
+import { ConsultUserPermissionsDialog } from "@/components/features/auth/consult-user-permissions-dialog"
 
 export const Route = createFileRoute("/")({ component: App })
 
@@ -17,6 +18,7 @@ function App() {
 
           <CreateCategoryDialog />
           <CreateBrandDialog />
+          <ConsultUserPermissionsDialog />
         </div>
       </div>
     </div>
