@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router"
 
-export const Route = createFileRoute("/ventas")({ component: VentasPage })
+export const Route = createFileRoute("/sales")({ component: SalesPage })
 
-function VentasPage() {
+function SalesPage() {
   return <section aria-label="Ventas" />
 }
