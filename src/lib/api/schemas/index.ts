@@ -5,10 +5,10 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export * from './category.ts';
-export * from './createCategoryRequest.ts';
-export * from './errorResponse.ts';
-export * from './productId.ts';
+export * from "./category.ts"
+export * from "./createCategoryRequest.ts"
+export * from "./errorResponse.ts"
+export * from "./productId.ts"
 
-export * from './brand.ts';
-export * from './createBrandRequest.ts';
+export * from "./brand.ts"
+export * from "./createBrandRequest.ts"

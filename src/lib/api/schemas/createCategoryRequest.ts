@@ -4,12 +4,12 @@
  * ciclo
  * OpenAPI spec version: 0.1.0
  */
-import type { ProductId } from './productId.ts';
+import type { ProductId } from "./productId.ts"
 
 export interface CreateCategoryRequest {
   /** @nullable */
-  description?: string | null;
-  display_name: string;
-  parent_id?: null | ProductId;
-  slug: string;
+  description?: string | null
+  display_name: string
+  parent_id?: null | ProductId
+  slug: string
 }

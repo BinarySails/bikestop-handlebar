@@ -7,6 +7,6 @@
 
 export interface ErrorResponse {
   /** @nullable */
-  message?: string | null;
-  type: string;
+  message?: string | null
+  type: string
 }
