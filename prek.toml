@@ -1,0 +1,21 @@
+[[repos]]
+repo = "https://github.com/pre-commit/pre-commit-hooks"
+rev = "v6.0.0"
+hooks = [{ id = "end-of-file-fixer" }, { id = "trailing-whitespace" }]
+
+[[repos]]
+repo = "local"
+hooks = [
+  { id = "format", name = "format check", language = "system", entry = "bun run format:check", pass_filenames = false, stages = [
+    "pre-commit",
+  ] },
+  { id = "lint", name = "lint", language = "system", entry = "bun run lint:fix", pass_filenames = false, stages = [
+    "pre-commit",
+  ] },
+  { id = "test", name = "test suite", language = "system", entry = "bun run test", shell = "sh", stages = [
+    "pre-commit",
+  ], pass_filenames = false },
+  { id = "commitlint", name = "commit lint", language = "system", entry = "commitlint -e $1", shell = "bash", stages = [
+    "commit-msg",
+  ], pass_filenames = true },
+]
