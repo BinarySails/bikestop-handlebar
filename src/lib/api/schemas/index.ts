@@ -6,9 +6,15 @@
  */
 
 export * from './category.ts';
+export * from './categoryId.ts';
 export * from './createCategoryRequest.ts';
+export * from './createRoleRequest.ts';
+export * from './createRoleResponse.ts';
+export * from './deleteRoleResponse.ts';
 export * from './errorResponse.ts';
+export * from './listRolesResponse.ts';
 export * from './productId.ts';
-
-export * from './brand.ts';
-export * from './createBrandRequest.ts';
+export * from './role.ts';
+export * from './roleId.ts';
+export * from './updateRoleRequest.ts';
+export * from './updateRoleResponse.ts';

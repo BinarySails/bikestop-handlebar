@@ -4,12 +4,12 @@ import { Pencil, Trash2, Plus, CircleCheck, CircleX } from "lucide-react";
 import { toast } from "sonner";
 
 import {
-  useRolesList,
-  useCreateRole,
-  useUpdateRole,
-  useDeleteRole,
-} from "@/lib/api/roles";
-import type { Role } from "@/lib/api/roles";
+  useListRolesHandler,
+  useCreateRoleHandler,
+  useUpdateRoleHandler,
+  useDeleteRoleHandler,
+} from "@/lib/api/api";
+import type { Role, CreateRoleRequest, UpdateRoleRequest } from "@/lib/api/schemas";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -38,8 +38,8 @@ function RoleFormDialog({
   role?: Role;
   onSuccess: () => void;
 }) {
-  const { trigger: createTrigger, isMutating: isCreating } = useCreateRole();
-  const { trigger: updateTrigger, isMutating: isUpdating } = useUpdateRole();
+  const { trigger: createTrigger, isMutating: isCreating } = useCreateRoleHandler();
+  const { trigger: updateTrigger, isMutating: isUpdating } = useUpdateRoleHandler(role?.id ?? "");
 
   const form = useForm({
     defaultValues: {
@@ -51,10 +51,11 @@ function RoleFormDialog({
 
       if (role) {
         const result = await updateTrigger({
-          role_id: role.id,
-          data: { display_name: value.displayName, slug, is_active: value.isActive },
+          display_name: value.displayName,
+          slug,
+          is_active: value.isActive,
         });
-        if (result?.role) {
+        if (result?.data?.role) {
           toast.success(`Rol "${value.displayName}" actualizado.`);
           form.reset();
           onSuccess();
@@ -63,7 +64,7 @@ function RoleFormDialog({
         }
       } else {
         const result = await createTrigger({ display_name: value.displayName, slug });
-        if (result?.role) {
+        if (result?.data?.role) {
           toast.success(`Rol "${value.displayName}" creado.`);
           form.reset();
           onSuccess();
@@ -243,8 +244,8 @@ export function ManageRolesDialog() {
   const [editingRole, setEditingRole] = useState<Role | undefined>(undefined);
   const [deleteRole, setDeleteRole] = useState<Role | undefined>(undefined);
 
-  const { data, isLoading, mutate } = useRolesList();
-  const { trigger: deleteTrigger, isMutating: isDeleting } = useDeleteRole();
+  const { data, isLoading, mutate } = useListRolesHandler();
+  const { trigger: deleteTrigger, isMutating: isDeleting } = useDeleteRoleHandler(deleteRole?.id ?? "");
 
   const handleCreate = () => {
     setEditingRole(undefined);
@@ -259,8 +260,8 @@ export function ManageRolesDialog() {
   const handleDeleteConfirm = async () => {
     if (!deleteRole) return;
     try {
-      const result = await deleteTrigger({ role_id: deleteRole.id });
-      if (result?.success) {
+      const result = await deleteTrigger(null);
+      if (result?.data?.success) {
         toast.success(`Rol "${deleteRole.display_name}" eliminado.`);
         setDeleteRole(undefined);
         mutate();
@@ -298,7 +299,7 @@ export function ManageRolesDialog() {
 
           <div className="flex items-center justify-between">
             <p className="text-sm text-muted-foreground">
-              {data?.roles?.length ?? 0} rol(es) registrados
+              {data?.data?.roles?.length ?? 0} rol(es) registrados
             </p>
             <Button onClick={handleCreate} size="sm">
               <Plus />
@@ -313,12 +314,12 @@ export function ManageRolesDialog() {
                 <Skeleton className="h-10 w-full" />
                 <Skeleton className="h-10 w-full" />
               </div>
-            ) : data?.roles?.length === 0 ? (
+            ) : data?.data?.roles?.length === 0 ? (
               <p className="py-4 text-center text-sm text-muted-foreground">
                 No hay roles registrados. Crea el primero.
               </p>
             ) : (
-              data?.roles?.map((role) => (
+              data?.data?.roles?.map((role) => (
                 <div
                   key={role.id}
                   className="flex items-center justify-between rounded-lg border p-3"

@@ -9,27 +9,72 @@ import * as zod from 'zod';
 export const CreateCategoryRequestBody = zod.object({
   "description": zod.string().nullish(),
   "display_name": zod.string(),
-  "parent_id": zod.union([zod.null(), zod.uuid()]).optional(),
+  "parent_id": zod.union([zod.null(),zod.uuid()]).optional(),
   "slug": zod.string()
 })
 
 export const CreateCategoryRequestResponse = zod.object({
-  "created_at": zod.iso.datetime({ "offset": true }),
+  "created_at": zod.iso.datetime({"offset":true}),
   "description": zod.string().nullish(),
   "display_name": zod.string(),
   "id": zod.uuid(),
-  "parent_id": zod.union([zod.null(), zod.uuid()]).optional(),
+  "parent_id": zod.union([zod.null(),zod.uuid()]).optional(),
   "slug": zod.string()
 })
 
-export const CreateBrandRequestBody = zod.object({
+
+export const ListRolesHandlerResponse = zod.object({
+  "roles": zod.array(zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
   "display_name": zod.string(),
-  "image_url": zod.string().nullish(),
+  "id": zod.uuid(),
+  "is_active": zod.boolean(),
+  "slug": zod.string()
+}))
 })
 
-export const CreateBrandRequestResponse = zod.object({
-  "created_at": zod.iso.datetime({ "offset": true }),
+
+export const CreateRoleHandlerBody = zod.object({
   "display_name": zod.string(),
-  "image_url": zod.string().nullish(),
+  "slug": zod.string()
+})
+
+export const CreateRoleHandlerResponse = zod.object({
+  "role": zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
   "id": zod.uuid(),
+  "is_active": zod.boolean(),
+  "slug": zod.string()
+})
+})
+
+
+export const UpdateRoleHandlerParams = zod.object({
+  "role_id": zod.uuid().describe('Role ID')
+})
+
+export const UpdateRoleHandlerBody = zod.object({
+  "display_name": zod.string(),
+  "is_active": zod.boolean(),
+  "slug": zod.string()
+})
+
+export const UpdateRoleHandlerResponse = zod.object({
+  "role": zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "is_active": zod.boolean(),
+  "slug": zod.string()
+})
+})
+
+
+export const DeleteRoleHandlerParams = zod.object({
+  "role_id": zod.uuid().describe('Role ID')
+})
+
+export const DeleteRoleHandlerResponse = zod.object({
+  "success": zod.boolean()
 })

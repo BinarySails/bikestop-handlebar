@@ -4,8 +4,11 @@
  * ciclo
  * OpenAPI spec version: 0.1.0
  */
+import useSwr from 'swr';
 import type {
-  Key
+  Arguments,
+  Key,
+  SWRConfiguration
 } from 'swr';
 
 import useSWRMutation from 'swr/mutation';
@@ -14,11 +17,16 @@ import type {
 } from 'swr/mutation';
 
 import type {
-  Brand,
   Category,
-  CreateBrandRequest,
   CreateCategoryRequest,
-  ErrorResponse
+  CreateRoleRequest,
+  CreateRoleResponse,
+  DeleteRoleResponse,
+  ErrorResponse,
+  ListRolesResponse,
+  RoleId,
+  UpdateRoleRequest,
+  UpdateRoleResponse
 } from './schemas';
 
 export type createCategoryRequestResponse201 = {
@@ -49,7 +57,6 @@ export const getCreateCategoryRequestUrl = () => {
 
 
 
-
   return `http://localhost:8080/api/v1/products/categories`
 }
 
@@ -71,7 +78,6 @@ export const createCategoryRequest = async (createCategoryRequest: CreateCategor
   const data: createCategoryRequestResponse['data'] = body ? JSON.parse(body) : {}
   return { data, status: res.status, headers: res.headers } as createCategoryRequestResponse
 }
-
 
 
 
@@ -101,68 +107,310 @@ export const useCreateCategoryRequest = <TError = Promise<ErrorResponse | void>>
   }
 }
 
-export type createBrandRequestResponse201 = {
-  data: Brand
-  status: 201
+export type listRolesHandlerResponse200 = {
+  data: ListRolesResponse
+  status: 200
 }
 
-export type createBrandRequestResponse400 = {
-  data: ErrorResponse
-  status: 400
-}
-
-export type createBrandRequestResponse500 = {
+export type listRolesHandlerResponse500 = {
   data: void
   status: 500
 }
 
-export type createBrandRequestResponseSuccess = (createBrandRequestResponse201) & {
+export type listRolesHandlerResponseSuccess = (listRolesHandlerResponse200) & {
   headers: Headers;
 };
-export type createBrandRequestResponseError = (createBrandRequestResponse400 | createBrandRequestResponse500) & {
+export type listRolesHandlerResponseError = (listRolesHandlerResponse500) & {
   headers: Headers;
 };
 
-export type createBrandRequestResponse = (createBrandRequestResponseSuccess | createBrandRequestResponseError)
+export type listRolesHandlerResponse = (listRolesHandlerResponseSuccess | listRolesHandlerResponseError)
 
-export const getCreateBrandRequestUrl = () => {
-  return `http://localhost:8080/api/v1/products/brands`
+export const getListRolesHandlerUrl = () => {
+
+
+
+  return `http://localhost:8080/api/v1/rbac/roles`
 }
 
-export const createBrandRequest = async (createBrandRequest: CreateBrandRequest, options?: RequestInit): Promise<createBrandRequestResponse> => {
+export const listRolesHandler = async ( options?: RequestInit): Promise<listRolesHandlerResponse> => {
 
-  const res = await fetch(getCreateBrandRequestUrl(),
+  const res = await fetch(getListRolesHandlerUrl(),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'GET'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: listRolesHandlerResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as listRolesHandlerResponse
+}
+
+
+
+export const getListRolesHandlerKey = () => [`http://localhost:8080/api/v1/rbac/roles`] as const;
+
+export type ListRolesHandlerQueryResult = NonNullable<Awaited<ReturnType<typeof listRolesHandler>>>
+
+export const useListRolesHandler = <TError = Promise<void>>(
+   options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof listRolesHandler>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
+) => {
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getListRolesHandlerKey() : null);
+  const swrFn = () => listRolesHandler(fetchOptions)
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type createRoleHandlerResponse201 = {
+  data: CreateRoleResponse
+  status: 201
+}
+
+export type createRoleHandlerResponse422 = {
+  data: void
+  status: 422
+}
+
+export type createRoleHandlerResponse500 = {
+  data: void
+  status: 500
+}
+
+export type createRoleHandlerResponseSuccess = (createRoleHandlerResponse201) & {
+  headers: Headers;
+};
+export type createRoleHandlerResponseError = (createRoleHandlerResponse422 | createRoleHandlerResponse500) & {
+  headers: Headers;
+};
+
+export type createRoleHandlerResponse = (createRoleHandlerResponseSuccess | createRoleHandlerResponseError)
+
+export const getCreateRoleHandlerUrl = () => {
+
+
+
+  return `http://localhost:8080/api/v1/rbac/roles`
+}
+
+export const createRoleHandler = async (createRoleRequest: CreateRoleRequest, options?: RequestInit): Promise<createRoleHandlerResponse> => {
+
+  const res = await fetch(getCreateRoleHandlerUrl(),
   {
       credentials: 'include',
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(createBrandRequest)
+    body: JSON.stringify(createRoleRequest)
   }
 )
 
+
   const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-  const data: createBrandRequestResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as createBrandRequestResponse
+
+  const data: createRoleHandlerResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as createRoleHandlerResponse
 }
 
-export const getCreateBrandRequestMutationFetcher = ( options?: RequestInit) => {
-  return (_: Key, { arg }: { arg: CreateBrandRequest }) => {
-    return createBrandRequest(arg, options);
+
+
+export const getCreateRoleHandlerMutationFetcher = ( options?: RequestInit) => {
+  return (_: Key, { arg }: { arg: CreateRoleRequest }) => {
+    return createRoleHandler(arg, options);
   }
 }
-export const getCreateBrandRequestMutationKey = () => [`http://localhost:8080/api/v1/products/brands`] as const;
+export const getCreateRoleHandlerMutationKey = () => [`http://localhost:8080/api/v1/rbac/roles`] as const;
 
-export type CreateBrandRequestMutationResult = NonNullable<Awaited<ReturnType<typeof createBrandRequest>>>
+export type CreateRoleHandlerMutationResult = NonNullable<Awaited<ReturnType<typeof createRoleHandler>>>
 
-export const useCreateBrandRequest = <TError = Promise<ErrorResponse | void>>(
-   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof createBrandRequest>>, TError, Key, CreateBrandRequest, Awaited<ReturnType<typeof createBrandRequest>>> & { swrKey?: string }, fetch?: RequestInit}
+export const useCreateRoleHandler = <TError = Promise<void>>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof createRoleHandler>>, TError, Key, CreateRoleRequest, Awaited<ReturnType<typeof createRoleHandler>>> & { swrKey?: string }, fetch?: RequestInit}
 ) => {
 
   const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
 
-  const swrKey = swrOptions?.swrKey ?? getCreateBrandRequestMutationKey();
-  const swrFn = getCreateBrandRequestMutationFetcher(fetchOptions);
+  const swrKey = swrOptions?.swrKey ?? getCreateRoleHandlerMutationKey();
+  const swrFn = getCreateRoleHandlerMutationFetcher(fetchOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type updateRoleHandlerResponse200 = {
+  data: UpdateRoleResponse
+  status: 200
+}
+
+export type updateRoleHandlerResponse404 = {
+  data: void
+  status: 404
+}
+
+export type updateRoleHandlerResponse422 = {
+  data: void
+  status: 422
+}
+
+export type updateRoleHandlerResponse500 = {
+  data: void
+  status: 500
+}
+
+export type updateRoleHandlerResponseSuccess = (updateRoleHandlerResponse200) & {
+  headers: Headers;
+};
+export type updateRoleHandlerResponseError = (updateRoleHandlerResponse404 | updateRoleHandlerResponse422 | updateRoleHandlerResponse500) & {
+  headers: Headers;
+};
+
+export type updateRoleHandlerResponse = (updateRoleHandlerResponseSuccess | updateRoleHandlerResponseError)
+
+export const getUpdateRoleHandlerUrl = (roleId: RoleId,) => {
+
+
+
+  return `http://localhost:8080/api/v1/rbac/roles/${roleId}`
+}
+
+export const updateRoleHandler = async (roleId: RoleId,
+    updateRoleRequest: UpdateRoleRequest, options?: RequestInit): Promise<updateRoleHandlerResponse> => {
+
+  const res = await fetch(getUpdateRoleHandlerUrl(roleId),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(updateRoleRequest)
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: updateRoleHandlerResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as updateRoleHandlerResponse
+}
+
+
+
+export const getUpdateRoleHandlerMutationFetcher = (roleId: RoleId, options?: RequestInit) => {
+  return (_: Key, { arg }: { arg: UpdateRoleRequest }) => {
+    return updateRoleHandler(roleId, arg, options);
+  }
+}
+export const getUpdateRoleHandlerMutationKey = (roleId: RoleId,) => [`http://localhost:8080/api/v1/rbac/roles/${roleId}`] as const;
+
+export type UpdateRoleHandlerMutationResult = NonNullable<Awaited<ReturnType<typeof updateRoleHandler>>>
+
+export const useUpdateRoleHandler = <TError = Promise<void>>(
+  roleId: RoleId, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof updateRoleHandler>>, TError, Key, UpdateRoleRequest, Awaited<ReturnType<typeof updateRoleHandler>>> & { swrKey?: string }, fetch?: RequestInit}
+) => {
+
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getUpdateRoleHandlerMutationKey(roleId);
+  const swrFn = getUpdateRoleHandlerMutationFetcher(roleId, fetchOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type deleteRoleHandlerResponse200 = {
+  data: DeleteRoleResponse
+  status: 200
+}
+
+export type deleteRoleHandlerResponse404 = {
+  data: void
+  status: 404
+}
+
+export type deleteRoleHandlerResponse409 = {
+  data: void
+  status: 409
+}
+
+export type deleteRoleHandlerResponse500 = {
+  data: void
+  status: 500
+}
+
+export type deleteRoleHandlerResponseSuccess = (deleteRoleHandlerResponse200) & {
+  headers: Headers;
+};
+export type deleteRoleHandlerResponseError = (deleteRoleHandlerResponse404 | deleteRoleHandlerResponse409 | deleteRoleHandlerResponse500) & {
+  headers: Headers;
+};
+
+export type deleteRoleHandlerResponse = (deleteRoleHandlerResponseSuccess | deleteRoleHandlerResponseError)
+
+export const getDeleteRoleHandlerUrl = (roleId: RoleId,) => {
+
+
+
+  return `http://localhost:8080/api/v1/rbac/roles/${roleId}`
+}
+
+export const deleteRoleHandler = async (roleId: RoleId, options?: RequestInit): Promise<deleteRoleHandlerResponse> => {
+
+  const res = await fetch(getDeleteRoleHandlerUrl(roleId),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'DELETE'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: deleteRoleHandlerResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as deleteRoleHandlerResponse
+}
+
+
+
+export const getDeleteRoleHandlerMutationFetcher = (roleId: RoleId, options?: RequestInit) => {
+  return (_: Key, __: { arg: Arguments }) => {
+    return deleteRoleHandler(roleId, options);
+  }
+}
+export const getDeleteRoleHandlerMutationKey = (roleId: RoleId,) => [`http://localhost:8080/api/v1/rbac/roles/${roleId}`] as const;
+
+export type DeleteRoleHandlerMutationResult = NonNullable<Awaited<ReturnType<typeof deleteRoleHandler>>>
+
+export const useDeleteRoleHandler = <TError = Promise<void>>(
+  roleId: RoleId, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof deleteRoleHandler>>, TError, Key, Arguments, Awaited<ReturnType<typeof deleteRoleHandler>>> & { swrKey?: string }, fetch?: RequestInit}
+) => {
+
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getDeleteRoleHandlerMutationKey(roleId);
+  const swrFn = getDeleteRoleHandlerMutationFetcher(roleId, fetchOptions);
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
