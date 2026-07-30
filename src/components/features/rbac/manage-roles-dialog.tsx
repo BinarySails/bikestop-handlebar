@@ -9,7 +9,7 @@ import {
   useUpdateRoleHandler,
   useDeleteRoleHandler,
 } from "@/lib/api/api";
-import type { Role, CreateRoleRequest, UpdateRoleRequest } from "@/lib/api/schemas";
+import type { Role } from "@/lib/api/schemas";
 
 import { Button } from "@/components/ui/button";
 import {

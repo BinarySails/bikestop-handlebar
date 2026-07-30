@@ -17,17 +17,295 @@ import type {
 } from 'swr/mutation';
 
 import type {
+  AssignPermissionsRequest,
+  AssignPermissionsResponse,
   Category,
   CreateCategoryRequest,
+  CreateFileRequest,
+  CreateFileResponse,
+  CreatePermissionRequest,
+  CreatePermissionResponse,
   CreateRoleRequest,
   CreateRoleResponse,
+  CreateUserRequest,
+  DeleteFileRequestParams,
+  DeleteFileResponse,
+  DeletePermissionResponse,
   DeleteRoleResponse,
   ErrorResponse,
+  FileId,
+  GetDownloadUrlRequestParams,
+  GetDownloadUrlResponse,
+  ListPermissionsResponse,
   ListRolesResponse,
+  PermissionId,
+  RemovePermissionsRequest,
+  RemovePermissionsResponse,
   RoleId,
+  UpdatePermissionRequest,
+  UpdatePermissionResponse,
   UpdateRoleRequest,
-  UpdateRoleResponse
+  UpdateRoleResponse,
+  User
 } from './schemas';
+
+export type createFileRequestResponse201 = {
+  data: CreateFileResponse
+  status: 201
+}
+
+export type createFileRequestResponse400 = {
+  data: ErrorResponse
+  status: 400
+}
+
+export type createFileRequestResponse500 = {
+  data: void
+  status: 500
+}
+
+export type createFileRequestResponseSuccess = (createFileRequestResponse201) & {
+  headers: Headers;
+};
+export type createFileRequestResponseError = (createFileRequestResponse400 | createFileRequestResponse500) & {
+  headers: Headers;
+};
+
+export type createFileRequestResponse = (createFileRequestResponseSuccess | createFileRequestResponseError)
+
+export const getCreateFileRequestUrl = () => {
+
+
+
+
+  return `http://localhost:8080/api/v1/files`
+}
+
+export const createFileRequest = async (createFileRequest: CreateFileRequest, options?: RequestInit): Promise<createFileRequestResponse> => {
+
+  const res = await fetch(getCreateFileRequestUrl(),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(createFileRequest)
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: createFileRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as createFileRequestResponse
+}
+
+
+
+
+export const getCreateFileRequestMutationFetcher = ( options?: RequestInit) => {
+  return (_: Key, { arg }: { arg: CreateFileRequest }) => {
+    return createFileRequest(arg, options);
+  }
+}
+export const getCreateFileRequestMutationKey = () => [`http://localhost:8080/api/v1/files`] as const;
+
+export type CreateFileRequestMutationResult = NonNullable<Awaited<ReturnType<typeof createFileRequest>>>
+
+export const useCreateFileRequest = <TError = Promise<ErrorResponse | void>>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof createFileRequest>>, TError, Key, CreateFileRequest, Awaited<ReturnType<typeof createFileRequest>>> & { swrKey?: string }, fetch?: RequestInit}
+) => {
+
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getCreateFileRequestMutationKey();
+  const swrFn = getCreateFileRequestMutationFetcher(fetchOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type deleteFileRequestResponse200 = {
+  data: DeleteFileResponse
+  status: 200
+}
+
+export type deleteFileRequestResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type deleteFileRequestResponse500 = {
+  data: void
+  status: 500
+}
+
+export type deleteFileRequestResponseSuccess = (deleteFileRequestResponse200) & {
+  headers: Headers;
+};
+export type deleteFileRequestResponseError = (deleteFileRequestResponse404 | deleteFileRequestResponse500) & {
+  headers: Headers;
+};
+
+export type deleteFileRequestResponse = (deleteFileRequestResponseSuccess | deleteFileRequestResponseError)
+
+export const getDeleteFileRequestUrl = (id: FileId,
+    params: DeleteFileRequestParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `http://localhost:8080/api/v1/files/${id}?${stringifiedParams}` : `http://localhost:8080/api/v1/files/${id}`
+}
+
+export const deleteFileRequest = async (id: FileId,
+    params: DeleteFileRequestParams, options?: RequestInit): Promise<deleteFileRequestResponse> => {
+
+  const res = await fetch(getDeleteFileRequestUrl(id,params),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'DELETE'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: deleteFileRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as deleteFileRequestResponse
+}
+
+
+
+
+export const getDeleteFileRequestMutationFetcher = (id: FileId,
+    params: DeleteFileRequestParams, options?: RequestInit) => {
+  return (_: Key, __: { arg: Arguments }) => {
+    return deleteFileRequest(id, params, options);
+  }
+}
+export const getDeleteFileRequestMutationKey = (id: FileId,
+    params: DeleteFileRequestParams,) => [`http://localhost:8080/api/v1/files/${id}`, ...(params ? [params]: [])] as const;
+
+export type DeleteFileRequestMutationResult = NonNullable<Awaited<ReturnType<typeof deleteFileRequest>>>
+
+export const useDeleteFileRequest = <TError = Promise<ErrorResponse | void>>(
+  id: FileId,
+    params: DeleteFileRequestParams, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof deleteFileRequest>>, TError, Key, Arguments, Awaited<ReturnType<typeof deleteFileRequest>>> & { swrKey?: string }, fetch?: RequestInit}
+) => {
+
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getDeleteFileRequestMutationKey(id,params);
+  const swrFn = getDeleteFileRequestMutationFetcher(id,params, fetchOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type getDownloadUrlRequestResponse200 = {
+  data: GetDownloadUrlResponse
+  status: 200
+}
+
+export type getDownloadUrlRequestResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type getDownloadUrlRequestResponse500 = {
+  data: void
+  status: 500
+}
+
+export type getDownloadUrlRequestResponseSuccess = (getDownloadUrlRequestResponse200) & {
+  headers: Headers;
+};
+export type getDownloadUrlRequestResponseError = (getDownloadUrlRequestResponse404 | getDownloadUrlRequestResponse500) & {
+  headers: Headers;
+};
+
+export type getDownloadUrlRequestResponse = (getDownloadUrlRequestResponseSuccess | getDownloadUrlRequestResponseError)
+
+export const getGetDownloadUrlRequestUrl = (id: FileId,
+    params?: GetDownloadUrlRequestParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `http://localhost:8080/api/v1/files/${id}/download-url?${stringifiedParams}` : `http://localhost:8080/api/v1/files/${id}/download-url`
+}
+
+export const getDownloadUrlRequest = async (id: FileId,
+    params?: GetDownloadUrlRequestParams, options?: RequestInit): Promise<getDownloadUrlRequestResponse> => {
+
+  const res = await fetch(getGetDownloadUrlRequestUrl(id,params),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'GET'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: getDownloadUrlRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as getDownloadUrlRequestResponse
+}
+
+
+
+
+export const getGetDownloadUrlRequestKey = (id: FileId,
+    params?: GetDownloadUrlRequestParams,) => [`http://localhost:8080/api/v1/files/${id}/download-url`, ...(params ? [params]: [])] as const;
+
+export type GetDownloadUrlRequestQueryResult = NonNullable<Awaited<ReturnType<typeof getDownloadUrlRequest>>>
+
+export const useGetDownloadUrlRequest = <TError = Promise<ErrorResponse | void>>(
+  id: FileId,
+    params?: GetDownloadUrlRequestParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getDownloadUrlRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
+) => {
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false && id !== null && id !== undefined
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetDownloadUrlRequestKey(id,params) : null);
+  const swrFn = () => getDownloadUrlRequest(id,params, fetchOptions)
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
 
 export type createCategoryRequestResponse201 = {
   data: Category
@@ -57,6 +335,7 @@ export const getCreateCategoryRequestUrl = () => {
 
 
 
+
   return `http://localhost:8080/api/v1/products/categories`
 }
 
@@ -81,6 +360,7 @@ export const createCategoryRequest = async (createCategoryRequest: CreateCategor
 
 
 
+
 export const getCreateCategoryRequestMutationFetcher = ( options?: RequestInit) => {
   return (_: Key, { arg }: { arg: CreateCategoryRequest }) => {
     return createCategoryRequest(arg, options);
@@ -98,6 +378,327 @@ export const useCreateCategoryRequest = <TError = Promise<ErrorResponse | void>>
 
   const swrKey = swrOptions?.swrKey ?? getCreateCategoryRequestMutationKey();
   const swrFn = getCreateCategoryRequestMutationFetcher(fetchOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type listPermissionsHandlerResponse200 = {
+  data: ListPermissionsResponse
+  status: 200
+}
+
+export type listPermissionsHandlerResponse500 = {
+  data: void
+  status: 500
+}
+
+export type listPermissionsHandlerResponseSuccess = (listPermissionsHandlerResponse200) & {
+  headers: Headers;
+};
+export type listPermissionsHandlerResponseError = (listPermissionsHandlerResponse500) & {
+  headers: Headers;
+};
+
+export type listPermissionsHandlerResponse = (listPermissionsHandlerResponseSuccess | listPermissionsHandlerResponseError)
+
+export const getListPermissionsHandlerUrl = () => {
+
+
+
+
+  return `http://localhost:8080/api/v1/rbac/permissions`
+}
+
+export const listPermissionsHandler = async ( options?: RequestInit): Promise<listPermissionsHandlerResponse> => {
+
+  const res = await fetch(getListPermissionsHandlerUrl(),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'GET'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: listPermissionsHandlerResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as listPermissionsHandlerResponse
+}
+
+
+
+
+export const getListPermissionsHandlerKey = () => [`http://localhost:8080/api/v1/rbac/permissions`] as const;
+
+export type ListPermissionsHandlerQueryResult = NonNullable<Awaited<ReturnType<typeof listPermissionsHandler>>>
+
+export const useListPermissionsHandler = <TError = Promise<void>>(
+   options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof listPermissionsHandler>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
+) => {
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getListPermissionsHandlerKey() : null);
+  const swrFn = () => listPermissionsHandler(fetchOptions)
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type createPermissionHandlerResponse201 = {
+  data: CreatePermissionResponse
+  status: 201
+}
+
+export type createPermissionHandlerResponse422 = {
+  data: void
+  status: 422
+}
+
+export type createPermissionHandlerResponse500 = {
+  data: void
+  status: 500
+}
+
+export type createPermissionHandlerResponseSuccess = (createPermissionHandlerResponse201) & {
+  headers: Headers;
+};
+export type createPermissionHandlerResponseError = (createPermissionHandlerResponse422 | createPermissionHandlerResponse500) & {
+  headers: Headers;
+};
+
+export type createPermissionHandlerResponse = (createPermissionHandlerResponseSuccess | createPermissionHandlerResponseError)
+
+export const getCreatePermissionHandlerUrl = () => {
+
+
+
+
+  return `http://localhost:8080/api/v1/rbac/permissions`
+}
+
+export const createPermissionHandler = async (createPermissionRequest: CreatePermissionRequest, options?: RequestInit): Promise<createPermissionHandlerResponse> => {
+
+  const res = await fetch(getCreatePermissionHandlerUrl(),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(createPermissionRequest)
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: createPermissionHandlerResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as createPermissionHandlerResponse
+}
+
+
+
+
+export const getCreatePermissionHandlerMutationFetcher = ( options?: RequestInit) => {
+  return (_: Key, { arg }: { arg: CreatePermissionRequest }) => {
+    return createPermissionHandler(arg, options);
+  }
+}
+export const getCreatePermissionHandlerMutationKey = () => [`http://localhost:8080/api/v1/rbac/permissions`] as const;
+
+export type CreatePermissionHandlerMutationResult = NonNullable<Awaited<ReturnType<typeof createPermissionHandler>>>
+
+export const useCreatePermissionHandler = <TError = Promise<void>>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof createPermissionHandler>>, TError, Key, CreatePermissionRequest, Awaited<ReturnType<typeof createPermissionHandler>>> & { swrKey?: string }, fetch?: RequestInit}
+) => {
+
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getCreatePermissionHandlerMutationKey();
+  const swrFn = getCreatePermissionHandlerMutationFetcher(fetchOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type updatePermissionHandlerResponse200 = {
+  data: UpdatePermissionResponse
+  status: 200
+}
+
+export type updatePermissionHandlerResponse404 = {
+  data: void
+  status: 404
+}
+
+export type updatePermissionHandlerResponse422 = {
+  data: void
+  status: 422
+}
+
+export type updatePermissionHandlerResponse500 = {
+  data: void
+  status: 500
+}
+
+export type updatePermissionHandlerResponseSuccess = (updatePermissionHandlerResponse200) & {
+  headers: Headers;
+};
+export type updatePermissionHandlerResponseError = (updatePermissionHandlerResponse404 | updatePermissionHandlerResponse422 | updatePermissionHandlerResponse500) & {
+  headers: Headers;
+};
+
+export type updatePermissionHandlerResponse = (updatePermissionHandlerResponseSuccess | updatePermissionHandlerResponseError)
+
+export const getUpdatePermissionHandlerUrl = (permissionId: PermissionId,) => {
+
+
+
+
+  return `http://localhost:8080/api/v1/rbac/permissions/${permissionId}`
+}
+
+export const updatePermissionHandler = async (permissionId: PermissionId,
+    updatePermissionRequest: UpdatePermissionRequest, options?: RequestInit): Promise<updatePermissionHandlerResponse> => {
+
+  const res = await fetch(getUpdatePermissionHandlerUrl(permissionId),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(updatePermissionRequest)
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: updatePermissionHandlerResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as updatePermissionHandlerResponse
+}
+
+
+
+
+export const getUpdatePermissionHandlerMutationFetcher = (permissionId: PermissionId, options?: RequestInit) => {
+  return (_: Key, { arg }: { arg: UpdatePermissionRequest }) => {
+    return updatePermissionHandler(permissionId, arg, options);
+  }
+}
+export const getUpdatePermissionHandlerMutationKey = (permissionId: PermissionId,) => [`http://localhost:8080/api/v1/rbac/permissions/${permissionId}`] as const;
+
+export type UpdatePermissionHandlerMutationResult = NonNullable<Awaited<ReturnType<typeof updatePermissionHandler>>>
+
+export const useUpdatePermissionHandler = <TError = Promise<void>>(
+  permissionId: PermissionId, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof updatePermissionHandler>>, TError, Key, UpdatePermissionRequest, Awaited<ReturnType<typeof updatePermissionHandler>>> & { swrKey?: string }, fetch?: RequestInit}
+) => {
+
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getUpdatePermissionHandlerMutationKey(permissionId);
+  const swrFn = getUpdatePermissionHandlerMutationFetcher(permissionId, fetchOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type deletePermissionHandlerResponse200 = {
+  data: DeletePermissionResponse
+  status: 200
+}
+
+export type deletePermissionHandlerResponse404 = {
+  data: void
+  status: 404
+}
+
+export type deletePermissionHandlerResponse409 = {
+  data: void
+  status: 409
+}
+
+export type deletePermissionHandlerResponse500 = {
+  data: void
+  status: 500
+}
+
+export type deletePermissionHandlerResponseSuccess = (deletePermissionHandlerResponse200) & {
+  headers: Headers;
+};
+export type deletePermissionHandlerResponseError = (deletePermissionHandlerResponse404 | deletePermissionHandlerResponse409 | deletePermissionHandlerResponse500) & {
+  headers: Headers;
+};
+
+export type deletePermissionHandlerResponse = (deletePermissionHandlerResponseSuccess | deletePermissionHandlerResponseError)
+
+export const getDeletePermissionHandlerUrl = (permissionId: PermissionId,) => {
+
+
+
+
+  return `http://localhost:8080/api/v1/rbac/permissions/${permissionId}`
+}
+
+export const deletePermissionHandler = async (permissionId: PermissionId, options?: RequestInit): Promise<deletePermissionHandlerResponse> => {
+
+  const res = await fetch(getDeletePermissionHandlerUrl(permissionId),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'DELETE'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: deletePermissionHandlerResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as deletePermissionHandlerResponse
+}
+
+
+
+
+export const getDeletePermissionHandlerMutationFetcher = (permissionId: PermissionId, options?: RequestInit) => {
+  return (_: Key, __: { arg: Arguments }) => {
+    return deletePermissionHandler(permissionId, options);
+  }
+}
+export const getDeletePermissionHandlerMutationKey = (permissionId: PermissionId,) => [`http://localhost:8080/api/v1/rbac/permissions/${permissionId}`] as const;
+
+export type DeletePermissionHandlerMutationResult = NonNullable<Awaited<ReturnType<typeof deletePermissionHandler>>>
+
+export const useDeletePermissionHandler = <TError = Promise<void>>(
+  permissionId: PermissionId, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof deletePermissionHandler>>, TError, Key, Arguments, Awaited<ReturnType<typeof deletePermissionHandler>>> & { swrKey?: string }, fetch?: RequestInit}
+) => {
+
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getDeletePermissionHandlerMutationKey(permissionId);
+  const swrFn = getDeletePermissionHandlerMutationFetcher(permissionId, fetchOptions);
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
@@ -130,6 +731,7 @@ export const getListRolesHandlerUrl = () => {
 
 
 
+
   return `http://localhost:8080/api/v1/rbac/roles`
 }
 
@@ -151,6 +753,7 @@ export const listRolesHandler = async ( options?: RequestInit): Promise<listRole
   const data: listRolesHandlerResponse['data'] = body ? JSON.parse(body) : {}
   return { data, status: res.status, headers: res.headers } as listRolesHandlerResponse
 }
+
 
 
 
@@ -203,6 +806,7 @@ export const getCreateRoleHandlerUrl = () => {
 
 
 
+
   return `http://localhost:8080/api/v1/rbac/roles`
 }
 
@@ -224,6 +828,7 @@ export const createRoleHandler = async (createRoleRequest: CreateRoleRequest, op
   const data: createRoleHandlerResponse['data'] = body ? JSON.parse(body) : {}
   return { data, status: res.status, headers: res.headers } as createRoleHandlerResponse
 }
+
 
 
 
@@ -286,6 +891,7 @@ export const getUpdateRoleHandlerUrl = (roleId: RoleId,) => {
 
 
 
+
   return `http://localhost:8080/api/v1/rbac/roles/${roleId}`
 }
 
@@ -308,6 +914,7 @@ export const updateRoleHandler = async (roleId: RoleId,
   const data: updateRoleHandlerResponse['data'] = body ? JSON.parse(body) : {}
   return { data, status: res.status, headers: res.headers } as updateRoleHandlerResponse
 }
+
 
 
 
@@ -370,6 +977,7 @@ export const getDeleteRoleHandlerUrl = (roleId: RoleId,) => {
 
 
 
+
   return `http://localhost:8080/api/v1/rbac/roles/${roleId}`
 }
 
@@ -394,6 +1002,7 @@ export const deleteRoleHandler = async (roleId: RoleId, options?: RequestInit): 
 
 
 
+
 export const getDeleteRoleHandlerMutationFetcher = (roleId: RoleId, options?: RequestInit) => {
   return (_: Key, __: { arg: Arguments }) => {
     return deleteRoleHandler(roleId, options);
@@ -411,6 +1020,308 @@ export const useDeleteRoleHandler = <TError = Promise<void>>(
 
   const swrKey = swrOptions?.swrKey ?? getDeleteRoleHandlerMutationKey(roleId);
   const swrFn = getDeleteRoleHandlerMutationFetcher(roleId, fetchOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type listRolePermissionsHandlerResponse200 = {
+  data: ListPermissionsResponse
+  status: 200
+}
+
+export type listRolePermissionsHandlerResponse500 = {
+  data: void
+  status: 500
+}
+
+export type listRolePermissionsHandlerResponseSuccess = (listRolePermissionsHandlerResponse200) & {
+  headers: Headers;
+};
+export type listRolePermissionsHandlerResponseError = (listRolePermissionsHandlerResponse500) & {
+  headers: Headers;
+};
+
+export type listRolePermissionsHandlerResponse = (listRolePermissionsHandlerResponseSuccess | listRolePermissionsHandlerResponseError)
+
+export const getListRolePermissionsHandlerUrl = (roleId: RoleId,) => {
+
+
+
+
+  return `http://localhost:8080/api/v1/rbac/roles/${roleId}/permissions`
+}
+
+export const listRolePermissionsHandler = async (roleId: RoleId, options?: RequestInit): Promise<listRolePermissionsHandlerResponse> => {
+
+  const res = await fetch(getListRolePermissionsHandlerUrl(roleId),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'GET'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: listRolePermissionsHandlerResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as listRolePermissionsHandlerResponse
+}
+
+
+
+
+export const getListRolePermissionsHandlerKey = (roleId: RoleId,) => [`http://localhost:8080/api/v1/rbac/roles/${roleId}/permissions`] as const;
+
+export type ListRolePermissionsHandlerQueryResult = NonNullable<Awaited<ReturnType<typeof listRolePermissionsHandler>>>
+
+export const useListRolePermissionsHandler = <TError = Promise<void>>(
+  roleId: RoleId, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof listRolePermissionsHandler>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
+) => {
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false && roleId !== null && roleId !== undefined
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getListRolePermissionsHandlerKey(roleId) : null);
+  const swrFn = () => listRolePermissionsHandler(roleId, fetchOptions)
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type assignPermissionsHandlerResponse200 = {
+  data: AssignPermissionsResponse
+  status: 200
+}
+
+export type assignPermissionsHandlerResponse500 = {
+  data: void
+  status: 500
+}
+
+export type assignPermissionsHandlerResponseSuccess = (assignPermissionsHandlerResponse200) & {
+  headers: Headers;
+};
+export type assignPermissionsHandlerResponseError = (assignPermissionsHandlerResponse500) & {
+  headers: Headers;
+};
+
+export type assignPermissionsHandlerResponse = (assignPermissionsHandlerResponseSuccess | assignPermissionsHandlerResponseError)
+
+export const getAssignPermissionsHandlerUrl = (roleId: RoleId,) => {
+
+
+
+
+  return `http://localhost:8080/api/v1/rbac/roles/${roleId}/permissions`
+}
+
+export const assignPermissionsHandler = async (roleId: RoleId,
+    assignPermissionsRequest: AssignPermissionsRequest, options?: RequestInit): Promise<assignPermissionsHandlerResponse> => {
+
+  const res = await fetch(getAssignPermissionsHandlerUrl(roleId),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(assignPermissionsRequest)
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: assignPermissionsHandlerResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as assignPermissionsHandlerResponse
+}
+
+
+
+
+export const getAssignPermissionsHandlerMutationFetcher = (roleId: RoleId, options?: RequestInit) => {
+  return (_: Key, { arg }: { arg: AssignPermissionsRequest }) => {
+    return assignPermissionsHandler(roleId, arg, options);
+  }
+}
+export const getAssignPermissionsHandlerMutationKey = (roleId: RoleId,) => [`http://localhost:8080/api/v1/rbac/roles/${roleId}/permissions`] as const;
+
+export type AssignPermissionsHandlerMutationResult = NonNullable<Awaited<ReturnType<typeof assignPermissionsHandler>>>
+
+export const useAssignPermissionsHandler = <TError = Promise<void>>(
+  roleId: RoleId, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof assignPermissionsHandler>>, TError, Key, AssignPermissionsRequest, Awaited<ReturnType<typeof assignPermissionsHandler>>> & { swrKey?: string }, fetch?: RequestInit}
+) => {
+
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getAssignPermissionsHandlerMutationKey(roleId);
+  const swrFn = getAssignPermissionsHandlerMutationFetcher(roleId, fetchOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type removePermissionsHandlerResponse200 = {
+  data: RemovePermissionsResponse
+  status: 200
+}
+
+export type removePermissionsHandlerResponse500 = {
+  data: void
+  status: 500
+}
+
+export type removePermissionsHandlerResponseSuccess = (removePermissionsHandlerResponse200) & {
+  headers: Headers;
+};
+export type removePermissionsHandlerResponseError = (removePermissionsHandlerResponse500) & {
+  headers: Headers;
+};
+
+export type removePermissionsHandlerResponse = (removePermissionsHandlerResponseSuccess | removePermissionsHandlerResponseError)
+
+export const getRemovePermissionsHandlerUrl = (roleId: RoleId,) => {
+
+
+
+
+  return `http://localhost:8080/api/v1/rbac/roles/${roleId}/permissions`
+}
+
+export const removePermissionsHandler = async (roleId: RoleId,
+    removePermissionsRequest: RemovePermissionsRequest, options?: RequestInit): Promise<removePermissionsHandlerResponse> => {
+
+  const res = await fetch(getRemovePermissionsHandlerUrl(roleId),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(removePermissionsRequest)
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: removePermissionsHandlerResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as removePermissionsHandlerResponse
+}
+
+
+
+
+export const getRemovePermissionsHandlerMutationFetcher = (roleId: RoleId, options?: RequestInit) => {
+  return (_: Key, { arg }: { arg: RemovePermissionsRequest }) => {
+    return removePermissionsHandler(roleId, arg, options);
+  }
+}
+export const getRemovePermissionsHandlerMutationKey = (roleId: RoleId,) => [`http://localhost:8080/api/v1/rbac/roles/${roleId}/permissions`] as const;
+
+export type RemovePermissionsHandlerMutationResult = NonNullable<Awaited<ReturnType<typeof removePermissionsHandler>>>
+
+export const useRemovePermissionsHandler = <TError = Promise<void>>(
+  roleId: RoleId, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof removePermissionsHandler>>, TError, Key, RemovePermissionsRequest, Awaited<ReturnType<typeof removePermissionsHandler>>> & { swrKey?: string }, fetch?: RequestInit}
+) => {
+
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getRemovePermissionsHandlerMutationKey(roleId);
+  const swrFn = getRemovePermissionsHandlerMutationFetcher(roleId, fetchOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type createUserRequestResponse201 = {
+  data: User
+  status: 201
+}
+
+export type createUserRequestResponse400 = {
+  data: ErrorResponse
+  status: 400
+}
+
+export type createUserRequestResponse500 = {
+  data: void
+  status: 500
+}
+
+export type createUserRequestResponseSuccess = (createUserRequestResponse201) & {
+  headers: Headers;
+};
+export type createUserRequestResponseError = (createUserRequestResponse400 | createUserRequestResponse500) & {
+  headers: Headers;
+};
+
+export type createUserRequestResponse = (createUserRequestResponseSuccess | createUserRequestResponseError)
+
+export const getCreateUserRequestUrl = () => {
+
+
+
+
+  return `http://localhost:8080/api/v1/user`
+}
+
+export const createUserRequest = async (createUserRequest: CreateUserRequest, options?: RequestInit): Promise<createUserRequestResponse> => {
+
+  const res = await fetch(getCreateUserRequestUrl(),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(createUserRequest)
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: createUserRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as createUserRequestResponse
+}
+
+
+
+
+export const getCreateUserRequestMutationFetcher = ( options?: RequestInit) => {
+  return (_: Key, { arg }: { arg: CreateUserRequest }) => {
+    return createUserRequest(arg, options);
+  }
+}
+export const getCreateUserRequestMutationKey = () => [`http://localhost:8080/api/v1/user`] as const;
+
+export type CreateUserRequestMutationResult = NonNullable<Awaited<ReturnType<typeof createUserRequest>>>
+
+export const useCreateUserRequest = <TError = Promise<ErrorResponse | void>>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof createUserRequest>>, TError, Key, CreateUserRequest, Awaited<ReturnType<typeof createUserRequest>>> & { swrKey?: string }, fetch?: RequestInit}
+) => {
+
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getCreateUserRequestMutationKey();
+  const swrFn = getCreateUserRequestMutationFetcher(fetchOptions);
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions)
 

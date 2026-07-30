@@ -6,6 +6,102 @@
  */
 import * as zod from 'zod';
 
+export const CreateFileRequestBody = zod.object({
+  "checksum": zod.string(),
+  "content_type": zod.string(),
+  "file_name": zod.string().nullish(),
+  "file_type": zod.enum(['public', 'private']),
+  "original_filename": zod.string(),
+  "size": zod.number()
+})
+
+export const createFileRequestResponseExpiresInSecondsMin = 0;
+
+
+
+export const CreateFileRequestResponse = zod.object({
+  "expires_in_seconds": zod.number().min(createFileRequestResponseExpiresInSecondsMin),
+  "file": zod.object({
+  "bucket": zod.string(),
+  "checksum": zod.string(),
+  "content_type": zod.string(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "file_name": zod.string().nullish(),
+  "file_type": zod.enum(['public', 'private']),
+  "id": zod.uuid(),
+  "object_key": zod.string(),
+  "original_filename": zod.string(),
+  "size": zod.number(),
+  "status": zod.enum(['active', 'archive', 'delete', 'hard_delete']),
+  "storage_provider": zod.string()
+}),
+  "public_url": zod.string(),
+  "upload_url": zod.string()
+})
+
+
+export const DeleteFileRequestParams = zod.object({
+  "id": zod.uuid().describe('File ID')
+})
+
+export const DeleteFileRequestQueryParams = zod.object({
+  "delete_type": zod.string()
+})
+
+export const DeleteFileRequestResponse = zod.object({
+  "file": zod.object({
+  "bucket": zod.string(),
+  "checksum": zod.string(),
+  "content_type": zod.string(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "file_name": zod.string().nullish(),
+  "file_type": zod.enum(['public', 'private']),
+  "id": zod.uuid(),
+  "object_key": zod.string(),
+  "original_filename": zod.string(),
+  "size": zod.number(),
+  "status": zod.enum(['active', 'archive', 'delete', 'hard_delete']),
+  "storage_provider": zod.string()
+})
+})
+
+
+export const GetDownloadUrlRequestParams = zod.object({
+  "id": zod.uuid().describe('File ID')
+})
+
+export const getDownloadUrlRequestQueryExpiresInSecondsMin = 0;
+
+
+
+export const GetDownloadUrlRequestQueryParams = zod.object({
+  "expires_in_seconds": zod.number().min(getDownloadUrlRequestQueryExpiresInSecondsMin).optional()
+})
+
+export const getDownloadUrlRequestResponseExpiresInSecondsMin = 0;
+
+
+
+export const GetDownloadUrlRequestResponse = zod.object({
+  "download_url": zod.string(),
+  "expires_in_seconds": zod.number().min(getDownloadUrlRequestResponseExpiresInSecondsMin),
+  "file": zod.object({
+  "bucket": zod.string(),
+  "checksum": zod.string(),
+  "content_type": zod.string(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "file_name": zod.string().nullish(),
+  "file_type": zod.enum(['public', 'private']),
+  "id": zod.uuid(),
+  "object_key": zod.string(),
+  "original_filename": zod.string(),
+  "size": zod.number(),
+  "status": zod.enum(['active', 'archive', 'delete', 'hard_delete']),
+  "storage_provider": zod.string()
+})
+})
+
+
 export const CreateCategoryRequestBody = zod.object({
   "description": zod.string().nullish(),
   "display_name": zod.string(),
@@ -20,6 +116,64 @@ export const CreateCategoryRequestResponse = zod.object({
   "id": zod.uuid(),
   "parent_id": zod.union([zod.null(),zod.uuid()]).optional(),
   "slug": zod.string()
+})
+
+
+export const ListPermissionsHandlerResponse = zod.object({
+  "permissions": zod.array(zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "description": zod.string().nullish(),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "slug": zod.string()
+}))
+})
+
+
+export const CreatePermissionHandlerBody = zod.object({
+  "description": zod.string().nullish(),
+  "display_name": zod.string(),
+  "slug": zod.string()
+})
+
+export const CreatePermissionHandlerResponse = zod.object({
+  "permission": zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "description": zod.string().nullish(),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "slug": zod.string()
+})
+})
+
+
+export const UpdatePermissionHandlerParams = zod.object({
+  "permission_id": zod.uuid().describe('Permission ID')
+})
+
+export const UpdatePermissionHandlerBody = zod.object({
+  "description": zod.string().nullish(),
+  "display_name": zod.string(),
+  "slug": zod.string()
+})
+
+export const UpdatePermissionHandlerResponse = zod.object({
+  "permission": zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "description": zod.string().nullish(),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "slug": zod.string()
+})
+})
+
+
+export const DeletePermissionHandlerParams = zod.object({
+  "permission_id": zod.uuid().describe('Permission ID')
+})
+
+export const DeletePermissionHandlerResponse = zod.object({
+  "success": zod.boolean()
 })
 
 
@@ -77,4 +231,79 @@ export const DeleteRoleHandlerParams = zod.object({
 
 export const DeleteRoleHandlerResponse = zod.object({
   "success": zod.boolean()
+})
+
+
+export const ListRolePermissionsHandlerParams = zod.object({
+  "role_id": zod.uuid().describe('Role ID')
+})
+
+export const ListRolePermissionsHandlerResponse = zod.object({
+  "permissions": zod.array(zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "description": zod.string().nullish(),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "slug": zod.string()
+}))
+})
+
+
+export const AssignPermissionsHandlerParams = zod.object({
+  "role_id": zod.uuid().describe('Role ID')
+})
+
+export const AssignPermissionsHandlerBody = zod.object({
+  "permission_ids": zod.array(zod.uuid())
+})
+
+export const AssignPermissionsHandlerResponse = zod.object({
+  "permissions": zod.array(zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "description": zod.string().nullish(),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "slug": zod.string()
+}))
+})
+
+
+export const RemovePermissionsHandlerParams = zod.object({
+  "role_id": zod.uuid().describe('Role ID')
+})
+
+export const RemovePermissionsHandlerBody = zod.object({
+  "permission_ids": zod.array(zod.uuid())
+})
+
+export const RemovePermissionsHandlerResponse = zod.object({
+  "permissions": zod.array(zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "description": zod.string().nullish(),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "slug": zod.string()
+}))
+})
+
+
+export const CreateUserRequestBody = zod.object({
+  "email": zod.string(),
+  "father_last_name": zod.string(),
+  "mother_last_name": zod.string(),
+  "name": zod.string(),
+  "password": zod.string(),
+  "username": zod.string()
+})
+
+export const CreateUserRequestResponse = zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "email": zod.string(),
+  "father_last_name": zod.string(),
+  "id": zod.uuid(),
+  "mother_last_name": zod.string(),
+  "name": zod.string(),
+  "password": zod.string(),
+  "status": zod.enum(['Active', 'Inactive']),
+  "username": zod.string()
 })

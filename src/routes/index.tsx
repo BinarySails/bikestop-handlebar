@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button"
 import { CreateCategoryDialog } from "@/components/features/products/create-category-modal"
 import { CreateBrandDialog } from "@/components/features/products/create-brand-modal"
 import { ManageRolesDialog } from "@/components/features/rbac/manage-roles-dialog"
+import { ManageRolePermissionsDialog } from "@/components/features/rbac/manage-role-permissions-dialog"
 
 export const Route = createFileRoute("/")({ component: App })
 
@@ -19,6 +20,7 @@ function App() {
           <CreateCategoryDialog />
           <CreateBrandDialog />
           <ManageRolesDialog />
+          <ManageRolePermissionsDialog />
         </div>
       </div>
     </div>
