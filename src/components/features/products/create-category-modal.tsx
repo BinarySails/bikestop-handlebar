@@ -1,10 +1,10 @@
-import { useState } from "react";
-import { useForm, useSelector } from "@tanstack/react-form";
-import { toast } from "sonner";
-import { useCreateCategoryRequest } from "@/lib/api/api";
-import { CreateCategoryRequestBody } from "@/lib/api/zods";
+import { useState } from "react"
+import { useForm, useSelector } from "@tanstack/react-form"
+import { toast } from "sonner"
+import { useCreateCategoryRequest } from "@/lib/api/api"
+import { CreateCategoryRequestBody } from "@/lib/api/zods"
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
@@ -13,9 +13,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
   Combobox,
   ComboboxContent,
@@ -23,21 +23,63 @@ import {
   ComboboxItem,
   ComboboxList,
   ComboboxEmpty,
-} from "@/components/ui/combobox";
-import type { Category } from "@/lib/api/schemas";
+} from "@/components/ui/combobox"
+import type { Category } from "@/lib/api/schemas"
 
 const mockCategories: Category[] = [
-  { id: "1", display_name: "Electronics", slug: "electronics", description: null, created_at: "", parent_id: null },
-  { id: "2", display_name: "Clothing", slug: "clothing", description: null, created_at: "", parent_id: null },
-  { id: "3", display_name: "Books", slug: "books", description: null, created_at: "", parent_id: null },
-  { id: "4", display_name: "Smartphones", slug: "smartphones", description: null, created_at: "", parent_id: "1" },
-  { id: "5", display_name: "Laptops", slug: "laptops", description: null, created_at: "", parent_id: "1" },
-  { id: "6", display_name: "T-Shirts", slug: "t-shirts", description: null, created_at: "", parent_id: "2" },
-];
+  {
+    id: "1",
+    display_name: "Electronics",
+    slug: "electronics",
+    description: null,
+    created_at: "",
+    parent_id: null,
+  },
+  {
+    id: "2",
+    display_name: "Clothing",
+    slug: "clothing",
+    description: null,
+    created_at: "",
+    parent_id: null,
+  },
+  {
+    id: "3",
+    display_name: "Books",
+    slug: "books",
+    description: null,
+    created_at: "",
+    parent_id: null,
+  },
+  {
+    id: "4",
+    display_name: "Smartphones",
+    slug: "smartphones",
+    description: null,
+    created_at: "",
+    parent_id: "1",
+  },
+  {
+    id: "5",
+    display_name: "Laptops",
+    slug: "laptops",
+    description: null,
+    created_at: "",
+    parent_id: "1",
+  },
+  {
+    id: "6",
+    display_name: "T-Shirts",
+    slug: "t-shirts",
+    description: null,
+    created_at: "",
+    parent_id: "2",
+  },
+]
 
 export function CreateCategoryDialog() {
-  const [open, setOpen] = useState(false);
-  const { trigger } = useCreateCategoryRequest();
+  const [open, setOpen] = useState(false)
+  const { trigger } = useCreateCategoryRequest()
 
   const form = useForm({
     defaultValues: {
@@ -46,29 +88,35 @@ export function CreateCategoryDialog() {
       parent: null as null | Category,
     },
     onSubmit: async ({ value }) => {
-      const slug = value.displayName.toLowerCase().replace(/\s+/g, "-");
+      const slug = value.displayName.toLowerCase().replace(/\s+/g, "-")
 
       const result = await trigger({
         display_name: value.displayName,
         slug,
         description: value.description || null,
         parent_id: value.parent?.id || null,
-      });
+      })
 
-      const errorData = "data" in result ? (result as { data: { message?: string } }).data : null;
+      const errorData =
+        "data" in result
+          ? (result as { data: { message?: string } }).data
+          : null
 
       if (result.status === 201) {
-        toast.success(`Category "${value.displayName}" created!`);
-        form.reset();
-        setOpen(false);
+        toast.success(`Category "${value.displayName}" created!`)
+        form.reset()
+        setOpen(false)
       } else {
-        toast.error(errorData?.message ?? "Failed to create category");
+        toast.error(errorData?.message ?? "Failed to create category")
       }
     },
-  });
+  })
 
-  const displayName = useSelector(form.baseStore, (state) => state.values.displayName);
-  const slug = displayName.toLowerCase().replace(/\s+/g, "-");
+  const displayName = useSelector(
+    form.baseStore,
+    (state) => state.values.displayName
+  )
+  const slug = displayName.toLowerCase().replace(/\s+/g, "-")
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -86,9 +134,9 @@ export function CreateCategoryDialog() {
 
         <form
           onSubmit={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            form.handleSubmit();
+            e.preventDefault()
+            e.stopPropagation()
+            form.handleSubmit()
           }}
           className="space-y-4"
         >
@@ -96,12 +144,12 @@ export function CreateCategoryDialog() {
             name="displayName"
             validators={{
               onChange: ({ value }) => {
-                const result = CreateCategoryRequestBody.shape.display_name.safeParse(value);
-                if (!result.success)
-                  return result.error.issues[0].message;
+                const result =
+                  CreateCategoryRequestBody.shape.display_name.safeParse(value)
+                if (!result.success) return result.error.issues[0].message
                 if (value.length < 3)
-                  return "Display name must be at least 3 characters";
-                return undefined;
+                  return "Display name must be at least 3 characters"
+                return undefined
               },
             }}
           >
@@ -114,8 +162,12 @@ export function CreateCategoryDialog() {
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
                   placeholder="Electronics"
-                  aria-invalid={field.state.meta.isTouched && field.state.meta.errors.length > 0 ? "true" : undefined}
-
+                  aria-invalid={
+                    field.state.meta.isTouched &&
+                    field.state.meta.errors.length > 0
+                      ? "true"
+                      : undefined
+                  }
                 />
                 {field.state.meta.errors?.[0] && (
                   <p className="text-sm text-red-500">
@@ -128,20 +180,20 @@ export function CreateCategoryDialog() {
 
           <div className="grid gap-2">
             <Label htmlFor="slug">Slug</Label>
-            <Input
-              id="slug"
-              name="slug"
-              value={slug}
-              disabled
-            />
+            <Input id="slug" name="slug" value={slug} disabled />
           </div>
 
           <form.Field
             name="description"
             validators={{
               onChange: ({ value }) => {
-                const result = CreateCategoryRequestBody.shape.description.safeParse(value || null);
-                return result.success ? undefined : result.error.issues[0].message;
+                const result =
+                  CreateCategoryRequestBody.shape.description.safeParse(
+                    value || null
+                  )
+                return result.success
+                  ? undefined
+                  : result.error.issues[0].message
               },
             }}
           >
@@ -176,9 +228,7 @@ export function CreateCategoryDialog() {
                     showClear
                   />
                   <ComboboxContent>
-                    <ComboboxEmpty>
-                      No categories found
-                    </ComboboxEmpty>
+                    <ComboboxEmpty>No categories found</ComboboxEmpty>
 
                     <ComboboxList>
                       {(item: Category) => (
@@ -202,9 +252,7 @@ export function CreateCategoryDialog() {
               Cancel
             </Button>
 
-            <form.Subscribe
-              selector={(state) => [state.isSubmitting]}
-            >
+            <form.Subscribe selector={(state) => [state.isSubmitting]}>
               {([isSubmitting]) => (
                 <Button type="submit" disabled={isSubmitting}>
                   {isSubmitting ? "Creating..." : "Create Category"}
@@ -215,5 +263,5 @@ export function CreateCategoryDialog() {
         </form>
       </DialogContent>
     </Dialog>
-  );
+  )
 }
