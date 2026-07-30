@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { Link, useLocation } from "@tanstack/react-router"
 import {
   LayoutDashboard,
   LogOut,
@@ -14,15 +15,16 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
 const navigationItems = [
-  { label: "Dashboard", icon: LayoutDashboard, active: true },
-  { label: "Ventas", icon: ShoppingCart },
-  { label: "Inventario", icon: Package },
-  { label: "Locaciones", icon: MapPin },
-  { label: "Equipo", icon: Users },
-]
+  { label: "Dashboard", icon: LayoutDashboard, to: "/dashboard" },
+  { label: "Ventas", icon: ShoppingCart, to: "/sales" },
+  { label: "Inventario", icon: Package, to: "/inventory" },
+  { label: "Locaciones", icon: MapPin, to: "/locations" },
+  { label: "Equipo", icon: Users, to: "/team" },
+] as const
 
 export function AppSidebar() {
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const pathname = useLocation({ select: (location) => location.pathname })
 
   return (
     <aside className="flex w-20 shrink-0 flex-col border-r bg-background md:w-64">
@@ -30,22 +32,26 @@ export function AppSidebar() {
         className="flex flex-1 flex-col gap-1 p-3"
         aria-label="Navegación principal"
       >
-        {navigationItems.map(({ label, icon: Icon, active }) => (
-          <Button
-            key={label}
-            type="button"
-            variant={active ? "secondary" : "ghost"}
-            className={cn(
-              "h-10 justify-center px-2 md:justify-start md:px-3",
-              active && "font-semibold"
-            )}
-            aria-current={active ? "page" : undefined}
-            aria-label={label}
-          >
-            <Icon className="size-4" aria-hidden="true" />
-            <span className="hidden md:inline">{label}</span>
-          </Button>
-        ))}
+        {navigationItems.map(({ label, icon: Icon, to }) => {
+          const active = pathname === to
+
+          return (
+            <Button
+              key={label}
+              render={<Link to={to} />}
+              variant={active ? "secondary" : "ghost"}
+              className={cn(
+                "h-10 justify-center px-2 md:justify-start md:px-3",
+                active && "font-semibold"
+              )}
+              aria-current={active ? "page" : undefined}
+              aria-label={label}
+            >
+              <Icon className="size-4" aria-hidden="true" />
+              <span className="hidden md:inline">{label}</span>
+            </Button>
+          )
+        })}
       </nav>
 
       <div className="border-t p-3">
