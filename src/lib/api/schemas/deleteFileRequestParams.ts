@@ -4,7 +4,8 @@
  * ciclo
  * OpenAPI spec version: 0.1.0
  */
+import type { DeleteFileRequestDeleteType } from './deleteFileRequestDeleteType.ts';
 
 export type DeleteFileRequestParams = {
-delete_type: string;
+delete_type: DeleteFileRequestDeleteType;
 };

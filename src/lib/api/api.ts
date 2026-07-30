@@ -32,6 +32,11 @@ import type {
   DeleteFileResponse,
   DeletePermissionResponse,
   DeleteRoleResponse,
+  CreateLocalityRequest,
+  CreateStateRequest,
+  CreateUserRequest,
+  DeleteFileRequestParams,
+  DeleteFileResponse,
   ErrorResponse,
   FileId,
   GetDownloadUrlRequestParams,
@@ -307,17 +312,17 @@ export const useGetDownloadUrlRequest = <TError = Promise<ErrorResponse | void>>
   }
 }
 
-export type createCategoryRequestResponse201 = {
-  data: Category
+export type createFileRequestResponse201 = {
+  data: CreateFileResponse
   status: 201
 }
 
-export type createCategoryRequestResponse400 = {
+export type createFileRequestResponse400 = {
   data: ErrorResponse
   status: 400
 }
 
-export type createCategoryRequestResponse500 = {
+export type createFileRequestResponse500 = {
   data: void
   status: 500
 }

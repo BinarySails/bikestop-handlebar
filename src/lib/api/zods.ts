@@ -17,8 +17,6 @@ export const CreateFileRequestBody = zod.object({
 
 export const createFileRequestResponseExpiresInSecondsMin = 0;
 
-
-
 export const CreateFileRequestResponse = zod.object({
   "expires_in_seconds": zod.number().min(createFileRequestResponseExpiresInSecondsMin),
   "file": zod.object({
@@ -39,13 +37,12 @@ export const CreateFileRequestResponse = zod.object({
   "upload_url": zod.string()
 })
 
-
 export const DeleteFileRequestParams = zod.object({
   "id": zod.uuid().describe('File ID')
 })
 
 export const DeleteFileRequestQueryParams = zod.object({
-  "delete_type": zod.string()
+  "delete_type": zod.enum(['soft', 'hard'])
 })
 
 export const DeleteFileRequestResponse = zod.object({
@@ -65,22 +62,17 @@ export const DeleteFileRequestResponse = zod.object({
 })
 })
 
-
 export const GetDownloadUrlRequestParams = zod.object({
   "id": zod.uuid().describe('File ID')
 })
 
 export const getDownloadUrlRequestQueryExpiresInSecondsMin = 0;
 
-
-
 export const GetDownloadUrlRequestQueryParams = zod.object({
   "expires_in_seconds": zod.number().min(getDownloadUrlRequestQueryExpiresInSecondsMin).optional()
 })
 
 export const getDownloadUrlRequestResponseExpiresInSecondsMin = 0;
-
-
 
 export const GetDownloadUrlRequestResponse = zod.object({
   "download_url": zod.string(),
@@ -101,6 +93,43 @@ export const GetDownloadUrlRequestResponse = zod.object({
 })
 })
 
+export const CreateStateRequestBody = zod.object({
+  "display_name": zod.string()
+})
+
+export const CreateStateRequestResponse = zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid()
+})
+
+export const CreateLocalityRequestParams = zod.object({
+  "state_id": zod.uuid().describe('State identifier')
+})
+
+export const CreateLocalityRequestBody = zod.object({
+  "display_name": zod.string()
+})
+
+export const CreateLocalityRequestResponse = zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "state_id": zod.uuid()
+})
+
+export const CreateBrandRequestBody = zod.object({
+  "display_name": zod.string(),
+  "image_url": zod.string()
+})
+
+export const CreateBrandRequestResponse = zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "image_url": zod.string(),
+  "status": zod.enum(['enable', 'disable', 'archive'])
+})
 
 export const CreateCategoryRequestBody = zod.object({
   "description": zod.string().nullish(),
@@ -118,7 +147,6 @@ export const CreateCategoryRequestResponse = zod.object({
   "slug": zod.string()
 })
 
-
 export const ListPermissionsHandlerResponse = zod.object({
   "permissions": zod.array(zod.object({
   "created_at": zod.iso.datetime({"offset":true}),
@@ -128,7 +156,6 @@ export const ListPermissionsHandlerResponse = zod.object({
   "slug": zod.string()
 }))
 })
-
 
 export const CreatePermissionHandlerBody = zod.object({
   "description": zod.string().nullish(),
@@ -145,7 +172,6 @@ export const CreatePermissionHandlerResponse = zod.object({
   "slug": zod.string()
 })
 })
-
 
 export const UpdatePermissionHandlerParams = zod.object({
   "permission_id": zod.uuid().describe('Permission ID')
@@ -167,7 +193,6 @@ export const UpdatePermissionHandlerResponse = zod.object({
 })
 })
 
-
 export const DeletePermissionHandlerParams = zod.object({
   "permission_id": zod.uuid().describe('Permission ID')
 })
@@ -175,7 +200,6 @@ export const DeletePermissionHandlerParams = zod.object({
 export const DeletePermissionHandlerResponse = zod.object({
   "success": zod.boolean()
 })
-
 
 export const ListRolesHandlerResponse = zod.object({
   "roles": zod.array(zod.object({
@@ -186,7 +210,6 @@ export const ListRolesHandlerResponse = zod.object({
   "slug": zod.string()
 }))
 })
-
 
 export const CreateRoleHandlerBody = zod.object({
   "display_name": zod.string(),
@@ -202,7 +225,6 @@ export const CreateRoleHandlerResponse = zod.object({
   "slug": zod.string()
 })
 })
-
 
 export const UpdateRoleHandlerParams = zod.object({
   "role_id": zod.uuid().describe('Role ID')
@@ -224,7 +246,6 @@ export const UpdateRoleHandlerResponse = zod.object({
 })
 })
 
-
 export const DeleteRoleHandlerParams = zod.object({
   "role_id": zod.uuid().describe('Role ID')
 })
@@ -232,7 +253,6 @@ export const DeleteRoleHandlerParams = zod.object({
 export const DeleteRoleHandlerResponse = zod.object({
   "success": zod.boolean()
 })
-
 
 export const ListRolePermissionsHandlerParams = zod.object({
   "role_id": zod.uuid().describe('Role ID')
@@ -247,7 +267,6 @@ export const ListRolePermissionsHandlerResponse = zod.object({
   "slug": zod.string()
 }))
 })
-
 
 export const AssignPermissionsHandlerParams = zod.object({
   "role_id": zod.uuid().describe('Role ID')
@@ -267,7 +286,6 @@ export const AssignPermissionsHandlerResponse = zod.object({
 }))
 })
 
-
 export const RemovePermissionsHandlerParams = zod.object({
   "role_id": zod.uuid().describe('Role ID')
 })
@@ -285,7 +303,6 @@ export const RemovePermissionsHandlerResponse = zod.object({
   "slug": zod.string()
 }))
 })
-
 
 export const CreateUserRequestBody = zod.object({
   "email": zod.string(),
