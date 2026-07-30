@@ -4,32 +4,179 @@
  * ciclo
  * OpenAPI spec version: 0.1.0
  */
-import * as zod from "zod"
+import * as zod from 'zod';
 
-export const CreateCategoryRequestBody = zod.object({
-  description: zod.string().nullish(),
-  display_name: zod.string(),
-  parent_id: zod.union([zod.null(), zod.uuid()]).optional(),
-  slug: zod.string(),
+export const CreateFileRequestBody = zod.object({
+  "checksum": zod.string(),
+  "content_type": zod.string(),
+  "file_name": zod.string().nullish(),
+  "file_type": zod.enum(['public', 'private']),
+  "original_filename": zod.string(),
+  "size": zod.number()
 })
 
-export const CreateCategoryRequestResponse = zod.object({
-  created_at: zod.iso.datetime({ offset: true }),
-  description: zod.string().nullish(),
-  display_name: zod.string(),
-  id: zod.uuid(),
-  parent_id: zod.union([zod.null(), zod.uuid()]).optional(),
-  slug: zod.string(),
+export const createFileRequestResponseExpiresInSecondsMin = 0;
+
+
+
+export const CreateFileRequestResponse = zod.object({
+  "expires_in_seconds": zod.number().min(createFileRequestResponseExpiresInSecondsMin),
+  "file": zod.object({
+  "bucket": zod.string(),
+  "checksum": zod.string(),
+  "content_type": zod.string(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "file_name": zod.string().nullish(),
+  "file_type": zod.enum(['public', 'private']),
+  "id": zod.uuid(),
+  "object_key": zod.string(),
+  "original_filename": zod.string(),
+  "size": zod.number(),
+  "status": zod.enum(['active', 'archive', 'delete', 'hard_delete']),
+  "storage_provider": zod.string()
+}),
+  "public_url": zod.string(),
+  "upload_url": zod.string()
 })
+
+
+export const DeleteFileRequestParams = zod.object({
+  "id": zod.uuid().describe('File ID')
+})
+
+export const DeleteFileRequestQueryParams = zod.object({
+  "delete_type": zod.enum(['soft', 'hard'])
+})
+
+export const DeleteFileRequestResponse = zod.object({
+  "file": zod.object({
+  "bucket": zod.string(),
+  "checksum": zod.string(),
+  "content_type": zod.string(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "file_name": zod.string().nullish(),
+  "file_type": zod.enum(['public', 'private']),
+  "id": zod.uuid(),
+  "object_key": zod.string(),
+  "original_filename": zod.string(),
+  "size": zod.number(),
+  "status": zod.enum(['active', 'archive', 'delete', 'hard_delete']),
+  "storage_provider": zod.string()
+})
+})
+
+
+export const GetDownloadUrlRequestParams = zod.object({
+  "id": zod.uuid().describe('File ID')
+})
+
+export const getDownloadUrlRequestQueryExpiresInSecondsMin = 0;
+
+
+
+export const GetDownloadUrlRequestQueryParams = zod.object({
+  "expires_in_seconds": zod.number().min(getDownloadUrlRequestQueryExpiresInSecondsMin).optional()
+})
+
+export const getDownloadUrlRequestResponseExpiresInSecondsMin = 0;
+
+
+
+export const GetDownloadUrlRequestResponse = zod.object({
+  "download_url": zod.string(),
+  "expires_in_seconds": zod.number().min(getDownloadUrlRequestResponseExpiresInSecondsMin),
+  "file": zod.object({
+  "bucket": zod.string(),
+  "checksum": zod.string(),
+  "content_type": zod.string(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "file_name": zod.string().nullish(),
+  "file_type": zod.enum(['public', 'private']),
+  "id": zod.uuid(),
+  "object_key": zod.string(),
+  "original_filename": zod.string(),
+  "size": zod.number(),
+  "status": zod.enum(['active', 'archive', 'delete', 'hard_delete']),
+  "storage_provider": zod.string()
+})
+})
+
+
+export const CreateStateRequestBody = zod.object({
+  "display_name": zod.string()
+})
+
+export const CreateStateRequestResponse = zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid()
+})
+
+
+export const CreateLocalityRequestParams = zod.object({
+  "state_id": zod.uuid().describe('State identifier')
+})
+
+export const CreateLocalityRequestBody = zod.object({
+  "display_name": zod.string()
+})
+
+export const CreateLocalityRequestResponse = zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "state_id": zod.uuid()
+})
+
 
 export const CreateBrandRequestBody = zod.object({
-  display_name: zod.string(),
-  image_url: zod.string().nullish(),
+  "display_name": zod.string(),
+  "image_url": zod.string()
 })
 
 export const CreateBrandRequestResponse = zod.object({
-  created_at: zod.iso.datetime({ offset: true }),
-  display_name: zod.string(),
-  image_url: zod.string().nullish(),
-  id: zod.uuid(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "image_url": zod.string(),
+  "status": zod.enum(['enable', 'disable', 'archive'])
+})
+
+
+export const CreateCategoryRequestBody = zod.object({
+  "description": zod.string().nullish(),
+  "display_name": zod.string(),
+  "parent_id": zod.union([zod.null(),zod.uuid()]).optional(),
+  "slug": zod.string()
+})
+
+export const CreateCategoryRequestResponse = zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "description": zod.string().nullish(),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "parent_id": zod.union([zod.null(),zod.uuid()]).optional(),
+  "slug": zod.string()
+})
+
+
+export const CreateUserRequestBody = zod.object({
+  "email": zod.string(),
+  "father_last_name": zod.string(),
+  "mother_last_name": zod.string(),
+  "name": zod.string(),
+  "password": zod.string(),
+  "username": zod.string()
+})
+
+export const CreateUserRequestResponse = zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "email": zod.string(),
+  "father_last_name": zod.string(),
+  "id": zod.uuid(),
+  "mother_last_name": zod.string(),
+  "name": zod.string(),
+  "password": zod.string(),
+  "status": zod.enum(['Active', 'Inactive']),
+  "username": zod.string()
 })

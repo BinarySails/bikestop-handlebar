@@ -6,7 +6,8 @@
  */
 
 export interface ErrorResponse {
+  content?: unknown;
   /** @nullable */
-  message?: string | null
-  type: string
+  message?: string | null;
+  type: string;
 }
