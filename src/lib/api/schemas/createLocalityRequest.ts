@@ -5,7 +5,6 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface CreateBrandRequest {
+export interface CreateLocalityRequest {
   display_name: string;
-  image_url: string;
 }

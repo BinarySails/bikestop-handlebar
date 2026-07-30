@@ -4,20 +4,18 @@ import { toast } from "sonner";
 import { useCreateBrandRequest } from "@/lib/api/api";
 import { CreateBrandRequestBody } from "@/lib/api/zods";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button"
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-
-
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 
 export function CreateBrandDialog() {
     const [open, setOpen] = useState(false);
@@ -151,5 +149,3 @@ export function CreateBrandDialog() {
         </Dialog>
     );
 }
-
-

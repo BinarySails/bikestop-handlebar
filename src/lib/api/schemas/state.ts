@@ -4,8 +4,10 @@
  * ciclo
  * OpenAPI spec version: 0.1.0
  */
+import type { StateId } from './stateId.ts';
 
-export interface CreateBrandRequest {
+export interface State {
+  created_at: string;
   display_name: string;
-  image_url: string;
+  id: StateId;
 }

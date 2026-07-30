@@ -4,8 +4,8 @@
  * ciclo
  * OpenAPI spec version: 0.1.0
  */
+import type { File } from './file.ts';
 
-export interface CreateBrandRequest {
-  display_name: string;
-  image_url: string;
+export interface DeleteFileResponse {
+  file: File;
 }
