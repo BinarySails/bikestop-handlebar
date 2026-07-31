@@ -8,4 +8,5 @@ export const Route = createFileRoute("/locations")({
 
 function LocationsPage() {
   return <AddressCatalog />
+  return <section aria-label="Locaciones" />
 }
