@@ -34,6 +34,7 @@ const mockCategories: Category[] = [
     description: null,
     created_at: "",
     parent_id: null,
+    status: "active",
   },
   {
     id: "2",
@@ -42,6 +43,7 @@ const mockCategories: Category[] = [
     description: null,
     created_at: "",
     parent_id: null,
+    status: "active",
   },
   {
     id: "3",
@@ -50,6 +52,7 @@ const mockCategories: Category[] = [
     description: null,
     created_at: "",
     parent_id: null,
+    status: "active",
   },
   {
     id: "4",
@@ -58,6 +61,7 @@ const mockCategories: Category[] = [
     description: null,
     created_at: "",
     parent_id: "1",
+    status: "active",
   },
   {
     id: "5",
@@ -66,6 +70,7 @@ const mockCategories: Category[] = [
     description: null,
     created_at: "",
     parent_id: "1",
+    status: "active",
   },
   {
     id: "6",
@@ -74,6 +79,7 @@ const mockCategories: Category[] = [
     description: null,
     created_at: "",
     parent_id: "2",
+    status: "active",
   },
 ]
 
