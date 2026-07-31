@@ -5,15 +5,11 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { CategoryId } from './categoryId.ts';
-import type { CategoryStatus } from './categoryStatus.ts';
 
-export interface Category {
-  created_at: string;
+export interface UpdateCategoryRequest {
   /** @nullable */
   description?: string | null;
   display_name: string;
-  id: CategoryId;
   parent_id?: null | CategoryId;
   slug: string;
-  status: CategoryStatus;
 }

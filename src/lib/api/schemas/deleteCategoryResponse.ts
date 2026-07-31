@@ -4,9 +4,8 @@
  * ciclo
  * OpenAPI spec version: 0.1.0
  */
+import type { Category } from './category.ts';
 
-export interface ErrorResponse {
-  /** @nullable */
-  message?: string | null;
-  type: string;
+export interface DeleteCategoryResponse {
+  category: Category;
 }

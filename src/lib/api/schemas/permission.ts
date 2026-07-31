@@ -4,16 +4,15 @@
  * ciclo
  * OpenAPI spec version: 0.1.0
  */
-import type { CategoryId } from './categoryId.ts';
-import type { CategoryStatus } from './categoryStatus.ts';
+import type { PermissionId } from './permissionId.ts';
+import type { RoleStatus } from './roleStatus.ts';
 
-export interface Category {
+export interface Permission {
   created_at: string;
   /** @nullable */
   description?: string | null;
   display_name: string;
-  id: CategoryId;
-  parent_id?: null | CategoryId;
+  id: PermissionId;
   slug: string;
-  status: CategoryStatus;
+  status: RoleStatus;
 }

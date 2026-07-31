@@ -156,7 +156,319 @@ export const CreateCategoryRequestResponse = zod.object({
   "display_name": zod.string(),
   "id": zod.uuid(),
   "parent_id": zod.union([zod.null(),zod.uuid()]).optional(),
+  "slug": zod.string(),
+  "status": zod.enum(['active', 'inactive'])
+})
+
+
+export const GetCategoryRequestParams = zod.object({
+  "id": zod.uuid().describe('Category ID')
+})
+
+export const GetCategoryRequestResponse = zod.object({
+  "category": zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "description": zod.string().nullish(),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "parent_id": zod.union([zod.null(),zod.uuid()]).optional(),
+  "slug": zod.string(),
+  "status": zod.enum(['active', 'inactive'])
+})
+})
+
+
+export const UpdateCategoryRequestParams = zod.object({
+  "id": zod.uuid().describe('Category ID')
+})
+
+export const UpdateCategoryRequestBody = zod.object({
+  "description": zod.string().nullish(),
+  "display_name": zod.string(),
+  "parent_id": zod.union([zod.null(),zod.uuid()]).optional(),
   "slug": zod.string()
+})
+
+export const UpdateCategoryRequestResponse = zod.object({
+  "category": zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "description": zod.string().nullish(),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "parent_id": zod.union([zod.null(),zod.uuid()]).optional(),
+  "slug": zod.string(),
+  "status": zod.enum(['active', 'inactive'])
+})
+})
+
+
+export const DeleteCategoryRequestParams = zod.object({
+  "id": zod.uuid().describe('Category ID')
+})
+
+export const DeleteCategoryRequestResponse = zod.object({
+  "category": zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "description": zod.string().nullish(),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "parent_id": zod.union([zod.null(),zod.uuid()]).optional(),
+  "slug": zod.string(),
+  "status": zod.enum(['active', 'inactive'])
+})
+})
+
+
+export const ListPermissionsHandlerResponse = zod.object({
+  "permissions": zod.array(zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "description": zod.string().nullish(),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "slug": zod.string(),
+  "status": zod.enum(['active', 'inactive', 'deleted'])
+}))
+})
+
+
+export const CreatePermissionHandlerBody = zod.object({
+  "description": zod.string().nullish(),
+  "display_name": zod.string(),
+  "slug": zod.string()
+})
+
+export const CreatePermissionHandlerResponse = zod.object({
+  "permission": zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "description": zod.string().nullish(),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "slug": zod.string(),
+  "status": zod.enum(['active', 'inactive', 'deleted'])
+})
+})
+
+
+export const UpdatePermissionHandlerParams = zod.object({
+  "permission_id": zod.uuid().describe('Permission ID')
+})
+
+export const UpdatePermissionHandlerBody = zod.object({
+  "description": zod.string().nullish(),
+  "display_name": zod.string(),
+  "slug": zod.string(),
+  "status": zod.enum(['active', 'inactive', 'deleted']).optional()
+})
+
+export const UpdatePermissionHandlerResponse = zod.object({
+  "permission": zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "description": zod.string().nullish(),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "slug": zod.string(),
+  "status": zod.enum(['active', 'inactive', 'deleted'])
+})
+})
+
+
+export const DeletePermissionHandlerParams = zod.object({
+  "permission_id": zod.uuid().describe('Permission ID')
+})
+
+export const DeletePermissionHandlerResponse = zod.object({
+  "permission": zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "description": zod.string().nullish(),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "slug": zod.string(),
+  "status": zod.enum(['active', 'inactive', 'deleted'])
+})
+})
+
+
+export const ListRolesHandlerResponse = zod.object({
+  "roles": zod.array(zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "slug": zod.string(),
+  "status": zod.enum(['active', 'inactive', 'deleted'])
+}))
+})
+
+
+export const CreateRoleHandlerBody = zod.object({
+  "display_name": zod.string(),
+  "slug": zod.string()
+})
+
+export const CreateRoleHandlerResponse = zod.object({
+  "role": zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "slug": zod.string(),
+  "status": zod.enum(['active', 'inactive', 'deleted'])
+})
+})
+
+
+export const UpdateRoleHandlerParams = zod.object({
+  "role_id": zod.uuid().describe('Role ID')
+})
+
+export const UpdateRoleHandlerBody = zod.object({
+  "display_name": zod.string(),
+  "slug": zod.string(),
+  "status": zod.enum(['active', 'inactive', 'deleted'])
+})
+
+export const UpdateRoleHandlerResponse = zod.object({
+  "role": zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "slug": zod.string(),
+  "status": zod.enum(['active', 'inactive', 'deleted'])
+})
+})
+
+
+export const DeleteRoleHandlerParams = zod.object({
+  "role_id": zod.uuid().describe('Role ID')
+})
+
+export const DeleteRoleHandlerResponse = zod.object({
+  "role": zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "slug": zod.string(),
+  "status": zod.enum(['active', 'inactive', 'deleted'])
+})
+})
+
+
+export const ListRolePermissionsHandlerParams = zod.object({
+  "role_id": zod.uuid().describe('Role ID')
+})
+
+export const ListRolePermissionsHandlerResponse = zod.object({
+  "permissions": zod.array(zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "description": zod.string().nullish(),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "slug": zod.string(),
+  "status": zod.enum(['active', 'inactive', 'deleted'])
+}))
+})
+
+
+export const AssignPermissionsHandlerParams = zod.object({
+  "role_id": zod.uuid().describe('Role ID')
+})
+
+export const AssignPermissionsHandlerBody = zod.object({
+  "permission_ids": zod.array(zod.uuid())
+})
+
+export const AssignPermissionsHandlerResponse = zod.object({
+  "permissions": zod.array(zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "description": zod.string().nullish(),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "slug": zod.string(),
+  "status": zod.enum(['active', 'inactive', 'deleted'])
+}))
+})
+
+
+export const RemovePermissionsHandlerParams = zod.object({
+  "role_id": zod.uuid().describe('Role ID')
+})
+
+export const RemovePermissionsHandlerBody = zod.object({
+  "permission_ids": zod.array(zod.uuid())
+})
+
+export const RemovePermissionsHandlerResponse = zod.object({
+  "permissions": zod.array(zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "description": zod.string().nullish(),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "slug": zod.string(),
+  "status": zod.enum(['active', 'inactive', 'deleted'])
+}))
+})
+
+
+export const GetUserPermissionsHandlerParams = zod.object({
+  "user_id": zod.uuid().describe('User ID')
+})
+
+export const GetUserPermissionsHandlerResponse = zod.object({
+  "permissions": zod.array(zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "description": zod.string().nullish(),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "slug": zod.string(),
+  "status": zod.enum(['active', 'inactive', 'deleted'])
+})),
+  "user_id": zod.uuid()
+})
+
+
+export const ListUserRolesHandlerParams = zod.object({
+  "user_id": zod.uuid().describe('User ID')
+})
+
+export const ListUserRolesHandlerResponse = zod.object({
+  "roles": zod.array(zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "slug": zod.string(),
+  "status": zod.enum(['active', 'inactive', 'deleted'])
+})),
+  "user_id": zod.uuid()
+})
+
+
+export const AssignRolesToUserHandlerParams = zod.object({
+  "user_id": zod.uuid().describe('User ID')
+})
+
+export const AssignRolesToUserHandlerBody = zod.object({
+  "mode": zod.union([zod.null(),zod.enum(['add', 'replace'])]).optional(),
+  "role_ids": zod.array(zod.uuid())
+})
+
+export const AssignRolesToUserHandlerResponse = zod.object({
+  "roles": zod.array(zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "slug": zod.string(),
+  "status": zod.enum(['active', 'inactive', 'deleted'])
+})),
+  "user_id": zod.uuid()
+})
+
+
+export const RemoveUserRoleHandlerParams = zod.object({
+  "user_id": zod.uuid().describe('User ID'),
+  "role_id": zod.uuid().describe('Role ID')
+})
+
+export const RemoveUserRoleHandlerResponse = zod.object({
+  "role_id": zod.uuid(),
+  "user_id": zod.uuid()
 })
 
 
@@ -166,6 +478,7 @@ export const CreateUserRequestBody = zod.object({
   "mother_last_name": zod.string(),
   "name": zod.string(),
   "password": zod.string(),
+  "role_ids": zod.array(zod.uuid()).nullish(),
   "username": zod.string()
 })
 
@@ -179,4 +492,151 @@ export const CreateUserRequestResponse = zod.object({
   "password": zod.string(),
   "status": zod.enum(['Active', 'Inactive']),
   "username": zod.string()
+})
+
+
+export const ListWarehousesRequestQueryParams = zod.object({
+  "status": zod.enum(['active', 'inactive']).optional()
+})
+
+export const ListWarehousesRequestResponseItem = zod.object({
+  "address": zod.object({
+  "address": zod.string(),
+  "city": zod.string(),
+  "country": zod.string(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "postal_code": zod.string(),
+  "state": zod.string()
+}),
+  "code": zod.string().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "description": zod.string().nullish(),
+  "id": zod.uuid(),
+  "name": zod.string(),
+  "status": zod.enum(['active', 'inactive']),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+export const ListWarehousesRequestResponse = zod.array(ListWarehousesRequestResponseItem)
+
+
+export const CreateWarehouseRequestBody = zod.object({
+  "address": zod.object({
+  "address": zod.string(),
+  "city": zod.string(),
+  "country": zod.string(),
+  "postal_code": zod.string(),
+  "state": zod.string()
+}),
+  "code": zod.string().nullish(),
+  "description": zod.string().nullish(),
+  "name": zod.string()
+})
+
+export const CreateWarehouseRequestResponse = zod.object({
+  "address": zod.object({
+  "address": zod.string(),
+  "city": zod.string(),
+  "country": zod.string(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "postal_code": zod.string(),
+  "state": zod.string()
+}),
+  "code": zod.string().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "description": zod.string().nullish(),
+  "id": zod.uuid(),
+  "name": zod.string(),
+  "status": zod.enum(['active', 'inactive']),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+
+
+export const GetWarehouseRequestParams = zod.object({
+  "id": zod.uuid().describe('Warehouse ID')
+})
+
+export const GetWarehouseRequestResponse = zod.object({
+  "address": zod.object({
+  "address": zod.string(),
+  "city": zod.string(),
+  "country": zod.string(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "postal_code": zod.string(),
+  "state": zod.string()
+}),
+  "code": zod.string().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "description": zod.string().nullish(),
+  "id": zod.uuid(),
+  "name": zod.string(),
+  "status": zod.enum(['active', 'inactive']),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+
+
+export const UpdateWarehouseRequestParams = zod.object({
+  "id": zod.uuid().describe('Warehouse ID')
+})
+
+export const UpdateWarehouseRequestBody = zod.object({
+  "address": zod.object({
+  "address": zod.string(),
+  "city": zod.string(),
+  "country": zod.string(),
+  "postal_code": zod.string(),
+  "state": zod.string()
+}),
+  "code": zod.string().nullish(),
+  "description": zod.string().nullish(),
+  "name": zod.string()
+})
+
+export const UpdateWarehouseRequestResponse = zod.object({
+  "address": zod.object({
+  "address": zod.string(),
+  "city": zod.string(),
+  "country": zod.string(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "postal_code": zod.string(),
+  "state": zod.string()
+}),
+  "code": zod.string().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "description": zod.string().nullish(),
+  "id": zod.uuid(),
+  "name": zod.string(),
+  "status": zod.enum(['active', 'inactive']),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+
+
+export const UpdateWarehouseStatusRequestParams = zod.object({
+  "id": zod.uuid().describe('Warehouse ID')
+})
+
+export const UpdateWarehouseStatusRequestBody = zod.object({
+  "status": zod.enum(['active', 'inactive'])
+})
+
+export const UpdateWarehouseStatusRequestResponse = zod.object({
+  "address": zod.object({
+  "address": zod.string(),
+  "city": zod.string(),
+  "country": zod.string(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "postal_code": zod.string(),
+  "state": zod.string()
+}),
+  "code": zod.string().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "description": zod.string().nullish(),
+  "id": zod.uuid(),
+  "name": zod.string(),
+  "status": zod.enum(['active', 'inactive']),
+  "updated_at": zod.iso.datetime({"offset":true})
 })
