@@ -3,10 +3,11 @@ import { Button } from "@/components/ui/button"
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 
-export function LoginForm({
-  className,
-  ...props
-}: React.ComponentProps<"form">) {
+interface LoginFormProps extends React.ComponentProps<"form"> {
+  disabled?: boolean
+}
+
+export function LoginForm({ className, disabled, ...props }: LoginFormProps) {
   return (
     <form className={cn("flex flex-col gap-6", className)} {...props}>
       <FieldGroup>
@@ -24,14 +25,23 @@ export function LoginForm({
             type="email"
             placeholder="tu@ejemplo.com"
             required
+            disabled={disabled}
           />
         </Field>
         <Field>
           <FieldLabel htmlFor="password">Contraseña</FieldLabel>
-          <Input id="password" name="password" type="password" required />
+          <Input
+            id="password"
+            name="password"
+            type="password"
+            required
+            disabled={disabled}
+          />
         </Field>
         <Field>
-          <Button type="submit">Iniciar sesión</Button>
+          <Button type="submit" disabled={disabled}>
+            {disabled ? "Iniciando sesión..." : "Iniciar sesión"}
+          </Button>
         </Field>
       </FieldGroup>
     </form>

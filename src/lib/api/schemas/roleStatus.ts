@@ -5,10 +5,11 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export type UserStatus = typeof UserStatus[keyof typeof UserStatus];
+export type RoleStatus = typeof RoleStatus[keyof typeof RoleStatus];
 
 
-export const UserStatus = {
+export const RoleStatus = {
   active: 'active',
   inactive: 'inactive',
+  deleted: 'deleted',
 } as const;
