@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 
 export function AppFooter() {
   return (
@@ -18,5 +18,5 @@ export function AppFooter() {
         </nav>
       </div>
     </footer>
-  )
+  );
 }

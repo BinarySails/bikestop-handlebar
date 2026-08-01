@@ -1,4 +1,4 @@
-import { CreateStateLocalityDialog } from "./create-state-locality-modal"
+import { CreateStateLocalityDialog } from "./create-state-locality-modal";
 
 export function AddressCatalog() {
   return (
@@ -16,5 +16,5 @@ export function AddressCatalog() {
         <CreateStateLocalityDialog />
       </div>
     </main>
-  )
+  );
 }

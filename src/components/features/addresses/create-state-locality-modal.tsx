@@ -1,8 +1,8 @@
-import { useState } from "react"
-import { useForm } from "@tanstack/react-form"
-import { toast } from "sonner"
+import { useState } from "react";
+import { useForm } from "@tanstack/react-form";
+import { toast } from "sonner";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -11,30 +11,30 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { createLocalityRequest, useCreateStateRequest } from "@/lib/api/api"
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { createLocalityRequest, useCreateStateRequest } from "@/lib/api/api";
 import {
   CreateLocalityRequestBody,
   CreateStateRequestBody,
-} from "@/lib/api/zods"
+} from "@/lib/api/zods";
 
 function validateDisplayName(value: string) {
-  const displayName = value.trim()
+  const displayName = value.trim();
 
-  if (!displayName) return "El nombre es obligatorio"
+  if (!displayName) return "El nombre es obligatorio";
   if (displayName.length < 3) {
-    return "El nombre debe tener al menos 3 caracteres"
+    return "El nombre debe tener al menos 3 caracteres";
   }
 
-  return undefined
+  return undefined;
 }
 
 function getErrorMessage(data: unknown, fallback: string) {
-  if (!data || typeof data !== "object") return fallback
+  if (!data || typeof data !== "object") return fallback;
 
-  const error = data as { content?: unknown; message?: unknown }
+  const error = data as { content?: unknown; message?: unknown };
 
   if (typeof error.message === "string" && error.message.trim()) {
     const translations: Record<string, string> = {
@@ -44,28 +44,28 @@ function getErrorMessage(data: unknown, fallback: string) {
       "locality already exists in this state":
         "La localidad ya existe dentro de este estado",
       "state not found": "No se encontró el estado",
-    }
+    };
 
-    return translations[error.message.toLowerCase()] ?? error.message
+    return translations[error.message.toLowerCase()] ?? error.message;
   }
 
   if (typeof error.content === "string" && error.content.trim()) {
-    return error.content
+    return error.content;
   }
 
-  return fallback
+  return fallback;
 }
 
 type ServerErrors = {
-  locality?: string
-  state?: string
-}
+  locality?: string;
+  state?: string;
+};
 
 export function CreateStateLocalityDialog() {
-  const [open, setOpen] = useState(false)
-  const [createdStateId, setCreatedStateId] = useState<string | null>(null)
-  const [serverErrors, setServerErrors] = useState<ServerErrors>({})
-  const { trigger: createState } = useCreateStateRequest()
+  const [open, setOpen] = useState(false);
+  const [createdStateId, setCreatedStateId] = useState<string | null>(null);
+  const [serverErrors, setServerErrors] = useState<ServerErrors>({});
+  const { trigger: createState } = useCreateStateRequest();
 
   const form = useForm({
     defaultValues: {
@@ -73,44 +73,44 @@ export function CreateStateLocalityDialog() {
       localityDisplayName: "",
     },
     onSubmit: async ({ value }) => {
-      setServerErrors({})
+      setServerErrors({});
 
-      let stateId = createdStateId
+      let stateId = createdStateId;
 
       if (!stateId) {
         try {
           const stateResponse = await createState({
             display_name: value.stateDisplayName.trim(),
-          })
-          const stateStatus = Number(stateResponse.status)
+          });
+          const stateStatus = Number(stateResponse.status);
 
           if (stateStatus !== 200 && stateStatus !== 201) {
             const fallback =
               stateResponse.status === 400
                 ? "El nombre del estado no es válido"
-                : "No se pudo guardar el estado"
-            const message = getErrorMessage(stateResponse.data, fallback)
+                : "No se pudo guardar el estado";
+            const message = getErrorMessage(stateResponse.data, fallback);
 
             if (stateResponse.status === 400) {
-              setServerErrors({ state: message })
+              setServerErrors({ state: message });
             }
 
-            toast.error(message)
-            return
+            toast.error(message);
+            return;
           }
 
-          stateId = (stateResponse.data as { id: string }).id
-          setCreatedStateId(stateId)
+          stateId = (stateResponse.data as { id: string }).id;
+          setCreatedStateId(stateId);
         } catch {
-          toast.error("No se pudo conectar al servidor al guardar el estado")
-          return
+          toast.error("No se pudo conectar al servidor al guardar el estado");
+          return;
         }
       }
 
       try {
         const localityResponse = await createLocalityRequest(stateId, {
           display_name: value.localityDisplayName.trim(),
-        })
+        });
 
         if (localityResponse.status !== 201) {
           const fallback =
@@ -120,35 +120,35 @@ export function CreateStateLocalityDialog() {
                 ? "No se encontró el estado"
                 : localityResponse.status === 409
                   ? "La localidad ya existe dentro de este estado"
-                  : "No se pudo guardar la localidad"
-          const message = getErrorMessage(localityResponse.data, fallback)
+                  : "No se pudo guardar la localidad";
+          const message = getErrorMessage(localityResponse.data, fallback);
 
           if (localityResponse.status === 400) {
-            setServerErrors({ locality: message })
+            setServerErrors({ locality: message });
           }
 
-          toast.error(message)
-          return
+          toast.error(message);
+          return;
         }
 
-        toast.success("El estado y la localidad se crearon correctamente")
-        form.reset()
-        setCreatedStateId(null)
-        setServerErrors({})
-        setOpen(false)
+        toast.success("El estado y la localidad se crearon correctamente");
+        form.reset();
+        setCreatedStateId(null);
+        setServerErrors({});
+        setOpen(false);
       } catch {
-        toast.error("No se pudo conectar al servidor al guardar la localidad")
+        toast.error("No se pudo conectar al servidor al guardar la localidad");
       }
     },
-  })
+  });
 
   function handleOpenChange(nextOpen: boolean) {
-    setOpen(nextOpen)
+    setOpen(nextOpen);
 
     if (!nextOpen) {
-      form.reset()
-      setCreatedStateId(null)
-      setServerErrors({})
+      form.reset();
+      setCreatedStateId(null);
+      setServerErrors({});
     }
   }
 
@@ -170,9 +170,9 @@ export function CreateStateLocalityDialog() {
           className="space-y-5"
           noValidate
           onSubmit={(event) => {
-            event.preventDefault()
-            event.stopPropagation()
-            form.handleSubmit()
+            event.preventDefault();
+            event.stopPropagation();
+            form.handleSubmit();
           }}
         >
           <form.Field
@@ -180,10 +180,10 @@ export function CreateStateLocalityDialog() {
             validators={{
               onChange: ({ value }) => {
                 const result =
-                  CreateStateRequestBody.shape.display_name.safeParse(value)
+                  CreateStateRequestBody.shape.display_name.safeParse(value);
 
-                if (!result.success) return result.error.issues[0]?.message
-                return validateDisplayName(value)
+                if (!result.success) return result.error.issues[0]?.message;
+                return validateDisplayName(value);
               },
               onSubmit: ({ value }) => validateDisplayName(value),
             }}
@@ -206,8 +206,8 @@ export function CreateStateLocalityDialog() {
                     setServerErrors((errors) => ({
                       ...errors,
                       state: undefined,
-                    }))
-                    field.handleChange(event.target.value)
+                    }));
+                    field.handleChange(event.target.value);
                   }}
                   placeholder="Jalisco"
                   autoComplete="address-level1"
@@ -245,10 +245,10 @@ export function CreateStateLocalityDialog() {
             validators={{
               onChange: ({ value }) => {
                 const result =
-                  CreateLocalityRequestBody.shape.display_name.safeParse(value)
+                  CreateLocalityRequestBody.shape.display_name.safeParse(value);
 
-                if (!result.success) return result.error.issues[0]?.message
-                return validateDisplayName(value)
+                if (!result.success) return result.error.issues[0]?.message;
+                return validateDisplayName(value);
               },
               onSubmit: ({ value }) => validateDisplayName(value),
             }}
@@ -271,8 +271,8 @@ export function CreateStateLocalityDialog() {
                     setServerErrors((errors) => ({
                       ...errors,
                       locality: undefined,
-                    }))
-                    field.handleChange(event.target.value)
+                    }));
+                    field.handleChange(event.target.value);
                   }}
                   placeholder="Guadalajara"
                   autoComplete="address-level2"
@@ -324,5 +324,5 @@ export function CreateStateLocalityDialog() {
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
