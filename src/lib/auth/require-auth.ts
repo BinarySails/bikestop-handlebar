@@ -1,6 +1,6 @@
-import { redirect } from "@tanstack/react-router"
-import { meHandler } from "@/lib/api/api"
-import { useAuthStore } from "./use-auth-store"
+import { redirect } from "@tanstack/react-router";
+import { meHandler } from "@/lib/api/api";
+import { useAuthStore } from "./use-auth-store";
 
 /**
  * Auth guard to be used in TanStack Router's `beforeLoad` hook.
@@ -15,8 +15,8 @@ export async function requireAuth({
   location,
   navigateTo = "/login",
 }: {
-  location: { href: string }
-  navigateTo?: string
+  location: { href: string };
+  navigateTo?: string;
 }) {
   const {
     isAuthenticated,
@@ -27,21 +27,21 @@ export async function requireAuth({
     expiresAt,
     isInitialChecked,
     setInitialChecked,
-  } = useAuthStore.getState()
+  } = useAuthStore.getState();
 
   if (isInDev) {
-    return
+    return;
   }
 
   if (isAuthenticated) {
     if (checkSession()) {
-      return
+      return;
     }
   }
 
   if (!isInitialChecked) {
     try {
-      const { data: user, status } = await meHandler()
+      const { data: user, status } = await meHandler();
 
       if (user && status === 200) {
         setAuth(
@@ -50,19 +50,19 @@ export async function requireAuth({
             policies: [],
           },
           expiresAt || undefined
-        )
-        console.info("Session validated via initial check in beforeLoad")
-        return
+        );
+        console.info("Session validated via initial check in beforeLoad");
+        return;
       }
     } catch (err) {
-      console.debug("Initial session check failed", err)
+      console.debug("Initial session check failed", err);
     } finally {
-      setInitialChecked()
+      setInitialChecked();
     }
   }
 
   try {
-    const { data: user, status } = await meHandler()
+    const { data: user, status } = await meHandler();
 
     if (user && status === 200) {
       setAuth(
@@ -71,15 +71,15 @@ export async function requireAuth({
           policies: [],
         },
         expiresAt || undefined
-      )
-      console.info("Session validated via beforeLoad")
-      return
+      );
+      console.info("Session validated via beforeLoad");
+      return;
     } else {
-      clearAuth()
+      clearAuth();
     }
   } catch (err) {
-    console.debug("Session check failed", err)
-    clearAuth()
+    console.debug("Session check failed", err);
+    clearAuth();
   }
 
   throw redirect({
@@ -87,22 +87,22 @@ export async function requireAuth({
     search: {
       next: location.href,
     },
-  })
+  });
 }
 
 /**
  * Policy guard to be used in TanStack Router's `beforeLoad` hook.
  */
 export function requirePolicy(requiredPolicy: string) {
-  const { actor, isInDev } = useAuthStore.getState()
+  const { actor, isInDev } = useAuthStore.getState();
 
-  if (isInDev) return
+  if (isInDev) return;
 
-  if (actor?.policies?.includes("manage:all")) return
+  if (actor?.policies?.includes("manage:all")) return;
 
   if (!actor?.policies?.includes(requiredPolicy)) {
     throw redirect({
       to: "/dashboard",
-    })
+    });
   }
 }

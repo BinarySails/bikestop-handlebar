@@ -1,21 +1,21 @@
-import { defineConfig } from "orval"
+import { defineConfig } from "orval";
 // oxlint-disable-next-line import/no-unassigned-import
-import "dotenv/config"
+import "dotenv/config";
 
-let env = process.env.ENVIRONMENT || "DEVELOPMENT"
+let env = process.env.ENVIRONMENT || "DEVELOPMENT";
 
-if (!env) throw new Error("Please define ENVIRONEMT env var")
+if (!env) throw new Error("Please define ENVIRONEMT env var");
 
-env = env.toUpperCase()
+env = env.toUpperCase();
 
 const SOURCE_INPUT_URL = {
   DEVELOPMENT: "http://localhost:8080",
   PRODUCTION: "https://cloud.bikestop.com.mx",
-} as Record<string, string>
+} as Record<string, string>;
 
-console.log("You are executing orval from:", env, SOURCE_INPUT_URL[env])
+console.log("You are executing orval from:", env, SOURCE_INPUT_URL[env]);
 
-const auth = Buffer.from(`admin:password`).toString("base64")
+const auth = Buffer.from(`admin:password`).toString("base64");
 
 export default defineConfig({
   cicloSwr: {
@@ -53,4 +53,4 @@ export default defineConfig({
       //biome: true,
     },
   },
-})
+});

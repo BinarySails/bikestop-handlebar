@@ -1,10 +1,10 @@
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
 
 interface LoginFormProps extends React.ComponentProps<"form"> {
-  disabled?: boolean
+  disabled?: boolean;
 }
 
 export function LoginForm({ className, disabled, ...props }: LoginFormProps) {
@@ -45,5 +45,5 @@ export function LoginForm({ className, disabled, ...props }: LoginFormProps) {
         </Field>
       </FieldGroup>
     </form>
-  )
+  );
 }
