@@ -129,6 +129,41 @@ export const CreateLocalityRequestResponse = zod.object({
 })
 
 
+export const CreateCategoryRequestBody = zod.object({
+  "description": zod.string().nullish(),
+  "display_name": zod.string(),
+  "parent_id": zod.union([zod.null(),zod.uuid()]).optional(),
+  "slug": zod.string()
+})
+
+export const CreateCategoryRequestResponse = zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "description": zod.string().nullish(),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "parent_id": zod.union([zod.null(),zod.uuid()]).optional(),
+  "slug": zod.string()
+  "display_name": zod.string(),
+  "id": zod.uuid()
+})
+
+
+export const CreateLocalityRequestParams = zod.object({
+  "state_id": zod.uuid().describe('State identifier')
+})
+
+export const CreateLocalityRequestBody = zod.object({
+  "display_name": zod.string()
+})
+
+export const CreateLocalityRequestResponse = zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "state_id": zod.uuid()
+})
+
+
 export const CreateBrandRequestBody = zod.object({
   "display_name": zod.string(),
   "image_url": zod.string()

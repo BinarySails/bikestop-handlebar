@@ -9,6 +9,9 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as LocationsRouteImport } from './routes/locations'
+import { Route as IndexRouteImport } from './routes/index'
+
 import { Route as TeamRouteImport } from './routes/team'
 import { Route as SalesRouteImport } from './routes/sales'
 import { Route as LocationsRouteImport } from './routes/locations'
@@ -49,9 +52,13 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/locations': typeof LocationsRoute
+}
+export interface FileRoutesByTo {
+  '/': typeof IndexRoute
+  '/locations': typeof LocationsRoute
   '/dashboard': typeof DashboardRoute
   '/inventory': typeof InventoryRoute
-  '/locations': typeof LocationsRoute
   '/sales': typeof SalesRoute
   '/team': typeof TeamRoute
 }
@@ -66,6 +73,14 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/locations': typeof LocationsRoute
+}
+export interface FileRouteTypes {
+  fileRoutesByFullPath: FileRoutesByFullPath
+  fullPaths: '/' | '/locations'
+  fileRoutesByTo: FileRoutesByTo
+  to: '/' | '/locations'
+  id: '__root__' | '/' | '/locations'
   '/dashboard': typeof DashboardRoute
   '/inventory': typeof InventoryRoute
   '/locations': typeof LocationsRoute
@@ -90,6 +105,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  LocationsRoute: typeof LocationsRoute
   DashboardRoute: typeof DashboardRoute
   InventoryRoute: typeof InventoryRoute
   LocationsRoute: typeof LocationsRoute
@@ -146,6 +162,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  LocationsRoute: LocationsRoute,
   DashboardRoute: DashboardRoute,
   InventoryRoute: InventoryRoute,
   LocationsRoute: LocationsRoute,
