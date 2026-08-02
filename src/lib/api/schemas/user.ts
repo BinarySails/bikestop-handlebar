@@ -4,7 +4,6 @@
  * ciclo
  * OpenAPI spec version: 0.1.0
  */
-import type { PasswordHash } from './passwordHash.ts';
 import type { UserId } from './userId.ts';
 import type { UserStatus } from './userStatus.ts';
 
@@ -13,9 +12,9 @@ export interface User {
   email: string;
   father_last_name: string;
   id: UserId;
-  mother_last_name: string;
+  /** @nullable */
+  mother_last_name?: string | null;
   name: string;
-  password: PasswordHash;
   status: UserStatus;
   username: string;
 }
