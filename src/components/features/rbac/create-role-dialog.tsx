@@ -73,7 +73,7 @@ export function CreateRoleDialog({
   });
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog key={role?.id ?? "create"} open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg" showCloseButton>
         <DialogHeader>
           <DialogTitle>{role ? "Editar Rol" : "Crear Rol"}</DialogTitle>
