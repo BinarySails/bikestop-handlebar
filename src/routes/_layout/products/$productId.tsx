@@ -65,7 +65,12 @@ function ProductDetailSkeleton() {
 
 function ProductDetailPage() {
   const { productId } = Route.useParams();
-  const { data: res, error, isLoading, mutate } = useGetProductRequest(productId);
+  const {
+    data: res,
+    error,
+    isLoading,
+    mutate,
+  } = useGetProductRequest(productId);
 
   const product: Product | null = res?.status === 200 ? res.data : null;
 
@@ -238,9 +243,7 @@ function ProductDetailView({
                     <Label htmlFor={field.name}>Marca</Label>
                     <Select
                       value={field.state.value}
-                      onValueChange={(value) =>
-                        field.handleChange(value ?? "")
-                      }
+                      onValueChange={(value) => field.handleChange(value ?? "")}
                       disabled={isArchived || brandsLoading}
                     >
                       <SelectTrigger id={field.name} className="w-full">
@@ -264,9 +267,7 @@ function ProductDetailView({
                     <Label htmlFor={field.name}>Categoría</Label>
                     <Select
                       value={field.state.value}
-                      onValueChange={(value) =>
-                        field.handleChange(value ?? "")
-                      }
+                      onValueChange={(value) => field.handleChange(value ?? "")}
                       disabled={isArchived || categoriesLoading}
                     >
                       <SelectTrigger id={field.name} className="w-full">

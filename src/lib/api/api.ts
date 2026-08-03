@@ -55,7 +55,6 @@ import type {
   GetUserPermissionsResponse,
   ListBrandsResponse,
   ListCategoriesResponse,
-  ListBrandsRequestParams,
   ListPermissionsResponse,
   ListProductsRequestParams,
   ListProductsResponse,
@@ -66,7 +65,6 @@ import type {
   LoginRequest,
   LoginResponse,
   MeResponse,
-  PaginatedBrand,
   PermissionId,
   Product,
   ProductId,
@@ -999,7 +997,7 @@ export const useCreateProductRequest = <TError = Promise<ErrorResponse>>(
 }
 
 export type listBrandsRequestResponse200 = {
-  data: PaginatedBrand
+  data: ListBrandsResponse
   status: 200
 }
 
@@ -1017,24 +1015,17 @@ export type listBrandsRequestResponseError = (listBrandsRequestResponse500) & {
 
 export type listBrandsRequestResponse = (listBrandsRequestResponseSuccess | listBrandsRequestResponseError)
 
-export const getListBrandsRequestUrl = (params?: ListBrandsRequestParams,) => {
-  const normalizedParams = new URLSearchParams();
+export const getListBrandsRequestUrl = () => {
 
-  Object.entries(params || {}).forEach(([key, value]) => {
 
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : String(value))
-    }
-  });
 
-  const stringifiedParams = normalizedParams.toString();
 
-  return stringifiedParams.length > 0 ? `http://localhost:8080/api/v1/products/brands?${stringifiedParams}` : `http://localhost:8080/api/v1/products/brands`
+  return `http://localhost:8080/api/v1/products/brands`
 }
 
-export const listBrandsRequest = async (params?: ListBrandsRequestParams, options?: RequestInit): Promise<listBrandsRequestResponse> => {
+export const listBrandsRequest = async ( options?: RequestInit): Promise<listBrandsRequestResponse> => {
 
-  const res = await fetch(getListBrandsRequestUrl(params),
+  const res = await fetch(getListBrandsRequestUrl(),
   {
       credentials: 'include',
     ...options,
@@ -1054,18 +1045,18 @@ export const listBrandsRequest = async (params?: ListBrandsRequestParams, option
 
 
 
-export const getListBrandsRequestKey = (params?: ListBrandsRequestParams,) => [`http://localhost:8080/api/v1/products/brands`, ...(params ? [params]: [])] as const;
+export const getListBrandsRequestKey = () => [`http://localhost:8080/api/v1/products/brands`] as const;
 
 export type ListBrandsRequestQueryResult = NonNullable<Awaited<ReturnType<typeof listBrandsRequest>>>
 
 export const useListBrandsRequest = <TError = Promise<ErrorResponse>>(
-  params?: ListBrandsRequestParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof listBrandsRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
+   options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof listBrandsRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
 ) => {
   const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
 
   const isEnabled = swrOptions?.enabled !== false
-  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getListBrandsRequestKey(params) : null);
-  const swrFn = () => listBrandsRequest(params, fetchOptions)
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getListBrandsRequestKey() : null);
+  const swrFn = () => listBrandsRequest(fetchOptions)
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight, MoreVertical, Search } from "lucide-react";
 import { toast } from "sonner";
 
@@ -57,6 +57,20 @@ const statusLabel: Record<ProductListItem["status"], string> = {
   disable: "Inactivo",
   archive: "Archivado",
 };
+
+function ViewProductMenuItem({ productId }: { productId: string }) {
+  const navigate = useNavigate();
+
+  return (
+    <DropdownMenuItem
+      onClick={() =>
+        navigate({ to: "/products/$productId", params: { productId } })
+      }
+    >
+      <span>Ver</span>
+    </DropdownMenuItem>
+  );
+}
 
 function ArchiveProductMenuItem({
   product,
@@ -181,22 +195,22 @@ function ProductsListPage() {
 
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="status">Estatus</Label>
-              <Select
-                value={status}
-                onValueChange={(value) => {
-                  setStatus(value as ListStatusFilter);
-                  setPage(0);
-                }}
-              >
-                <SelectTrigger id="status" className="w-44">
-                  <SelectValue placeholder="Seleccionar" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="enable">Activo</SelectItem>
-                  <SelectItem value="disable">Inactivo</SelectItem>
-                </SelectContent>
-              </Select>
+            <Select
+              value={status}
+              onValueChange={(value) => {
+                setStatus(value as ListStatusFilter);
+                setPage(0);
+              }}
+            >
+              <SelectTrigger id="status" className="w-44">
+                <SelectValue placeholder="Seleccionar" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="enable">Activo</SelectItem>
+                <SelectItem value="disable">Inactivo</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="flex flex-col gap-1.5">
@@ -271,12 +285,7 @@ function ProductsListPage() {
                             }
                           />
                           <DropdownMenuContent align="end">
-                            <Link
-                              to="/products/$productId"
-                              params={{ productId: product.id }}
-                            >
-                              <DropdownMenuItem>Ver</DropdownMenuItem>
-                            </Link>
+                            <ViewProductMenuItem productId={product.id} />
                             <DropdownMenuSeparator />
                             <ArchiveProductMenuItem
                               product={product}
