@@ -41,6 +41,8 @@ export const Route = createFileRoute("/_layout/products/")({
 
 const PAGE_SIZE = 10;
 
+type ListStatusFilter = "all" | "enable" | "disable";
+
 const statusBadgeVariant: Record<
   ProductListItem["status"],
   "default" | "secondary" | "destructive"
@@ -115,9 +117,7 @@ function ProductsListPage() {
   const [page, setPage] = useState(0);
   const [search, setSearch] = useState("");
   const [appliedSearch, setAppliedSearch] = useState("");
-  const [status, setStatus] = useState<"all" | ProductListItem["status"]>(
-    "all"
-  );
+  const [status, setStatus] = useState<ListStatusFilter>("all");
 
   const {
     data: res,
@@ -181,23 +181,22 @@ function ProductsListPage() {
 
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="status">Estatus</Label>
-            <Select
-              value={status}
-              onValueChange={(value) => {
-                setStatus(value as "all" | ProductListItem["status"]);
-                setPage(0);
-              }}
-            >
-              <SelectTrigger id="status" className="w-44">
-                <SelectValue placeholder="Seleccionar" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="enable">Activo</SelectItem>
-                <SelectItem value="disable">Inactivo</SelectItem>
-                <SelectItem value="archive">Archivado</SelectItem>
-              </SelectContent>
-            </Select>
+              <Select
+                value={status}
+                onValueChange={(value) => {
+                  setStatus(value as ListStatusFilter);
+                  setPage(0);
+                }}
+              >
+                <SelectTrigger id="status" className="w-44">
+                  <SelectValue placeholder="Seleccionar" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="enable">Activo</SelectItem>
+                  <SelectItem value="disable">Inactivo</SelectItem>
+                </SelectContent>
+              </Select>
           </div>
 
           <div className="flex flex-col gap-1.5">
