@@ -35,8 +35,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { CreateRoleDialog } from "@/components/features/rbac/create-role-dialog";
 import { DeleteRoleDialog } from "@/components/features/rbac/delete-role-dialog";
-import { RolePermissionsDialog } from "@/components/features/rbac/role-permissions-dialog";
-import { AssignPermissionsDialog } from "@/components/features/rbac/assign-permissions-dialog";
 
 export const Route = createFileRoute("/_layout/team/roles")({
   component: RolesPage,
@@ -49,9 +47,6 @@ function RolesPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [editingRole, setEditingRole] = useState<Role | undefined>(undefined);
   const [deleteRole, setDeleteRole] = useState<Role | undefined>(undefined);
-  const [viewingRolePermissions, setViewingRolePermissions] =
-    useState<Role | null>(null);
-  const [assigningRole, setAssigningRole] = useState<Role | null>(null);
   const [activeTab, setActiveTab] = useState("all");
   const [page, setPage] = useState(1);
 
@@ -61,7 +56,7 @@ function RolesPage() {
 
   const allRoles = useMemo(
     () => (data?.data?.roles ?? []).filter((r) => r.status !== "deleted"),
-    [data?.data?.roles]
+    [data?.data?.roles],
   );
 
   const filteredRoles = useMemo(() => {
@@ -75,7 +70,7 @@ function RolesPage() {
   const totalPages = Math.max(1, Math.ceil(filteredRoles.length / PAGE_SIZE));
   const paginatedRoles = filteredRoles.slice(
     (page - 1) * PAGE_SIZE,
-    page * PAGE_SIZE
+    page * PAGE_SIZE,
   );
 
   const handleCreate = () => {
@@ -119,21 +114,10 @@ function RolesPage() {
   };
 
   const handleRowClick = (role: Role) => {
-    setViewingRolePermissions(role);
-  };
-
-  const handleOpenAssign = () => {
-    if (viewingRolePermissions) {
-      setAssigningRole(viewingRolePermissions);
-      setViewingRolePermissions(null);
-    }
-  };
-
-  const handleBackToView = () => {
-    if (assigningRole) {
-      setViewingRolePermissions(assigningRole);
-      setAssigningRole(null);
-    }
+    navigate({
+      to: "/team/roles/$roleId/permissions",
+      params: { roleId: role.id },
+    });
   };
 
   return (
@@ -330,20 +314,6 @@ function RolesPage() {
           isDeleting={isDeleting}
         />
       )}
-
-      <RolePermissionsDialog
-        open={!!viewingRolePermissions}
-        onOpenChange={(next) => !next && setViewingRolePermissions(null)}
-        role={viewingRolePermissions}
-        onOpenAssign={handleOpenAssign}
-      />
-
-      <AssignPermissionsDialog
-        open={!!assigningRole}
-        onOpenChange={(next) => !next && setAssigningRole(null)}
-        role={assigningRole}
-        onBack={handleBackToView}
-      />
     </main>
   );
 }
