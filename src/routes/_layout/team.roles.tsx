@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
   Pencil,
   Trash2,
@@ -8,6 +8,7 @@ import {
   CircleX,
   MoreHorizontal,
   ArrowLeft,
+  ShieldCheck,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -44,6 +45,7 @@ export const Route = createFileRoute("/_layout/team/roles")({
 const PAGE_SIZE = 10;
 
 function RolesPage() {
+  const navigate = useNavigate();
   const [formOpen, setFormOpen] = useState(false);
   const [editingRole, setEditingRole] = useState<Role | undefined>(undefined);
   const [deleteRole, setDeleteRole] = useState<Role | undefined>(undefined);
@@ -101,10 +103,16 @@ function RolesPage() {
     }
   };
 
-  const handleFormSuccess = () => {
+  const handleFormSuccess = (createdRoleId?: string) => {
     setFormOpen(false);
     setEditingRole(undefined);
     mutate();
+    if (createdRoleId) {
+      navigate({
+        to: "/team/roles/$roleId/permissions",
+        params: { roleId: createdRoleId },
+      });
+    }
   };
 
   const handleRowClick = (role: Role) => {
@@ -242,6 +250,17 @@ function RolesPage() {
                             <DropdownMenuItem onClick={() => handleEdit(role)}>
                               <Pencil className="size-4" />
                               Editar
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              render={
+                                <Link
+                                  to="/team/roles/$roleId/permissions"
+                                  params={{ roleId: role.id }}
+                                />
+                              }
+                            >
+                              <ShieldCheck className="size-4" />
+                              Asignar Permisos
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               variant="destructive"
