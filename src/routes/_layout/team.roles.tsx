@@ -59,7 +59,7 @@ function RolesPage() {
 
   const allRoles = useMemo(
     () => (data?.data?.roles ?? []).filter((r) => r.status !== "deleted"),
-    [data?.data?.roles],
+    [data?.data?.roles]
   );
 
   const filteredRoles = useMemo(() => {
@@ -73,7 +73,7 @@ function RolesPage() {
   const totalPages = Math.max(1, Math.ceil(filteredRoles.length / PAGE_SIZE));
   const paginatedRoles = filteredRoles.slice(
     (page - 1) * PAGE_SIZE,
-    page * PAGE_SIZE,
+    page * PAGE_SIZE
   );
 
   const handleCreate = () => {
