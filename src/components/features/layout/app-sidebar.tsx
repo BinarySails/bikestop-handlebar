@@ -1,5 +1,5 @@
-import { useState } from "react"
-import { Link, useLocation } from "@tanstack/react-router"
+import { useState } from "react";
+import { Link, useLocation } from "@tanstack/react-router";
 import {
   LayoutDashboard,
   LogOut,
@@ -9,10 +9,10 @@ import {
   ShoppingCart,
   UserRound,
   Users,
-} from "lucide-react"
+} from "lucide-react";
 
-import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 const navigationItems = [
   { label: "Dashboard", icon: LayoutDashboard, to: "/dashboard" },
@@ -20,11 +20,11 @@ const navigationItems = [
   { label: "Inventario", icon: Package, to: "/inventory" },
   { label: "Locaciones", icon: MapPin, to: "/locations" },
   { label: "Equipo", icon: Users, to: "/team" },
-] as const
+] as const;
 
 export function AppSidebar() {
-  const [settingsOpen, setSettingsOpen] = useState(false)
-  const pathname = useLocation({ select: (location) => location.pathname })
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const pathname = useLocation({ select: (location) => location.pathname });
 
   return (
     <aside className="flex w-20 shrink-0 flex-col border-r bg-background md:w-64">
@@ -33,7 +33,7 @@ export function AppSidebar() {
         aria-label="Navegación principal"
       >
         {navigationItems.map(({ label, icon: Icon, to }) => {
-          const active = pathname === to
+          const active = pathname === to;
 
           return (
             <Button
@@ -50,7 +50,7 @@ export function AppSidebar() {
               <Icon className="size-4" aria-hidden="true" />
               <span className="hidden md:inline">{label}</span>
             </Button>
-          )
+          );
         })}
       </nav>
 
@@ -99,5 +99,5 @@ export function AppSidebar() {
         </div>
       </div>
     </aside>
-  )
+  );
 }
