@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { Pencil, Trash2, Plus, CircleCheck, CircleX, MoreHorizontal } from "lucide-react";
+import { Pencil, Trash2, Plus, CircleCheck, CircleX, MoreHorizontal, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -117,6 +117,10 @@ function RolesPage() {
     <main className="container mx-auto max-w-5xl p-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
+          <Button variant="ghost" size="sm" render={<Link to="/team" />} className="mb-2 -ml-2">
+            <ArrowLeft className="size-4" />
+            Volver
+          </Button>
           <h1 className="text-2xl font-semibold tracking-tight">Roles</h1>
           <p className="text-sm text-muted-foreground">
             Administra los roles del sistema y sus niveles de acceso.
@@ -190,7 +194,7 @@ function RolesPage() {
                           {role.status === "active" ? "Activo" : "Inactivo"}
                         </Badge>
                       </TableCell>
-                      <TableCell>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
                         <DropdownMenu>
                           <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />}>
                             <MoreHorizontal className="size-4" />
