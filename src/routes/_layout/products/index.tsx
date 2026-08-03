@@ -75,7 +75,9 @@ const EMPTY_FILTERS: Filters = {
 function matchesFilters(product: ProductListItem, filters: Filters): boolean {
   if (
     filters.productName &&
-    !product.display_name.toLowerCase().includes(filters.productName.toLowerCase())
+    !product.display_name
+      .toLowerCase()
+      .includes(filters.productName.toLowerCase())
   ) {
     return false;
   }
@@ -90,7 +92,9 @@ function matchesFilters(product: ProductListItem, filters: Filters): boolean {
   }
   if (
     filters.category &&
-    !product.category_name.toLowerCase().includes(filters.category.toLowerCase())
+    !product.category_name
+      .toLowerCase()
+      .includes(filters.category.toLowerCase())
   ) {
     return false;
   }
@@ -102,7 +106,12 @@ function ProductsListPage() {
   const [draftFilters, setDraftFilters] = useState<Filters>(EMPTY_FILTERS);
   const [appliedFilters, setAppliedFilters] = useState<Filters>(EMPTY_FILTERS);
 
-  const { data: res, error, isLoading, mutate } = useListProductsRequest({
+  const {
+    data: res,
+    error,
+    isLoading,
+    mutate,
+  } = useListProductsRequest({
     page: page + 1,
     limit: PAGE_SIZE,
     status: appliedFilters.status === "all" ? undefined : appliedFilters.status,
@@ -212,7 +221,12 @@ function ProductsListPage() {
           </div>
           <div className="flex flex-col gap-1.5">
             <span className="text-sm font-medium">&nbsp;</span>
-            <Button className="h-8" variant="outline" size="sm" onClick={handleClearFilters}>
+            <Button
+              className="h-8"
+              variant="outline"
+              size="sm"
+              onClick={handleClearFilters}
+            >
               Limpiar
             </Button>
           </div>
@@ -221,8 +235,6 @@ function ProductsListPage() {
 
       <Card>
         <CardContent className="space-y-4">
-
-
           {isLoading ? (
             <ProductsListSkeleton />
           ) : error ? (
@@ -279,7 +291,9 @@ function ProductsListPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+                    onClick={() =>
+                      setPage((p) => Math.min(totalPages - 1, p + 1))
+                    }
                     disabled={page >= totalPages - 1}
                   >
                     Siguiente
