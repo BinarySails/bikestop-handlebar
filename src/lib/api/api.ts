@@ -17,11 +17,8 @@ import type {
 } from 'swr/mutation';
 
 import type {
-  AssignPermissionsRequest,
-  AssignPermissionsResponse,
-  AssignRolesToUserRequest,
-  AssignRolesToUserResponse,
   Brand,
+  BrandId,
   Category,
   CategoryId,
   ChangeRoleStatusRequest,
@@ -37,7 +34,6 @@ import type {
   CreateRoleResponse,
   CreateStateRequest,
   CreateUserRequest,
-  CreateWarehouseRequest,
   DeleteCategoryResponse,
   DeleteFileRequestParams,
   DeleteFileResponse,
@@ -64,6 +60,9 @@ import type {
   RoleId,
   State,
   StateId,
+  ToggleBrandResponse,
+  UpdateBrandRequest,
+  UpdateBrandResponse,
   UpdateCategoryRequest,
   UpdateCategoryResponse,
   UpdatePermissionRequest,
@@ -113,14 +112,14 @@ export const getLoginHandlerUrl = () => {
 export const loginHandler = async (loginRequest: LoginRequest, options?: RequestInit): Promise<loginHandlerResponse> => {
 
   const res = await fetch(getLoginHandlerUrl(),
-  {
+    {
       credentials: 'include',
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(loginRequest)
-  }
-)
+      ...options,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      body: JSON.stringify(loginRequest)
+    }
+  )
 
 
   const body = [204, 205, 304].includes(res.status) ? null : await res.text();
@@ -132,7 +131,7 @@ export const loginHandler = async (loginRequest: LoginRequest, options?: Request
 
 
 
-export const getLoginHandlerMutationFetcher = ( options?: RequestInit) => {
+export const getLoginHandlerMutationFetcher = (options?: RequestInit) => {
   return (_: Key, { arg }: { arg: LoginRequest }) => {
     return loginHandler(arg, options);
   }
@@ -142,10 +141,10 @@ export const getLoginHandlerMutationKey = () => [`http://localhost:8080/api/v1/a
 export type LoginHandlerMutationResult = NonNullable<Awaited<ReturnType<typeof loginHandler>>>
 
 export const useLoginHandler = <TError = Promise<void>>(
-   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof loginHandler>>, TError, Key, LoginRequest, Awaited<ReturnType<typeof loginHandler>>> & { swrKey?: string }, fetch?: RequestInit}
+  options?: { swr?: SWRMutationConfiguration<Awaited<ReturnType<typeof loginHandler>>, TError, Key, LoginRequest, Awaited<ReturnType<typeof loginHandler>>> & { swrKey?: string }, fetch?: RequestInit }
 ) => {
 
-  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+  const { swr: swrOptions, fetch: fetchOptions } = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getLoginHandlerMutationKey();
   const swrFn = getLoginHandlerMutationFetcher(fetchOptions);
@@ -185,17 +184,17 @@ export const getLogoutHandlerUrl = () => {
   return `http://localhost:8080/api/v1/auth/logout`
 }
 
-export const logoutHandler = async ( options?: RequestInit): Promise<logoutHandlerResponse> => {
+export const logoutHandler = async (options?: RequestInit): Promise<logoutHandlerResponse> => {
 
   const res = await fetch(getLogoutHandlerUrl(),
-  {
+    {
       credentials: 'include',
-    ...options,
-    method: 'POST'
+      ...options,
+      method: 'POST'
 
 
-  }
-)
+    }
+  )
 
 
   const body = [204, 205, 304].includes(res.status) ? null : await res.text();
@@ -207,7 +206,7 @@ export const logoutHandler = async ( options?: RequestInit): Promise<logoutHandl
 
 
 
-export const getLogoutHandlerMutationFetcher = ( options?: RequestInit) => {
+export const getLogoutHandlerMutationFetcher = (options?: RequestInit) => {
   return (_: Key, __: { arg: Arguments }) => {
     return logoutHandler(options);
   }
@@ -217,10 +216,10 @@ export const getLogoutHandlerMutationKey = () => [`http://localhost:8080/api/v1/
 export type LogoutHandlerMutationResult = NonNullable<Awaited<ReturnType<typeof logoutHandler>>>
 
 export const useLogoutHandler = <TError = Promise<void>>(
-   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof logoutHandler>>, TError, Key, Arguments, Awaited<ReturnType<typeof logoutHandler>>> & { swrKey?: string }, fetch?: RequestInit}
+  options?: { swr?: SWRMutationConfiguration<Awaited<ReturnType<typeof logoutHandler>>, TError, Key, Arguments, Awaited<ReturnType<typeof logoutHandler>>> & { swrKey?: string }, fetch?: RequestInit }
 ) => {
 
-  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+  const { swr: swrOptions, fetch: fetchOptions } = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getLogoutHandlerMutationKey();
   const swrFn = getLogoutHandlerMutationFetcher(fetchOptions);
@@ -265,17 +264,17 @@ export const getMeHandlerUrl = () => {
   return `http://localhost:8080/api/v1/auth/me`
 }
 
-export const meHandler = async ( options?: RequestInit): Promise<meHandlerResponse> => {
+export const meHandler = async (options?: RequestInit): Promise<meHandlerResponse> => {
 
   const res = await fetch(getMeHandlerUrl(),
-  {
+    {
       credentials: 'include',
-    ...options,
-    method: 'GET'
+      ...options,
+      method: 'GET'
 
 
-  }
-)
+    }
+  )
 
 
   const body = [204, 205, 304].includes(res.status) ? null : await res.text();
@@ -292,9 +291,9 @@ export const getMeHandlerKey = () => [`http://localhost:8080/api/v1/auth/me`] as
 export type MeHandlerQueryResult = NonNullable<Awaited<ReturnType<typeof meHandler>>>
 
 export const useMeHandler = <TError = Promise<void>>(
-   options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof meHandler>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
+  options?: { swr?: SWRConfiguration<Awaited<ReturnType<typeof meHandler>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
 ) => {
-  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+  const { swr: swrOptions, fetch: fetchOptions } = options ?? {}
 
   const isEnabled = swrOptions?.enabled !== false
   const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getMeHandlerKey() : null);
@@ -343,14 +342,14 @@ export const getCreateFileRequestUrl = () => {
 export const createFileRequest = async (createFileRequest: CreateFileRequest, options?: RequestInit): Promise<createFileRequestResponse> => {
 
   const res = await fetch(getCreateFileRequestUrl(),
-  {
+    {
       credentials: 'include',
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(createFileRequest)
-  }
-)
+      ...options,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      body: JSON.stringify(createFileRequest)
+    }
+  )
 
 
   const body = [204, 205, 304].includes(res.status) ? null : await res.text();
@@ -362,7 +361,7 @@ export const createFileRequest = async (createFileRequest: CreateFileRequest, op
 
 
 
-export const getCreateFileRequestMutationFetcher = ( options?: RequestInit) => {
+export const getCreateFileRequestMutationFetcher = (options?: RequestInit) => {
   return (_: Key, { arg }: { arg: CreateFileRequest }) => {
     return createFileRequest(arg, options);
   }
@@ -372,13 +371,98 @@ export const getCreateFileRequestMutationKey = () => [`http://localhost:8080/api
 export type CreateFileRequestMutationResult = NonNullable<Awaited<ReturnType<typeof createFileRequest>>>
 
 export const useCreateFileRequest = <TError = Promise<ErrorResponse | void>>(
-   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof createFileRequest>>, TError, Key, CreateFileRequest, Awaited<ReturnType<typeof createFileRequest>>> & { swrKey?: string }, fetch?: RequestInit}
+  options?: { swr?: SWRMutationConfiguration<Awaited<ReturnType<typeof createFileRequest>>, TError, Key, CreateFileRequest, Awaited<ReturnType<typeof createFileRequest>>> & { swrKey?: string }, fetch?: RequestInit }
 ) => {
 
-  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+  const { swr: swrOptions, fetch: fetchOptions } = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getCreateFileRequestMutationKey();
   const swrFn = getCreateFileRequestMutationFetcher(fetchOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type associateFileRequestResponse201 = {
+  data: AssociateFileResponse
+  status: 201
+}
+
+export type associateFileRequestResponse400 = {
+  data: ErrorResponse
+  status: 400
+}
+
+export type associateFileRequestResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type associateFileRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type associateFileRequestResponseSuccess = (associateFileRequestResponse201) & {
+  headers: Headers;
+};
+export type associateFileRequestResponseError = (associateFileRequestResponse400 | associateFileRequestResponse404 | associateFileRequestResponse500) & {
+  headers: Headers;
+};
+
+export type associateFileRequestResponse = (associateFileRequestResponseSuccess | associateFileRequestResponseError)
+
+export const getAssociateFileRequestUrl = () => {
+
+
+
+
+  return `http://localhost:8080/api/v1/files/associations`
+}
+
+export const associateFileRequest = async (associateFileRequest: AssociateFileRequest, options?: RequestInit): Promise<associateFileRequestResponse> => {
+
+  const res = await fetch(getAssociateFileRequestUrl(),
+    {
+      credentials: 'include',
+      ...options,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      body: JSON.stringify(associateFileRequest)
+    }
+  )
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: associateFileRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as associateFileRequestResponse
+}
+
+
+
+
+export const getAssociateFileRequestMutationFetcher = (options?: RequestInit) => {
+  return (_: Key, { arg }: { arg: AssociateFileRequest }) => {
+    return associateFileRequest(arg, options);
+  }
+}
+export const getAssociateFileRequestMutationKey = () => [`http://localhost:8080/api/v1/files/associations`] as const;
+
+export type AssociateFileRequestMutationResult = NonNullable<Awaited<ReturnType<typeof associateFileRequest>>>
+
+export const useAssociateFileRequest = <TError = Promise<ErrorResponse>>(
+  options?: { swr?: SWRMutationConfiguration<Awaited<ReturnType<typeof associateFileRequest>>, TError, Key, AssociateFileRequest, Awaited<ReturnType<typeof associateFileRequest>>> & { swrKey?: string }, fetch?: RequestInit }
+) => {
+
+  const { swr: swrOptions, fetch: fetchOptions } = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getAssociateFileRequestMutationKey();
+  const swrFn = getAssociateFileRequestMutationFetcher(fetchOptions);
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
@@ -413,7 +497,7 @@ export type deleteFileRequestResponseError = (deleteFileRequestResponse404 | del
 export type deleteFileRequestResponse = (deleteFileRequestResponseSuccess | deleteFileRequestResponseError)
 
 export const getDeleteFileRequestUrl = (id: FileId,
-    params: DeleteFileRequestParams,) => {
+  params: DeleteFileRequestParams,) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
@@ -429,17 +513,17 @@ export const getDeleteFileRequestUrl = (id: FileId,
 }
 
 export const deleteFileRequest = async (id: FileId,
-    params: DeleteFileRequestParams, options?: RequestInit): Promise<deleteFileRequestResponse> => {
+  params: DeleteFileRequestParams, options?: RequestInit): Promise<deleteFileRequestResponse> => {
 
-  const res = await fetch(getDeleteFileRequestUrl(id,params),
-  {
+  const res = await fetch(getDeleteFileRequestUrl(id, params),
+    {
       credentials: 'include',
-    ...options,
-    method: 'DELETE'
+      ...options,
+      method: 'DELETE'
 
 
-  }
-)
+    }
+  )
 
 
   const body = [204, 205, 304].includes(res.status) ? null : await res.text();
@@ -452,25 +536,25 @@ export const deleteFileRequest = async (id: FileId,
 
 
 export const getDeleteFileRequestMutationFetcher = (id: FileId,
-    params: DeleteFileRequestParams, options?: RequestInit) => {
+  params: DeleteFileRequestParams, options?: RequestInit) => {
   return (_: Key, __: { arg: Arguments }) => {
     return deleteFileRequest(id, params, options);
   }
 }
 export const getDeleteFileRequestMutationKey = (id: FileId,
-    params: DeleteFileRequestParams,) => [`http://localhost:8080/api/v1/files/${id}`, ...(params ? [params]: [])] as const;
+  params: DeleteFileRequestParams,) => [`http://localhost:8080/api/v1/files/${id}`, ...(params ? [params] : [])] as const;
 
 export type DeleteFileRequestMutationResult = NonNullable<Awaited<ReturnType<typeof deleteFileRequest>>>
 
 export const useDeleteFileRequest = <TError = Promise<ErrorResponse | void>>(
   id: FileId,
-    params: DeleteFileRequestParams, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof deleteFileRequest>>, TError, Key, Arguments, Awaited<ReturnType<typeof deleteFileRequest>>> & { swrKey?: string }, fetch?: RequestInit}
+  params: DeleteFileRequestParams, options?: { swr?: SWRMutationConfiguration<Awaited<ReturnType<typeof deleteFileRequest>>, TError, Key, Arguments, Awaited<ReturnType<typeof deleteFileRequest>>> & { swrKey?: string }, fetch?: RequestInit }
 ) => {
 
-  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+  const { swr: swrOptions, fetch: fetchOptions } = options ?? {}
 
-  const swrKey = swrOptions?.swrKey ?? getDeleteFileRequestMutationKey(id,params);
-  const swrFn = getDeleteFileRequestMutationFetcher(id,params, fetchOptions);
+  const swrKey = swrOptions?.swrKey ?? getDeleteFileRequestMutationKey(id, params);
+  const swrFn = getDeleteFileRequestMutationFetcher(id, params, fetchOptions);
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
@@ -505,7 +589,7 @@ export type getDownloadUrlRequestResponseError = (getDownloadUrlRequestResponse4
 export type getDownloadUrlRequestResponse = (getDownloadUrlRequestResponseSuccess | getDownloadUrlRequestResponseError)
 
 export const getGetDownloadUrlRequestUrl = (id: FileId,
-    params?: GetDownloadUrlRequestParams,) => {
+  params?: GetDownloadUrlRequestParams,) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
@@ -521,17 +605,17 @@ export const getGetDownloadUrlRequestUrl = (id: FileId,
 }
 
 export const getDownloadUrlRequest = async (id: FileId,
-    params?: GetDownloadUrlRequestParams, options?: RequestInit): Promise<getDownloadUrlRequestResponse> => {
+  params?: GetDownloadUrlRequestParams, options?: RequestInit): Promise<getDownloadUrlRequestResponse> => {
 
-  const res = await fetch(getGetDownloadUrlRequestUrl(id,params),
-  {
+  const res = await fetch(getGetDownloadUrlRequestUrl(id, params),
+    {
       credentials: 'include',
-    ...options,
-    method: 'GET'
+      ...options,
+      method: 'GET'
 
 
-  }
-)
+    }
+  )
 
 
   const body = [204, 205, 304].includes(res.status) ? null : await res.text();
@@ -544,19 +628,19 @@ export const getDownloadUrlRequest = async (id: FileId,
 
 
 export const getGetDownloadUrlRequestKey = (id: FileId,
-    params?: GetDownloadUrlRequestParams,) => [`http://localhost:8080/api/v1/files/${id}/download-url`, ...(params ? [params]: [])] as const;
+  params?: GetDownloadUrlRequestParams,) => [`http://localhost:8080/api/v1/files/${id}/download-url`, ...(params ? [params] : [])] as const;
 
 export type GetDownloadUrlRequestQueryResult = NonNullable<Awaited<ReturnType<typeof getDownloadUrlRequest>>>
 
 export const useGetDownloadUrlRequest = <TError = Promise<ErrorResponse | void>>(
   id: FileId,
-    params?: GetDownloadUrlRequestParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getDownloadUrlRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
+  params?: GetDownloadUrlRequestParams, options?: { swr?: SWRConfiguration<Awaited<ReturnType<typeof getDownloadUrlRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
 ) => {
-  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+  const { swr: swrOptions, fetch: fetchOptions } = options ?? {}
 
   const isEnabled = swrOptions?.enabled !== false && id !== null && id !== undefined
-  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetDownloadUrlRequestKey(id,params) : null);
-  const swrFn = () => getDownloadUrlRequest(id,params, fetchOptions)
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetDownloadUrlRequestKey(id, params) : null);
+  const swrFn = () => getDownloadUrlRequest(id, params, fetchOptions)
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
@@ -601,14 +685,14 @@ export const getCreateStateRequestUrl = () => {
 export const createStateRequest = async (createStateRequest: CreateStateRequest, options?: RequestInit): Promise<createStateRequestResponse> => {
 
   const res = await fetch(getCreateStateRequestUrl(),
-  {
+    {
       credentials: 'include',
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(createStateRequest)
-  }
-)
+      ...options,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      body: JSON.stringify(createStateRequest)
+    }
+  )
 
 
   const body = [204, 205, 304].includes(res.status) ? null : await res.text();
@@ -620,7 +704,7 @@ export const createStateRequest = async (createStateRequest: CreateStateRequest,
 
 
 
-export const getCreateStateRequestMutationFetcher = ( options?: RequestInit) => {
+export const getCreateStateRequestMutationFetcher = (options?: RequestInit) => {
   return (_: Key, { arg }: { arg: CreateStateRequest }) => {
     return createStateRequest(arg, options);
   }
@@ -630,10 +714,10 @@ export const getCreateStateRequestMutationKey = () => [`http://localhost:8080/ap
 export type CreateStateRequestMutationResult = NonNullable<Awaited<ReturnType<typeof createStateRequest>>>
 
 export const useCreateStateRequest = <TError = Promise<ErrorResponse | void>>(
-   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof createStateRequest>>, TError, Key, CreateStateRequest, Awaited<ReturnType<typeof createStateRequest>>> & { swrKey?: string }, fetch?: RequestInit}
+  options?: { swr?: SWRMutationConfiguration<Awaited<ReturnType<typeof createStateRequest>>, TError, Key, CreateStateRequest, Awaited<ReturnType<typeof createStateRequest>>> & { swrKey?: string }, fetch?: RequestInit }
 ) => {
 
-  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+  const { swr: swrOptions, fetch: fetchOptions } = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getCreateStateRequestMutationKey();
   const swrFn = getCreateStateRequestMutationFetcher(fetchOptions);
@@ -689,17 +773,17 @@ export const getCreateLocalityRequestUrl = (stateId: StateId,) => {
 }
 
 export const createLocalityRequest = async (stateId: StateId,
-    createLocalityRequest: CreateLocalityRequest, options?: RequestInit): Promise<createLocalityRequestResponse> => {
+  createLocalityRequest: CreateLocalityRequest, options?: RequestInit): Promise<createLocalityRequestResponse> => {
 
   const res = await fetch(getCreateLocalityRequestUrl(stateId),
-  {
+    {
       credentials: 'include',
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(createLocalityRequest)
-  }
-)
+      ...options,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      body: JSON.stringify(createLocalityRequest)
+    }
+  )
 
 
   const body = [204, 205, 304].includes(res.status) ? null : await res.text();
@@ -721,15 +805,85 @@ export const getCreateLocalityRequestMutationKey = (stateId: StateId,) => [`http
 export type CreateLocalityRequestMutationResult = NonNullable<Awaited<ReturnType<typeof createLocalityRequest>>>
 
 export const useCreateLocalityRequest = <TError = Promise<ErrorResponse | void>>(
-  stateId: StateId, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof createLocalityRequest>>, TError, Key, CreateLocalityRequest, Awaited<ReturnType<typeof createLocalityRequest>>> & { swrKey?: string }, fetch?: RequestInit}
+  stateId: StateId, options?: { swr?: SWRMutationConfiguration<Awaited<ReturnType<typeof createLocalityRequest>>, TError, Key, CreateLocalityRequest, Awaited<ReturnType<typeof createLocalityRequest>>> & { swrKey?: string }, fetch?: RequestInit }
 ) => {
 
-  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+  const { swr: swrOptions, fetch: fetchOptions } = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getCreateLocalityRequestMutationKey(stateId);
   const swrFn = getCreateLocalityRequestMutationFetcher(stateId, fetchOptions);
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type listBrandsRequestResponse200 = {
+  data: Brand[]
+  status: 200
+}
+
+export type listBrandsRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type listBrandsRequestResponseSuccess = (listBrandsRequestResponse200) & {
+  headers: Headers;
+};
+export type listBrandsRequestResponseError = (listBrandsRequestResponse500) & {
+  headers: Headers;
+};
+
+export type listBrandsRequestResponse = (listBrandsRequestResponseSuccess | listBrandsRequestResponseError)
+
+export const getListBrandsRequestUrl = () => {
+
+
+
+
+  return `http://localhost:8080/api/v1/products/brands`
+}
+
+export const listBrandsRequest = async (options?: RequestInit): Promise<listBrandsRequestResponse> => {
+
+  const res = await fetch(getListBrandsRequestUrl(),
+    {
+      credentials: 'include',
+      ...options,
+      method: 'GET'
+
+
+    }
+  )
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: listBrandsRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as listBrandsRequestResponse
+}
+
+
+
+
+export const getListBrandsRequestKey = () => [`http://localhost:8080/api/v1/products/brands`] as const;
+
+export type ListBrandsRequestQueryResult = NonNullable<Awaited<ReturnType<typeof listBrandsRequest>>>
+
+export const useListBrandsRequest = <TError = Promise<ErrorResponse>>(
+  options?: { swr?: SWRConfiguration<Awaited<ReturnType<typeof listBrandsRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
+) => {
+  const { swr: swrOptions, fetch: fetchOptions } = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getListBrandsRequestKey() : null);
+  const swrFn = () => listBrandsRequest(fetchOptions)
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
@@ -748,7 +902,7 @@ export type createBrandRequestResponse400 = {
 }
 
 export type createBrandRequestResponse500 = {
-  data: void
+  data: ErrorResponse
   status: 500
 }
 
@@ -772,14 +926,14 @@ export const getCreateBrandRequestUrl = () => {
 export const createBrandRequest = async (createBrandRequest: CreateBrandRequest, options?: RequestInit): Promise<createBrandRequestResponse> => {
 
   const res = await fetch(getCreateBrandRequestUrl(),
-  {
+    {
       credentials: 'include',
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(createBrandRequest)
-  }
-)
+      ...options,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      body: JSON.stringify(createBrandRequest)
+    }
+  )
 
 
   const body = [204, 205, 304].includes(res.status) ? null : await res.text();
@@ -791,7 +945,7 @@ export const createBrandRequest = async (createBrandRequest: CreateBrandRequest,
 
 
 
-export const getCreateBrandRequestMutationFetcher = ( options?: RequestInit) => {
+export const getCreateBrandRequestMutationFetcher = (options?: RequestInit) => {
   return (_: Key, { arg }: { arg: CreateBrandRequest }) => {
     return createBrandRequest(arg, options);
   }
@@ -800,14 +954,345 @@ export const getCreateBrandRequestMutationKey = () => [`http://localhost:8080/ap
 
 export type CreateBrandRequestMutationResult = NonNullable<Awaited<ReturnType<typeof createBrandRequest>>>
 
-export const useCreateBrandRequest = <TError = Promise<ErrorResponse | void>>(
-   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof createBrandRequest>>, TError, Key, CreateBrandRequest, Awaited<ReturnType<typeof createBrandRequest>>> & { swrKey?: string }, fetch?: RequestInit}
+export const useCreateBrandRequest = <TError = Promise<ErrorResponse>>(
+  options?: { swr?: SWRMutationConfiguration<Awaited<ReturnType<typeof createBrandRequest>>, TError, Key, CreateBrandRequest, Awaited<ReturnType<typeof createBrandRequest>>> & { swrKey?: string }, fetch?: RequestInit }
 ) => {
 
-  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+  const { swr: swrOptions, fetch: fetchOptions } = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getCreateBrandRequestMutationKey();
   const swrFn = getCreateBrandRequestMutationFetcher(fetchOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type getBrandRequestResponse200 = {
+  data: Brand
+  status: 200
+}
+
+export type getBrandRequestResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type getBrandRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type getBrandRequestResponseSuccess = (getBrandRequestResponse200) & {
+  headers: Headers;
+};
+export type getBrandRequestResponseError = (getBrandRequestResponse404 | getBrandRequestResponse500) & {
+  headers: Headers;
+};
+
+export type getBrandRequestResponse = (getBrandRequestResponseSuccess | getBrandRequestResponseError)
+
+export const getGetBrandRequestUrl = (id: BrandId,) => {
+
+
+
+
+  return `http://localhost:8080/api/v1/products/brands/${id}`
+}
+
+export const getBrandRequest = async (id: BrandId, options?: RequestInit): Promise<getBrandRequestResponse> => {
+
+  const res = await fetch(getGetBrandRequestUrl(id),
+    {
+      credentials: 'include',
+      ...options,
+      method: 'GET'
+
+
+    }
+  )
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: getBrandRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as getBrandRequestResponse
+}
+
+
+
+
+export const getGetBrandRequestKey = (id: BrandId,) => [`http://localhost:8080/api/v1/products/brands/${id}`] as const;
+
+export type GetBrandRequestQueryResult = NonNullable<Awaited<ReturnType<typeof getBrandRequest>>>
+
+export const useGetBrandRequest = <TError = Promise<ErrorResponse>>(
+  id: BrandId, options?: { swr?: SWRConfiguration<Awaited<ReturnType<typeof getBrandRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
+) => {
+  const { swr: swrOptions, fetch: fetchOptions } = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false && id !== null && id !== undefined
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetBrandRequestKey(id) : null);
+  const swrFn = () => getBrandRequest(id, fetchOptions)
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type deleteBrandRequestResponse200 = {
+  data: DeleteBrandResponse
+  status: 200
+}
+
+export type deleteBrandRequestResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type deleteBrandRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type deleteBrandRequestResponseSuccess = (deleteBrandRequestResponse200) & {
+  headers: Headers;
+};
+export type deleteBrandRequestResponseError = (deleteBrandRequestResponse404 | deleteBrandRequestResponse500) & {
+  headers: Headers;
+};
+
+export type deleteBrandRequestResponse = (deleteBrandRequestResponseSuccess | deleteBrandRequestResponseError)
+
+export const getDeleteBrandRequestUrl = (id: BrandId,) => {
+
+
+
+
+  return `http://localhost:8080/api/v1/products/brands/${id}`
+}
+
+export const deleteBrandRequest = async (id: BrandId, options?: RequestInit): Promise<deleteBrandRequestResponse> => {
+
+  const res = await fetch(getDeleteBrandRequestUrl(id),
+    {
+      credentials: 'include',
+      ...options,
+      method: 'DELETE'
+
+
+    }
+  )
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: deleteBrandRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as deleteBrandRequestResponse
+}
+
+
+
+
+export const getDeleteBrandRequestMutationFetcher = (id: BrandId, options?: RequestInit) => {
+  return (_: Key, __: { arg: Arguments }) => {
+    return deleteBrandRequest(id, options);
+  }
+}
+export const getDeleteBrandRequestMutationKey = (id: BrandId,) => [`http://localhost:8080/api/v1/products/brands/${id}`] as const;
+
+export type DeleteBrandRequestMutationResult = NonNullable<Awaited<ReturnType<typeof deleteBrandRequest>>>
+
+export const useDeleteBrandRequest = <TError = Promise<ErrorResponse>>(
+  id: BrandId, options?: { swr?: SWRMutationConfiguration<Awaited<ReturnType<typeof deleteBrandRequest>>, TError, Key, Arguments, Awaited<ReturnType<typeof deleteBrandRequest>>> & { swrKey?: string }, fetch?: RequestInit }
+) => {
+
+  const { swr: swrOptions, fetch: fetchOptions } = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getDeleteBrandRequestMutationKey(id);
+  const swrFn = getDeleteBrandRequestMutationFetcher(id, fetchOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type updateBrandRequestResponse200 = {
+  data: UpdateBrandResponse
+  status: 200
+}
+
+export type updateBrandRequestResponse400 = {
+  data: ErrorResponse
+  status: 400
+}
+
+export type updateBrandRequestResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type updateBrandRequestResponse409 = {
+  data: ErrorResponse
+  status: 409
+}
+
+export type updateBrandRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type updateBrandRequestResponseSuccess = (updateBrandRequestResponse200) & {
+  headers: Headers;
+};
+export type updateBrandRequestResponseError = (updateBrandRequestResponse400 | updateBrandRequestResponse404 | updateBrandRequestResponse409 | updateBrandRequestResponse500) & {
+  headers: Headers;
+};
+
+export type updateBrandRequestResponse = (updateBrandRequestResponseSuccess | updateBrandRequestResponseError)
+
+export const getUpdateBrandRequestUrl = (id: BrandId,) => {
+
+
+
+
+  return `http://localhost:8080/api/v1/products/brands/${id}`
+}
+
+export const updateBrandRequest = async (id: BrandId,
+  updateBrandRequest: UpdateBrandRequest, options?: RequestInit): Promise<updateBrandRequestResponse> => {
+
+  const res = await fetch(getUpdateBrandRequestUrl(id),
+    {
+      credentials: 'include',
+      ...options,
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      body: JSON.stringify(updateBrandRequest)
+    }
+  )
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: updateBrandRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as updateBrandRequestResponse
+}
+
+
+
+
+export const getUpdateBrandRequestMutationFetcher = (id: BrandId, options?: RequestInit) => {
+  return (_: Key, { arg }: { arg: UpdateBrandRequest }) => {
+    return updateBrandRequest(id, arg, options);
+  }
+}
+export const getUpdateBrandRequestMutationKey = (id: BrandId,) => [`http://localhost:8080/api/v1/products/brands/${id}`] as const;
+
+export type UpdateBrandRequestMutationResult = NonNullable<Awaited<ReturnType<typeof updateBrandRequest>>>
+
+export const useUpdateBrandRequest = <TError = Promise<ErrorResponse>>(
+  id: BrandId, options?: { swr?: SWRMutationConfiguration<Awaited<ReturnType<typeof updateBrandRequest>>, TError, Key, UpdateBrandRequest, Awaited<ReturnType<typeof updateBrandRequest>>> & { swrKey?: string }, fetch?: RequestInit }
+) => {
+
+  const { swr: swrOptions, fetch: fetchOptions } = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getUpdateBrandRequestMutationKey(id);
+  const swrFn = getUpdateBrandRequestMutationFetcher(id, fetchOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type toggleBrandRequestResponse200 = {
+  data: ToggleBrandResponse
+  status: 200
+}
+
+export type toggleBrandRequestResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type toggleBrandRequestResponse409 = {
+  data: ErrorResponse
+  status: 409
+}
+
+export type toggleBrandRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type toggleBrandRequestResponseSuccess = (toggleBrandRequestResponse200) & {
+  headers: Headers;
+};
+export type toggleBrandRequestResponseError = (toggleBrandRequestResponse404 | toggleBrandRequestResponse409 | toggleBrandRequestResponse500) & {
+  headers: Headers;
+};
+
+export type toggleBrandRequestResponse = (toggleBrandRequestResponseSuccess | toggleBrandRequestResponseError)
+
+export const getToggleBrandRequestUrl = (id: BrandId,) => {
+
+
+
+
+  return `http://localhost:8080/api/v1/products/brands/${id}/toggle`
+}
+
+export const toggleBrandRequest = async (id: BrandId, options?: RequestInit): Promise<toggleBrandRequestResponse> => {
+
+  const res = await fetch(getToggleBrandRequestUrl(id),
+    {
+      credentials: 'include',
+      ...options,
+      method: 'PATCH'
+
+
+    }
+  )
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: toggleBrandRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as toggleBrandRequestResponse
+}
+
+
+
+
+export const getToggleBrandRequestMutationFetcher = (id: BrandId, options?: RequestInit) => {
+  return (_: Key, __: { arg: Arguments }) => {
+    return toggleBrandRequest(id, options);
+  }
+}
+export const getToggleBrandRequestMutationKey = (id: BrandId,) => [`http://localhost:8080/api/v1/products/brands/${id}/toggle`] as const;
+
+export type ToggleBrandRequestMutationResult = NonNullable<Awaited<ReturnType<typeof toggleBrandRequest>>>
+
+export const useToggleBrandRequest = <TError = Promise<ErrorResponse>>(
+  id: BrandId, options?: { swr?: SWRMutationConfiguration<Awaited<ReturnType<typeof toggleBrandRequest>>, TError, Key, Arguments, Awaited<ReturnType<typeof toggleBrandRequest>>> & { swrKey?: string }, fetch?: RequestInit }
+) => {
+
+  const { swr: swrOptions, fetch: fetchOptions } = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getToggleBrandRequestMutationKey(id);
+  const swrFn = getToggleBrandRequestMutationFetcher(id, fetchOptions);
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
@@ -852,14 +1337,14 @@ export const getCreateCategoryRequestUrl = () => {
 export const createCategoryRequest = async (createCategoryRequest: CreateCategoryRequest, options?: RequestInit): Promise<createCategoryRequestResponse> => {
 
   const res = await fetch(getCreateCategoryRequestUrl(),
-  {
+    {
       credentials: 'include',
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(createCategoryRequest)
-  }
-)
+      ...options,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      body: JSON.stringify(createCategoryRequest)
+    }
+  )
 
 
   const body = [204, 205, 304].includes(res.status) ? null : await res.text();
@@ -871,7 +1356,7 @@ export const createCategoryRequest = async (createCategoryRequest: CreateCategor
 
 
 
-export const getCreateCategoryRequestMutationFetcher = ( options?: RequestInit) => {
+export const getCreateCategoryRequestMutationFetcher = (options?: RequestInit) => {
   return (_: Key, { arg }: { arg: CreateCategoryRequest }) => {
     return createCategoryRequest(arg, options);
   }
@@ -881,10 +1366,10 @@ export const getCreateCategoryRequestMutationKey = () => [`http://localhost:8080
 export type CreateCategoryRequestMutationResult = NonNullable<Awaited<ReturnType<typeof createCategoryRequest>>>
 
 export const useCreateCategoryRequest = <TError = Promise<ErrorResponse>>(
-   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof createCategoryRequest>>, TError, Key, CreateCategoryRequest, Awaited<ReturnType<typeof createCategoryRequest>>> & { swrKey?: string }, fetch?: RequestInit}
+  options?: { swr?: SWRMutationConfiguration<Awaited<ReturnType<typeof createCategoryRequest>>, TError, Key, CreateCategoryRequest, Awaited<ReturnType<typeof createCategoryRequest>>> & { swrKey?: string }, fetch?: RequestInit }
 ) => {
 
-  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+  const { swr: swrOptions, fetch: fetchOptions } = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getCreateCategoryRequestMutationKey();
   const swrFn = getCreateCategoryRequestMutationFetcher(fetchOptions);
@@ -932,14 +1417,14 @@ export const getGetCategoryRequestUrl = (id: CategoryId,) => {
 export const getCategoryRequest = async (id: CategoryId, options?: RequestInit): Promise<getCategoryRequestResponse> => {
 
   const res = await fetch(getGetCategoryRequestUrl(id),
-  {
+    {
       credentials: 'include',
-    ...options,
-    method: 'GET'
+      ...options,
+      method: 'GET'
 
 
-  }
-)
+    }
+  )
 
 
   const body = [204, 205, 304].includes(res.status) ? null : await res.text();
@@ -956,9 +1441,9 @@ export const getGetCategoryRequestKey = (id: CategoryId,) => [`http://localhost:
 export type GetCategoryRequestQueryResult = NonNullable<Awaited<ReturnType<typeof getCategoryRequest>>>
 
 export const useGetCategoryRequest = <TError = Promise<ErrorResponse>>(
-  id: CategoryId, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getCategoryRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
+  id: CategoryId, options?: { swr?: SWRConfiguration<Awaited<ReturnType<typeof getCategoryRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
 ) => {
-  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+  const { swr: swrOptions, fetch: fetchOptions } = options ?? {}
 
   const isEnabled = swrOptions?.enabled !== false && id !== null && id !== undefined
   const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetCategoryRequestKey(id) : null);
@@ -1010,17 +1495,17 @@ export const getUpdateCategoryRequestUrl = (id: CategoryId,) => {
 }
 
 export const updateCategoryRequest = async (id: CategoryId,
-    updateCategoryRequest: UpdateCategoryRequest, options?: RequestInit): Promise<updateCategoryRequestResponse> => {
+  updateCategoryRequest: UpdateCategoryRequest, options?: RequestInit): Promise<updateCategoryRequestResponse> => {
 
   const res = await fetch(getUpdateCategoryRequestUrl(id),
-  {
+    {
       credentials: 'include',
-    ...options,
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(updateCategoryRequest)
-  }
-)
+      ...options,
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      body: JSON.stringify(updateCategoryRequest)
+    }
+  )
 
 
   const body = [204, 205, 304].includes(res.status) ? null : await res.text();
@@ -1042,10 +1527,10 @@ export const getUpdateCategoryRequestMutationKey = (id: CategoryId,) => [`http:/
 export type UpdateCategoryRequestMutationResult = NonNullable<Awaited<ReturnType<typeof updateCategoryRequest>>>
 
 export const useUpdateCategoryRequest = <TError = Promise<ErrorResponse>>(
-  id: CategoryId, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof updateCategoryRequest>>, TError, Key, UpdateCategoryRequest, Awaited<ReturnType<typeof updateCategoryRequest>>> & { swrKey?: string }, fetch?: RequestInit}
+  id: CategoryId, options?: { swr?: SWRMutationConfiguration<Awaited<ReturnType<typeof updateCategoryRequest>>, TError, Key, UpdateCategoryRequest, Awaited<ReturnType<typeof updateCategoryRequest>>> & { swrKey?: string }, fetch?: RequestInit }
 ) => {
 
-  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+  const { swr: swrOptions, fetch: fetchOptions } = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getUpdateCategoryRequestMutationKey(id);
   const swrFn = getUpdateCategoryRequestMutationFetcher(id, fetchOptions);
@@ -1093,14 +1578,14 @@ export const getDeleteCategoryRequestUrl = (id: CategoryId,) => {
 export const deleteCategoryRequest = async (id: CategoryId, options?: RequestInit): Promise<deleteCategoryRequestResponse> => {
 
   const res = await fetch(getDeleteCategoryRequestUrl(id),
-  {
+    {
       credentials: 'include',
-    ...options,
-    method: 'DELETE'
+      ...options,
+      method: 'DELETE'
 
 
-  }
-)
+    }
+  )
 
 
   const body = [204, 205, 304].includes(res.status) ? null : await res.text();
@@ -1122,10 +1607,10 @@ export const getDeleteCategoryRequestMutationKey = (id: CategoryId,) => [`http:/
 export type DeleteCategoryRequestMutationResult = NonNullable<Awaited<ReturnType<typeof deleteCategoryRequest>>>
 
 export const useDeleteCategoryRequest = <TError = Promise<ErrorResponse>>(
-  id: CategoryId, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof deleteCategoryRequest>>, TError, Key, Arguments, Awaited<ReturnType<typeof deleteCategoryRequest>>> & { swrKey?: string }, fetch?: RequestInit}
+  id: CategoryId, options?: { swr?: SWRMutationConfiguration<Awaited<ReturnType<typeof deleteCategoryRequest>>, TError, Key, Arguments, Awaited<ReturnType<typeof deleteCategoryRequest>>> & { swrKey?: string }, fetch?: RequestInit }
 ) => {
 
-  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+  const { swr: swrOptions, fetch: fetchOptions } = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getDeleteCategoryRequestMutationKey(id);
   const swrFn = getDeleteCategoryRequestMutationFetcher(id, fetchOptions);
@@ -1165,17 +1650,17 @@ export const getListPermissionsHandlerUrl = () => {
   return `http://localhost:8080/api/v1/rbac/permissions`
 }
 
-export const listPermissionsHandler = async ( options?: RequestInit): Promise<listPermissionsHandlerResponse> => {
+export const listPermissionsHandler = async (options?: RequestInit): Promise<listPermissionsHandlerResponse> => {
 
   const res = await fetch(getListPermissionsHandlerUrl(),
-  {
+    {
       credentials: 'include',
-    ...options,
-    method: 'GET'
+      ...options,
+      method: 'GET'
 
 
-  }
-)
+    }
+  )
 
 
   const body = [204, 205, 304].includes(res.status) ? null : await res.text();
@@ -1192,9 +1677,9 @@ export const getListPermissionsHandlerKey = () => [`http://localhost:8080/api/v1
 export type ListPermissionsHandlerQueryResult = NonNullable<Awaited<ReturnType<typeof listPermissionsHandler>>>
 
 export const useListPermissionsHandler = <TError = Promise<void>>(
-   options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof listPermissionsHandler>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
+  options?: { swr?: SWRConfiguration<Awaited<ReturnType<typeof listPermissionsHandler>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
 ) => {
-  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+  const { swr: swrOptions, fetch: fetchOptions } = options ?? {}
 
   const isEnabled = swrOptions?.enabled !== false
   const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getListPermissionsHandlerKey() : null);
@@ -1243,14 +1728,14 @@ export const getCreatePermissionHandlerUrl = () => {
 export const createPermissionHandler = async (createPermissionRequest: CreatePermissionRequest, options?: RequestInit): Promise<createPermissionHandlerResponse> => {
 
   const res = await fetch(getCreatePermissionHandlerUrl(),
-  {
+    {
       credentials: 'include',
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(createPermissionRequest)
-  }
-)
+      ...options,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      body: JSON.stringify(createPermissionRequest)
+    }
+  )
 
 
   const body = [204, 205, 304].includes(res.status) ? null : await res.text();
@@ -1262,7 +1747,7 @@ export const createPermissionHandler = async (createPermissionRequest: CreatePer
 
 
 
-export const getCreatePermissionHandlerMutationFetcher = ( options?: RequestInit) => {
+export const getCreatePermissionHandlerMutationFetcher = (options?: RequestInit) => {
   return (_: Key, { arg }: { arg: CreatePermissionRequest }) => {
     return createPermissionHandler(arg, options);
   }
@@ -1272,10 +1757,10 @@ export const getCreatePermissionHandlerMutationKey = () => [`http://localhost:80
 export type CreatePermissionHandlerMutationResult = NonNullable<Awaited<ReturnType<typeof createPermissionHandler>>>
 
 export const useCreatePermissionHandler = <TError = Promise<ErrorResponse | void>>(
-   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof createPermissionHandler>>, TError, Key, CreatePermissionRequest, Awaited<ReturnType<typeof createPermissionHandler>>> & { swrKey?: string }, fetch?: RequestInit}
+  options?: { swr?: SWRMutationConfiguration<Awaited<ReturnType<typeof createPermissionHandler>>, TError, Key, CreatePermissionRequest, Awaited<ReturnType<typeof createPermissionHandler>>> & { swrKey?: string }, fetch?: RequestInit }
 ) => {
 
-  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+  const { swr: swrOptions, fetch: fetchOptions } = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getCreatePermissionHandlerMutationKey();
   const swrFn = getCreatePermissionHandlerMutationFetcher(fetchOptions);
@@ -1326,17 +1811,17 @@ export const getUpdatePermissionHandlerUrl = (permissionId: PermissionId,) => {
 }
 
 export const updatePermissionHandler = async (permissionId: PermissionId,
-    updatePermissionRequest: UpdatePermissionRequest, options?: RequestInit): Promise<updatePermissionHandlerResponse> => {
+  updatePermissionRequest: UpdatePermissionRequest, options?: RequestInit): Promise<updatePermissionHandlerResponse> => {
 
   const res = await fetch(getUpdatePermissionHandlerUrl(permissionId),
-  {
+    {
       credentials: 'include',
-    ...options,
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(updatePermissionRequest)
-  }
-)
+      ...options,
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      body: JSON.stringify(updatePermissionRequest)
+    }
+  )
 
 
   const body = [204, 205, 304].includes(res.status) ? null : await res.text();
@@ -1358,10 +1843,10 @@ export const getUpdatePermissionHandlerMutationKey = (permissionId: PermissionId
 export type UpdatePermissionHandlerMutationResult = NonNullable<Awaited<ReturnType<typeof updatePermissionHandler>>>
 
 export const useUpdatePermissionHandler = <TError = Promise<ErrorResponse | void>>(
-  permissionId: PermissionId, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof updatePermissionHandler>>, TError, Key, UpdatePermissionRequest, Awaited<ReturnType<typeof updatePermissionHandler>>> & { swrKey?: string }, fetch?: RequestInit}
+  permissionId: PermissionId, options?: { swr?: SWRMutationConfiguration<Awaited<ReturnType<typeof updatePermissionHandler>>, TError, Key, UpdatePermissionRequest, Awaited<ReturnType<typeof updatePermissionHandler>>> & { swrKey?: string }, fetch?: RequestInit }
 ) => {
 
-  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+  const { swr: swrOptions, fetch: fetchOptions } = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getUpdatePermissionHandlerMutationKey(permissionId);
   const swrFn = getUpdatePermissionHandlerMutationFetcher(permissionId, fetchOptions);
@@ -1414,14 +1899,14 @@ export const getDeletePermissionHandlerUrl = (permissionId: PermissionId,) => {
 export const deletePermissionHandler = async (permissionId: PermissionId, options?: RequestInit): Promise<deletePermissionHandlerResponse> => {
 
   const res = await fetch(getDeletePermissionHandlerUrl(permissionId),
-  {
+    {
       credentials: 'include',
-    ...options,
-    method: 'DELETE'
+      ...options,
+      method: 'DELETE'
 
 
-  }
-)
+    }
+  )
 
 
   const body = [204, 205, 304].includes(res.status) ? null : await res.text();
@@ -1443,10 +1928,10 @@ export const getDeletePermissionHandlerMutationKey = (permissionId: PermissionId
 export type DeletePermissionHandlerMutationResult = NonNullable<Awaited<ReturnType<typeof deletePermissionHandler>>>
 
 export const useDeletePermissionHandler = <TError = Promise<ErrorResponse | void>>(
-  permissionId: PermissionId, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof deletePermissionHandler>>, TError, Key, Arguments, Awaited<ReturnType<typeof deletePermissionHandler>>> & { swrKey?: string }, fetch?: RequestInit}
+  permissionId: PermissionId, options?: { swr?: SWRMutationConfiguration<Awaited<ReturnType<typeof deletePermissionHandler>>, TError, Key, Arguments, Awaited<ReturnType<typeof deletePermissionHandler>>> & { swrKey?: string }, fetch?: RequestInit }
 ) => {
 
-  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+  const { swr: swrOptions, fetch: fetchOptions } = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getDeletePermissionHandlerMutationKey(permissionId);
   const swrFn = getDeletePermissionHandlerMutationFetcher(permissionId, fetchOptions);
@@ -1486,17 +1971,17 @@ export const getListRolesHandlerUrl = () => {
   return `http://localhost:8080/api/v1/rbac/roles`
 }
 
-export const listRolesHandler = async ( options?: RequestInit): Promise<listRolesHandlerResponse> => {
+export const listRolesHandler = async (options?: RequestInit): Promise<listRolesHandlerResponse> => {
 
   const res = await fetch(getListRolesHandlerUrl(),
-  {
+    {
       credentials: 'include',
-    ...options,
-    method: 'GET'
+      ...options,
+      method: 'GET'
 
 
-  }
-)
+    }
+  )
 
 
   const body = [204, 205, 304].includes(res.status) ? null : await res.text();
@@ -1513,9 +1998,9 @@ export const getListRolesHandlerKey = () => [`http://localhost:8080/api/v1/rbac/
 export type ListRolesHandlerQueryResult = NonNullable<Awaited<ReturnType<typeof listRolesHandler>>>
 
 export const useListRolesHandler = <TError = Promise<void>>(
-   options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof listRolesHandler>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
+  options?: { swr?: SWRConfiguration<Awaited<ReturnType<typeof listRolesHandler>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
 ) => {
-  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+  const { swr: swrOptions, fetch: fetchOptions } = options ?? {}
 
   const isEnabled = swrOptions?.enabled !== false
   const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getListRolesHandlerKey() : null);
@@ -1564,14 +2049,14 @@ export const getCreateRoleHandlerUrl = () => {
 export const createRoleHandler = async (createRoleRequest: CreateRoleRequest, options?: RequestInit): Promise<createRoleHandlerResponse> => {
 
   const res = await fetch(getCreateRoleHandlerUrl(),
-  {
+    {
       credentials: 'include',
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(createRoleRequest)
-  }
-)
+      ...options,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      body: JSON.stringify(createRoleRequest)
+    }
+  )
 
 
   const body = [204, 205, 304].includes(res.status) ? null : await res.text();
@@ -1583,7 +2068,7 @@ export const createRoleHandler = async (createRoleRequest: CreateRoleRequest, op
 
 
 
-export const getCreateRoleHandlerMutationFetcher = ( options?: RequestInit) => {
+export const getCreateRoleHandlerMutationFetcher = (options?: RequestInit) => {
   return (_: Key, { arg }: { arg: CreateRoleRequest }) => {
     return createRoleHandler(arg, options);
   }
@@ -1593,10 +2078,10 @@ export const getCreateRoleHandlerMutationKey = () => [`http://localhost:8080/api
 export type CreateRoleHandlerMutationResult = NonNullable<Awaited<ReturnType<typeof createRoleHandler>>>
 
 export const useCreateRoleHandler = <TError = Promise<ErrorResponse | void>>(
-   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof createRoleHandler>>, TError, Key, CreateRoleRequest, Awaited<ReturnType<typeof createRoleHandler>>> & { swrKey?: string }, fetch?: RequestInit}
+  options?: { swr?: SWRMutationConfiguration<Awaited<ReturnType<typeof createRoleHandler>>, TError, Key, CreateRoleRequest, Awaited<ReturnType<typeof createRoleHandler>>> & { swrKey?: string }, fetch?: RequestInit }
 ) => {
 
-  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+  const { swr: swrOptions, fetch: fetchOptions } = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getCreateRoleHandlerMutationKey();
   const swrFn = getCreateRoleHandlerMutationFetcher(fetchOptions);
@@ -1647,17 +2132,17 @@ export const getUpdateRoleHandlerUrl = (roleId: RoleId,) => {
 }
 
 export const updateRoleHandler = async (roleId: RoleId,
-    updateRoleRequest: UpdateRoleRequest, options?: RequestInit): Promise<updateRoleHandlerResponse> => {
+  updateRoleRequest: UpdateRoleRequest, options?: RequestInit): Promise<updateRoleHandlerResponse> => {
 
   const res = await fetch(getUpdateRoleHandlerUrl(roleId),
-  {
+    {
       credentials: 'include',
-    ...options,
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(updateRoleRequest)
-  }
-)
+      ...options,
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      body: JSON.stringify(updateRoleRequest)
+    }
+  )
 
 
   const body = [204, 205, 304].includes(res.status) ? null : await res.text();
@@ -1679,10 +2164,10 @@ export const getUpdateRoleHandlerMutationKey = (roleId: RoleId,) => [`http://loc
 export type UpdateRoleHandlerMutationResult = NonNullable<Awaited<ReturnType<typeof updateRoleHandler>>>
 
 export const useUpdateRoleHandler = <TError = Promise<ErrorResponse | void>>(
-  roleId: RoleId, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof updateRoleHandler>>, TError, Key, UpdateRoleRequest, Awaited<ReturnType<typeof updateRoleHandler>>> & { swrKey?: string }, fetch?: RequestInit}
+  roleId: RoleId, options?: { swr?: SWRMutationConfiguration<Awaited<ReturnType<typeof updateRoleHandler>>, TError, Key, UpdateRoleRequest, Awaited<ReturnType<typeof updateRoleHandler>>> & { swrKey?: string }, fetch?: RequestInit }
 ) => {
 
-  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+  const { swr: swrOptions, fetch: fetchOptions } = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getUpdateRoleHandlerMutationKey(roleId);
   const swrFn = getUpdateRoleHandlerMutationFetcher(roleId, fetchOptions);
@@ -1735,14 +2220,14 @@ export const getDeleteRoleHandlerUrl = (roleId: RoleId,) => {
 export const deleteRoleHandler = async (roleId: RoleId, options?: RequestInit): Promise<deleteRoleHandlerResponse> => {
 
   const res = await fetch(getDeleteRoleHandlerUrl(roleId),
-  {
+    {
       credentials: 'include',
-    ...options,
-    method: 'DELETE'
+      ...options,
+      method: 'DELETE'
 
 
-  }
-)
+    }
+  )
 
 
   const body = [204, 205, 304].includes(res.status) ? null : await res.text();
@@ -1764,10 +2249,10 @@ export const getDeleteRoleHandlerMutationKey = (roleId: RoleId,) => [`http://loc
 export type DeleteRoleHandlerMutationResult = NonNullable<Awaited<ReturnType<typeof deleteRoleHandler>>>
 
 export const useDeleteRoleHandler = <TError = Promise<ErrorResponse | void>>(
-  roleId: RoleId, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof deleteRoleHandler>>, TError, Key, Arguments, Awaited<ReturnType<typeof deleteRoleHandler>>> & { swrKey?: string }, fetch?: RequestInit}
+  roleId: RoleId, options?: { swr?: SWRMutationConfiguration<Awaited<ReturnType<typeof deleteRoleHandler>>, TError, Key, Arguments, Awaited<ReturnType<typeof deleteRoleHandler>>> & { swrKey?: string }, fetch?: RequestInit }
 ) => {
 
-  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+  const { swr: swrOptions, fetch: fetchOptions } = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getDeleteRoleHandlerMutationKey(roleId);
   const swrFn = getDeleteRoleHandlerMutationFetcher(roleId, fetchOptions);
@@ -1810,14 +2295,14 @@ export const getListRolePermissionsHandlerUrl = (roleId: RoleId,) => {
 export const listRolePermissionsHandler = async (roleId: RoleId, options?: RequestInit): Promise<listRolePermissionsHandlerResponse> => {
 
   const res = await fetch(getListRolePermissionsHandlerUrl(roleId),
-  {
+    {
       credentials: 'include',
-    ...options,
-    method: 'GET'
+      ...options,
+      method: 'GET'
 
 
-  }
-)
+    }
+  )
 
 
   const body = [204, 205, 304].includes(res.status) ? null : await res.text();
@@ -1834,9 +2319,9 @@ export const getListRolePermissionsHandlerKey = (roleId: RoleId,) => [`http://lo
 export type ListRolePermissionsHandlerQueryResult = NonNullable<Awaited<ReturnType<typeof listRolePermissionsHandler>>>
 
 export const useListRolePermissionsHandler = <TError = Promise<void>>(
-  roleId: RoleId, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof listRolePermissionsHandler>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
+  roleId: RoleId, options?: { swr?: SWRConfiguration<Awaited<ReturnType<typeof listRolePermissionsHandler>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
 ) => {
-  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+  const { swr: swrOptions, fetch: fetchOptions } = options ?? {}
 
   const isEnabled = swrOptions?.enabled !== false && roleId !== null && roleId !== undefined
   const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getListRolePermissionsHandlerKey(roleId) : null);
@@ -1878,17 +2363,17 @@ export const getAssignPermissionsHandlerUrl = (roleId: RoleId,) => {
 }
 
 export const assignPermissionsHandler = async (roleId: RoleId,
-    assignPermissionsRequest: AssignPermissionsRequest, options?: RequestInit): Promise<assignPermissionsHandlerResponse> => {
+  assignPermissionsRequest: AssignPermissionsRequest, options?: RequestInit): Promise<assignPermissionsHandlerResponse> => {
 
   const res = await fetch(getAssignPermissionsHandlerUrl(roleId),
-  {
+    {
       credentials: 'include',
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(assignPermissionsRequest)
-  }
-)
+      ...options,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      body: JSON.stringify(assignPermissionsRequest)
+    }
+  )
 
 
   const body = [204, 205, 304].includes(res.status) ? null : await res.text();
@@ -1910,10 +2395,10 @@ export const getAssignPermissionsHandlerMutationKey = (roleId: RoleId,) => [`htt
 export type AssignPermissionsHandlerMutationResult = NonNullable<Awaited<ReturnType<typeof assignPermissionsHandler>>>
 
 export const useAssignPermissionsHandler = <TError = Promise<void>>(
-  roleId: RoleId, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof assignPermissionsHandler>>, TError, Key, AssignPermissionsRequest, Awaited<ReturnType<typeof assignPermissionsHandler>>> & { swrKey?: string }, fetch?: RequestInit}
+  roleId: RoleId, options?: { swr?: SWRMutationConfiguration<Awaited<ReturnType<typeof assignPermissionsHandler>>, TError, Key, AssignPermissionsRequest, Awaited<ReturnType<typeof assignPermissionsHandler>>> & { swrKey?: string }, fetch?: RequestInit }
 ) => {
 
-  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+  const { swr: swrOptions, fetch: fetchOptions } = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getAssignPermissionsHandlerMutationKey(roleId);
   const swrFn = getAssignPermissionsHandlerMutationFetcher(roleId, fetchOptions);
@@ -1954,17 +2439,17 @@ export const getRemovePermissionsHandlerUrl = (roleId: RoleId,) => {
 }
 
 export const removePermissionsHandler = async (roleId: RoleId,
-    removePermissionsRequest: RemovePermissionsRequest, options?: RequestInit): Promise<removePermissionsHandlerResponse> => {
+  removePermissionsRequest: RemovePermissionsRequest, options?: RequestInit): Promise<removePermissionsHandlerResponse> => {
 
   const res = await fetch(getRemovePermissionsHandlerUrl(roleId),
-  {
+    {
       credentials: 'include',
-    ...options,
-    method: 'DELETE',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(removePermissionsRequest)
-  }
-)
+      ...options,
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      body: JSON.stringify(removePermissionsRequest)
+    }
+  )
 
 
   const body = [204, 205, 304].includes(res.status) ? null : await res.text();
@@ -1986,10 +2471,10 @@ export const getRemovePermissionsHandlerMutationKey = (roleId: RoleId,) => [`htt
 export type RemovePermissionsHandlerMutationResult = NonNullable<Awaited<ReturnType<typeof removePermissionsHandler>>>
 
 export const useRemovePermissionsHandler = <TError = Promise<void>>(
-  roleId: RoleId, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof removePermissionsHandler>>, TError, Key, RemovePermissionsRequest, Awaited<ReturnType<typeof removePermissionsHandler>>> & { swrKey?: string }, fetch?: RequestInit}
+  roleId: RoleId, options?: { swr?: SWRMutationConfiguration<Awaited<ReturnType<typeof removePermissionsHandler>>, TError, Key, RemovePermissionsRequest, Awaited<ReturnType<typeof removePermissionsHandler>>> & { swrKey?: string }, fetch?: RequestInit }
 ) => {
 
-  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+  const { swr: swrOptions, fetch: fetchOptions } = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getRemovePermissionsHandlerMutationKey(roleId);
   const swrFn = getRemovePermissionsHandlerMutationFetcher(roleId, fetchOptions);
@@ -2040,17 +2525,17 @@ export const getChangeRoleStatusHandlerUrl = (roleId: RoleId,) => {
 }
 
 export const changeRoleStatusHandler = async (roleId: RoleId,
-    changeRoleStatusRequest: ChangeRoleStatusRequest, options?: RequestInit): Promise<changeRoleStatusHandlerResponse> => {
+  changeRoleStatusRequest: ChangeRoleStatusRequest, options?: RequestInit): Promise<changeRoleStatusHandlerResponse> => {
 
   const res = await fetch(getChangeRoleStatusHandlerUrl(roleId),
-  {
+    {
       credentials: 'include',
-    ...options,
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(changeRoleStatusRequest)
-  }
-)
+      ...options,
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      body: JSON.stringify(changeRoleStatusRequest)
+    }
+  )
 
 
   const body = [204, 205, 304].includes(res.status) ? null : await res.text();
@@ -2072,10 +2557,10 @@ export const getChangeRoleStatusHandlerMutationKey = (roleId: RoleId,) => [`http
 export type ChangeRoleStatusHandlerMutationResult = NonNullable<Awaited<ReturnType<typeof changeRoleStatusHandler>>>
 
 export const useChangeRoleStatusHandler = <TError = Promise<ErrorResponse | void>>(
-  roleId: RoleId, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof changeRoleStatusHandler>>, TError, Key, ChangeRoleStatusRequest, Awaited<ReturnType<typeof changeRoleStatusHandler>>> & { swrKey?: string }, fetch?: RequestInit}
+  roleId: RoleId, options?: { swr?: SWRMutationConfiguration<Awaited<ReturnType<typeof changeRoleStatusHandler>>, TError, Key, ChangeRoleStatusRequest, Awaited<ReturnType<typeof changeRoleStatusHandler>>> & { swrKey?: string }, fetch?: RequestInit }
 ) => {
 
-  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+  const { swr: swrOptions, fetch: fetchOptions } = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getChangeRoleStatusHandlerMutationKey(roleId);
   const swrFn = getChangeRoleStatusHandlerMutationFetcher(roleId, fetchOptions);
@@ -2118,14 +2603,14 @@ export const getGetUserPermissionsHandlerUrl = (userId: UserId,) => {
 export const getUserPermissionsHandler = async (userId: UserId, options?: RequestInit): Promise<getUserPermissionsHandlerResponse> => {
 
   const res = await fetch(getGetUserPermissionsHandlerUrl(userId),
-  {
+    {
       credentials: 'include',
-    ...options,
-    method: 'GET'
+      ...options,
+      method: 'GET'
 
 
-  }
-)
+    }
+  )
 
 
   const body = [204, 205, 304].includes(res.status) ? null : await res.text();
@@ -2142,9 +2627,9 @@ export const getGetUserPermissionsHandlerKey = (userId: UserId,) => [`http://loc
 export type GetUserPermissionsHandlerQueryResult = NonNullable<Awaited<ReturnType<typeof getUserPermissionsHandler>>>
 
 export const useGetUserPermissionsHandler = <TError = Promise<void>>(
-  userId: UserId, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getUserPermissionsHandler>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
+  userId: UserId, options?: { swr?: SWRConfiguration<Awaited<ReturnType<typeof getUserPermissionsHandler>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
 ) => {
-  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+  const { swr: swrOptions, fetch: fetchOptions } = options ?? {}
 
   const isEnabled = swrOptions?.enabled !== false && userId !== null && userId !== undefined
   const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetUserPermissionsHandlerKey(userId) : null);
@@ -2188,14 +2673,14 @@ export const getListUserRolesHandlerUrl = (userId: UserId,) => {
 export const listUserRolesHandler = async (userId: UserId, options?: RequestInit): Promise<listUserRolesHandlerResponse> => {
 
   const res = await fetch(getListUserRolesHandlerUrl(userId),
-  {
+    {
       credentials: 'include',
-    ...options,
-    method: 'GET'
+      ...options,
+      method: 'GET'
 
 
-  }
-)
+    }
+  )
 
 
   const body = [204, 205, 304].includes(res.status) ? null : await res.text();
@@ -2212,9 +2697,9 @@ export const getListUserRolesHandlerKey = (userId: UserId,) => [`http://localhos
 export type ListUserRolesHandlerQueryResult = NonNullable<Awaited<ReturnType<typeof listUserRolesHandler>>>
 
 export const useListUserRolesHandler = <TError = Promise<void>>(
-  userId: UserId, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof listUserRolesHandler>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
+  userId: UserId, options?: { swr?: SWRConfiguration<Awaited<ReturnType<typeof listUserRolesHandler>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
 ) => {
-  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+  const { swr: swrOptions, fetch: fetchOptions } = options ?? {}
 
   const isEnabled = swrOptions?.enabled !== false && userId !== null && userId !== undefined
   const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getListUserRolesHandlerKey(userId) : null);
@@ -2256,17 +2741,17 @@ export const getAssignRolesToUserHandlerUrl = (userId: UserId,) => {
 }
 
 export const assignRolesToUserHandler = async (userId: UserId,
-    assignRolesToUserRequest: AssignRolesToUserRequest, options?: RequestInit): Promise<assignRolesToUserHandlerResponse> => {
+  assignRolesToUserRequest: AssignRolesToUserRequest, options?: RequestInit): Promise<assignRolesToUserHandlerResponse> => {
 
   const res = await fetch(getAssignRolesToUserHandlerUrl(userId),
-  {
+    {
       credentials: 'include',
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(assignRolesToUserRequest)
-  }
-)
+      ...options,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      body: JSON.stringify(assignRolesToUserRequest)
+    }
+  )
 
 
   const body = [204, 205, 304].includes(res.status) ? null : await res.text();
@@ -2288,10 +2773,10 @@ export const getAssignRolesToUserHandlerMutationKey = (userId: UserId,) => [`htt
 export type AssignRolesToUserHandlerMutationResult = NonNullable<Awaited<ReturnType<typeof assignRolesToUserHandler>>>
 
 export const useAssignRolesToUserHandler = <TError = Promise<void>>(
-  userId: UserId, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof assignRolesToUserHandler>>, TError, Key, AssignRolesToUserRequest, Awaited<ReturnType<typeof assignRolesToUserHandler>>> & { swrKey?: string }, fetch?: RequestInit}
+  userId: UserId, options?: { swr?: SWRMutationConfiguration<Awaited<ReturnType<typeof assignRolesToUserHandler>>, TError, Key, AssignRolesToUserRequest, Awaited<ReturnType<typeof assignRolesToUserHandler>>> & { swrKey?: string }, fetch?: RequestInit }
 ) => {
 
-  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+  const { swr: swrOptions, fetch: fetchOptions } = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getAssignRolesToUserHandlerMutationKey(userId);
   const swrFn = getAssignRolesToUserHandlerMutationFetcher(userId, fetchOptions);
@@ -2324,7 +2809,7 @@ export type removeUserRoleHandlerResponseError = (removeUserRoleHandlerResponse5
 export type removeUserRoleHandlerResponse = (removeUserRoleHandlerResponseSuccess | removeUserRoleHandlerResponseError)
 
 export const getRemoveUserRoleHandlerUrl = (userId: UserId,
-    roleId: RoleId,) => {
+  roleId: RoleId,) => {
 
 
 
@@ -2333,17 +2818,17 @@ export const getRemoveUserRoleHandlerUrl = (userId: UserId,
 }
 
 export const removeUserRoleHandler = async (userId: UserId,
-    roleId: RoleId, options?: RequestInit): Promise<removeUserRoleHandlerResponse> => {
+  roleId: RoleId, options?: RequestInit): Promise<removeUserRoleHandlerResponse> => {
 
-  const res = await fetch(getRemoveUserRoleHandlerUrl(userId,roleId),
-  {
+  const res = await fetch(getRemoveUserRoleHandlerUrl(userId, roleId),
+    {
       credentials: 'include',
-    ...options,
-    method: 'DELETE'
+      ...options,
+      method: 'DELETE'
 
 
-  }
-)
+    }
+  )
 
 
   const body = [204, 205, 304].includes(res.status) ? null : await res.text();
@@ -2356,25 +2841,25 @@ export const removeUserRoleHandler = async (userId: UserId,
 
 
 export const getRemoveUserRoleHandlerMutationFetcher = (userId: UserId,
-    roleId: RoleId, options?: RequestInit) => {
+  roleId: RoleId, options?: RequestInit) => {
   return (_: Key, __: { arg: Arguments }) => {
     return removeUserRoleHandler(userId, roleId, options);
   }
 }
 export const getRemoveUserRoleHandlerMutationKey = (userId: UserId,
-    roleId: RoleId,) => [`http://localhost:8080/api/v1/rbac/users/${userId}/roles/${roleId}`] as const;
+  roleId: RoleId,) => [`http://localhost:8080/api/v1/rbac/users/${userId}/roles/${roleId}`] as const;
 
 export type RemoveUserRoleHandlerMutationResult = NonNullable<Awaited<ReturnType<typeof removeUserRoleHandler>>>
 
 export const useRemoveUserRoleHandler = <TError = Promise<void>>(
   userId: UserId,
-    roleId: RoleId, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof removeUserRoleHandler>>, TError, Key, Arguments, Awaited<ReturnType<typeof removeUserRoleHandler>>> & { swrKey?: string }, fetch?: RequestInit}
+  roleId: RoleId, options?: { swr?: SWRMutationConfiguration<Awaited<ReturnType<typeof removeUserRoleHandler>>, TError, Key, Arguments, Awaited<ReturnType<typeof removeUserRoleHandler>>> & { swrKey?: string }, fetch?: RequestInit }
 ) => {
 
-  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+  const { swr: swrOptions, fetch: fetchOptions } = options ?? {}
 
-  const swrKey = swrOptions?.swrKey ?? getRemoveUserRoleHandlerMutationKey(userId,roleId);
-  const swrFn = getRemoveUserRoleHandlerMutationFetcher(userId,roleId, fetchOptions);
+  const swrKey = swrOptions?.swrKey ?? getRemoveUserRoleHandlerMutationKey(userId, roleId);
+  const swrFn = getRemoveUserRoleHandlerMutationFetcher(userId, roleId, fetchOptions);
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
@@ -2419,14 +2904,14 @@ export const getCreateUserRequestUrl = () => {
 export const createUserRequest = async (createUserRequest: CreateUserRequest, options?: RequestInit): Promise<createUserRequestResponse> => {
 
   const res = await fetch(getCreateUserRequestUrl(),
-  {
+    {
       credentials: 'include',
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(createUserRequest)
-  }
-)
+      ...options,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      body: JSON.stringify(createUserRequest)
+    }
+  )
 
 
   const body = [204, 205, 304].includes(res.status) ? null : await res.text();
@@ -2438,7 +2923,7 @@ export const createUserRequest = async (createUserRequest: CreateUserRequest, op
 
 
 
-export const getCreateUserRequestMutationFetcher = ( options?: RequestInit) => {
+export const getCreateUserRequestMutationFetcher = (options?: RequestInit) => {
   return (_: Key, { arg }: { arg: CreateUserRequest }) => {
     return createUserRequest(arg, options);
   }
@@ -2448,10 +2933,10 @@ export const getCreateUserRequestMutationKey = () => [`http://localhost:8080/api
 export type CreateUserRequestMutationResult = NonNullable<Awaited<ReturnType<typeof createUserRequest>>>
 
 export const useCreateUserRequest = <TError = Promise<ErrorResponse | void>>(
-   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof createUserRequest>>, TError, Key, CreateUserRequest, Awaited<ReturnType<typeof createUserRequest>>> & { swrKey?: string }, fetch?: RequestInit}
+  options?: { swr?: SWRMutationConfiguration<Awaited<ReturnType<typeof createUserRequest>>, TError, Key, CreateUserRequest, Awaited<ReturnType<typeof createUserRequest>>> & { swrKey?: string }, fetch?: RequestInit }
 ) => {
 
-  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+  const { swr: swrOptions, fetch: fetchOptions } = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getCreateUserRequestMutationKey();
   const swrFn = getCreateUserRequestMutationFetcher(fetchOptions);
@@ -2501,14 +2986,14 @@ export const getListWarehousesRequestUrl = (params?: ListWarehousesRequestParams
 export const listWarehousesRequest = async (params?: ListWarehousesRequestParams, options?: RequestInit): Promise<listWarehousesRequestResponse> => {
 
   const res = await fetch(getListWarehousesRequestUrl(params),
-  {
+    {
       credentials: 'include',
-    ...options,
-    method: 'GET'
+      ...options,
+      method: 'GET'
 
 
-  }
-)
+    }
+  )
 
 
   const body = [204, 205, 304].includes(res.status) ? null : await res.text();
@@ -2520,14 +3005,14 @@ export const listWarehousesRequest = async (params?: ListWarehousesRequestParams
 
 
 
-export const getListWarehousesRequestKey = (params?: ListWarehousesRequestParams,) => [`http://localhost:8080/api/v1/warehouse`, ...(params ? [params]: [])] as const;
+export const getListWarehousesRequestKey = (params?: ListWarehousesRequestParams,) => [`http://localhost:8080/api/v1/warehouse`, ...(params ? [params] : [])] as const;
 
 export type ListWarehousesRequestQueryResult = NonNullable<Awaited<ReturnType<typeof listWarehousesRequest>>>
 
 export const useListWarehousesRequest = <TError = Promise<ErrorResponse>>(
-  params?: ListWarehousesRequestParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof listWarehousesRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
+  params?: ListWarehousesRequestParams, options?: { swr?: SWRConfiguration<Awaited<ReturnType<typeof listWarehousesRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
 ) => {
-  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+  const { swr: swrOptions, fetch: fetchOptions } = options ?? {}
 
   const isEnabled = swrOptions?.enabled !== false
   const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getListWarehousesRequestKey(params) : null);
@@ -2576,14 +3061,14 @@ export const getCreateWarehouseRequestUrl = () => {
 export const createWarehouseRequest = async (createWarehouseRequest: CreateWarehouseRequest, options?: RequestInit): Promise<createWarehouseRequestResponse> => {
 
   const res = await fetch(getCreateWarehouseRequestUrl(),
-  {
+    {
       credentials: 'include',
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(createWarehouseRequest)
-  }
-)
+      ...options,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      body: JSON.stringify(createWarehouseRequest)
+    }
+  )
 
 
   const body = [204, 205, 304].includes(res.status) ? null : await res.text();
@@ -2595,7 +3080,7 @@ export const createWarehouseRequest = async (createWarehouseRequest: CreateWareh
 
 
 
-export const getCreateWarehouseRequestMutationFetcher = ( options?: RequestInit) => {
+export const getCreateWarehouseRequestMutationFetcher = (options?: RequestInit) => {
   return (_: Key, { arg }: { arg: CreateWarehouseRequest }) => {
     return createWarehouseRequest(arg, options);
   }
@@ -2605,10 +3090,10 @@ export const getCreateWarehouseRequestMutationKey = () => [`http://localhost:808
 export type CreateWarehouseRequestMutationResult = NonNullable<Awaited<ReturnType<typeof createWarehouseRequest>>>
 
 export const useCreateWarehouseRequest = <TError = Promise<ErrorResponse>>(
-   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof createWarehouseRequest>>, TError, Key, CreateWarehouseRequest, Awaited<ReturnType<typeof createWarehouseRequest>>> & { swrKey?: string }, fetch?: RequestInit}
+  options?: { swr?: SWRMutationConfiguration<Awaited<ReturnType<typeof createWarehouseRequest>>, TError, Key, CreateWarehouseRequest, Awaited<ReturnType<typeof createWarehouseRequest>>> & { swrKey?: string }, fetch?: RequestInit }
 ) => {
 
-  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+  const { swr: swrOptions, fetch: fetchOptions } = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getCreateWarehouseRequestMutationKey();
   const swrFn = getCreateWarehouseRequestMutationFetcher(fetchOptions);
@@ -2656,14 +3141,14 @@ export const getGetWarehouseRequestUrl = (id: WarehouseId,) => {
 export const getWarehouseRequest = async (id: WarehouseId, options?: RequestInit): Promise<getWarehouseRequestResponse> => {
 
   const res = await fetch(getGetWarehouseRequestUrl(id),
-  {
+    {
       credentials: 'include',
-    ...options,
-    method: 'GET'
+      ...options,
+      method: 'GET'
 
 
-  }
-)
+    }
+  )
 
 
   const body = [204, 205, 304].includes(res.status) ? null : await res.text();
@@ -2680,9 +3165,9 @@ export const getGetWarehouseRequestKey = (id: WarehouseId,) => [`http://localhos
 export type GetWarehouseRequestQueryResult = NonNullable<Awaited<ReturnType<typeof getWarehouseRequest>>>
 
 export const useGetWarehouseRequest = <TError = Promise<ErrorResponse>>(
-  id: WarehouseId, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getWarehouseRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
+  id: WarehouseId, options?: { swr?: SWRConfiguration<Awaited<ReturnType<typeof getWarehouseRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
 ) => {
-  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+  const { swr: swrOptions, fetch: fetchOptions } = options ?? {}
 
   const isEnabled = swrOptions?.enabled !== false && id !== null && id !== undefined
   const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetWarehouseRequestKey(id) : null);
@@ -2734,17 +3219,17 @@ export const getUpdateWarehouseRequestUrl = (id: WarehouseId,) => {
 }
 
 export const updateWarehouseRequest = async (id: WarehouseId,
-    updateWarehouseRequest: UpdateWarehouseRequest, options?: RequestInit): Promise<updateWarehouseRequestResponse> => {
+  updateWarehouseRequest: UpdateWarehouseRequest, options?: RequestInit): Promise<updateWarehouseRequestResponse> => {
 
   const res = await fetch(getUpdateWarehouseRequestUrl(id),
-  {
+    {
       credentials: 'include',
-    ...options,
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(updateWarehouseRequest)
-  }
-)
+      ...options,
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      body: JSON.stringify(updateWarehouseRequest)
+    }
+  )
 
 
   const body = [204, 205, 304].includes(res.status) ? null : await res.text();
@@ -2766,10 +3251,10 @@ export const getUpdateWarehouseRequestMutationKey = (id: WarehouseId,) => [`http
 export type UpdateWarehouseRequestMutationResult = NonNullable<Awaited<ReturnType<typeof updateWarehouseRequest>>>
 
 export const useUpdateWarehouseRequest = <TError = Promise<ErrorResponse>>(
-  id: WarehouseId, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof updateWarehouseRequest>>, TError, Key, UpdateWarehouseRequest, Awaited<ReturnType<typeof updateWarehouseRequest>>> & { swrKey?: string }, fetch?: RequestInit}
+  id: WarehouseId, options?: { swr?: SWRMutationConfiguration<Awaited<ReturnType<typeof updateWarehouseRequest>>, TError, Key, UpdateWarehouseRequest, Awaited<ReturnType<typeof updateWarehouseRequest>>> & { swrKey?: string }, fetch?: RequestInit }
 ) => {
 
-  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+  const { swr: swrOptions, fetch: fetchOptions } = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getUpdateWarehouseRequestMutationKey(id);
   const swrFn = getUpdateWarehouseRequestMutationFetcher(id, fetchOptions);
@@ -2820,17 +3305,17 @@ export const getUpdateWarehouseStatusRequestUrl = (id: WarehouseId,) => {
 }
 
 export const updateWarehouseStatusRequest = async (id: WarehouseId,
-    updateWarehouseStatusRequest: UpdateWarehouseStatusRequest, options?: RequestInit): Promise<updateWarehouseStatusRequestResponse> => {
+  updateWarehouseStatusRequest: UpdateWarehouseStatusRequest, options?: RequestInit): Promise<updateWarehouseStatusRequestResponse> => {
 
   const res = await fetch(getUpdateWarehouseStatusRequestUrl(id),
-  {
+    {
       credentials: 'include',
-    ...options,
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(updateWarehouseStatusRequest)
-  }
-)
+      ...options,
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      body: JSON.stringify(updateWarehouseStatusRequest)
+    }
+  )
 
 
   const body = [204, 205, 304].includes(res.status) ? null : await res.text();
@@ -2852,10 +3337,10 @@ export const getUpdateWarehouseStatusRequestMutationKey = (id: WarehouseId,) => 
 export type UpdateWarehouseStatusRequestMutationResult = NonNullable<Awaited<ReturnType<typeof updateWarehouseStatusRequest>>>
 
 export const useUpdateWarehouseStatusRequest = <TError = Promise<ErrorResponse>>(
-  id: WarehouseId, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof updateWarehouseStatusRequest>>, TError, Key, UpdateWarehouseStatusRequest, Awaited<ReturnType<typeof updateWarehouseStatusRequest>>> & { swrKey?: string }, fetch?: RequestInit}
+  id: WarehouseId, options?: { swr?: SWRMutationConfiguration<Awaited<ReturnType<typeof updateWarehouseStatusRequest>>, TError, Key, UpdateWarehouseStatusRequest, Awaited<ReturnType<typeof updateWarehouseStatusRequest>>> & { swrKey?: string }, fetch?: RequestInit }
 ) => {
 
-  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+  const { swr: swrOptions, fetch: fetchOptions } = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getUpdateWarehouseStatusRequestMutationKey(id);
   const swrFn = getUpdateWarehouseStatusRequestMutationFetcher(id, fetchOptions);

@@ -17,6 +17,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
+import { ImageUploadField } from "../brands/image-upload-field";
+
 export function CreateBrandDialog() {
   const [open, setOpen] = useState(false);
   const { trigger } = useCreateBrandRequest();
@@ -107,30 +109,14 @@ export function CreateBrandDialog() {
             )}
           </form.Field>
 
-          <form.Field
-            name="imageUrl"
-            validators={{
-              onChange: ({ value }) => {
-                const result = CreateBrandRequestBody.shape.image_url.safeParse(
-                  value || null
-                );
-                return result.success
-                  ? undefined
-                  : result.error.issues[0].message;
-              },
-            }}
-          >
+          <form.Field name="imageUrl">
             {(field) => (
-              <div className="grid gap-2">
-                <Label htmlFor={field.name}>Link de la imagen</Label>
-                <Input
-                  id={field.name}
-                  name={field.name}
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  placeholder="https://"
-                />
-              </div>
+              <ImageUploadField
+                id={field.name}
+                label="Imagen de la marca"
+                value={field.state.value}
+                onChange={(url) => field.handleChange(url)}
+              />
             )}
           </form.Field>
 

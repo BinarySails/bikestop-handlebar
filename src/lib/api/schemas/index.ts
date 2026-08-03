@@ -12,6 +12,11 @@ export * from './assignPermissionsRequest.ts';
 export * from './assignPermissionsResponse.ts';
 export * from './assignRolesToUserRequest.ts';
 export * from './assignRolesToUserResponse.ts';
+<<<<<<< HEAD
+=======
+export * from './associateFileRequest.ts';
+export * from './associateFileResponse.ts';
+>>>>>>> main
 export * from './brand.ts';
 export * from './brandId.ts';
 export * from './brandStatus.ts';
@@ -33,14 +38,21 @@ export * from './createStateRequest.ts';
 export * from './createUserRequest.ts';
 export * from './createWarehouseAddressRequest.ts';
 export * from './createWarehouseRequest.ts';
+<<<<<<< HEAD
+=======
+export * from './deleteBrandResponse.ts';
+>>>>>>> main
 export * from './deleteCategoryResponse.ts';
 export * from './deleteFileRequestDeleteType.ts';
 export * from './deleteFileRequestParams.ts';
 export * from './deleteFileResponse.ts';
 export * from './deletePermissionResponse.ts';
 export * from './deleteRoleResponse.ts';
+export * from './entityType.ts';
 export * from './errorResponse.ts';
 export * from './file.ts';
+export * from './fileAssociation.ts';
+export * from './fileAssociationId.ts';
 export * from './fileId.ts';
 export * from './fileStatus.ts';
 export * from './fileType.ts';
@@ -60,6 +72,10 @@ export * from './meResponse.ts';
 export * from './permission.ts';
 export * from './permissionId.ts';
 export * from './permissionStatus.ts';
+<<<<<<< HEAD
+=======
+export * from './relationshipType.ts';
+>>>>>>> main
 export * from './removePermissionsRequest.ts';
 export * from './removePermissionsResponse.ts';
 export * from './removeUserRoleResponse.ts';
@@ -69,6 +85,9 @@ export * from './roleStatus.ts';
 export * from './sessionUser.ts';
 export * from './state.ts';
 export * from './stateId.ts';
+export * from './toggleBrandResponse.ts';
+export * from './updateBrandRequest.ts';
+export * from './updateBrandResponse.ts';
 export * from './updateCategoryRequest.ts';
 export * from './updateCategoryResponse.ts';
 export * from './updatePermissionRequest.ts';

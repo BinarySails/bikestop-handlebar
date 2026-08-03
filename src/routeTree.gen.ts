@@ -17,6 +17,8 @@ import { Route as LayoutInventoryRouteImport } from './routes/_layout/inventory'
 import { Route as LayoutLocationsRouteImport } from './routes/_layout/locations'
 import { Route as LayoutSalesRouteImport } from './routes/_layout/sales'
 import { Route as LayoutTeamRouteImport } from './routes/_layout/team'
+import { Route as LayoutBrandsIndexRouteImport } from './routes/_layout/brands/index'
+import { Route as LayoutBrandsBrandIdRouteImport } from './routes/_layout/brands/$brandId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -57,6 +59,16 @@ const LayoutTeamRoute = LayoutTeamRouteImport.update({
   path: '/team',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutBrandsIndexRoute = LayoutBrandsIndexRouteImport.update({
+  id: '/brands/',
+  path: '/brands/',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutBrandsBrandIdRoute = LayoutBrandsBrandIdRouteImport.update({
+  id: '/brands/$brandId',
+  path: '/brands/$brandId',
+  getParentRoute: () => LayoutRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -66,6 +78,8 @@ export interface FileRoutesByFullPath {
   '/locations': typeof LayoutLocationsRoute
   '/sales': typeof LayoutSalesRoute
   '/team': typeof LayoutTeamRoute
+  '/brands/$brandId': typeof LayoutBrandsBrandIdRoute
+  '/brands/': typeof LayoutBrandsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -75,6 +89,8 @@ export interface FileRoutesByTo {
   '/locations': typeof LayoutLocationsRoute
   '/sales': typeof LayoutSalesRoute
   '/team': typeof LayoutTeamRoute
+  '/brands/$brandId': typeof LayoutBrandsBrandIdRoute
+  '/brands': typeof LayoutBrandsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -86,6 +102,8 @@ export interface FileRoutesById {
   '/_layout/locations': typeof LayoutLocationsRoute
   '/_layout/sales': typeof LayoutSalesRoute
   '/_layout/team': typeof LayoutTeamRoute
+  '/_layout/brands/$brandId': typeof LayoutBrandsBrandIdRoute
+  '/_layout/brands/': typeof LayoutBrandsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -97,6 +115,8 @@ export interface FileRouteTypes {
     | '/locations'
     | '/sales'
     | '/team'
+    | '/brands/$brandId'
+    | '/brands/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -106,6 +126,8 @@ export interface FileRouteTypes {
     | '/locations'
     | '/sales'
     | '/team'
+    | '/brands/$brandId'
+    | '/brands'
   id:
     | '__root__'
     | '/'
@@ -116,6 +138,8 @@ export interface FileRouteTypes {
     | '/_layout/locations'
     | '/_layout/sales'
     | '/_layout/team'
+    | '/_layout/brands/$brandId'
+    | '/_layout/brands/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -182,6 +206,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutTeamRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/brands/': {
+      id: '/_layout/brands/'
+      path: '/brands'
+      fullPath: '/brands/'
+      preLoaderRoute: typeof LayoutBrandsIndexRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/brands/$brandId': {
+      id: '/_layout/brands/$brandId'
+      path: '/brands/$brandId'
+      fullPath: '/brands/$brandId'
+      preLoaderRoute: typeof LayoutBrandsBrandIdRouteImport
+      parentRoute: typeof LayoutRoute
+    }
   }
 }
 
@@ -191,6 +229,8 @@ interface LayoutRouteChildren {
   LayoutLocationsRoute: typeof LayoutLocationsRoute
   LayoutSalesRoute: typeof LayoutSalesRoute
   LayoutTeamRoute: typeof LayoutTeamRoute
+  LayoutBrandsBrandIdRoute: typeof LayoutBrandsBrandIdRoute
+  LayoutBrandsIndexRoute: typeof LayoutBrandsIndexRoute
 }
 
 const LayoutRouteChildren: LayoutRouteChildren = {
@@ -199,6 +239,8 @@ const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutLocationsRoute: LayoutLocationsRoute,
   LayoutSalesRoute: LayoutSalesRoute,
   LayoutTeamRoute: LayoutTeamRoute,
+  LayoutBrandsBrandIdRoute: LayoutBrandsBrandIdRoute,
+  LayoutBrandsIndexRoute: LayoutBrandsIndexRoute,
 }
 
 const LayoutRouteWithChildren =

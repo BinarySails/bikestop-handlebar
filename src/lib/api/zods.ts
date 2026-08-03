@@ -73,6 +73,25 @@ export const CreateFileRequestResponse = zod.object({
 })
 
 
+export const AssociateFileRequestBody = zod.object({
+  "entity_id": zod.uuid(),
+  "entity_type": zod.enum(['product', 'order', 'invoice', 'customer', 'warehouse']),
+  "file_id": zod.uuid(),
+  "relationship_type": zod.enum(['primary_image'])
+})
+
+export const AssociateFileRequestResponse = zod.object({
+  "association": zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "entity_id": zod.uuid(),
+  "entity_type": zod.enum(['product', 'order', 'invoice', 'customer', 'warehouse']),
+  "file_id": zod.uuid(),
+  "id": zod.uuid(),
+  "relationship_type": zod.enum(['primary_image'])
+})
+})
+
+
 export const DeleteFileRequestParams = zod.object({
   "id": zod.uuid().describe('File ID')
 })
@@ -162,6 +181,16 @@ export const CreateLocalityRequestResponse = zod.object({
 })
 
 
+export const ListBrandsRequestResponseItem = zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "image_url": zod.string(),
+  "status": zod.enum(['enable', 'disable', 'archive'])
+})
+export const ListBrandsRequestResponse = zod.array(ListBrandsRequestResponseItem)
+
+
 export const CreateBrandRequestBody = zod.object({
   "display_name": zod.string(),
   "image_url": zod.string()
@@ -173,6 +202,69 @@ export const CreateBrandRequestResponse = zod.object({
   "id": zod.uuid(),
   "image_url": zod.string(),
   "status": zod.enum(['enable', 'disable', 'archive'])
+})
+
+
+export const GetBrandRequestParams = zod.object({
+  "id": zod.uuid().describe('Brand ID')
+})
+
+export const GetBrandRequestResponse = zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "image_url": zod.string(),
+  "status": zod.enum(['enable', 'disable', 'archive'])
+})
+
+
+export const DeleteBrandRequestParams = zod.object({
+  "id": zod.uuid().describe('Brand ID')
+})
+
+export const DeleteBrandRequestResponse = zod.object({
+  "brand": zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "image_url": zod.string(),
+  "status": zod.enum(['enable', 'disable', 'archive'])
+})
+})
+
+
+export const UpdateBrandRequestParams = zod.object({
+  "id": zod.uuid().describe('Brand ID')
+})
+
+export const UpdateBrandRequestBody = zod.object({
+  "display_name": zod.string(),
+  "image_url": zod.string()
+})
+
+export const UpdateBrandRequestResponse = zod.object({
+  "brand": zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "image_url": zod.string(),
+  "status": zod.enum(['enable', 'disable', 'archive'])
+})
+})
+
+
+export const ToggleBrandRequestParams = zod.object({
+  "id": zod.uuid().describe('Brand ID')
+})
+
+export const ToggleBrandRequestResponse = zod.object({
+  "brand": zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "image_url": zod.string(),
+  "status": zod.enum(['enable', 'disable', 'archive'])
+})
 })
 
 
