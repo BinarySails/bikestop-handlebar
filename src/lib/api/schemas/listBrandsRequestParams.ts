@@ -5,4 +5,7 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export type ProductId = string;
+export type ListBrandsRequestParams = {
+page?: number;
+limit?: number;
+};

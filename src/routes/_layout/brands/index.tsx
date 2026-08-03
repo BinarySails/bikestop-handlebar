@@ -25,7 +25,7 @@ function BrandsListSkeleton() {
 function BrandsListPage() {
   const { data: res, error, isLoading } = useListBrandsRequest();
 
-  const brands: Brand[] = res?.status === 200 ? res.data : [];
+  const brands: Brand[] = res?.status === 200 ? res.data.data : [];
 
   return (
     <section
