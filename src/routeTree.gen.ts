@@ -22,7 +22,6 @@ import { Route as LayoutBrandsBrandIdRouteImport } from './routes/_layout/brands
 import { Route as LayoutTeamIndexRouteImport } from './routes/_layout/team.index'
 import { Route as LayoutTeamPermisosRouteImport } from './routes/_layout/team.permisos'
 import { Route as LayoutTeamRolesRouteImport } from './routes/_layout/team.roles'
-import { Route as LayoutTeamRolesRoleIdPermissionsRouteImport } from './routes/_layout/team.roles.$roleId.permissions'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -88,12 +87,6 @@ const LayoutTeamRolesRoute = LayoutTeamRolesRouteImport.update({
   path: '/roles',
   getParentRoute: () => LayoutTeamRoute,
 } as any)
-const LayoutTeamRolesRoleIdPermissionsRoute =
-  LayoutTeamRolesRoleIdPermissionsRouteImport.update({
-    id: '/$roleId/permissions',
-    path: '/$roleId/permissions',
-    getParentRoute: () => LayoutTeamRolesRoute,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -105,10 +98,9 @@ export interface FileRoutesByFullPath {
   '/team': typeof LayoutTeamRouteWithChildren
   '/brands/$brandId': typeof LayoutBrandsBrandIdRoute
   '/team/permisos': typeof LayoutTeamPermisosRoute
-  '/team/roles': typeof LayoutTeamRolesRouteWithChildren
+  '/team/roles': typeof LayoutTeamRolesRoute
   '/brands/': typeof LayoutBrandsIndexRoute
   '/team/': typeof LayoutTeamIndexRoute
-  '/team/roles/$roleId/permissions': typeof LayoutTeamRolesRoleIdPermissionsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -119,10 +111,9 @@ export interface FileRoutesByTo {
   '/sales': typeof LayoutSalesRoute
   '/brands/$brandId': typeof LayoutBrandsBrandIdRoute
   '/team/permisos': typeof LayoutTeamPermisosRoute
-  '/team/roles': typeof LayoutTeamRolesRouteWithChildren
+  '/team/roles': typeof LayoutTeamRolesRoute
   '/brands': typeof LayoutBrandsIndexRoute
   '/team': typeof LayoutTeamIndexRoute
-  '/team/roles/$roleId/permissions': typeof LayoutTeamRolesRoleIdPermissionsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -136,10 +127,9 @@ export interface FileRoutesById {
   '/_layout/team': typeof LayoutTeamRouteWithChildren
   '/_layout/brands/$brandId': typeof LayoutBrandsBrandIdRoute
   '/_layout/team/permisos': typeof LayoutTeamPermisosRoute
-  '/_layout/team/roles': typeof LayoutTeamRolesRouteWithChildren
+  '/_layout/team/roles': typeof LayoutTeamRolesRoute
   '/_layout/brands/': typeof LayoutBrandsIndexRoute
   '/_layout/team/': typeof LayoutTeamIndexRoute
-  '/_layout/team/roles/$roleId/permissions': typeof LayoutTeamRolesRoleIdPermissionsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -156,7 +146,6 @@ export interface FileRouteTypes {
     | '/team/roles'
     | '/brands/'
     | '/team/'
-    | '/team/roles/$roleId/permissions'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -170,7 +159,6 @@ export interface FileRouteTypes {
     | '/team/roles'
     | '/brands'
     | '/team'
-    | '/team/roles/$roleId/permissions'
   id:
     | '__root__'
     | '/'
@@ -186,7 +174,6 @@ export interface FileRouteTypes {
     | '/_layout/team/roles'
     | '/_layout/brands/'
     | '/_layout/team/'
-    | '/_layout/team/roles/$roleId/permissions'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -288,37 +275,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutTeamRolesRouteImport
       parentRoute: typeof LayoutTeamRoute
     }
-    '/_layout/team/roles/$roleId/permissions': {
-      id: '/_layout/team/roles/$roleId/permissions'
-      path: '/$roleId/permissions'
-      fullPath: '/team/roles/$roleId/permissions'
-      preLoaderRoute: typeof LayoutTeamRolesRoleIdPermissionsRouteImport
-      parentRoute: typeof LayoutTeamRolesRoute
-    }
   }
 }
 
-interface LayoutTeamRolesRouteChildren {
-  LayoutTeamRolesRoleIdPermissionsRoute: typeof LayoutTeamRolesRoleIdPermissionsRoute
-}
-
-const LayoutTeamRolesRouteChildren: LayoutTeamRolesRouteChildren = {
-  LayoutTeamRolesRoleIdPermissionsRoute: LayoutTeamRolesRoleIdPermissionsRoute,
-}
-
-const LayoutTeamRolesRouteWithChildren = LayoutTeamRolesRoute._addFileChildren(
-  LayoutTeamRolesRouteChildren,
-)
-
 interface LayoutTeamRouteChildren {
   LayoutTeamPermisosRoute: typeof LayoutTeamPermisosRoute
-  LayoutTeamRolesRoute: typeof LayoutTeamRolesRouteWithChildren
+  LayoutTeamRolesRoute: typeof LayoutTeamRolesRoute
   LayoutTeamIndexRoute: typeof LayoutTeamIndexRoute
 }
 
 const LayoutTeamRouteChildren: LayoutTeamRouteChildren = {
   LayoutTeamPermisosRoute: LayoutTeamPermisosRoute,
-  LayoutTeamRolesRoute: LayoutTeamRolesRouteWithChildren,
+  LayoutTeamRolesRoute: LayoutTeamRolesRoute,
   LayoutTeamIndexRoute: LayoutTeamIndexRoute,
 }
 

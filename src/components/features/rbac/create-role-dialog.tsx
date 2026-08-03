@@ -21,7 +21,7 @@ interface CreateRoleDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   role?: Role;
-  onSuccess: (createdRoleId?: string) => void;
+  onSuccess: () => void;
 }
 
 export function CreateRoleDialog({
@@ -64,7 +64,7 @@ export function CreateRoleDialog({
         if (result?.status === 201) {
           toast.success(`Rol "${value.displayName}" creado.`);
           form.reset();
-          onSuccess(result.data.role.id);
+          onSuccess();
         } else {
           toast.error("Error al crear el rol.");
         }

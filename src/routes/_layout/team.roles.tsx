@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import {
   Pencil,
   Trash2,
@@ -8,7 +8,6 @@ import {
   CircleX,
   MoreHorizontal,
   ArrowLeft,
-  ShieldCheck,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -35,6 +34,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { CreateRoleDialog } from "@/components/features/rbac/create-role-dialog";
 import { DeleteRoleDialog } from "@/components/features/rbac/delete-role-dialog";
+import { RolePermissionsDialog } from "@/components/features/rbac/role-permissions-dialog";
+import { AssignPermissionsDialog } from "@/components/features/rbac/assign-permissions-dialog";
 
 export const Route = createFileRoute("/_layout/team/roles")({
   component: RolesPage,
@@ -43,10 +44,12 @@ export const Route = createFileRoute("/_layout/team/roles")({
 const PAGE_SIZE = 10;
 
 function RolesPage() {
-  const navigate = useNavigate();
   const [formOpen, setFormOpen] = useState(false);
   const [editingRole, setEditingRole] = useState<Role | undefined>(undefined);
   const [deleteRole, setDeleteRole] = useState<Role | undefined>(undefined);
+  const [viewingRolePermissions, setViewingRolePermissions] =
+    useState<Role | null>(null);
+  const [assigningRole, setAssigningRole] = useState<Role | null>(null);
   const [activeTab, setActiveTab] = useState("all");
   const [page, setPage] = useState(1);
 
@@ -101,23 +104,28 @@ function RolesPage() {
     }
   };
 
-  const handleFormSuccess = (createdRoleId?: string) => {
+  const handleFormSuccess = () => {
     setFormOpen(false);
     setEditingRole(undefined);
     mutate();
-    if (createdRoleId) {
-      navigate({
-        to: "/team/roles/$roleId/permissions",
-        params: { roleId: createdRoleId },
-      });
-    }
   };
 
   const handleRowClick = (role: Role) => {
-    navigate({
-      to: "/team/roles/$roleId/permissions",
-      params: { roleId: role.id },
-    });
+    setViewingRolePermissions(role);
+  };
+
+  const handleOpenAssign = () => {
+    if (viewingRolePermissions) {
+      setAssigningRole(viewingRolePermissions);
+      setViewingRolePermissions(null);
+    }
+  };
+
+  const handleBackToView = () => {
+    if (assigningRole) {
+      setViewingRolePermissions(assigningRole);
+      setAssigningRole(null);
+    }
   };
 
   return (
@@ -238,17 +246,6 @@ function RolesPage() {
                               Editar
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              onClick={() =>
-                                navigate({
-                                  to: "/team/roles/$roleId/permissions",
-                                  params: { roleId: role.id },
-                                })
-                              }
-                            >
-                              <ShieldCheck className="size-4" />
-                              Asignar Permisos
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
                               variant="destructive"
                               onClick={() => setDeleteRole(role)}
                             >
@@ -314,6 +311,20 @@ function RolesPage() {
           isDeleting={isDeleting}
         />
       )}
+
+      <RolePermissionsDialog
+        open={!!viewingRolePermissions}
+        onOpenChange={(next) => !next && setViewingRolePermissions(null)}
+        role={viewingRolePermissions}
+        onOpenAssign={handleOpenAssign}
+      />
+
+      <AssignPermissionsDialog
+        open={!!assigningRole}
+        onOpenChange={(next) => !next && setAssigningRole(null)}
+        role={assigningRole}
+        onBack={handleBackToView}
+      />
     </main>
   );
 }
