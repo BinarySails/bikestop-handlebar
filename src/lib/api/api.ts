@@ -42,7 +42,6 @@ import type {
   CreateStateRequest,
   CreateUserRequest,
   CreateWarehouseRequest,
-  DeleteBrandResponse,
   DeleteCategoryResponse,
   DeleteFileRequestParams,
   DeleteFileResponse,
@@ -50,11 +49,9 @@ import type {
   DeleteRoleResponse,
   ErrorResponse,
   FileId,
-  GetBrandByIdResponse,
   GetCategoryByIdResponse,
   GetDownloadUrlRequestParams,
   GetDownloadUrlResponse,
-  GetProductByIdResponse,
   GetUserPermissionsResponse,
   ListBrandsResponse,
   ListCategoriesResponse,
@@ -77,9 +74,7 @@ import type {
   RoleId,
   State,
   StateId,
-  ToggleBrandResponse,
   UpdateBrandRequest,
-  UpdateBrandResponse,
   UpdateCategoryRequest,
   UpdateCategoryResponse,
   UpdatePermissionRequest,
@@ -1152,7 +1147,7 @@ export const useCreateBrandRequest = <TError = Promise<ErrorResponse>>(
 }
 
 export type getBrandRequestResponse200 = {
-  data: GetBrandByIdResponse
+  data: Brand
   status: 200
 }
 
@@ -1227,7 +1222,7 @@ export const useGetBrandRequest = <TError = Promise<ErrorResponse>>(
 }
 
 export type deleteBrandRequestResponse200 = {
-  data: DeleteBrandResponse
+  data: Brand
   status: 200
 }
 
@@ -1307,7 +1302,7 @@ export const useDeleteBrandRequest = <TError = Promise<ErrorResponse>>(
 }
 
 export type updateBrandRequestResponse200 = {
-  data: UpdateBrandResponse
+  data: Brand
   status: 200
 }
 
@@ -1398,7 +1393,7 @@ export const useUpdateBrandRequest = <TError = Promise<ErrorResponse>>(
 }
 
 export type toggleBrandRequestResponse200 = {
-  data: ToggleBrandResponse
+  data: Brand
   status: 200
 }
 
@@ -1874,7 +1869,7 @@ export const useDeleteCategoryRequest = <TError = Promise<ErrorResponse>>(
 }
 
 export type getProductRequestResponse200 = {
-  data: GetProductByIdResponse
+  data: Product
   status: 200
 }
 

@@ -1,11 +1,20 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Package, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { CreateProductDialog } from "@/components/features/products/create-product-modal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -16,7 +25,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useListProductsRequest } from "@/lib/api/api";
-import type { Product } from "@/lib/api/schemas";
+import type { ProductListItem } from "@/lib/api/schemas";
 
 export const Route = createFileRoute("/_layout/products/")({
   component: ProductsListPage,
@@ -25,7 +34,7 @@ export const Route = createFileRoute("/_layout/products/")({
 const PAGE_SIZE = 10;
 
 const statusBadgeVariant: Record<
-  Product["status"],
+  ProductListItem["status"],
   "default" | "secondary" | "destructive"
 > = {
   enable: "default",
@@ -33,7 +42,7 @@ const statusBadgeVariant: Record<
   archive: "destructive",
 };
 
-const statusLabel: Record<Product["status"], string> = {
+const statusLabel: Record<ProductListItem["status"], string> = {
   enable: "Activo",
   disable: "Inactivo",
   archive: "Archivado",
@@ -49,16 +58,76 @@ function ProductsListSkeleton() {
   );
 }
 
+type Filters = {
+  productName: string;
+  status: "all" | ProductListItem["status"];
+  brand: string;
+  category: string;
+};
+
+const EMPTY_FILTERS: Filters = {
+  productName: "",
+  status: "all",
+  brand: "",
+  category: "",
+};
+
+function matchesFilters(product: ProductListItem, filters: Filters): boolean {
+  if (
+    filters.productName &&
+    !product.display_name.toLowerCase().includes(filters.productName.toLowerCase())
+  ) {
+    return false;
+  }
+  if (filters.status !== "all" && product.status !== filters.status) {
+    return false;
+  }
+  if (
+    filters.brand &&
+    !product.brand_name.toLowerCase().includes(filters.brand.toLowerCase())
+  ) {
+    return false;
+  }
+  if (
+    filters.category &&
+    !product.category_name.toLowerCase().includes(filters.category.toLowerCase())
+  ) {
+    return false;
+  }
+  return true;
+}
+
 function ProductsListPage() {
   const [page, setPage] = useState(0);
+  const [draftFilters, setDraftFilters] = useState<Filters>(EMPTY_FILTERS);
+  const [appliedFilters, setAppliedFilters] = useState<Filters>(EMPTY_FILTERS);
+
   const { data: res, error, isLoading, mutate } = useListProductsRequest({
     page: page + 1,
     limit: PAGE_SIZE,
+    status: appliedFilters.status === "all" ? undefined : appliedFilters.status,
+    search: appliedFilters.productName || undefined,
   });
 
-  const products: Product[] = res?.status === 200 ? res.data.data : [];
+  const products: ProductListItem[] = res?.status === 200 ? res.data.data : [];
   const total = res?.status === 200 ? res.data.total : 0;
   const totalPages = Math.ceil(total / PAGE_SIZE) || 1;
+
+  const filteredProducts = useMemo(
+    () => products.filter((p) => matchesFilters(p, appliedFilters)),
+    [products, appliedFilters]
+  );
+
+  function handleApplyFilters() {
+    setAppliedFilters(draftFilters);
+    setPage(0);
+  }
+
+  function handleClearFilters() {
+    setDraftFilters(EMPTY_FILTERS);
+    setAppliedFilters(EMPTY_FILTERS);
+    setPage(0);
+  }
 
   return (
     <section
@@ -68,59 +137,126 @@ function ProductsListPage() {
       <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Productos</h1>
-          <p className="text-sm text-muted-foreground">
-            Gestiona los productos disponibles en BikeStop.
-          </p>
         </div>
         <CreateProductDialog onSuccess={mutate} />
       </div>
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-wrap items-end gap-4">
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="product-name">Producto</Label>
+            <Input
+              id="product-name"
+              placeholder="Buscar por nombre"
+              value={draftFilters.productName}
+              onChange={(e) =>
+                setDraftFilters((f) => ({ ...f, productName: e.target.value }))
+              }
+              className="w-56"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="status">Estatus</Label>
+            <Select
+              value={draftFilters.status}
+              onValueChange={(value) =>
+                setDraftFilters((f) => ({
+                  ...f,
+                  status: value as Filters["status"],
+                }))
+              }
+            >
+              <SelectTrigger id="status" className="w-44">
+                <SelectValue placeholder="Seleccionar" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="enable">Activo</SelectItem>
+                <SelectItem value="disable">Inactivo</SelectItem>
+                <SelectItem value="archive">Archivado</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="brand">Marca</Label>
+            <Input
+              id="brand"
+              placeholder="Buscar por marca"
+              value={draftFilters.brand}
+              onChange={(e) =>
+                setDraftFilters((f) => ({ ...f, brand: e.target.value }))
+              }
+              className="w-48"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="category">Categoría</Label>
+            <Input
+              id="category"
+              placeholder="Buscar por categoría"
+              value={draftFilters.category}
+              onChange={(e) =>
+                setDraftFilters((f) => ({ ...f, category: e.target.value }))
+              }
+              className="w-48"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <span className="text-sm font-medium">&nbsp;</span>
+            <Button className="h-8" size="sm" onClick={handleApplyFilters}>
+              Aplicar
+            </Button>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <span className="text-sm font-medium">&nbsp;</span>
+            <Button className="h-8" variant="outline" size="sm" onClick={handleClearFilters}>
+              Limpiar
+            </Button>
+          </div>
+        </div>
+      </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base font-semibold">
-            <Package className="size-4" />
-            Productos registrados
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+
+
           {isLoading ? (
             <ProductsListSkeleton />
           ) : error ? (
             <p className="text-sm text-muted-foreground">
               Error al cargar los productos.
             </p>
-          ) : products.length === 0 ? (
+          ) : filteredProducts.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              No hay productos registrados.
+              No hay productos que coincidan con los filtros.
             </p>
           ) : (
             <>
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead>Estatus</TableHead>
                     <TableHead>Nombre</TableHead>
                     <TableHead>Marca</TableHead>
-                    <TableHead>Categoría</TableHead>
-                    <TableHead>Estado</TableHead>
+                    <TableHead>Categoria</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {products.map((product) => (
+                  {filteredProducts.map((product) => (
                     <TableRow key={product.id}>
-                      <TableCell className="font-medium">
-                        {product.display_name}
-                      </TableCell>
-                      <TableCell className="font-mono text-xs">
-                        {product.brand_id}
-                      </TableCell>
-                      <TableCell className="font-mono text-xs">
-                        {product.category_id}
-                      </TableCell>
                       <TableCell>
                         <Badge variant={statusBadgeVariant[product.status]}>
                           {statusLabel[product.status]}
                         </Badge>
                       </TableCell>
+                      <TableCell className="font-medium">
+                        {product.display_name}
+                      </TableCell>
+                      <TableCell>{product.brand_name}</TableCell>
+                      <TableCell>{product.category_name}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

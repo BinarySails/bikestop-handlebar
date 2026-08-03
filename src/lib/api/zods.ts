@@ -203,7 +203,9 @@ export const listProductsRequestResponsePageMin = 0;
 export const ListProductsRequestResponse = zod.object({
   "data": zod.array(zod.object({
   "brand_id": zod.uuid(),
+  "brand_name": zod.string(),
   "category_id": zod.uuid(),
+  "category_name": zod.string(),
   "created_at": zod.iso.datetime({"offset":true}),
   "description": zod.string().nullish(),
   "display_name": zod.string(),
@@ -266,13 +268,11 @@ export const GetBrandRequestParams = zod.object({
 })
 
 export const GetBrandRequestResponse = zod.object({
-  "brand": zod.object({
   "created_at": zod.iso.datetime({"offset":true}),
   "display_name": zod.string(),
   "id": zod.uuid(),
   "image_url": zod.string(),
   "status": zod.enum(['enable', 'disable', 'archive'])
-})
 })
 
 
@@ -281,13 +281,11 @@ export const DeleteBrandRequestParams = zod.object({
 })
 
 export const DeleteBrandRequestResponse = zod.object({
-  "brand": zod.object({
   "created_at": zod.iso.datetime({"offset":true}),
   "display_name": zod.string(),
   "id": zod.uuid(),
   "image_url": zod.string(),
   "status": zod.enum(['enable', 'disable', 'archive'])
-})
 })
 
 
@@ -301,13 +299,11 @@ export const UpdateBrandRequestBody = zod.object({
 })
 
 export const UpdateBrandRequestResponse = zod.object({
-  "brand": zod.object({
   "created_at": zod.iso.datetime({"offset":true}),
   "display_name": zod.string(),
   "id": zod.uuid(),
   "image_url": zod.string(),
   "status": zod.enum(['enable', 'disable', 'archive'])
-})
 })
 
 
@@ -316,13 +312,11 @@ export const ToggleBrandRequestParams = zod.object({
 })
 
 export const ToggleBrandRequestResponse = zod.object({
-  "brand": zod.object({
   "created_at": zod.iso.datetime({"offset":true}),
   "display_name": zod.string(),
   "id": zod.uuid(),
   "image_url": zod.string(),
   "status": zod.enum(['enable', 'disable', 'archive'])
-})
 })
 
 
@@ -420,7 +414,6 @@ export const GetProductRequestParams = zod.object({
 })
 
 export const GetProductRequestResponse = zod.object({
-  "product": zod.object({
   "brand_id": zod.uuid(),
   "category_id": zod.uuid(),
   "created_at": zod.iso.datetime({"offset":true}),
@@ -429,7 +422,6 @@ export const GetProductRequestResponse = zod.object({
   "id": zod.uuid(),
   "status": zod.enum(['enable', 'disable', 'archive']),
   "updated_at": zod.iso.datetime({"offset":true})
-})
 })
 
 

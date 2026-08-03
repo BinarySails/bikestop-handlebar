@@ -67,7 +67,7 @@ function BrandDetailPage() {
   const { brandId } = Route.useParams();
   const { data: res, error, isLoading, mutate } = useGetBrandRequest(brandId);
 
-  const brand: Brand | null = res?.status === 200 ? res.data.brand : null;
+  const brand: Brand | null = res?.status === 200 ? res.data : null;
 
   if (isLoading) return <BrandDetailSkeleton />;
 
