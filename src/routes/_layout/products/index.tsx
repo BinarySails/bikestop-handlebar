@@ -1,11 +1,19 @@
 import { useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
-import { ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { ChevronLeft, ChevronRight, MoreVertical, Search } from "lucide-react";
+import { toast } from "sonner";
 
 import { CreateProductDialog } from "@/components/features/products/create-product-modal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -24,7 +32,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useListProductsRequest } from "@/lib/api/api";
+import { useListProductsRequest, useUpdateProductRequest } from "@/lib/api/api";
 import type { ProductListItem } from "@/lib/api/schemas";
 
 export const Route = createFileRoute("/_layout/products/")({
@@ -47,6 +55,51 @@ const statusLabel: Record<ProductListItem["status"], string> = {
   disable: "Inactivo",
   archive: "Archivado",
 };
+
+function ArchiveProductMenuItem({
+  product,
+  onSuccess,
+}: {
+  product: ProductListItem;
+  onSuccess?: () => Promise<unknown>;
+}) {
+  const { trigger: updateProduct } = useUpdateProductRequest(product.id);
+  const [pending, setPending] = useState(false);
+
+  async function handleArchive() {
+    setPending(true);
+    try {
+      const result = await updateProduct({
+        display_name: product.display_name,
+        brand_id: product.brand_id,
+        category_id: product.category_id,
+        description: product.description ?? null,
+        status: "archive",
+      });
+
+      if (result.status === 200) {
+        toast.success(`Producto "${product.display_name}" archivado.`);
+        await onSuccess?.();
+      } else {
+        toast.error("No se pudo archivar el producto.");
+      }
+    } catch {
+      toast.error("No se pudo archivar el producto.");
+    } finally {
+      setPending(false);
+    }
+  }
+
+  return (
+    <DropdownMenuItem
+      variant="destructive"
+      onClick={handleArchive}
+      disabled={pending || product.status === "archive"}
+    >
+      <span>Eliminar</span>
+    </DropdownMenuItem>
+  );
+}
 
 function ProductsListSkeleton() {
   return (
@@ -188,6 +241,7 @@ function ProductsListPage() {
                     <TableHead>Nombre</TableHead>
                     <TableHead>Marca</TableHead>
                     <TableHead>Categoría</TableHead>
+                    <TableHead className="w-12" />
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -203,6 +257,35 @@ function ProductsListPage() {
                       </TableCell>
                       <TableCell>{product.brand_name}</TableCell>
                       <TableCell>{product.category_name}</TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger
+                            render={
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                aria-label={`Acciones de ${product.display_name}`}
+                                className="size-8"
+                              >
+                                <MoreVertical className="size-4" />
+                              </Button>
+                            }
+                          />
+                          <DropdownMenuContent align="end">
+                            <Link
+                              to="/products/$productId"
+                              params={{ productId: product.id }}
+                            >
+                              <DropdownMenuItem>Ver</DropdownMenuItem>
+                            </Link>
+                            <DropdownMenuSeparator />
+                            <ArchiveProductMenuItem
+                              product={product}
+                              onSuccess={mutate}
+                            />
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
