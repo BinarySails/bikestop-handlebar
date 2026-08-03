@@ -21,7 +21,10 @@ import type {
   AssignPermissionsResponse,
   AssignRolesToUserRequest,
   AssignRolesToUserResponse,
+  AssociateFileRequest,
+  AssociateFileResponse,
   Brand,
+  BrandId,
   Category,
   CategoryId,
   ChangeRoleStatusRequest,
@@ -38,6 +41,7 @@ import type {
   CreateStateRequest,
   CreateUserRequest,
   CreateWarehouseRequest,
+  DeleteBrandResponse,
   DeleteCategoryResponse,
   DeleteFileRequestParams,
   DeleteFileResponse,
@@ -45,6 +49,7 @@ import type {
   DeleteRoleResponse,
   ErrorResponse,
   FileId,
+  GetBrandByIdResponse,
   GetCategoryByIdResponse,
   GetDownloadUrlRequestParams,
   GetDownloadUrlResponse,
@@ -64,6 +69,9 @@ import type {
   RoleId,
   State,
   StateId,
+  ToggleBrandResponse,
+  UpdateBrandRequest,
+  UpdateBrandResponse,
   UpdateCategoryRequest,
   UpdateCategoryResponse,
   UpdatePermissionRequest,
@@ -379,6 +387,91 @@ export const useCreateFileRequest = <TError = Promise<ErrorResponse | void>>(
 
   const swrKey = swrOptions?.swrKey ?? getCreateFileRequestMutationKey();
   const swrFn = getCreateFileRequestMutationFetcher(fetchOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type associateFileRequestResponse201 = {
+  data: AssociateFileResponse
+  status: 201
+}
+
+export type associateFileRequestResponse400 = {
+  data: ErrorResponse
+  status: 400
+}
+
+export type associateFileRequestResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type associateFileRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type associateFileRequestResponseSuccess = (associateFileRequestResponse201) & {
+  headers: Headers;
+};
+export type associateFileRequestResponseError = (associateFileRequestResponse400 | associateFileRequestResponse404 | associateFileRequestResponse500) & {
+  headers: Headers;
+};
+
+export type associateFileRequestResponse = (associateFileRequestResponseSuccess | associateFileRequestResponseError)
+
+export const getAssociateFileRequestUrl = () => {
+
+
+
+
+  return `http://localhost:8080/api/v1/files/associations`
+}
+
+export const associateFileRequest = async (associateFileRequest: AssociateFileRequest, options?: RequestInit): Promise<associateFileRequestResponse> => {
+
+  const res = await fetch(getAssociateFileRequestUrl(),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(associateFileRequest)
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: associateFileRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as associateFileRequestResponse
+}
+
+
+
+
+export const getAssociateFileRequestMutationFetcher = ( options?: RequestInit) => {
+  return (_: Key, { arg }: { arg: AssociateFileRequest }) => {
+    return associateFileRequest(arg, options);
+  }
+}
+export const getAssociateFileRequestMutationKey = () => [`http://localhost:8080/api/v1/files/associations`] as const;
+
+export type AssociateFileRequestMutationResult = NonNullable<Awaited<ReturnType<typeof associateFileRequest>>>
+
+export const useAssociateFileRequest = <TError = Promise<ErrorResponse>>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof associateFileRequest>>, TError, Key, AssociateFileRequest, Awaited<ReturnType<typeof associateFileRequest>>> & { swrKey?: string }, fetch?: RequestInit}
+) => {
+
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getAssociateFileRequestMutationKey();
+  const swrFn = getAssociateFileRequestMutationFetcher(fetchOptions);
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
@@ -748,7 +841,7 @@ export type createBrandRequestResponse400 = {
 }
 
 export type createBrandRequestResponse500 = {
-  data: void
+  data: ErrorResponse
   status: 500
 }
 
@@ -800,7 +893,7 @@ export const getCreateBrandRequestMutationKey = () => [`http://localhost:8080/ap
 
 export type CreateBrandRequestMutationResult = NonNullable<Awaited<ReturnType<typeof createBrandRequest>>>
 
-export const useCreateBrandRequest = <TError = Promise<ErrorResponse | void>>(
+export const useCreateBrandRequest = <TError = Promise<ErrorResponse>>(
    options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof createBrandRequest>>, TError, Key, CreateBrandRequest, Awaited<ReturnType<typeof createBrandRequest>>> & { swrKey?: string }, fetch?: RequestInit}
 ) => {
 
@@ -808,6 +901,337 @@ export const useCreateBrandRequest = <TError = Promise<ErrorResponse | void>>(
 
   const swrKey = swrOptions?.swrKey ?? getCreateBrandRequestMutationKey();
   const swrFn = getCreateBrandRequestMutationFetcher(fetchOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type getBrandRequestResponse200 = {
+  data: GetBrandByIdResponse
+  status: 200
+}
+
+export type getBrandRequestResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type getBrandRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type getBrandRequestResponseSuccess = (getBrandRequestResponse200) & {
+  headers: Headers;
+};
+export type getBrandRequestResponseError = (getBrandRequestResponse404 | getBrandRequestResponse500) & {
+  headers: Headers;
+};
+
+export type getBrandRequestResponse = (getBrandRequestResponseSuccess | getBrandRequestResponseError)
+
+export const getGetBrandRequestUrl = (id: BrandId,) => {
+
+
+
+
+  return `http://localhost:8080/api/v1/products/brands/${id}`
+}
+
+export const getBrandRequest = async (id: BrandId, options?: RequestInit): Promise<getBrandRequestResponse> => {
+
+  const res = await fetch(getGetBrandRequestUrl(id),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'GET'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: getBrandRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as getBrandRequestResponse
+}
+
+
+
+
+export const getGetBrandRequestKey = (id: BrandId,) => [`http://localhost:8080/api/v1/products/brands/${id}`] as const;
+
+export type GetBrandRequestQueryResult = NonNullable<Awaited<ReturnType<typeof getBrandRequest>>>
+
+export const useGetBrandRequest = <TError = Promise<ErrorResponse>>(
+  id: BrandId, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getBrandRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
+) => {
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false && id !== null && id !== undefined
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetBrandRequestKey(id) : null);
+  const swrFn = () => getBrandRequest(id, fetchOptions)
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type deleteBrandRequestResponse200 = {
+  data: DeleteBrandResponse
+  status: 200
+}
+
+export type deleteBrandRequestResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type deleteBrandRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type deleteBrandRequestResponseSuccess = (deleteBrandRequestResponse200) & {
+  headers: Headers;
+};
+export type deleteBrandRequestResponseError = (deleteBrandRequestResponse404 | deleteBrandRequestResponse500) & {
+  headers: Headers;
+};
+
+export type deleteBrandRequestResponse = (deleteBrandRequestResponseSuccess | deleteBrandRequestResponseError)
+
+export const getDeleteBrandRequestUrl = (id: BrandId,) => {
+
+
+
+
+  return `http://localhost:8080/api/v1/products/brands/${id}`
+}
+
+export const deleteBrandRequest = async (id: BrandId, options?: RequestInit): Promise<deleteBrandRequestResponse> => {
+
+  const res = await fetch(getDeleteBrandRequestUrl(id),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'DELETE'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: deleteBrandRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as deleteBrandRequestResponse
+}
+
+
+
+
+export const getDeleteBrandRequestMutationFetcher = (id: BrandId, options?: RequestInit) => {
+  return (_: Key, __: { arg: Arguments }) => {
+    return deleteBrandRequest(id, options);
+  }
+}
+export const getDeleteBrandRequestMutationKey = (id: BrandId,) => [`http://localhost:8080/api/v1/products/brands/${id}`] as const;
+
+export type DeleteBrandRequestMutationResult = NonNullable<Awaited<ReturnType<typeof deleteBrandRequest>>>
+
+export const useDeleteBrandRequest = <TError = Promise<ErrorResponse>>(
+  id: BrandId, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof deleteBrandRequest>>, TError, Key, Arguments, Awaited<ReturnType<typeof deleteBrandRequest>>> & { swrKey?: string }, fetch?: RequestInit}
+) => {
+
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getDeleteBrandRequestMutationKey(id);
+  const swrFn = getDeleteBrandRequestMutationFetcher(id, fetchOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type updateBrandRequestResponse200 = {
+  data: UpdateBrandResponse
+  status: 200
+}
+
+export type updateBrandRequestResponse400 = {
+  data: ErrorResponse
+  status: 400
+}
+
+export type updateBrandRequestResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type updateBrandRequestResponse409 = {
+  data: ErrorResponse
+  status: 409
+}
+
+export type updateBrandRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type updateBrandRequestResponseSuccess = (updateBrandRequestResponse200) & {
+  headers: Headers;
+};
+export type updateBrandRequestResponseError = (updateBrandRequestResponse400 | updateBrandRequestResponse404 | updateBrandRequestResponse409 | updateBrandRequestResponse500) & {
+  headers: Headers;
+};
+
+export type updateBrandRequestResponse = (updateBrandRequestResponseSuccess | updateBrandRequestResponseError)
+
+export const getUpdateBrandRequestUrl = (id: BrandId,) => {
+
+
+
+
+  return `http://localhost:8080/api/v1/products/brands/${id}`
+}
+
+export const updateBrandRequest = async (id: BrandId,
+    updateBrandRequest: UpdateBrandRequest, options?: RequestInit): Promise<updateBrandRequestResponse> => {
+
+  const res = await fetch(getUpdateBrandRequestUrl(id),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(updateBrandRequest)
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: updateBrandRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as updateBrandRequestResponse
+}
+
+
+
+
+export const getUpdateBrandRequestMutationFetcher = (id: BrandId, options?: RequestInit) => {
+  return (_: Key, { arg }: { arg: UpdateBrandRequest }) => {
+    return updateBrandRequest(id, arg, options);
+  }
+}
+export const getUpdateBrandRequestMutationKey = (id: BrandId,) => [`http://localhost:8080/api/v1/products/brands/${id}`] as const;
+
+export type UpdateBrandRequestMutationResult = NonNullable<Awaited<ReturnType<typeof updateBrandRequest>>>
+
+export const useUpdateBrandRequest = <TError = Promise<ErrorResponse>>(
+  id: BrandId, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof updateBrandRequest>>, TError, Key, UpdateBrandRequest, Awaited<ReturnType<typeof updateBrandRequest>>> & { swrKey?: string }, fetch?: RequestInit}
+) => {
+
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getUpdateBrandRequestMutationKey(id);
+  const swrFn = getUpdateBrandRequestMutationFetcher(id, fetchOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type toggleBrandRequestResponse200 = {
+  data: ToggleBrandResponse
+  status: 200
+}
+
+export type toggleBrandRequestResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type toggleBrandRequestResponse409 = {
+  data: ErrorResponse
+  status: 409
+}
+
+export type toggleBrandRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type toggleBrandRequestResponseSuccess = (toggleBrandRequestResponse200) & {
+  headers: Headers;
+};
+export type toggleBrandRequestResponseError = (toggleBrandRequestResponse404 | toggleBrandRequestResponse409 | toggleBrandRequestResponse500) & {
+  headers: Headers;
+};
+
+export type toggleBrandRequestResponse = (toggleBrandRequestResponseSuccess | toggleBrandRequestResponseError)
+
+export const getToggleBrandRequestUrl = (id: BrandId,) => {
+
+
+
+
+  return `http://localhost:8080/api/v1/products/brands/${id}/toggle`
+}
+
+export const toggleBrandRequest = async (id: BrandId, options?: RequestInit): Promise<toggleBrandRequestResponse> => {
+
+  const res = await fetch(getToggleBrandRequestUrl(id),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'PATCH'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: toggleBrandRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as toggleBrandRequestResponse
+}
+
+
+
+
+export const getToggleBrandRequestMutationFetcher = (id: BrandId, options?: RequestInit) => {
+  return (_: Key, __: { arg: Arguments }) => {
+    return toggleBrandRequest(id, options);
+  }
+}
+export const getToggleBrandRequestMutationKey = (id: BrandId,) => [`http://localhost:8080/api/v1/products/brands/${id}/toggle`] as const;
+
+export type ToggleBrandRequestMutationResult = NonNullable<Awaited<ReturnType<typeof toggleBrandRequest>>>
+
+export const useToggleBrandRequest = <TError = Promise<ErrorResponse>>(
+  id: BrandId, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof toggleBrandRequest>>, TError, Key, Arguments, Awaited<ReturnType<typeof toggleBrandRequest>>> & { swrKey?: string }, fetch?: RequestInit}
+) => {
+
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getToggleBrandRequestMutationKey(id);
+  const swrFn = getToggleBrandRequestMutationFetcher(id, fetchOptions);
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions)
 

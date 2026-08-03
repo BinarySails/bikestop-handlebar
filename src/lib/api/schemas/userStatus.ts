@@ -9,6 +9,6 @@ export type UserStatus = typeof UserStatus[keyof typeof UserStatus];
 
 
 export const UserStatus = {
-  Active: 'Active',
-  Inactive: 'Inactive',
+  active: 'active',
+  inactive: 'inactive',
 } as const;
