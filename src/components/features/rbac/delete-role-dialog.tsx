@@ -31,10 +31,12 @@ export function DeleteRoleDialog({
         <DialogHeader>
           <DialogTitle>Eliminar Rol</DialogTitle>
           <DialogDescription>
-            ¿Estás seguro de eliminar el rol <strong>{role.display_name}</strong>?
+            ¿Estás seguro de eliminar el rol{" "}
+            <strong>{role.display_name}</strong>?
             {role.status === "active" && (
               <span className="mt-2 block text-destructive">
-                Este rol está activo. Si tiene usuarios asignados no se podrá eliminar.
+                Este rol está activo. Si tiene usuarios asignados no se podrá
+                eliminar.
               </span>
             )}
           </DialogDescription>

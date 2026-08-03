@@ -1,6 +1,4 @@
-import {
-  useListRolePermissionsHandler,
-} from "@/lib/api/api";
+import { useListRolePermissionsHandler } from "@/lib/api/api";
 import type { Role } from "@/lib/api/schemas";
 
 import { Button } from "@/components/ui/button";
@@ -64,11 +62,18 @@ export function RolePermissionsDialog({
                   key={perm.id}
                   className="flex items-center justify-between rounded-lg border p-3"
                 >
-                  <div className="flex flex-col gap-0.5 min-w-0">
-                    <span className="text-sm font-medium truncate">{perm.display_name}</span>
-                    <span className="font-mono text-[10px] text-muted-foreground truncate">{perm.slug}</span>
+                  <div className="flex min-w-0 flex-col gap-0.5">
+                    <span className="truncate text-sm font-medium">
+                      {perm.display_name}
+                    </span>
+                    <span className="truncate font-mono text-[10px] text-muted-foreground">
+                      {perm.slug}
+                    </span>
                   </div>
-                  <Badge variant={perm.status === "active" ? "default" : "secondary"} className="shrink-0 ml-2">
+                  <Badge
+                    variant={perm.status === "active" ? "default" : "secondary"}
+                    className="ml-2 shrink-0"
+                  >
                     {perm.status === "active" ? "Activo" : "Inactivo"}
                   </Badge>
                 </div>
@@ -81,9 +86,7 @@ export function RolePermissionsDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cerrar
           </Button>
-          <Button onClick={onOpenAssign}>
-            + Agregar Permisos
-          </Button>
+          <Button onClick={onOpenAssign}>+ Agregar Permisos</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

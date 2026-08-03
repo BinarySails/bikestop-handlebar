@@ -1,12 +1,17 @@
 import { useState, useMemo } from "react";
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { Pencil, Trash2, Plus, CircleCheck, CircleX, MoreHorizontal, ArrowLeft } from "lucide-react";
+import {
+  Pencil,
+  Trash2,
+  Plus,
+  CircleCheck,
+  CircleX,
+  MoreHorizontal,
+  ArrowLeft,
+} from "lucide-react";
 import { toast } from "sonner";
 
-import {
-  useListRolesHandler,
-  useDeleteRoleHandler,
-} from "@/lib/api/api";
+import { useListRolesHandler, useDeleteRoleHandler } from "@/lib/api/api";
 import type { Role } from "@/lib/api/schemas";
 
 import { Button } from "@/components/ui/button";
@@ -42,24 +47,31 @@ function RolesPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [editingRole, setEditingRole] = useState<Role | undefined>(undefined);
   const [deleteRole, setDeleteRole] = useState<Role | undefined>(undefined);
-  const [viewingRolePermissions, setViewingRolePermissions] = useState<Role | null>(null);
+  const [viewingRolePermissions, setViewingRolePermissions] =
+    useState<Role | null>(null);
   const [assigningRole, setAssigningRole] = useState<Role | null>(null);
   const [activeTab, setActiveTab] = useState("all");
   const [page, setPage] = useState(1);
 
   const { data, isLoading, mutate } = useListRolesHandler();
-  const { trigger: deleteTrigger, isMutating: isDeleting } = useDeleteRoleHandler(deleteRole?.id ?? "");
+  const { trigger: deleteTrigger, isMutating: isDeleting } =
+    useDeleteRoleHandler(deleteRole?.id ?? "");
 
   const allRoles = useMemo(() => data?.data?.roles ?? [], [data?.data?.roles]);
 
   const filteredRoles = useMemo(() => {
-    if (activeTab === "active") return allRoles.filter((r) => r.status === "active");
-    if (activeTab === "inactive") return allRoles.filter((r) => r.status !== "active");
+    if (activeTab === "active")
+      return allRoles.filter((r) => r.status === "active");
+    if (activeTab === "inactive")
+      return allRoles.filter((r) => r.status !== "active");
     return allRoles;
   }, [allRoles, activeTab]);
 
   const totalPages = Math.max(1, Math.ceil(filteredRoles.length / PAGE_SIZE));
-  const paginatedRoles = filteredRoles.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const paginatedRoles = filteredRoles.slice(
+    (page - 1) * PAGE_SIZE,
+    page * PAGE_SIZE
+  );
 
   const handleCreate = () => {
     setEditingRole(undefined);
@@ -117,7 +129,12 @@ function RolesPage() {
     <main className="container mx-auto max-w-5xl p-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <Button variant="ghost" size="sm" render={<Link to="/team" />} className="mb-2 -ml-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            render={<Link to="/team" />}
+            className="mb-2 -ml-2"
+          >
             <ArrowLeft className="size-4" />
             Volver
           </Button>
@@ -127,10 +144,7 @@ function RolesPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button
-            render={<Link to="/team/permisos" />}
-            size="sm"
-          >
+          <Button render={<Link to="/team/permisos" />} size="sm">
             Administrar Permisos
           </Button>
           <Button onClick={handleCreate} size="sm">
@@ -140,28 +154,42 @@ function RolesPage() {
         </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v); setPage(1); }} className="mt-6">
+      <Tabs
+        value={activeTab}
+        onValueChange={(v) => {
+          setActiveTab(v);
+          setPage(1);
+        }}
+        className="mt-6"
+      >
         <TabsList>
           <TabsTrigger value="all">Todos ({allRoles.length})</TabsTrigger>
           <TabsTrigger value="active">
             Activos ({allRoles.filter((r) => r.status === "active").length})
           </TabsTrigger>
           <TabsTrigger value="inactive">
-            Desactivados ({allRoles.filter((r) => r.status !== "active").length})
+            Desactivados ({allRoles.filter((r) => r.status !== "active").length}
+            )
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value={activeTab}>
           {isLoading ? (
-            <div className="space-y-2 mt-4">
+            <div className="mt-4 space-y-2">
               <Skeleton className="h-12 w-full" />
               <Skeleton className="h-12 w-full" />
               <Skeleton className="h-12 w-full" />
             </div>
           ) : paginatedRoles.length === 0 ? (
-            <div className="rounded-lg border border-dashed p-8 text-center mt-4">
+            <div className="mt-4 rounded-lg border border-dashed p-8 text-center">
               <p className="text-sm text-muted-foreground">
-                No hay roles {activeTab === "active" ? "activos" : activeTab === "inactive" ? "desactivados" : "registrados"}.
+                No hay roles{" "}
+                {activeTab === "active"
+                  ? "activos"
+                  : activeTab === "inactive"
+                    ? "desactivados"
+                    : "registrados"}
+                .
               </p>
             </div>
           ) : (
@@ -182,10 +210,19 @@ function RolesPage() {
                       className="cursor-pointer"
                       onClick={() => handleRowClick(role)}
                     >
-                      <TableCell className="font-medium">{role.display_name}</TableCell>
-                      <TableCell className="font-mono text-muted-foreground">{role.slug}</TableCell>
+                      <TableCell className="font-medium">
+                        {role.display_name}
+                      </TableCell>
+                      <TableCell className="font-mono text-muted-foreground">
+                        {role.slug}
+                      </TableCell>
                       <TableCell>
-                        <Badge variant={role.status === "active" ? "default" : "secondary"} className="gap-1">
+                        <Badge
+                          variant={
+                            role.status === "active" ? "default" : "secondary"
+                          }
+                          className="gap-1"
+                        >
                           {role.status === "active" ? (
                             <CircleCheck className="size-3" />
                           ) : (
@@ -196,7 +233,9 @@ function RolesPage() {
                       </TableCell>
                       <TableCell onClick={(e) => e.stopPropagation()}>
                         <DropdownMenu>
-                          <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />}>
+                          <DropdownMenuTrigger
+                            render={<Button variant="ghost" size="icon-sm" />}
+                          >
                             <MoreHorizontal className="size-4" />
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
@@ -220,7 +259,7 @@ function RolesPage() {
               </Table>
 
               {totalPages > 1 && (
-                <div className="flex items-center justify-between mt-4">
+                <div className="mt-4 flex items-center justify-between">
                   <p className="text-sm text-muted-foreground">
                     Página {page} de {totalPages}
                   </p>
@@ -236,7 +275,9 @@ function RolesPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                      onClick={() =>
+                        setPage((p) => Math.min(totalPages, p + 1))
+                      }
                       disabled={page === totalPages}
                     >
                       Siguiente

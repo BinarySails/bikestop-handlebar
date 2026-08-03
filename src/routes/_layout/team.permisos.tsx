@@ -1,6 +1,14 @@
 import { useState, useMemo } from "react";
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { Pencil, Trash2, Plus, CircleCheck, CircleX, MoreHorizontal, ArrowLeft } from "lucide-react";
+import {
+  Pencil,
+  Trash2,
+  Plus,
+  CircleCheck,
+  CircleX,
+  MoreHorizontal,
+  ArrowLeft,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -37,24 +45,41 @@ const PAGE_SIZE = 10;
 
 function PermissionsPage() {
   const [formOpen, setFormOpen] = useState(false);
-  const [editingPermission, setEditingPermission] = useState<Permission | undefined>(undefined);
-  const [deletePermission, setDeletePermission] = useState<Permission | undefined>(undefined);
+  const [editingPermission, setEditingPermission] = useState<
+    Permission | undefined
+  >(undefined);
+  const [deletePermission, setDeletePermission] = useState<
+    Permission | undefined
+  >(undefined);
   const [activeTab, setActiveTab] = useState("all");
   const [page, setPage] = useState(1);
 
   const { data, isLoading, mutate } = useListPermissionsHandler();
-  const { trigger: deleteTrigger } = useDeletePermissionHandler(deletePermission?.id ?? "");
+  const { trigger: deleteTrigger } = useDeletePermissionHandler(
+    deletePermission?.id ?? ""
+  );
 
-  const allPermissions = useMemo(() => data?.data?.permissions ?? [], [data?.data?.permissions]);
+  const allPermissions = useMemo(
+    () => data?.data?.permissions ?? [],
+    [data?.data?.permissions]
+  );
 
   const filteredPermissions = useMemo(() => {
-    if (activeTab === "active") return allPermissions.filter((p) => p.status === "active");
-    if (activeTab === "inactive") return allPermissions.filter((p) => p.status !== "active");
+    if (activeTab === "active")
+      return allPermissions.filter((p) => p.status === "active");
+    if (activeTab === "inactive")
+      return allPermissions.filter((p) => p.status !== "active");
     return allPermissions;
   }, [allPermissions, activeTab]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredPermissions.length / PAGE_SIZE));
-  const paginatedPermissions = filteredPermissions.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredPermissions.length / PAGE_SIZE)
+  );
+  const paginatedPermissions = filteredPermissions.slice(
+    (page - 1) * PAGE_SIZE,
+    page * PAGE_SIZE
+  );
 
   const handleCreate = () => {
     setEditingPermission(undefined);
@@ -103,7 +128,12 @@ function PermissionsPage() {
     <main className="container mx-auto max-w-5xl p-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <Button variant="ghost" size="sm" render={<Link to="/team/roles" />} className="mb-2 -ml-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            render={<Link to="/team/roles" />}
+            className="mb-2 -ml-2"
+          >
             <ArrowLeft className="size-4" />
             Volver
           </Button>
@@ -120,28 +150,43 @@ function PermissionsPage() {
         </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v); setPage(1); }} className="mt-6">
+      <Tabs
+        value={activeTab}
+        onValueChange={(v) => {
+          setActiveTab(v);
+          setPage(1);
+        }}
+        className="mt-6"
+      >
         <TabsList>
           <TabsTrigger value="all">Todos ({allPermissions.length})</TabsTrigger>
           <TabsTrigger value="active">
-            Activos ({allPermissions.filter((p) => p.status === "active").length})
+            Activos (
+            {allPermissions.filter((p) => p.status === "active").length})
           </TabsTrigger>
           <TabsTrigger value="inactive">
-            Desactivados ({allPermissions.filter((p) => p.status !== "active").length})
+            Desactivados (
+            {allPermissions.filter((p) => p.status !== "active").length})
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value={activeTab}>
           {isLoading ? (
-            <div className="space-y-2 mt-4">
+            <div className="mt-4 space-y-2">
               <Skeleton className="h-12 w-full" />
               <Skeleton className="h-12 w-full" />
               <Skeleton className="h-12 w-full" />
             </div>
           ) : paginatedPermissions.length === 0 ? (
-            <div className="rounded-lg border border-dashed p-8 text-center mt-4">
+            <div className="mt-4 rounded-lg border border-dashed p-8 text-center">
               <p className="text-sm text-muted-foreground">
-                No hay permisos {activeTab === "active" ? "activos" : activeTab === "inactive" ? "desactivados" : "registrados"}.
+                No hay permisos{" "}
+                {activeTab === "active"
+                  ? "activos"
+                  : activeTab === "inactive"
+                    ? "desactivados"
+                    : "registrados"}
+                .
               </p>
             </div>
           ) : (
@@ -159,28 +204,45 @@ function PermissionsPage() {
                 <TableBody>
                   {paginatedPermissions.map((permission) => (
                     <TableRow key={permission.id}>
-                      <TableCell className="font-medium">{permission.display_name}</TableCell>
-                      <TableCell className="font-mono text-muted-foreground">{permission.slug}</TableCell>
+                      <TableCell className="font-medium">
+                        {permission.display_name}
+                      </TableCell>
+                      <TableCell className="font-mono text-muted-foreground">
+                        {permission.slug}
+                      </TableCell>
                       <TableCell>
-                        <Badge variant={permission.status === "active" ? "default" : "secondary"} className="gap-1">
+                        <Badge
+                          variant={
+                            permission.status === "active"
+                              ? "default"
+                              : "secondary"
+                          }
+                          className="gap-1"
+                        >
                           {permission.status === "active" ? (
                             <CircleCheck className="size-3" />
                           ) : (
                             <CircleX className="size-3" />
                           )}
-                          {permission.status === "active" ? "Activo" : "Inactivo"}
+                          {permission.status === "active"
+                            ? "Activo"
+                            : "Inactivo"}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-muted-foreground max-w-[200px] truncate">
+                      <TableCell className="max-w-[200px] truncate text-muted-foreground">
                         {permission.description || "—"}
                       </TableCell>
                       <TableCell>
                         <DropdownMenu>
-                          <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />}>
+                          <DropdownMenuTrigger
+                            render={<Button variant="ghost" size="icon-sm" />}
+                          >
                             <MoreHorizontal className="size-4" />
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleEdit(permission)}>
+                            <DropdownMenuItem
+                              onClick={() => handleEdit(permission)}
+                            >
                               <Pencil className="size-4" />
                               Editar
                             </DropdownMenuItem>
@@ -200,7 +262,7 @@ function PermissionsPage() {
               </Table>
 
               {totalPages > 1 && (
-                <div className="flex items-center justify-between mt-4">
+                <div className="mt-4 flex items-center justify-between">
                   <p className="text-sm text-muted-foreground">
                     Página {page} de {totalPages}
                   </p>
@@ -216,7 +278,9 @@ function PermissionsPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                      onClick={() =>
+                        setPage((p) => Math.min(totalPages, p + 1))
+                      }
                       disabled={page === totalPages}
                     >
                       Siguiente

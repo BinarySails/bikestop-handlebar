@@ -29,18 +29,13 @@ interface UserPermissionsTableProps {
 }
 
 export function UserPermissionsTable({ userId }: UserPermissionsTableProps) {
-  const {
-    data,
-    error,
-    isLoading,
-    isValidating,
-    mutate,
-  } = useGetUserPermissionsHandler(userId, {
-    swr: {
-      revalidateOnFocus: false,
-      shouldRetryOnError: false,
-    },
-  });
+  const { data, error, isLoading, isValidating, mutate } =
+    useGetUserPermissionsHandler(userId, {
+      swr: {
+        revalidateOnFocus: false,
+        shouldRetryOnError: false,
+      },
+    });
 
   const response = data?.status === 200 ? data : undefined;
   const permissions = response?.data?.permissions ?? [];
@@ -102,7 +97,11 @@ export function UserPermissionsTable({ userId }: UserPermissionsTableProps) {
                   {getModule(permission.slug)}
                 </TableCell>
                 <TableCell>
-                  <Badge variant={permission.status === "active" ? "default" : "secondary"}>
+                  <Badge
+                    variant={
+                      permission.status === "active" ? "default" : "secondary"
+                    }
+                  >
                     {permission.status === "active" ? "Activo" : "Inactivo"}
                   </Badge>
                 </TableCell>

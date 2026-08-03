@@ -1,10 +1,7 @@
 import { useForm } from "@tanstack/react-form";
 import { toast } from "sonner";
 
-import {
-  useCreateRoleHandler,
-  useUpdateRoleHandler,
-} from "@/lib/api/api";
+import { useCreateRoleHandler, useUpdateRoleHandler } from "@/lib/api/api";
 import type { Role, RoleStatus } from "@/lib/api/schemas";
 
 import { Button } from "@/components/ui/button";
@@ -33,8 +30,10 @@ export function CreateRoleDialog({
   role,
   onSuccess,
 }: CreateRoleDialogProps) {
-  const { trigger: createTrigger, isMutating: isCreating } = useCreateRoleHandler();
-  const { trigger: updateTrigger, isMutating: isUpdating } = useUpdateRoleHandler(role?.id ?? "");
+  const { trigger: createTrigger, isMutating: isCreating } =
+    useCreateRoleHandler();
+  const { trigger: updateTrigger, isMutating: isUpdating } =
+    useUpdateRoleHandler(role?.id ?? "");
 
   const form = useForm({
     defaultValues: {
@@ -58,7 +57,10 @@ export function CreateRoleDialog({
           toast.error("Error al actualizar el rol.");
         }
       } else {
-        const result = await createTrigger({ display_name: value.displayName, slug });
+        const result = await createTrigger({
+          display_name: value.displayName,
+          slug,
+        });
         if (result?.status === 201) {
           toast.success(`Rol "${value.displayName}" creado.`);
           form.reset();
@@ -113,13 +115,16 @@ export function CreateRoleDialog({
                   onChange={(e) => field.handleChange(e.target.value)}
                   placeholder="Administrador"
                   aria-invalid={
-                    field.state.meta.isTouched && field.state.meta.errors.length > 0
+                    field.state.meta.isTouched &&
+                    field.state.meta.errors.length > 0
                       ? "true"
                       : undefined
                   }
                 />
                 {field.state.meta.errors?.[0] && (
-                  <p className="text-sm text-red-500">{field.state.meta.errors[0]}</p>
+                  <p className="text-sm text-red-500">
+                    {field.state.meta.errors[0]}
+                  </p>
                 )}
               </div>
             )}
@@ -142,13 +147,13 @@ export function CreateRoleDialog({
                     onClick={() => field.handleChange(!field.state.value)}
                     className={cn(
                       "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors",
-                      field.state.value ? "bg-primary" : "bg-input",
+                      field.state.value ? "bg-primary" : "bg-input"
                     )}
                   >
                     <span
                       className={cn(
                         "pointer-events-none inline-block size-5 rounded-full bg-white shadow-sm ring-0 transition-transform",
-                        field.state.value ? "translate-x-5" : "translate-x-0",
+                        field.state.value ? "translate-x-5" : "translate-x-0"
                       )}
                     />
                   </button>
@@ -168,7 +173,10 @@ export function CreateRoleDialog({
 
             <form.Subscribe selector={(state) => [state.isSubmitting]}>
               {([isSubmitting]) => (
-                <Button type="submit" disabled={isSubmitting || isCreating || isUpdating}>
+                <Button
+                  type="submit"
+                  disabled={isSubmitting || isCreating || isUpdating}
+                >
                   {isSubmitting || isCreating || isUpdating
                     ? "Guardando..."
                     : role

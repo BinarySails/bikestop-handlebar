@@ -32,8 +32,10 @@ export function CreatePermissionDialog({
   permission,
   onSuccess,
 }: CreatePermissionDialogProps) {
-  const { trigger: createTrigger, isMutating: isCreating } = useCreatePermissionHandler();
-  const { trigger: updateTrigger, isMutating: isUpdating } = useUpdatePermissionHandler(permission?.id ?? "");
+  const { trigger: createTrigger, isMutating: isCreating } =
+    useCreatePermissionHandler();
+  const { trigger: updateTrigger, isMutating: isUpdating } =
+    useUpdatePermissionHandler(permission?.id ?? "");
 
   const form = useForm({
     defaultValues: {
@@ -80,7 +82,9 @@ export function CreatePermissionDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg" showCloseButton>
         <DialogHeader>
-          <DialogTitle>{permission ? "Editar Permiso" : "Crear Permiso"}</DialogTitle>
+          <DialogTitle>
+            {permission ? "Editar Permiso" : "Crear Permiso"}
+          </DialogTitle>
           <DialogDescription>
             {permission
               ? "Actualiza la información del permiso."
@@ -116,13 +120,16 @@ export function CreatePermissionDialog({
                   onChange={(e) => field.handleChange(e.target.value)}
                   placeholder="sales.create"
                   aria-invalid={
-                    field.state.meta.isTouched && field.state.meta.errors.length > 0
+                    field.state.meta.isTouched &&
+                    field.state.meta.errors.length > 0
                       ? "true"
                       : undefined
                   }
                 />
                 {field.state.meta.errors?.[0] && (
-                  <p className="text-sm text-red-500">{field.state.meta.errors[0]}</p>
+                  <p className="text-sm text-red-500">
+                    {field.state.meta.errors[0]}
+                  </p>
                 )}
               </div>
             )}
@@ -159,7 +166,10 @@ export function CreatePermissionDialog({
 
             <form.Subscribe selector={(state) => [state.isSubmitting]}>
               {([isSubmitting]) => (
-                <Button type="submit" disabled={isSubmitting || isCreating || isUpdating}>
+                <Button
+                  type="submit"
+                  disabled={isSubmitting || isCreating || isUpdating}
+                >
                   {isSubmitting || isCreating || isUpdating
                     ? "Guardando..."
                     : permission
