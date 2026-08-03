@@ -118,7 +118,10 @@ function ProductsListPage() {
     search: appliedFilters.productName || undefined,
   });
 
-  const products: ProductListItem[] = res?.status === 200 ? res.data.data : [];
+  const products = useMemo<ProductListItem[]>(
+    () => (res?.status === 200 ? res.data.data : []),
+    [res]
+  );
   const total = res?.status === 200 ? res.data.total : 0;
   const totalPages = Math.ceil(total / PAGE_SIZE) || 1;
 
