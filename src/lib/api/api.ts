@@ -41,7 +41,6 @@ import type {
   CreateStateRequest,
   CreateUserRequest,
   CreateWarehouseRequest,
-  DeleteBrandResponse,
   DeleteCategoryResponse,
   DeleteFileRequestParams,
   DeleteFileResponse,
@@ -54,6 +53,7 @@ import type {
   GetDownloadUrlRequestParams,
   GetDownloadUrlResponse,
   GetUserPermissionsResponse,
+  ListBrandsRequestParams,
   ListPermissionsResponse,
   ListRolesResponse,
   ListUserRolesResponse,
@@ -62,6 +62,7 @@ import type {
   LoginRequest,
   LoginResponse,
   MeResponse,
+  PaginatedBrand,
   PermissionId,
   RemovePermissionsRequest,
   RemovePermissionsResponse,
@@ -69,9 +70,7 @@ import type {
   RoleId,
   State,
   StateId,
-  ToggleBrandResponse,
   UpdateBrandRequest,
-  UpdateBrandResponse,
   UpdateCategoryRequest,
   UpdateCategoryResponse,
   UpdatePermissionRequest,
@@ -830,6 +829,83 @@ export const useCreateLocalityRequest = <TError = Promise<ErrorResponse | void>>
   }
 }
 
+export type listBrandsRequestResponse200 = {
+  data: PaginatedBrand
+  status: 200
+}
+
+export type listBrandsRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type listBrandsRequestResponseSuccess = (listBrandsRequestResponse200) & {
+  headers: Headers;
+};
+export type listBrandsRequestResponseError = (listBrandsRequestResponse500) & {
+  headers: Headers;
+};
+
+export type listBrandsRequestResponse = (listBrandsRequestResponseSuccess | listBrandsRequestResponseError)
+
+export const getListBrandsRequestUrl = (params?: ListBrandsRequestParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `http://localhost:8080/api/v1/products/brands?${stringifiedParams}` : `http://localhost:8080/api/v1/products/brands`
+}
+
+export const listBrandsRequest = async (params?: ListBrandsRequestParams, options?: RequestInit): Promise<listBrandsRequestResponse> => {
+
+  const res = await fetch(getListBrandsRequestUrl(params),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'GET'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: listBrandsRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as listBrandsRequestResponse
+}
+
+
+
+
+export const getListBrandsRequestKey = (params?: ListBrandsRequestParams,) => [`http://localhost:8080/api/v1/products/brands`, ...(params ? [params]: [])] as const;
+
+export type ListBrandsRequestQueryResult = NonNullable<Awaited<ReturnType<typeof listBrandsRequest>>>
+
+export const useListBrandsRequest = <TError = Promise<ErrorResponse>>(
+  params?: ListBrandsRequestParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof listBrandsRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
+) => {
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getListBrandsRequestKey(params) : null);
+  const swrFn = () => listBrandsRequest(params, fetchOptions)
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
 export type createBrandRequestResponse201 = {
   data: Brand
   status: 201
@@ -986,7 +1062,7 @@ export const useGetBrandRequest = <TError = Promise<ErrorResponse>>(
 }
 
 export type deleteBrandRequestResponse200 = {
-  data: DeleteBrandResponse
+  data: Brand
   status: 200
 }
 
@@ -1066,7 +1142,7 @@ export const useDeleteBrandRequest = <TError = Promise<ErrorResponse>>(
 }
 
 export type updateBrandRequestResponse200 = {
-  data: UpdateBrandResponse
+  data: Brand
   status: 200
 }
 
@@ -1157,7 +1233,7 @@ export const useUpdateBrandRequest = <TError = Promise<ErrorResponse>>(
 }
 
 export type toggleBrandRequestResponse200 = {
-  data: ToggleBrandResponse
+  data: Brand
   status: 200
 }
 
