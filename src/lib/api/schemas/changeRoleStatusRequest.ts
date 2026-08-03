@@ -6,8 +6,6 @@
  */
 import type { RoleStatus } from './roleStatus.ts';
 
-export interface UpdateRoleRequest {
-  display_name: string;
-  slug: string;
+export interface ChangeRoleStatusRequest {
   status: RoleStatus;
 }

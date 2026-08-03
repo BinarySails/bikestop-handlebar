@@ -4,6 +4,7 @@
  * ciclo
  * OpenAPI spec version: 0.1.0
  */
+import type { RoleId } from './roleId.ts';
 
 export interface CreateUserRequest {
   email: string;
@@ -11,5 +12,7 @@ export interface CreateUserRequest {
   mother_last_name: string;
   name: string;
   password: string;
+  /** @nullable */
+  role_ids?: RoleId[] | null;
   username: string;
 }
