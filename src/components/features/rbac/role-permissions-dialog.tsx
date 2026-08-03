@@ -86,7 +86,7 @@ export function RolePermissionsDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cerrar
           </Button>
-          <Button onClick={onOpenAssign}>+ Agregar Permisos</Button>
+          <Button onClick={onOpenAssign}>+ Agregar</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
