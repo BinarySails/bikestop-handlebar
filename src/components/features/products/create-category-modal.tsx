@@ -1,10 +1,10 @@
-import { useState } from "react"
-import { useForm, useSelector } from "@tanstack/react-form"
-import { toast } from "sonner"
-import { useCreateCategoryRequest } from "@/lib/api/api"
-import { CreateCategoryRequestBody } from "@/lib/api/zods"
+import { useState } from "react";
+import { useForm, useSelector } from "@tanstack/react-form";
+import { toast } from "sonner";
+import { useCreateCategoryRequest } from "@/lib/api/api";
+import { CreateCategoryRequestBody } from "@/lib/api/zods";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -13,9 +13,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Combobox,
   ComboboxContent,
@@ -23,8 +23,8 @@ import {
   ComboboxItem,
   ComboboxList,
   ComboboxEmpty,
-} from "@/components/ui/combobox"
-import type { Category } from "@/lib/api/schemas"
+} from "@/components/ui/combobox";
+import type { Category } from "@/lib/api/schemas";
 
 const mockCategories: Category[] = [
   {
@@ -81,11 +81,11 @@ const mockCategories: Category[] = [
     parent_id: "2",
     status: "active",
   },
-]
+];
 
 export function CreateCategoryDialog() {
-  const [open, setOpen] = useState(false)
-  const { trigger } = useCreateCategoryRequest()
+  const [open, setOpen] = useState(false);
+  const { trigger } = useCreateCategoryRequest();
 
   const form = useForm({
     defaultValues: {
@@ -94,35 +94,35 @@ export function CreateCategoryDialog() {
       parent: null as null | Category,
     },
     onSubmit: async ({ value }) => {
-      const slug = value.displayName.toLowerCase().replace(/\s+/g, "-")
+      const slug = value.displayName.toLowerCase().replace(/\s+/g, "-");
 
       const result = await trigger({
         display_name: value.displayName,
         slug,
         description: value.description || null,
         parent_id: value.parent?.id || null,
-      })
+      });
 
       const errorData =
         "data" in result
           ? (result as { data: { message?: string } }).data
-          : null
+          : null;
 
       if (result.status === 201) {
-        toast.success(`Category "${value.displayName}" created!`)
-        form.reset()
-        setOpen(false)
+        toast.success(`Category "${value.displayName}" created!`);
+        form.reset();
+        setOpen(false);
       } else {
-        toast.error(errorData?.message ?? "Failed to create category")
+        toast.error(errorData?.message ?? "Failed to create category");
       }
     },
-  })
+  });
 
   const displayName = useSelector(
     form.baseStore,
     (state) => state.values.displayName
-  )
-  const slug = displayName.toLowerCase().replace(/\s+/g, "-")
+  );
+  const slug = displayName.toLowerCase().replace(/\s+/g, "-");
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -140,9 +140,9 @@ export function CreateCategoryDialog() {
 
         <form
           onSubmit={(e) => {
-            e.preventDefault()
-            e.stopPropagation()
-            form.handleSubmit()
+            e.preventDefault();
+            e.stopPropagation();
+            form.handleSubmit();
           }}
           className="space-y-4"
         >
@@ -151,11 +151,11 @@ export function CreateCategoryDialog() {
             validators={{
               onChange: ({ value }) => {
                 const result =
-                  CreateCategoryRequestBody.shape.display_name.safeParse(value)
-                if (!result.success) return result.error.issues[0].message
+                  CreateCategoryRequestBody.shape.display_name.safeParse(value);
+                if (!result.success) return result.error.issues[0].message;
                 if (value.length < 3)
-                  return "Display name must be at least 3 characters"
-                return undefined
+                  return "Display name must be at least 3 characters";
+                return undefined;
               },
             }}
           >
@@ -196,10 +196,10 @@ export function CreateCategoryDialog() {
                 const result =
                   CreateCategoryRequestBody.shape.description.safeParse(
                     value || null
-                  )
+                  );
                 return result.success
                   ? undefined
-                  : result.error.issues[0].message
+                  : result.error.issues[0].message;
               },
             }}
           >
@@ -269,5 +269,5 @@ export function CreateCategoryDialog() {
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
