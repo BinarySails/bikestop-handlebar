@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 
 import { CreateProductDialog } from "@/components/features/products/create-product-modal";
 import { Badge } from "@/components/ui/badge";
@@ -58,53 +58,13 @@ function ProductsListSkeleton() {
   );
 }
 
-type Filters = {
-  productName: string;
-  status: "all" | ProductListItem["status"];
-  brand: string;
-  category: string;
-};
-
-const EMPTY_FILTERS: Filters = {
-  productName: "",
-  status: "all",
-  brand: "",
-  category: "",
-};
-
-function matchesFilters(product: ProductListItem, filters: Filters): boolean {
-  if (
-    filters.productName &&
-    !product.display_name
-      .toLowerCase()
-      .includes(filters.productName.toLowerCase())
-  ) {
-    return false;
-  }
-  if (filters.status !== "all" && product.status !== filters.status) {
-    return false;
-  }
-  if (
-    filters.brand &&
-    !product.brand_name.toLowerCase().includes(filters.brand.toLowerCase())
-  ) {
-    return false;
-  }
-  if (
-    filters.category &&
-    !product.category_name
-      .toLowerCase()
-      .includes(filters.category.toLowerCase())
-  ) {
-    return false;
-  }
-  return true;
-}
-
 function ProductsListPage() {
   const [page, setPage] = useState(0);
-  const [draftFilters, setDraftFilters] = useState<Filters>(EMPTY_FILTERS);
-  const [appliedFilters, setAppliedFilters] = useState<Filters>(EMPTY_FILTERS);
+  const [search, setSearch] = useState("");
+  const [appliedSearch, setAppliedSearch] = useState("");
+  const [status, setStatus] = useState<"all" | ProductListItem["status"]>(
+    "all"
+  );
 
   const {
     data: res,
@@ -114,30 +74,23 @@ function ProductsListPage() {
   } = useListProductsRequest({
     page: page + 1,
     limit: PAGE_SIZE,
-    status: appliedFilters.status === "all" ? undefined : appliedFilters.status,
-    search: appliedFilters.productName || undefined,
+    status: status === "all" ? undefined : status,
+    search: appliedSearch || undefined,
   });
 
-  const products = useMemo<ProductListItem[]>(
-    () => (res?.status === 200 ? res.data.data : []),
-    [res]
-  );
+  const products = res?.status === 200 ? res.data.data : [];
   const total = res?.status === 200 ? res.data.total : 0;
   const totalPages = Math.ceil(total / PAGE_SIZE) || 1;
 
-  const filteredProducts = useMemo(
-    () => products.filter((p) => matchesFilters(p, appliedFilters)),
-    [products, appliedFilters]
-  );
-
-  function handleApplyFilters() {
-    setAppliedFilters(draftFilters);
+  function handleApplySearch() {
+    setAppliedSearch(search);
     setPage(0);
   }
 
   function handleClearFilters() {
-    setDraftFilters(EMPTY_FILTERS);
-    setAppliedFilters(EMPTY_FILTERS);
+    setSearch("");
+    setAppliedSearch("");
+    setStatus("all");
     setPage(0);
   }
 
@@ -155,28 +108,32 @@ function ProductsListPage() {
       <div className="flex flex-col gap-4">
         <div className="flex flex-wrap items-end gap-4">
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="product-name">Producto</Label>
-            <Input
-              id="product-name"
-              placeholder="Buscar por nombre"
-              value={draftFilters.productName}
-              onChange={(e) =>
-                setDraftFilters((f) => ({ ...f, productName: e.target.value }))
-              }
-              className="w-56"
-            />
+            <Label htmlFor="search">Búsqueda</Label>
+            <div className="relative">
+              <Search className="absolute top-2.5 left-2.5 size-4 text-muted-foreground" />
+              <Input
+                id="search"
+                placeholder="Nombre, marca o categoría"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleApplySearch();
+                  }
+                }}
+                className="w-72 pl-9"
+              />
+            </div>
           </div>
 
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="status">Estatus</Label>
             <Select
-              value={draftFilters.status}
-              onValueChange={(value) =>
-                setDraftFilters((f) => ({
-                  ...f,
-                  status: value as Filters["status"],
-                }))
-              }
+              value={status}
+              onValueChange={(value) => {
+                setStatus(value as "all" | ProductListItem["status"]);
+                setPage(0);
+              }}
             >
               <SelectTrigger id="status" className="w-44">
                 <SelectValue placeholder="Seleccionar" />
@@ -191,35 +148,9 @@ function ProductsListPage() {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="brand">Marca</Label>
-            <Input
-              id="brand"
-              placeholder="Buscar por marca"
-              value={draftFilters.brand}
-              onChange={(e) =>
-                setDraftFilters((f) => ({ ...f, brand: e.target.value }))
-              }
-              className="w-48"
-            />
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="category">Categoría</Label>
-            <Input
-              id="category"
-              placeholder="Buscar por categoría"
-              value={draftFilters.category}
-              onChange={(e) =>
-                setDraftFilters((f) => ({ ...f, category: e.target.value }))
-              }
-              className="w-48"
-            />
-          </div>
-
-          <div className="flex flex-col gap-1.5">
             <span className="text-sm font-medium">&nbsp;</span>
-            <Button className="h-8" size="sm" onClick={handleApplyFilters}>
-              Aplicar
+            <Button className="h-8" size="sm" onClick={handleApplySearch}>
+              Buscar
             </Button>
           </div>
           <div className="flex flex-col gap-1.5">
@@ -244,7 +175,7 @@ function ProductsListPage() {
             <p className="text-sm text-muted-foreground">
               Error al cargar los productos.
             </p>
-          ) : filteredProducts.length === 0 ? (
+          ) : products.length === 0 ? (
             <p className="text-sm text-muted-foreground">
               No hay productos que coincidan con los filtros.
             </p>
@@ -256,11 +187,11 @@ function ProductsListPage() {
                     <TableHead>Estatus</TableHead>
                     <TableHead>Nombre</TableHead>
                     <TableHead>Marca</TableHead>
-                    <TableHead>Categoria</TableHead>
+                    <TableHead>Categoría</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredProducts.map((product) => (
+                  {products.map((product) => (
                     <TableRow key={product.id}>
                       <TableCell>
                         <Badge variant={statusBadgeVariant[product.status]}>
