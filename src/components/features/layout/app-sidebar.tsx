@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useLocation } from "@tanstack/react-router";
+import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import {
   LayoutDashboard,
   LogOut,
@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { logoutHandler } from "@/lib/api/api";
+import { useAuthStore } from "@/lib/auth/use-auth-store";
 import { cn } from "@/lib/utils";
 
 const navigationItems = [
@@ -24,7 +26,25 @@ const navigationItems = [
 
 export function AppSidebar() {
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const pathname = useLocation({ select: (location) => location.pathname });
+  const navigate = useNavigate();
+
+  async function handleLogout() {
+    if (isLoggingOut) return;
+
+    setIsLoggingOut(true);
+
+    try {
+      await logoutHandler();
+    } catch (error) {
+      console.error("Logout request failed", error);
+    } finally {
+      useAuthStore.getState().clearAuth();
+      await navigate({ to: "/login", replace: true });
+      setIsLoggingOut(false);
+    }
+  }
 
   return (
     <aside className="flex w-20 shrink-0 flex-col border-r bg-background md:w-64">
@@ -63,9 +83,13 @@ export function AppSidebar() {
                 variant="ghost"
                 className="h-10 w-full justify-center px-2 text-destructive hover:bg-destructive/10 hover:text-destructive md:justify-start md:px-3"
                 aria-label="Cerrar sesión"
+                disabled={isLoggingOut}
+                onClick={handleLogout}
               >
                 <LogOut className="size-4" aria-hidden="true" />
-                <span className="hidden md:inline">Cerrar sesión</span>
+                <span className="hidden md:inline">
+                  {isLoggingOut ? "Cerrando sesión..." : "Cerrar sesión"}
+                </span>
               </Button>
             </div>
           )}
