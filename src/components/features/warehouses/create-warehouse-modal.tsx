@@ -52,9 +52,7 @@ export function CreateWarehouseDialog() {
         form.reset();
         setOpen(false);
       } else {
-        toast.error(
-          errorData?.message ?? "No se pudo crear el almacén"
-        );
+        toast.error(errorData?.message ?? "No se pudo crear el almacén");
       }
     },
   });
@@ -85,10 +83,9 @@ export function CreateWarehouseDialog() {
             name="code"
             validators={{
               onChange: ({ value }) => {
-                const result =
-                  CreateWarehouseRequestBody.shape.code.safeParse(
-                    value || null
-                  );
+                const result = CreateWarehouseRequestBody.shape.code.safeParse(
+                  value || null
+                );
                 return result.success
                   ? undefined
                   : result.error.issues[0].message;
