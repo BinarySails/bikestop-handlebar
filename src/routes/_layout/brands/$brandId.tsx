@@ -143,7 +143,7 @@ function BrandDetailView({
       await deleteBrand();
       toast.success("Marca eliminada correctamente.");
       setDeleteOpen(false);
-      navigate({ to: "/brands" as never });
+      navigate({ to: "/brands" });
     } catch {
       toast.error("No se pudo eliminar la marca.");
     } finally {

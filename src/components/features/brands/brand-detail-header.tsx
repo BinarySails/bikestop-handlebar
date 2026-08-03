@@ -43,7 +43,7 @@ export function BrandDetailHeader({
       </div>
 
       {isDirty ? (
-        <Button type="submit" disabled={isSubmitting} onClick={onSave}>
+        <Button type="button" disabled={isSubmitting} onClick={onSave}>
           {isSubmitting ? (
             <span>Guardando...</span>
           ) : (
