@@ -5,8 +5,7 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface ErrorResponse {
-  /** @nullable */
-  message?: string | null;
-  type: string;
+export interface UpdateBrandRequest {
+  display_name: string;
+  image_url: string;
 }
