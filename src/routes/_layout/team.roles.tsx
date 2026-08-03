@@ -59,13 +59,16 @@ function RolesPage() {
   const { trigger: deleteTrigger, isMutating: isDeleting } =
     useDeleteRoleHandler(deleteRole?.id ?? "");
 
-  const allRoles = useMemo(() => data?.data?.roles ?? [], [data?.data?.roles]);
+  const allRoles = useMemo(
+    () => (data?.data?.roles ?? []).filter((r) => r.status !== "deleted"),
+    [data?.data?.roles]
+  );
 
   const filteredRoles = useMemo(() => {
     if (activeTab === "active")
       return allRoles.filter((r) => r.status === "active");
     if (activeTab === "inactive")
-      return allRoles.filter((r) => r.status !== "active");
+      return allRoles.filter((r) => r.status === "inactive");
     return allRoles;
   }, [allRoles, activeTab]);
 
@@ -176,8 +179,7 @@ function RolesPage() {
             Activos ({allRoles.filter((r) => r.status === "active").length})
           </TabsTrigger>
           <TabsTrigger value="inactive">
-            Desactivados ({allRoles.filter((r) => r.status !== "active").length}
-            )
+            Inactivos ({allRoles.filter((r) => r.status === "inactive").length})
           </TabsTrigger>
         </TabsList>
 
@@ -195,7 +197,7 @@ function RolesPage() {
                 {activeTab === "active"
                   ? "activos"
                   : activeTab === "inactive"
-                    ? "desactivados"
+                    ? "inactivos"
                     : "registrados"}
                 .
               </p>
@@ -252,11 +254,11 @@ function RolesPage() {
                               Editar
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              render={
-                                <Link
-                                  to="/team/roles/$roleId/permissions"
-                                  params={{ roleId: role.id }}
-                                />
+                              onClick={() =>
+                                navigate({
+                                  to: "/team/roles/$roleId/permissions",
+                                  params: { roleId: role.id },
+                                })
                               }
                             >
                               <ShieldCheck className="size-4" />

@@ -36,6 +36,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { CreatePermissionDialog } from "@/components/features/rbac/create-permission-dialog";
+import { DeletePermissionDialog } from "@/components/features/rbac/delete-permission-dialog";
 
 export const Route = createFileRoute("/_layout/team/permisos")({
   component: PermissionsPage,
@@ -55,12 +56,11 @@ function PermissionsPage() {
   const [page, setPage] = useState(1);
 
   const { data, isLoading, mutate } = useListPermissionsHandler();
-  const { trigger: deleteTrigger } = useDeletePermissionHandler(
-    deletePermission?.id ?? ""
-  );
+  const { trigger: deleteTrigger, isMutating: isDeleting } =
+    useDeletePermissionHandler(deletePermission?.id ?? "");
 
   const allPermissions = useMemo(
-    () => data?.data?.permissions ?? [],
+    () => (data?.data?.permissions ?? []).filter((p) => p.status !== "deleted"),
     [data?.data?.permissions]
   );
 
@@ -68,7 +68,7 @@ function PermissionsPage() {
     if (activeTab === "active")
       return allPermissions.filter((p) => p.status === "active");
     if (activeTab === "inactive")
-      return allPermissions.filter((p) => p.status !== "active");
+      return allPermissions.filter((p) => p.status === "inactive");
     return allPermissions;
   }, [allPermissions, activeTab]);
 
@@ -97,31 +97,24 @@ function PermissionsPage() {
     mutate();
   };
 
-  const handleDelete = (permission: Permission) => {
-    setDeletePermission(permission);
-    toast.info(`¿Eliminar permiso "${permission.display_name}"?`, {
-      action: {
-        label: "Eliminar",
-        onClick: async () => {
-          try {
-            const result = await deleteTrigger(null);
-            if (result?.status === 200) {
-              toast.success(`Permiso "${permission.display_name}" eliminado.`);
-              setDeletePermission(undefined);
-              mutate();
-            } else {
-              toast.error("Error al eliminar el permiso.");
-            }
-          } catch {
-            toast.error("Error al eliminar el permiso.");
-          }
-        },
-      },
-      cancel: {
-        label: "Cancelar",
-        onClick: () => setDeletePermission(undefined),
-      },
-    });
+  const handleDeleteConfirm = async () => {
+    if (!deletePermission) return;
+    try {
+      const result = await deleteTrigger(null);
+      if (result?.status === 200) {
+        toast.success(`Permiso "${deletePermission.display_name}" eliminado.`);
+        setDeletePermission(undefined);
+        mutate();
+      } else if (result?.status === 409) {
+        toast.error(
+          "No se puede eliminar: el permiso está asignado a uno o más roles."
+        );
+      } else {
+        toast.error("Error al eliminar el permiso.");
+      }
+    } catch {
+      toast.error("Error al eliminar el permiso.");
+    }
   };
 
   return (
@@ -165,8 +158,8 @@ function PermissionsPage() {
             {allPermissions.filter((p) => p.status === "active").length})
           </TabsTrigger>
           <TabsTrigger value="inactive">
-            Desactivados (
-            {allPermissions.filter((p) => p.status !== "active").length})
+            Inactivos (
+            {allPermissions.filter((p) => p.status === "inactive").length})
           </TabsTrigger>
         </TabsList>
 
@@ -184,7 +177,7 @@ function PermissionsPage() {
                 {activeTab === "active"
                   ? "activos"
                   : activeTab === "inactive"
-                    ? "desactivados"
+                    ? "inactivos"
                     : "registrados"}
                 .
               </p>
@@ -248,7 +241,7 @@ function PermissionsPage() {
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               variant="destructive"
-                              onClick={() => handleDelete(permission)}
+                              onClick={() => setDeletePermission(permission)}
                             >
                               <Trash2 className="size-4" />
                               Eliminar
@@ -302,6 +295,16 @@ function PermissionsPage() {
         permission={editingPermission}
         onSuccess={handleFormSuccess}
       />
+
+      {deletePermission && (
+        <DeletePermissionDialog
+          open={!!deletePermission}
+          onOpenChange={(next) => !next && setDeletePermission(undefined)}
+          permission={deletePermission}
+          onConfirm={handleDeleteConfirm}
+          isDeleting={isDeleting}
+        />
+      )}
     </main>
   );
 }
