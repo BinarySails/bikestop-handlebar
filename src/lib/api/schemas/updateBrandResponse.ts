@@ -4,9 +4,8 @@
  * ciclo
  * OpenAPI spec version: 0.1.0
  */
+import type { Brand } from './brand.ts';
 
-export interface ErrorResponse {
-  /** @nullable */
-  message?: string | null;
-  type: string;
+export interface UpdateBrandResponse {
+  brand: Brand;
 }

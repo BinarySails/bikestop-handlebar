@@ -5,8 +5,9 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface ErrorResponse {
+export interface CreatePermissionRequest {
   /** @nullable */
-  message?: string | null;
-  type: string;
+  description?: string | null;
+  display_name: string;
+  slug: string;
 }
