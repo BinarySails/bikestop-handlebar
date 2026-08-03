@@ -238,6 +238,11 @@ export const CreateProductRequestResponse = zod.object({
 })
 
 
+export const ListBrandsRequestQueryParams = zod.object({
+  "page": zod.int().optional(),
+  "limit": zod.int().optional()
+})
+
 export const ListBrandsRequestResponse = zod.object({
   "data": zod.array(zod.object({
   "created_at": zod.iso.datetime({"offset":true}),
@@ -246,6 +251,10 @@ export const ListBrandsRequestResponse = zod.object({
   "image_url": zod.string(),
   "status": zod.enum(['enable', 'disable', 'archive'])
 }))
+})),
+  "limit": zod.int(),
+  "page": zod.int(),
+  "total": zod.int()
 })
 
 

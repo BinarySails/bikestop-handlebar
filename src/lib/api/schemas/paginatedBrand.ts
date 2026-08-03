@@ -4,13 +4,11 @@
  * ciclo
  * OpenAPI spec version: 0.1.0
  */
-import type { Product } from './product.ts';
+import type { PaginatedBrandDataItem } from './paginatedBrandDataItem.ts';
 
-export interface ListProductsResponse {
-  data: Product[];
-  /** @minimum 0 */
+export interface PaginatedBrand {
+  data: PaginatedBrandDataItem[];
   limit: number;
-  /** @minimum 0 */
   page: number;
   total: number;
 }
