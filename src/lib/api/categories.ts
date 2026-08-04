@@ -114,7 +114,7 @@ export function deleteCategory(id: string): Promise<DeleteCategoryResponse> {
 export function useCategories(filters: CategoryFilters = {}) {
   const key = getCategoriesUrl(filters);
   return useSWR(key, () => listCategories(filters), {
-    keepPreviousData: false,
+    keepPreviousData: true,
   });
 }
 
