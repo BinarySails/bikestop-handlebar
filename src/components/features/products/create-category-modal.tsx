@@ -35,7 +35,6 @@ const mockCategories: Category[] = [
     created_at: "",
     status: "active",
     parent_id: null,
-    status: "active",
   },
   {
     id: "2",
@@ -45,7 +44,6 @@ const mockCategories: Category[] = [
     created_at: "",
     status: "active",
     parent_id: null,
-    status: "active",
   },
   {
     id: "3",
@@ -55,7 +53,6 @@ const mockCategories: Category[] = [
     created_at: "",
     status: "active",
     parent_id: null,
-    status: "active",
   },
   {
     id: "4",
@@ -65,7 +62,6 @@ const mockCategories: Category[] = [
     created_at: "",
     status: "active",
     parent_id: "1",
-    status: "active",
   },
   {
     id: "5",
@@ -75,7 +71,6 @@ const mockCategories: Category[] = [
     created_at: "",
     status: "active",
     parent_id: "1",
-    status: "active",
   },
   {
     id: "6",
@@ -85,7 +80,6 @@ const mockCategories: Category[] = [
     created_at: "",
     status: "active",
     parent_id: "2",
-    status: "active",
   },
 ];
 
@@ -176,7 +170,7 @@ export function CreateCategoryDialog() {
                   placeholder="Electronics"
                   aria-invalid={
                     field.state.meta.isTouched &&
-                    field.state.meta.errors.length > 0
+                      field.state.meta.errors.length > 0
                       ? "true"
                       : undefined
                   }
