@@ -1,11 +1,10 @@
+import { AddressCatalog } from "@/components/features/addresses/address-catalog";
 import { createFileRoute } from "@tanstack/react-router";
 
-import { AddressCatalog } from "@/components/features/addresses/address-catalog";
-
 export const Route = createFileRoute("/_layout/locations")({
-  component: LocationsPage,
+  component: RouteComponent,
 });
 
-function LocationsPage() {
+function RouteComponent() {
   return <AddressCatalog />;
 }

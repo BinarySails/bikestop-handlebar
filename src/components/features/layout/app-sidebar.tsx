@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 
 const navigationItems = [
   { label: "Dashboard", icon: LayoutDashboard, to: "/dashboard" },
+  { label: "Productos", icon: Package, to: "/products" },
   { label: "Ventas", icon: ShoppingCart, to: "/sales" },
   { label: "Inventario", icon: Package, to: "/inventory" },
   { label: "Locaciones", icon: MapPin, to: "/locations" },
@@ -33,7 +34,8 @@ export function AppSidebar() {
         aria-label="Navegación principal"
       >
         {navigationItems.map(({ label, icon: Icon, to }) => {
-          const active = pathname === to;
+          const active =
+            to === "/team" ? pathname.startsWith("/team") : pathname === to;
 
           return (
             <Button

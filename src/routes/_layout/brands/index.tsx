@@ -4,28 +4,15 @@ import { PackagePlus } from "lucide-react";
 import { CreateBrandDialog } from "@/components/features/products/create-brand-modal";
 import { BrandsTable } from "@/components/features/brands/brands-table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useListBrandsRequest } from "@/lib/api/api";
 import type { Brand } from "@/lib/api/schemas";
 
 export const Route = createFileRoute("/_layout/brands/")({
   component: BrandsListPage,
 });
 
-function BrandsListSkeleton() {
-  return (
-    <div className="space-y-3">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <Skeleton key={i} className="h-12 w-full" />
-      ))}
-    </div>
-  );
-}
-
 function BrandsListPage() {
-  const { data: res, error, isLoading } = useListBrandsRequest();
-
-  const brands: Brand[] = res?.status === 200 ? res.data : [];
+  // El backend no expone aún el endpoint de listado de marcas.
+  const brands: Brand[] = [];
 
   return (
     <section
@@ -50,13 +37,7 @@ function BrandsListPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
-            <BrandsListSkeleton />
-          ) : error ? (
-            <p className="text-sm text-muted-foreground">
-              Error al cargar las marcas.
-            </p>
-          ) : brands.length === 0 ? (
+          {brands.length === 0 ? (
             <p className="text-sm text-muted-foreground">
               No hay marcas registradas.
             </p>
