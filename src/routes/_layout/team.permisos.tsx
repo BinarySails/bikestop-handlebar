@@ -60,7 +60,7 @@ function PermissionsPage() {
 
   const allPermissions = useMemo(
     () => (data?.data?.permissions ?? []).filter((p) => p.status !== "deleted"),
-    [data?.data?.permissions],
+    [data?.data?.permissions]
   );
 
   const filteredPermissions = useMemo(() => {
@@ -73,11 +73,11 @@ function PermissionsPage() {
 
   const totalPages = Math.max(
     1,
-    Math.ceil(filteredPermissions.length / PAGE_SIZE),
+    Math.ceil(filteredPermissions.length / PAGE_SIZE)
   );
   const paginatedPermissions = filteredPermissions.slice(
     (page - 1) * PAGE_SIZE,
-    page * PAGE_SIZE,
+    page * PAGE_SIZE
   );
 
   const handleEdit = (permission: Permission) => {
@@ -101,7 +101,7 @@ function PermissionsPage() {
         mutate();
       } else if (result?.status === 409) {
         toast.error(
-          "No se puede eliminar: el permiso está asignado a uno o más roles.",
+          "No se puede eliminar: el permiso está asignado a uno o más roles."
         );
       } else {
         toast.error("Error al eliminar el permiso.");
@@ -140,9 +140,7 @@ function PermissionsPage() {
         className="mt-6"
       >
         <TabsList>
-          <TabsTrigger value="all">
-            Todos ({allPermissions.length})
-          </TabsTrigger>
+          <TabsTrigger value="all">Todos ({allPermissions.length})</TabsTrigger>
           <TabsTrigger value="active">
             Activos (
             {allPermissions.filter((p) => p.status === "active").length})
