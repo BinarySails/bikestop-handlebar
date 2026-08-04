@@ -7,6 +7,7 @@ import {
   ChevronRightIcon,
   EyeIcon,
   GripVerticalIcon,
+  SearchIcon,
 } from "lucide-react";
 
 import { CreateUserDialog } from "@/components/features/users/create-user-modal";
@@ -21,6 +22,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group";
 import {
   Select,
   SelectContent,
@@ -62,6 +68,7 @@ const users: UserRow[] = [
 export function UsersTableCard() {
   const [filter, setFilter] = useState<Filter>("all");
   const [roleFilter, setRoleFilter] = useState("all");
+  const [clientSearch, setClientSearch] = useState("");
   const [selected, setSelected] = useState<Set<number>>(new Set());
 
   const filteredUsers = useMemo(() => {
@@ -70,9 +77,16 @@ export function UsersTableCard() {
       if (filter === "team" && roleFilter !== "all") {
         return user.role === roleFilter;
       }
+      if (filter === "client" && clientSearch.trim()) {
+        const search = clientSearch.trim().toLocaleLowerCase("es");
+        return (
+          user.user.toLocaleLowerCase("es").includes(search) ||
+          user.email.toLocaleLowerCase("es").includes(search)
+        );
+      }
       return true;
     });
-  }, [filter, roleFilter]);
+  }, [clientSearch, filter, roleFilter]);
 
   const roles = useMemo(
     () => [
@@ -181,6 +195,23 @@ export function UsersTableCard() {
                 ))}
               </SelectContent>
             </Select>
+          </div>
+        )}
+
+        {filter === "client" && (
+          <div className="col-span-full">
+            <InputGroup className="max-w-sm">
+              <InputGroupAddon>
+                <SearchIcon />
+              </InputGroupAddon>
+              <InputGroupInput
+                type="search"
+                value={clientSearch}
+                onChange={(event) => setClientSearch(event.target.value)}
+                placeholder="Buscar clientes por nombre o correo"
+                aria-label="Buscar clientes por nombre o correo"
+              />
+            </InputGroup>
           </div>
         )}
       </CardHeader>
