@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { useForm } from "@tanstack/react-form";
 import { toast } from "sonner";
-import { useCreateWarehouseRequest } from "@/lib/api/api";
+import {
+  useCreateWarehouseRequest,
+  useListStatesRequest,
+} from "@/lib/api/api";
 import { CreateWarehouseRequestBody } from "@/lib/api/zods";
 
 import { Button } from "@/components/ui/button";
@@ -16,10 +19,24 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+const DEFAULT_COUNTRY = "México";
 
 export function CreateWarehouseDialog() {
   const [open, setOpen] = useState(false);
   const { trigger } = useCreateWarehouseRequest();
+  const { data: statesResponse, isLoading: isLoadingStates } =
+    useListStatesRequest();
+
+  const states =
+    statesResponse?.status === 200 ? (statesResponse.data ?? []) : [];
 
   const form = useForm({
     defaultValues: {
@@ -27,7 +44,7 @@ export function CreateWarehouseDialog() {
       name: "",
       description: "",
       address: {
-        country: "",
+        country: DEFAULT_COUNTRY,
         state: "",
         city: "",
         postal_code: "",
@@ -207,19 +224,30 @@ export function CreateWarehouseDialog() {
                 {(field) => (
                   <div className="grid gap-2">
                     <Label htmlFor={field.name}>País</Label>
-                    <Input
-                      id={field.name}
-                      name={field.name}
+                    <Select
                       value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      placeholder="México"
-                      aria-invalid={
-                        field.state.meta.isTouched &&
-                        field.state.meta.errors.length > 0
-                          ? "true"
-                          : undefined
-                      }
-                    />
+                      onValueChange={(value) => {
+                        if (value) field.handleChange(value);
+                      }}
+                    >
+                      <SelectTrigger
+                        id={field.name}
+                        className="w-full"
+                        aria-invalid={
+                          field.state.meta.isTouched &&
+                          field.state.meta.errors.length > 0
+                            ? "true"
+                            : undefined
+                        }
+                      >
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={DEFAULT_COUNTRY}>
+                          {DEFAULT_COUNTRY}
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
                     {field.state.meta.errors?.[0] && (
                       <p className="text-sm text-red-500">
                         {field.state.meta.errors[0]}
@@ -246,19 +274,39 @@ export function CreateWarehouseDialog() {
                 {(field) => (
                   <div className="grid gap-2">
                     <Label htmlFor={field.name}>Estado</Label>
-                    <Input
-                      id={field.name}
-                      name={field.name}
+                    <Select
                       value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      placeholder="Querétaro"
-                      aria-invalid={
-                        field.state.meta.isTouched &&
-                        field.state.meta.errors.length > 0
-                          ? "true"
-                          : undefined
-                      }
-                    />
+                      onValueChange={(value) => {
+                        if (value) field.handleChange(value);
+                      }}
+                      disabled={isLoadingStates}
+                    >
+                      <SelectTrigger
+                        id={field.name}
+                        className="w-full"
+                        aria-invalid={
+                          field.state.meta.isTouched &&
+                          field.state.meta.errors.length > 0
+                            ? "true"
+                            : undefined
+                        }
+                      >
+                        <SelectValue
+                          placeholder={
+                            isLoadingStates
+                              ? "Cargando estados..."
+                              : "Selecciona un estado"
+                          }
+                        />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {states.map((state) => (
+                          <SelectItem key={state.id} value={state.display_name}>
+                            {state.display_name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     {field.state.meta.errors?.[0] && (
                       <p className="text-sm text-red-500">
                         {field.state.meta.errors[0]}
