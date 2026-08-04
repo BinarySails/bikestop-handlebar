@@ -54,8 +54,11 @@ import type {
   GetCategoryByIdResponse,
   GetDownloadUrlRequestParams,
   GetDownloadUrlResponse,
+  GetLocalityByIdResponse,
+  GetStateByIdResponse,
   GetUserPermissionsResponse,
   ListBrandsRequestParams,
+  ListLocalitiesResponse,
   ListPermissionsResponse,
   ListProductsRequestParams,
   ListProductsResponse,
@@ -63,6 +66,7 @@ import type {
   ListUserRolesResponse,
   ListWarehousesRequestParams,
   Locality,
+  LocalityId,
   LoginRequest,
   LoginResponse,
   MeResponse,
@@ -665,6 +669,151 @@ export const useGetDownloadUrlRequest = <TError = Promise<ErrorResponse | void>>
   }
 }
 
+export type getLocalityRequestResponse200 = {
+  data: GetLocalityByIdResponse
+  status: 200
+}
+
+export type getLocalityRequestResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type getLocalityRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type getLocalityRequestResponseSuccess = (getLocalityRequestResponse200) & {
+  headers: Headers;
+};
+export type getLocalityRequestResponseError = (getLocalityRequestResponse404 | getLocalityRequestResponse500) & {
+  headers: Headers;
+};
+
+export type getLocalityRequestResponse = (getLocalityRequestResponseSuccess | getLocalityRequestResponseError)
+
+export const getGetLocalityRequestUrl = (localityId: LocalityId,) => {
+
+
+
+
+  return `http://localhost:8080/api/v1/locations/localities/${localityId}`
+}
+
+export const getLocalityRequest = async (localityId: LocalityId, options?: RequestInit): Promise<getLocalityRequestResponse> => {
+
+  const res = await fetch(getGetLocalityRequestUrl(localityId),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'GET'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: getLocalityRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as getLocalityRequestResponse
+}
+
+
+
+
+export const getGetLocalityRequestKey = (localityId: LocalityId,) => [`http://localhost:8080/api/v1/locations/localities/${localityId}`] as const;
+
+export type GetLocalityRequestQueryResult = NonNullable<Awaited<ReturnType<typeof getLocalityRequest>>>
+
+export const useGetLocalityRequest = <TError = Promise<ErrorResponse>>(
+  localityId: LocalityId, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getLocalityRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
+) => {
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false && localityId !== null && localityId !== undefined
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetLocalityRequestKey(localityId) : null);
+  const swrFn = () => getLocalityRequest(localityId, fetchOptions)
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type listStatesRequestResponse200 = {
+  data: State[]
+  status: 200
+}
+
+export type listStatesRequestResponse500 = {
+  data: void
+  status: 500
+}
+
+export type listStatesRequestResponseSuccess = (listStatesRequestResponse200) & {
+  headers: Headers;
+};
+export type listStatesRequestResponseError = (listStatesRequestResponse500) & {
+  headers: Headers;
+};
+
+export type listStatesRequestResponse = (listStatesRequestResponseSuccess | listStatesRequestResponseError)
+
+export const getListStatesRequestUrl = () => {
+
+
+
+
+  return `http://localhost:8080/api/v1/locations/states`
+}
+
+export const listStatesRequest = async ( options?: RequestInit): Promise<listStatesRequestResponse> => {
+
+  const res = await fetch(getListStatesRequestUrl(),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'GET'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: listStatesRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as listStatesRequestResponse
+}
+
+
+
+
+export const getListStatesRequestKey = () => [`http://localhost:8080/api/v1/locations/states`] as const;
+
+export type ListStatesRequestQueryResult = NonNullable<Awaited<ReturnType<typeof listStatesRequest>>>
+
+export const useListStatesRequest = <TError = Promise<void>>(
+   options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof listStatesRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
+) => {
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getListStatesRequestKey() : null);
+  const swrFn = () => listStatesRequest(fetchOptions)
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
 export type createStateRequestResponse201 = {
   data: State
   status: 201
@@ -738,6 +887,151 @@ export const useCreateStateRequest = <TError = Promise<ErrorResponse | void>>(
   const swrFn = getCreateStateRequestMutationFetcher(fetchOptions);
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type getStateRequestResponse200 = {
+  data: GetStateByIdResponse
+  status: 200
+}
+
+export type getStateRequestResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type getStateRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type getStateRequestResponseSuccess = (getStateRequestResponse200) & {
+  headers: Headers;
+};
+export type getStateRequestResponseError = (getStateRequestResponse404 | getStateRequestResponse500) & {
+  headers: Headers;
+};
+
+export type getStateRequestResponse = (getStateRequestResponseSuccess | getStateRequestResponseError)
+
+export const getGetStateRequestUrl = (stateId: StateId,) => {
+
+
+
+
+  return `http://localhost:8080/api/v1/locations/states/${stateId}`
+}
+
+export const getStateRequest = async (stateId: StateId, options?: RequestInit): Promise<getStateRequestResponse> => {
+
+  const res = await fetch(getGetStateRequestUrl(stateId),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'GET'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: getStateRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as getStateRequestResponse
+}
+
+
+
+
+export const getGetStateRequestKey = (stateId: StateId,) => [`http://localhost:8080/api/v1/locations/states/${stateId}`] as const;
+
+export type GetStateRequestQueryResult = NonNullable<Awaited<ReturnType<typeof getStateRequest>>>
+
+export const useGetStateRequest = <TError = Promise<ErrorResponse>>(
+  stateId: StateId, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getStateRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
+) => {
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false && stateId !== null && stateId !== undefined
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetStateRequestKey(stateId) : null);
+  const swrFn = () => getStateRequest(stateId, fetchOptions)
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type listLocalitiesRequestResponse200 = {
+  data: ListLocalitiesResponse
+  status: 200
+}
+
+export type listLocalitiesRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type listLocalitiesRequestResponseSuccess = (listLocalitiesRequestResponse200) & {
+  headers: Headers;
+};
+export type listLocalitiesRequestResponseError = (listLocalitiesRequestResponse500) & {
+  headers: Headers;
+};
+
+export type listLocalitiesRequestResponse = (listLocalitiesRequestResponseSuccess | listLocalitiesRequestResponseError)
+
+export const getListLocalitiesRequestUrl = (stateId: StateId,) => {
+
+
+
+
+  return `http://localhost:8080/api/v1/locations/states/${stateId}/localities`
+}
+
+export const listLocalitiesRequest = async (stateId: StateId, options?: RequestInit): Promise<listLocalitiesRequestResponse> => {
+
+  const res = await fetch(getListLocalitiesRequestUrl(stateId),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'GET'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: listLocalitiesRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as listLocalitiesRequestResponse
+}
+
+
+
+
+export const getListLocalitiesRequestKey = (stateId: StateId,) => [`http://localhost:8080/api/v1/locations/states/${stateId}/localities`] as const;
+
+export type ListLocalitiesRequestQueryResult = NonNullable<Awaited<ReturnType<typeof listLocalitiesRequest>>>
+
+export const useListLocalitiesRequest = <TError = Promise<ErrorResponse>>(
+  stateId: StateId, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof listLocalitiesRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
+) => {
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false && stateId !== null && stateId !== undefined
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getListLocalitiesRequestKey(stateId) : null);
+  const swrFn = () => listLocalitiesRequest(stateId, fetchOptions)
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
