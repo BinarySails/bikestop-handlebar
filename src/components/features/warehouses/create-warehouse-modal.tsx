@@ -1,10 +1,7 @@
 import { useState } from "react";
 import { useForm } from "@tanstack/react-form";
 import { toast } from "sonner";
-import {
-  useCreateWarehouseRequest,
-  useListStatesRequest,
-} from "@/lib/api/api";
+import { useCreateWarehouseRequest, useListStatesRequest } from "@/lib/api/api";
 import { CreateWarehouseRequestBody } from "@/lib/api/zods";
 
 import { Button } from "@/components/ui/button";
