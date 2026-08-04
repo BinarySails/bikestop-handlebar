@@ -29,11 +29,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import {
   useGetWarehouseRequest,
+  useListStatesRequest,
   useUpdateWarehouseRequest,
   useUpdateWarehouseStatusRequest,
 } from "@/lib/api/api";
 import type { WarehouseResponse } from "@/lib/api/schemas";
 import { UpdateWarehouseRequestBody } from "@/lib/api/zods";
+
+const DEFAULT_COUNTRY = "México";
 
 const statusLabels: Record<string, string> = {
   active: "Activo",
@@ -99,6 +102,11 @@ function WarehouseDetailView({
   const { trigger: updateWarehouse } = useUpdateWarehouseRequest(warehouseId);
   const { trigger: updateWarehouseStatus } =
     useUpdateWarehouseStatusRequest(warehouseId);
+  const { data: statesResponse, isLoading: isLoadingStates } =
+    useListStatesRequest();
+
+  const states =
+    statesResponse?.status === 200 ? (statesResponse.data ?? []) : [];
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deletePending, setDeletePending] = useState(false);
@@ -394,14 +402,22 @@ function WarehouseDetailView({
                 {(field) => (
                   <div className="grid gap-2">
                     <Label htmlFor={field.name}>País</Label>
-                    <Input
-                      id={field.name}
-                      name={field.name}
+                    <Select
                       value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      placeholder="México"
+                      onValueChange={(value) => {
+                        if (value) field.handleChange(value);
+                      }}
                       disabled={isInactive}
-                    />
+                    >
+                      <SelectTrigger id={field.name} className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={DEFAULT_COUNTRY}>
+                          {DEFAULT_COUNTRY}
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
                     {field.state.meta.errors?.[0] && (
                       <p className="text-sm text-red-500">
                         {field.state.meta.errors[0]}
@@ -439,14 +455,30 @@ function WarehouseDetailView({
                 {(field) => (
                   <div className="grid gap-2">
                     <Label htmlFor={field.name}>Estado</Label>
-                    <Input
-                      id={field.name}
-                      name={field.name}
+                    <Select
                       value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      placeholder="Jalisco"
-                      disabled={isInactive}
-                    />
+                      onValueChange={(value) => {
+                        if (value) field.handleChange(value);
+                      }}
+                      disabled={isInactive || isLoadingStates}
+                    >
+                      <SelectTrigger id={field.name} className="w-full">
+                        <SelectValue
+                          placeholder={
+                            isLoadingStates
+                              ? "Cargando estados..."
+                              : "Selecciona un estado"
+                          }
+                        />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {states.map((state) => (
+                          <SelectItem key={state.id} value={state.display_name}>
+                            {state.display_name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     {field.state.meta.errors?.[0] && (
                       <p className="text-sm text-red-500">
                         {field.state.meta.errors[0]}
