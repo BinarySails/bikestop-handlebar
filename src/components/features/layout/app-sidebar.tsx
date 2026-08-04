@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 
 const navigationItems = [
   { label: "Dashboard", icon: LayoutDashboard, to: "/dashboard" },
+  { label: "Productos", icon: Package, to: "/products" },
   { label: "Ventas", icon: ShoppingCart, to: "/sales" },
   { label: "Inventario", icon: Package, to: "/inventory" },
   { label: "Locaciones", icon: MapPin, to: "/locations" },
