@@ -147,9 +147,6 @@ function RolesPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button render={<Link to="/team/permisos" />} size="sm">
-            Administrar Permisos
-          </Button>
           <Button onClick={handleCreate} size="sm">
             <Plus />
             Crear Rol

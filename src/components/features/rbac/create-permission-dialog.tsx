@@ -75,11 +75,8 @@ export function CreatePermissionDialog({
     },
   });
 
-  const displayName = form.baseStore.state.values.displayName;
-  const slug = displayName.toLowerCase().replace(/\s+/g, ".");
-
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog key={permission?.id ?? "create"} open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg" showCloseButton>
         <DialogHeader>
           <DialogTitle>
@@ -135,10 +132,19 @@ export function CreatePermissionDialog({
             )}
           </form.Field>
 
-          <div className="grid gap-2">
-            <Label htmlFor="slug">Slug</Label>
-            <Input id="slug" name="slug" value={slug} disabled />
-          </div>
+          <form.Subscribe selector={(state) => [state.values.displayName]}>
+            {([displayName]) => (
+              <div className="grid gap-2">
+                <Label htmlFor="slug">Slug</Label>
+                <Input
+                  id="slug"
+                  name="slug"
+                  value={displayName.toLowerCase().replace(/\s+/g, ".")}
+                  disabled
+                />
+              </div>
+            )}
+          </form.Subscribe>
 
           <form.Field name="description">
             {(field) => (
