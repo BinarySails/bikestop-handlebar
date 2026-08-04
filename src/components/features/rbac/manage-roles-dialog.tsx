@@ -38,8 +38,10 @@ function RoleFormDialog({
   role?: Role;
   onSuccess: () => void;
 }) {
-  const { trigger: createTrigger, isMutating: isCreating } = useCreateRoleHandler();
-  const { trigger: updateTrigger, isMutating: isUpdating } = useUpdateRoleHandler(role?.id ?? "");
+  const { trigger: createTrigger, isMutating: isCreating } =
+    useCreateRoleHandler();
+  const { trigger: updateTrigger, isMutating: isUpdating } =
+    useUpdateRoleHandler(role?.id ?? "");
 
   const form = useForm({
     defaultValues: {
@@ -63,7 +65,10 @@ function RoleFormDialog({
           toast.error("Error al actualizar el rol.");
         }
       } else {
-        const result = await createTrigger({ display_name: value.displayName, slug });
+        const result = await createTrigger({
+          display_name: value.displayName,
+          slug,
+        });
         if (result?.data?.role) {
           toast.success(`Rol "${value.displayName}" creado.`);
           form.reset();
@@ -118,13 +123,16 @@ function RoleFormDialog({
                   onChange={(e) => field.handleChange(e.target.value)}
                   placeholder="Administrador"
                   aria-invalid={
-                    field.state.meta.isTouched && field.state.meta.errors.length > 0
+                    field.state.meta.isTouched &&
+                    field.state.meta.errors.length > 0
                       ? "true"
                       : undefined
                   }
                 />
                 {field.state.meta.errors?.[0] && (
-                  <p className="text-sm text-red-500">{field.state.meta.errors[0]}</p>
+                  <p className="text-sm text-red-500">
+                    {field.state.meta.errors[0]}
+                  </p>
                 )}
               </div>
             )}
@@ -139,20 +147,23 @@ function RoleFormDialog({
             <form.Field name="isActive">
               {(field) => (
                 <div className="flex items-center gap-2">
-                  <Label htmlFor="is-active">Activo</Label>
+                  <Label id="is-active-label" htmlFor="is-active">
+                    Activo
+                  </Label>
                   <button
                     type="button"
                     id="is-active"
+                    aria-labelledby="is-active-label"
                     onClick={() => field.handleChange(!field.state.value)}
                     className={cn(
                       "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors",
-                      field.state.value ? "bg-primary" : "bg-input",
+                      field.state.value ? "bg-primary" : "bg-input"
                     )}
                   >
                     <span
                       className={cn(
                         "pointer-events-none inline-block size-5 rounded-full bg-white shadow-sm ring-0 transition-transform",
-                        field.state.value ? "translate-x-5" : "translate-x-0",
+                        field.state.value ? "translate-x-5" : "translate-x-0"
                       )}
                     />
                   </button>
@@ -172,7 +183,10 @@ function RoleFormDialog({
 
             <form.Subscribe selector={(state) => [state.isSubmitting]}>
               {([isSubmitting]) => (
-                <Button type="submit" disabled={isSubmitting || isCreating || isUpdating}>
+                <Button
+                  type="submit"
+                  disabled={isSubmitting || isCreating || isUpdating}
+                >
                   {isSubmitting || isCreating || isUpdating
                     ? "Guardando..."
                     : role
@@ -207,10 +221,12 @@ function DeleteRoleDialog({
         <DialogHeader>
           <DialogTitle>Eliminar Rol</DialogTitle>
           <DialogDescription>
-            ¿Estás seguro de eliminar el rol <strong>{role.display_name}</strong>?
+            ¿Estás seguro de eliminar el rol{" "}
+            <strong>{role.display_name}</strong>?
             {role.is_active && (
               <span className="mt-2 block text-destructive">
-                Este rol está activo. Si tiene usuarios asignados no se podrá eliminar.
+                Este rol está activo. Si tiene usuarios asignados no se podrá
+                eliminar.
               </span>
             )}
           </DialogDescription>
@@ -245,7 +261,8 @@ export function ManageRolesDialog() {
   const [deleteRole, setDeleteRole] = useState<Role | undefined>(undefined);
 
   const { data, isLoading, mutate } = useListRolesHandler();
-  const { trigger: deleteTrigger, isMutating: isDeleting } = useDeleteRoleHandler(deleteRole?.id ?? "");
+  const { trigger: deleteTrigger, isMutating: isDeleting } =
+    useDeleteRoleHandler(deleteRole?.id ?? "");
 
   const handleCreate = () => {
     setEditingRole(undefined);
@@ -327,7 +344,9 @@ export function ManageRolesDialog() {
                   <div className="flex items-center gap-3">
                     <div>
                       <p className="text-sm font-medium">{role.display_name}</p>
-                      <p className="text-xs text-muted-foreground font-mono">{role.slug}</p>
+                      <p className="font-mono text-xs text-muted-foreground">
+                        {role.slug}
+                      </p>
                     </div>
                     <Badge
                       variant={role.is_active ? "default" : "secondary"}

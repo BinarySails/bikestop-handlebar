@@ -1,10 +1,10 @@
-import { useState } from "react"
-import { useForm } from "@tanstack/react-form"
-import { toast } from "sonner"
-import { useCreateUserRequest } from "@/lib/api/api"
-import { CreateUserRequestBody } from "@/lib/api/zods"
+import { useState } from "react";
+import { useForm } from "@tanstack/react-form";
+import { toast } from "sonner";
+import { useCreateUserRequest } from "@/lib/api/api";
+import { CreateUserRequestBody } from "@/lib/api/zods";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -13,13 +13,13 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export function CreateUserDialog() {
-  const [open, setOpen] = useState(false)
-  const { trigger } = useCreateUserRequest()
+  const [open, setOpen] = useState(false);
+  const { trigger } = useCreateUserRequest();
 
   const form = useForm({
     defaultValues: {
@@ -38,49 +38,49 @@ export function CreateUserDialog() {
         email: value.email,
         username: value.username,
         password: value.password,
-      })
+      });
 
       const errorData =
         "data" in result
           ? (result as { data: { message?: string } }).data
-          : null
+          : null;
 
       if (result.status === 201) {
-        toast.success(`Usuario "${value.username}" creado.`)
-        form.reset()
-        setOpen(false)
+        toast.success(`Usuario "${value.username}" creado.`);
+        form.reset();
+        setOpen(false);
       } else {
-        toast.error(errorData?.message ?? "Error al crear usuario.")
+        toast.error(errorData?.message ?? "Error al crear usuario.");
       }
     },
-  })
+  });
 
   const validateName = (value: string) => {
-    if (!value.trim()) return "Nombre es requerido"
-    const res = CreateUserRequestBody.shape.name.safeParse(value)
-    return res.success ? undefined : res.error.issues[0].message
-  }
+    if (!value.trim()) return "Nombre es requerido";
+    const res = CreateUserRequestBody.shape.name.safeParse(value);
+    return res.success ? undefined : res.error.issues[0].message;
+  };
   const validateFLastName = (value: string) => {
-    if (!value.trim()) return "Apellido es requerido"
-    const res = CreateUserRequestBody.shape.father_last_name.safeParse(value)
-    return res.success ? undefined : res.error.issues[0].message
-  }
+    if (!value.trim()) return "Apellido es requerido";
+    const res = CreateUserRequestBody.shape.father_last_name.safeParse(value);
+    return res.success ? undefined : res.error.issues[0].message;
+  };
   const validateMLastName = (value: string) => {
-    if (!value.trim()) return "Apellido es requerido"
-    const res = CreateUserRequestBody.shape.mother_last_name.safeParse(value)
-    return res.success ? undefined : res.error.issues[0].message
-  }
+    if (!value.trim()) return "Apellido es requerido";
+    const res = CreateUserRequestBody.shape.mother_last_name.safeParse(value);
+    return res.success ? undefined : res.error.issues[0].message;
+  };
   const validateUserName = (value: string) => {
-    if (!value.trim()) return "Nombre de usuario es requerido"
-    if (value.length < 3) return "Nombre debe de tener al menos 3 caracteres"
-    const res = CreateUserRequestBody.shape.username.safeParse(value)
-    return res.success ? undefined : res.error.issues[0].message
-  }
+    if (!value.trim()) return "Nombre de usuario es requerido";
+    if (value.length < 3) return "Nombre debe de tener al menos 3 caracteres";
+    const res = CreateUserRequestBody.shape.username.safeParse(value);
+    return res.success ? undefined : res.error.issues[0].message;
+  };
   const validateEmail = (value: string) => {
-    if (!value.trim()) return "Email es requerido"
-    const res = CreateUserRequestBody.shape.email.safeParse(value)
-    return res.success ? undefined : res.error.issues[0].message
-  }
+    if (!value.trim()) return "Email es requerido";
+    const res = CreateUserRequestBody.shape.email.safeParse(value);
+    return res.success ? undefined : res.error.issues[0].message;
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -98,9 +98,9 @@ export function CreateUserDialog() {
 
         <form
           onSubmit={(e) => {
-            e.preventDefault()
-            e.stopPropagation()
-            form.handleSubmit()
+            e.preventDefault();
+            e.stopPropagation();
+            form.handleSubmit();
           }}
           className="space-y-4"
         >
@@ -270,15 +270,15 @@ export function CreateUserDialog() {
             validators={{
               onChange: ({ value }) => {
                 const result =
-                  CreateUserRequestBody.shape.password.safeParse(value)
-                if (!result.success) return result.error.issues[0].message
+                  CreateUserRequestBody.shape.password.safeParse(value);
+                if (!result.success) return result.error.issues[0].message;
                 if (value.length < 8)
-                  return "La contraseña debe de tener al menos 8 caracteres"
+                  return "La contraseña debe de tener al menos 8 caracteres";
                 if (!/[A-Z]/.test(value))
-                  return "La contraseña debe de tener al menos una mayúscula"
+                  return "La contraseña debe de tener al menos una mayúscula";
                 if (!/[0-9]/.test(value))
-                  return "La contraseña debe de tener al menos un dígito"
-                return undefined
+                  return "La contraseña debe de tener al menos un dígito";
+                return undefined;
               },
             }}
           >
@@ -328,5 +328,5 @@ export function CreateUserDialog() {
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

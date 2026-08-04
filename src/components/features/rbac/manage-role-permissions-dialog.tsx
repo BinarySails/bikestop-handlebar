@@ -37,19 +37,24 @@ function PermissionToggle({
       <div className="flex flex-col gap-0.5">
         <span className="text-sm font-medium">{permission.display_name}</span>
         {permission.description && (
-          <span className="text-xs text-muted-foreground">{permission.description}</span>
+          <span className="text-xs text-muted-foreground">
+            {permission.description}
+          </span>
         )}
-        <span className="font-mono text-[10px] text-muted-foreground">{permission.slug}</span>
+        <span className="font-mono text-[10px] text-muted-foreground">
+          {permission.slug}
+        </span>
       </div>
       <button
         type="button"
         role="switch"
         aria-checked={isAssigned}
+        aria-label={`${isAssigned ? "Revocar" : "Asignar"} permiso ${permission.display_name}`}
         disabled={disabled}
         onClick={() => onToggle(permission.id, !isAssigned)}
-        className="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors aria-checked:bg-primary bg-input disabled:opacity-50 disabled:cursor-not-allowed"
+        className="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-input transition-colors disabled:cursor-not-allowed disabled:opacity-50 aria-checked:bg-primary"
       >
-        <span className="pointer-events-none inline-block size-5 rounded-full bg-white shadow-sm ring-0 transition-transform translate-x-0 aria-checked:translate-x-5" />
+        <span className="pointer-events-none inline-block size-5 translate-x-0 rounded-full bg-white shadow-sm ring-0 transition-transform aria-checked:translate-x-5" />
       </button>
     </label>
   );
@@ -61,16 +66,20 @@ export function ManageRolePermissionsDialog() {
   const [pendingChanges, setPendingChanges] = useState<Set<string>>(new Set());
 
   const { data: rolesData, isLoading: rolesLoading } = useListRolesHandler();
-  const { data: permissionsData, isLoading: permissionsLoading } = useListPermissionsHandler();
-  const { data: rolePermissionsData, isLoading: rolePermsLoading, mutate: mutateRolePerms } =
-    useListRolePermissionsHandler(selectedRole?.id ?? "", { swr: { enabled: !!selectedRole } });
+  const { data: permissionsData, isLoading: permissionsLoading } =
+    useListPermissionsHandler();
+  const {
+    data: rolePermissionsData,
+    isLoading: rolePermsLoading,
+    mutate: mutateRolePerms,
+  } = useListRolePermissionsHandler(selectedRole?.id ?? "", {
+    swr: { enabled: !!selectedRole },
+  });
 
-  const { trigger: assignTrigger, isMutating: isAssigning } = useAssignPermissionsHandler(
-    selectedRole?.id ?? "",
-  );
-  const { trigger: removeTrigger, isMutating: isRemoving } = useRemovePermissionsHandler(
-    selectedRole?.id ?? "",
-  );
+  const { trigger: assignTrigger, isMutating: isAssigning } =
+    useAssignPermissionsHandler(selectedRole?.id ?? "");
+  const { trigger: removeTrigger, isMutating: isRemoving } =
+    useRemovePermissionsHandler(selectedRole?.id ?? "");
 
   const roles = rolesData?.data?.roles ?? [];
   const allPermissions = permissionsData?.data?.permissions ?? [];
@@ -124,7 +133,7 @@ export function ManageRolePermissionsDialog() {
 
         <div className="grid grid-cols-[1fr_2fr] gap-4">
           <div className="space-y-1">
-            <p className="mb-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            <p className="mb-2 text-xs font-medium tracking-wider text-muted-foreground uppercase">
               Roles
             </p>
             {rolesLoading ? (
@@ -133,7 +142,9 @@ export function ManageRolePermissionsDialog() {
                 <div className="h-9 w-full animate-pulse rounded-lg bg-muted" />
               </div>
             ) : roles.length === 0 ? (
-              <p className="py-2 text-sm text-muted-foreground">No hay roles.</p>
+              <p className="py-2 text-sm text-muted-foreground">
+                No hay roles.
+              </p>
             ) : (
               roles.map((role) => (
                 <button
@@ -147,14 +158,16 @@ export function ManageRolePermissionsDialog() {
                   }`}
                 >
                   <span className="font-medium">{role.display_name}</span>
-                  <p className="font-mono text-[10px] text-muted-foreground">{role.slug}</p>
+                  <p className="font-mono text-[10px] text-muted-foreground">
+                    {role.slug}
+                  </p>
                 </button>
               ))
             )}
           </div>
 
           <div className="space-y-1">
-            <p className="mb-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            <p className="mb-2 text-xs font-medium tracking-wider text-muted-foreground uppercase">
               Permisos
               {selectedRole && (
                 <span className="ml-1 font-normal lowercase">

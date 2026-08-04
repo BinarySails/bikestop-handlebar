@@ -13,5 +13,5 @@ export function AppHeader() {
         </a>
       </div>
     </header>
-  )
+  );
 }

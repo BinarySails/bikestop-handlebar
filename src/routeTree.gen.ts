@@ -9,131 +9,193 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as TeamRouteImport } from './routes/team'
-import { Route as SalesRouteImport } from './routes/sales'
-import { Route as LocationsRouteImport } from './routes/locations'
-import { Route as InventoryRouteImport } from './routes/inventory'
-import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as LayoutRouteImport } from './routes/_layout'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as LayoutDashboardRouteImport } from './routes/_layout/dashboard'
+import { Route as LayoutInventoryRouteImport } from './routes/_layout/inventory'
+import { Route as LayoutLocationsRouteImport } from './routes/_layout/locations'
+import { Route as LayoutSalesRouteImport } from './routes/_layout/sales'
+import { Route as LayoutTeamRouteImport } from './routes/_layout/team'
+import { Route as LayoutWarehousesRouteImport } from './routes/_layout/warehouses'
+import { Route as LayoutBrandsIndexRouteImport } from './routes/_layout/brands/index'
+import { Route as LayoutBrandsBrandIdRouteImport } from './routes/_layout/brands/$brandId'
+import { Route as LayoutTeamIndexRouteImport } from './routes/_layout/team.index'
+import { Route as LayoutTeamPermisosRouteImport } from './routes/_layout/team.permisos'
+import { Route as LayoutTeamRolesRouteImport } from './routes/_layout/team.roles'
 
-const TeamRoute = TeamRouteImport.update({
-  id: '/team',
-  path: '/team',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SalesRoute = SalesRouteImport.update({
-  id: '/sales',
-  path: '/sales',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LocationsRoute = LocationsRouteImport.update({
-  id: '/locations',
-  path: '/locations',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const InventoryRoute = InventoryRouteImport.update({
-  id: '/inventory',
-  path: '/inventory',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DashboardRoute = DashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LayoutRoute = LayoutRouteImport.update({
+  id: '/_layout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LayoutDashboardRoute = LayoutDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutInventoryRoute = LayoutInventoryRouteImport.update({
+  id: '/inventory',
+  path: '/inventory',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutLocationsRoute = LayoutLocationsRouteImport.update({
+  id: '/locations',
+  path: '/locations',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutSalesRoute = LayoutSalesRouteImport.update({
+  id: '/sales',
+  path: '/sales',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutTeamRoute = LayoutTeamRouteImport.update({
+  id: '/team',
+  path: '/team',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutWarehousesRoute = LayoutWarehousesRouteImport.update({
+  id: '/warehouses',
+  path: '/warehouses',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutBrandsIndexRoute = LayoutBrandsIndexRouteImport.update({
+  id: '/brands/',
+  path: '/brands/',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutBrandsBrandIdRoute = LayoutBrandsBrandIdRouteImport.update({
+  id: '/brands/$brandId',
+  path: '/brands/$brandId',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutTeamIndexRoute = LayoutTeamIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LayoutTeamRoute,
+} as any)
+const LayoutTeamPermisosRoute = LayoutTeamPermisosRouteImport.update({
+  id: '/permisos',
+  path: '/permisos',
+  getParentRoute: () => LayoutTeamRoute,
+} as any)
+const LayoutTeamRolesRoute = LayoutTeamRolesRouteImport.update({
+  id: '/roles',
+  path: '/roles',
+  getParentRoute: () => LayoutTeamRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/dashboard': typeof DashboardRoute
-  '/inventory': typeof InventoryRoute
-  '/locations': typeof LocationsRoute
-  '/sales': typeof SalesRoute
-  '/team': typeof TeamRoute
+  '/login': typeof LoginRoute
+  '/dashboard': typeof LayoutDashboardRoute
+  '/inventory': typeof LayoutInventoryRoute
+  '/locations': typeof LayoutLocationsRoute
+  '/sales': typeof LayoutSalesRoute
+  '/team': typeof LayoutTeamRouteWithChildren
+  '/warehouses': typeof LayoutWarehousesRoute
+  '/brands/$brandId': typeof LayoutBrandsBrandIdRoute
+  '/team/permisos': typeof LayoutTeamPermisosRoute
+  '/team/roles': typeof LayoutTeamRolesRoute
+  '/brands/': typeof LayoutBrandsIndexRoute
+  '/team/': typeof LayoutTeamIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/dashboard': typeof DashboardRoute
-  '/inventory': typeof InventoryRoute
-  '/locations': typeof LocationsRoute
-  '/sales': typeof SalesRoute
-  '/team': typeof TeamRoute
+  '/login': typeof LoginRoute
+  '/dashboard': typeof LayoutDashboardRoute
+  '/inventory': typeof LayoutInventoryRoute
+  '/locations': typeof LayoutLocationsRoute
+  '/sales': typeof LayoutSalesRoute
+  '/warehouses': typeof LayoutWarehousesRoute
+  '/brands/$brandId': typeof LayoutBrandsBrandIdRoute
+  '/team/permisos': typeof LayoutTeamPermisosRoute
+  '/team/roles': typeof LayoutTeamRolesRoute
+  '/brands': typeof LayoutBrandsIndexRoute
+  '/team': typeof LayoutTeamIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/dashboard': typeof DashboardRoute
-  '/inventory': typeof InventoryRoute
-  '/locations': typeof LocationsRoute
-  '/sales': typeof SalesRoute
-  '/team': typeof TeamRoute
+  '/_layout': typeof LayoutRouteWithChildren
+  '/login': typeof LoginRoute
+  '/_layout/dashboard': typeof LayoutDashboardRoute
+  '/_layout/inventory': typeof LayoutInventoryRoute
+  '/_layout/locations': typeof LayoutLocationsRoute
+  '/_layout/sales': typeof LayoutSalesRoute
+  '/_layout/team': typeof LayoutTeamRouteWithChildren
+  '/_layout/warehouses': typeof LayoutWarehousesRoute
+  '/_layout/brands/$brandId': typeof LayoutBrandsBrandIdRoute
+  '/_layout/team/permisos': typeof LayoutTeamPermisosRoute
+  '/_layout/team/roles': typeof LayoutTeamRolesRoute
+  '/_layout/brands/': typeof LayoutBrandsIndexRoute
+  '/_layout/team/': typeof LayoutTeamIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/dashboard' | '/inventory' | '/locations' | '/sales' | '/team'
-  fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/inventory' | '/locations' | '/sales' | '/team'
-  id:
-    | '__root__'
     | '/'
+    | '/login'
     | '/dashboard'
     | '/inventory'
     | '/locations'
     | '/sales'
     | '/team'
+    | '/warehouses'
+    | '/brands/$brandId'
+    | '/team/permisos'
+    | '/team/roles'
+    | '/brands/'
+    | '/team/'
+  fileRoutesByTo: FileRoutesByTo
+  to:
+    | '/'
+    | '/login'
+    | '/dashboard'
+    | '/inventory'
+    | '/locations'
+    | '/sales'
+    | '/warehouses'
+    | '/brands/$brandId'
+    | '/team/permisos'
+    | '/team/roles'
+    | '/brands'
+    | '/team'
+  id:
+    | '__root__'
+    | '/'
+    | '/_layout'
+    | '/login'
+    | '/_layout/dashboard'
+    | '/_layout/inventory'
+    | '/_layout/locations'
+    | '/_layout/sales'
+    | '/_layout/team'
+    | '/_layout/warehouses'
+    | '/_layout/brands/$brandId'
+    | '/_layout/team/permisos'
+    | '/_layout/team/roles'
+    | '/_layout/brands/'
+    | '/_layout/team/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  DashboardRoute: typeof DashboardRoute
-  InventoryRoute: typeof InventoryRoute
-  LocationsRoute: typeof LocationsRoute
-  SalesRoute: typeof SalesRoute
-  TeamRoute: typeof TeamRoute
+  LayoutRoute: typeof LayoutRouteWithChildren
+  LoginRoute: typeof LoginRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/team': {
-      id: '/team'
-      path: '/team'
-      fullPath: '/team'
-      preLoaderRoute: typeof TeamRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/sales': {
-      id: '/sales'
-      path: '/sales'
-      fullPath: '/sales'
-      preLoaderRoute: typeof SalesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/locations': {
-      id: '/locations'
-      path: '/locations'
-      fullPath: '/locations'
-      preLoaderRoute: typeof LocationsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/inventory': {
-      id: '/inventory'
-      path: '/inventory'
-      fullPath: '/inventory'
-      preLoaderRoute: typeof InventoryRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/': {
       id: '/'
       path: '/'
@@ -141,16 +203,145 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_layout': {
+      id: '/_layout'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof LayoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_layout/dashboard': {
+      id: '/_layout/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof LayoutDashboardRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/inventory': {
+      id: '/_layout/inventory'
+      path: '/inventory'
+      fullPath: '/inventory'
+      preLoaderRoute: typeof LayoutInventoryRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/locations': {
+      id: '/_layout/locations'
+      path: '/locations'
+      fullPath: '/locations'
+      preLoaderRoute: typeof LayoutLocationsRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/sales': {
+      id: '/_layout/sales'
+      path: '/sales'
+      fullPath: '/sales'
+      preLoaderRoute: typeof LayoutSalesRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/team': {
+      id: '/_layout/team'
+      path: '/team'
+      fullPath: '/team'
+      preLoaderRoute: typeof LayoutTeamRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/warehouses': {
+      id: '/_layout/warehouses'
+      path: '/warehouses'
+      fullPath: '/warehouses'
+      preLoaderRoute: typeof LayoutWarehousesRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/brands/': {
+      id: '/_layout/brands/'
+      path: '/brands'
+      fullPath: '/brands/'
+      preLoaderRoute: typeof LayoutBrandsIndexRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/brands/$brandId': {
+      id: '/_layout/brands/$brandId'
+      path: '/brands/$brandId'
+      fullPath: '/brands/$brandId'
+      preLoaderRoute: typeof LayoutBrandsBrandIdRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/team/': {
+      id: '/_layout/team/'
+      path: '/'
+      fullPath: '/team/'
+      preLoaderRoute: typeof LayoutTeamIndexRouteImport
+      parentRoute: typeof LayoutTeamRoute
+    }
+    '/_layout/team/permisos': {
+      id: '/_layout/team/permisos'
+      path: '/permisos'
+      fullPath: '/team/permisos'
+      preLoaderRoute: typeof LayoutTeamPermisosRouteImport
+      parentRoute: typeof LayoutTeamRoute
+    }
+    '/_layout/team/roles': {
+      id: '/_layout/team/roles'
+      path: '/roles'
+      fullPath: '/team/roles'
+      preLoaderRoute: typeof LayoutTeamRolesRouteImport
+      parentRoute: typeof LayoutTeamRoute
+    }
   }
 }
 
+interface LayoutTeamRouteChildren {
+  LayoutTeamPermisosRoute: typeof LayoutTeamPermisosRoute
+  LayoutTeamRolesRoute: typeof LayoutTeamRolesRoute
+  LayoutTeamIndexRoute: typeof LayoutTeamIndexRoute
+}
+
+const LayoutTeamRouteChildren: LayoutTeamRouteChildren = {
+  LayoutTeamPermisosRoute: LayoutTeamPermisosRoute,
+  LayoutTeamRolesRoute: LayoutTeamRolesRoute,
+  LayoutTeamIndexRoute: LayoutTeamIndexRoute,
+}
+
+const LayoutTeamRouteWithChildren = LayoutTeamRoute._addFileChildren(
+  LayoutTeamRouteChildren,
+)
+
+interface LayoutRouteChildren {
+  LayoutDashboardRoute: typeof LayoutDashboardRoute
+  LayoutInventoryRoute: typeof LayoutInventoryRoute
+  LayoutLocationsRoute: typeof LayoutLocationsRoute
+  LayoutSalesRoute: typeof LayoutSalesRoute
+  LayoutTeamRoute: typeof LayoutTeamRouteWithChildren
+  LayoutWarehousesRoute: typeof LayoutWarehousesRoute
+  LayoutBrandsBrandIdRoute: typeof LayoutBrandsBrandIdRoute
+  LayoutBrandsIndexRoute: typeof LayoutBrandsIndexRoute
+}
+
+const LayoutRouteChildren: LayoutRouteChildren = {
+  LayoutDashboardRoute: LayoutDashboardRoute,
+  LayoutInventoryRoute: LayoutInventoryRoute,
+  LayoutLocationsRoute: LayoutLocationsRoute,
+  LayoutSalesRoute: LayoutSalesRoute,
+  LayoutTeamRoute: LayoutTeamRouteWithChildren,
+  LayoutWarehousesRoute: LayoutWarehousesRoute,
+  LayoutBrandsBrandIdRoute: LayoutBrandsBrandIdRoute,
+  LayoutBrandsIndexRoute: LayoutBrandsIndexRoute,
+}
+
+const LayoutRouteWithChildren =
+  LayoutRoute._addFileChildren(LayoutRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  DashboardRoute: DashboardRoute,
-  InventoryRoute: InventoryRoute,
-  LocationsRoute: LocationsRoute,
-  SalesRoute: SalesRoute,
-  TeamRoute: TeamRoute,
+  LayoutRoute: LayoutRouteWithChildren,
+  LoginRoute: LoginRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
