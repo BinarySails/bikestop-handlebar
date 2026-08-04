@@ -4,5 +4,8 @@
  * ciclo
  * OpenAPI spec version: 0.1.0
  */
+import type { State } from './state.ts';
 
-export type PasswordHash = string;
+export interface GetStateByIdResponse {
+  state: State;
+}
