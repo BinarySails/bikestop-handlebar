@@ -1,0 +1,76 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+
+import {
+  ProfileSettingsCard,
+  type ProfileField,
+} from "@/components/features/profile/profile-settings-card";
+import { useGetMeHandler, useUpdateMeHandler } from "@/lib/api/api";
+import type { UpdateUserProfileRequest, UserResponse } from "@/lib/api/schemas";
+
+export const Route = createFileRoute("/_layout/profile")({
+  component: ProfilePage,
+});
+
+function ProfilePage() {
+  const { data: res, error, isLoading } = useGetMeHandler();
+  const { trigger } = useUpdateMeHandler();
+  const [user, setUser] = useState<UserResponse | null>(null);
+
+  useEffect(() => {
+    if (res?.status === 200) {
+      setUser(res.data);
+    }
+  }, [res]);
+
+  async function handleUpdateField(field: ProfileField, value: string) {
+    const payload: UpdateUserProfileRequest = { [field]: value };
+    const result = await trigger(payload);
+
+    if (result.status === 200) {
+      setUser(result.data);
+      toast.success("Información actualizada.");
+      return;
+    }
+
+    const message =
+      result.data && "message" in result.data
+        ? (result.data.message ?? "Error al actualizar la información.")
+        : "Error al actualizar la información.";
+    toast.error(message);
+    throw new Error(message);
+  }
+
+  if (isLoading) {
+    return (
+      <main className="flex flex-1 items-center justify-center p-6">
+        <p className="text-sm text-muted-foreground">Cargando perfil...</p>
+      </main>
+    );
+  }
+
+  if (error || !user) {
+    return (
+      <main className="flex flex-1 items-center justify-center p-6">
+        <p className="text-sm text-muted-foreground">
+          No se pudo cargar el perfil.
+        </p>
+      </main>
+    );
+  }
+
+  return (
+    <main className="flex flex-1 flex-col p-6 md:p-10">
+      <nav aria-label="breadcrumb">
+        <p className="text-sm text-muted-foreground">Usuario / Settings</p>
+      </nav>
+      <h1 className="mt-3 text-3xl font-bold tracking-tight text-foreground">
+        Información Personal
+      </h1>
+      <div className="mt-4 flex justify-center">
+        <ProfileSettingsCard user={user} onUpdateField={handleUpdateField} />
+      </div>
+    </main>
+  );
+}

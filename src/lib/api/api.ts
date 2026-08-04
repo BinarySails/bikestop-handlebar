@@ -88,10 +88,12 @@ import type {
   UpdateProductRequest,
   UpdateRoleRequest,
   UpdateRoleResponse,
+  UpdateUserProfileRequest,
   UpdateWarehouseRequest,
   UpdateWarehouseStatusRequest,
   User,
   UserId,
+  UserResponse,
   WarehouseId,
   WarehouseResponse
 } from './schemas';
@@ -1121,6 +1123,181 @@ export const useCreateLocalityRequest = <TError = Promise<ErrorResponse | void>>
 
   const swrKey = swrOptions?.swrKey ?? getCreateLocalityRequestMutationKey(stateId);
   const swrFn = getCreateLocalityRequestMutationFetcher(stateId, fetchOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type getMeHandlerResponse200 = {
+  data: UserResponse
+  status: 200
+}
+
+export type getMeHandlerResponse401 = {
+  data: ErrorResponse
+  status: 401
+}
+
+export type getMeHandlerResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type getMeHandlerResponse500 = {
+  data: void
+  status: 500
+}
+
+export type getMeHandlerResponseSuccess = (getMeHandlerResponse200) & {
+  headers: Headers;
+};
+export type getMeHandlerResponseError = (getMeHandlerResponse401 | getMeHandlerResponse404 | getMeHandlerResponse500) & {
+  headers: Headers;
+};
+
+export type getMeHandlerResponse = (getMeHandlerResponseSuccess | getMeHandlerResponseError)
+
+export const getGetMeHandlerUrl = () => {
+
+
+
+
+  return `http://localhost:8080/api/v1/me`
+}
+
+export const getMeHandler = async ( options?: RequestInit): Promise<getMeHandlerResponse> => {
+
+  const res = await fetch(getGetMeHandlerUrl(),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'GET'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: getMeHandlerResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as getMeHandlerResponse
+}
+
+
+
+
+export const getGetMeHandlerKey = () => [`http://localhost:8080/api/v1/me`] as const;
+
+export type GetMeHandlerQueryResult = NonNullable<Awaited<ReturnType<typeof getMeHandler>>>
+
+export const useGetMeHandler = <TError = Promise<ErrorResponse | void>>(
+   options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getMeHandler>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
+) => {
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetMeHandlerKey() : null);
+  const swrFn = () => getMeHandler(fetchOptions)
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type updateMeHandlerResponse200 = {
+  data: UserResponse
+  status: 200
+}
+
+export type updateMeHandlerResponse400 = {
+  data: ErrorResponse
+  status: 400
+}
+
+export type updateMeHandlerResponse401 = {
+  data: ErrorResponse
+  status: 401
+}
+
+export type updateMeHandlerResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type updateMeHandlerResponse409 = {
+  data: ErrorResponse
+  status: 409
+}
+
+export type updateMeHandlerResponse500 = {
+  data: void
+  status: 500
+}
+
+export type updateMeHandlerResponseSuccess = (updateMeHandlerResponse200) & {
+  headers: Headers;
+};
+export type updateMeHandlerResponseError = (updateMeHandlerResponse400 | updateMeHandlerResponse401 | updateMeHandlerResponse404 | updateMeHandlerResponse409 | updateMeHandlerResponse500) & {
+  headers: Headers;
+};
+
+export type updateMeHandlerResponse = (updateMeHandlerResponseSuccess | updateMeHandlerResponseError)
+
+export const getUpdateMeHandlerUrl = () => {
+
+
+
+
+  return `http://localhost:8080/api/v1/me`
+}
+
+export const updateMeHandler = async (updateUserProfileRequest: UpdateUserProfileRequest, options?: RequestInit): Promise<updateMeHandlerResponse> => {
+
+  const res = await fetch(getUpdateMeHandlerUrl(),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(updateUserProfileRequest)
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: updateMeHandlerResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as updateMeHandlerResponse
+}
+
+
+
+
+export const getUpdateMeHandlerMutationFetcher = ( options?: RequestInit) => {
+  return (_: Key, { arg }: { arg: UpdateUserProfileRequest }) => {
+    return updateMeHandler(arg, options);
+  }
+}
+export const getUpdateMeHandlerMutationKey = () => [`http://localhost:8080/api/v1/me`] as const;
+
+export type UpdateMeHandlerMutationResult = NonNullable<Awaited<ReturnType<typeof updateMeHandler>>>
+
+export const useUpdateMeHandler = <TError = Promise<ErrorResponse | void>>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof updateMeHandler>>, TError, Key, UpdateUserProfileRequest, Awaited<ReturnType<typeof updateMeHandler>>> & { swrKey?: string }, fetch?: RequestInit}
+) => {
+
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getUpdateMeHandlerMutationKey();
+  const swrFn = getUpdateMeHandlerMutationFetcher(fetchOptions);
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions)
 

@@ -7,11 +7,11 @@ import {
   Package,
   Settings,
   ShoppingCart,
-  UserRound,
   Users,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { useAuthStore } from "@/lib/auth/use-auth-store";
 import { cn } from "@/lib/utils";
 
 const navigationItems = [
@@ -23,9 +23,28 @@ const navigationItems = [
   { label: "Equipo", icon: Users, to: "/team" },
 ] as const;
 
+function getInitials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "U";
+  return parts
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("");
+}
+
 export function AppSidebar() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const pathname = useLocation({ select: (location) => location.pathname });
+  const actor = useAuthStore((state) => state.actor);
+
+  const displayName =
+    actor && "name" in actor && actor.name
+      ? actor.name
+      : actor?.username ?? "Usuario";
+  const displayEmail = actor?.email ?? "";
+  const initials = getInitials(
+    actor && "name" in actor && actor.name ? actor.name : actor?.username ?? "U"
+  );
 
   return (
     <aside className="flex w-20 shrink-0 flex-col border-r bg-background md:w-64">
@@ -86,19 +105,23 @@ export function AppSidebar() {
           </Button>
         </div>
 
-        <div className="mt-2 flex items-center justify-center gap-2 border-t pt-3 md:justify-start">
-          <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
-            <UserRound className="size-4" aria-hidden="true" />
+        <Link
+          to="/profile"
+          className="mt-2 flex items-center justify-center gap-2 rounded-md border-t pt-3 transition-colors hover:bg-muted/50 md:justify-start"
+          aria-label={`Perfil de ${displayName}`}
+        >
+          <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
+            {initials}
           </span>
           <span className="hidden min-w-0 text-left md:block">
             <span className="block truncate text-sm leading-none font-medium">
-              Usuario
+              {displayName}
             </span>
             <span className="mt-1 block truncate text-xs leading-none text-muted-foreground">
-              Rol de usuario
+              {displayEmail || "Perfil de usuario"}
             </span>
           </span>
-        </div>
+        </Link>
       </div>
     </aside>
   );
