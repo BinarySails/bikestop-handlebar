@@ -75,7 +75,7 @@ export const CreateFileRequestResponse = zod.object({
 
 export const AssociateFileRequestBody = zod.object({
   "entity_id": zod.uuid(),
-  "entity_type": zod.enum(['product', 'order', 'invoice', 'customer', 'warehouse']),
+  "entity_type": zod.enum(['product', 'order', 'invoice', 'customer', 'warehouse', 'brand']),
   "file_id": zod.uuid(),
   "relationship_type": zod.enum(['primary_image'])
 })
@@ -84,7 +84,7 @@ export const AssociateFileRequestResponse = zod.object({
   "association": zod.object({
   "created_at": zod.iso.datetime({"offset":true}),
   "entity_id": zod.uuid(),
-  "entity_type": zod.enum(['product', 'order', 'invoice', 'customer', 'warehouse']),
+  "entity_type": zod.enum(['product', 'order', 'invoice', 'customer', 'warehouse', 'brand']),
   "file_id": zod.uuid(),
   "id": zod.uuid(),
   "relationship_type": zod.enum(['primary_image'])
@@ -181,6 +181,61 @@ export const CreateLocalityRequestResponse = zod.object({
 })
 
 
+export const listProductsRequestQueryPageMin = 0;
+
+export const listProductsRequestQueryLimitMin = 0;
+
+
+
+export const ListProductsRequestQueryParams = zod.object({
+  "status": zod.enum(['enable', 'disable', 'archive']).optional(),
+  "search": zod.string().optional(),
+  "page": zod.int().min(listProductsRequestQueryPageMin).optional(),
+  "limit": zod.int().min(listProductsRequestQueryLimitMin).optional()
+})
+
+export const listProductsRequestResponseLimitMin = 0;
+
+export const listProductsRequestResponsePageMin = 0;
+
+
+
+export const ListProductsRequestResponse = zod.object({
+  "data": zod.array(zod.object({
+  "brand_id": zod.uuid(),
+  "category_id": zod.uuid(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "description": zod.string().nullish(),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "status": zod.enum(['enable', 'disable', 'archive']),
+  "updated_at": zod.iso.datetime({"offset":true})
+})),
+  "limit": zod.int().min(listProductsRequestResponseLimitMin),
+  "page": zod.int().min(listProductsRequestResponsePageMin),
+  "total": zod.int()
+})
+
+
+export const CreateProductRequestBody = zod.object({
+  "brand_id": zod.uuid(),
+  "category_id": zod.uuid(),
+  "description": zod.string().nullish(),
+  "display_name": zod.string()
+})
+
+export const CreateProductRequestResponse = zod.object({
+  "brand_id": zod.uuid(),
+  "category_id": zod.uuid(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "description": zod.string().nullish(),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "status": zod.enum(['enable', 'disable', 'archive']),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+
+
 export const ListBrandsRequestQueryParams = zod.object({
   "page": zod.int().optional(),
   "limit": zod.int().optional()
@@ -271,6 +326,19 @@ export const ToggleBrandRequestResponse = zod.object({
 })
 
 
+export const ListCategoriesRequestResponse = zod.object({
+  "data": zod.array(zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "description": zod.string().nullish(),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "parent_id": zod.union([zod.null(),zod.uuid()]).optional(),
+  "slug": zod.string(),
+  "status": zod.enum(['active', 'inactive'])
+}))
+})
+
+
 export const CreateCategoryRequestBody = zod.object({
   "description": zod.string().nullish(),
   "display_name": zod.string(),
@@ -344,6 +412,46 @@ export const DeleteCategoryRequestResponse = zod.object({
   "slug": zod.string(),
   "status": zod.enum(['active', 'inactive'])
 })
+})
+
+
+export const GetProductRequestParams = zod.object({
+  "id": zod.uuid().describe('Product ID')
+})
+
+export const GetProductRequestResponse = zod.object({
+  "brand_id": zod.uuid(),
+  "category_id": zod.uuid(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "description": zod.string().nullish(),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "status": zod.enum(['enable', 'disable', 'archive']),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+
+
+export const UpdateProductRequestParams = zod.object({
+  "id": zod.uuid().describe('Product ID')
+})
+
+export const UpdateProductRequestBody = zod.object({
+  "brand_id": zod.uuid(),
+  "category_id": zod.uuid(),
+  "description": zod.string().nullish(),
+  "display_name": zod.string(),
+  "status": zod.enum(['enable', 'disable', 'archive'])
+})
+
+export const UpdateProductRequestResponse = zod.object({
+  "brand_id": zod.uuid(),
+  "category_id": zod.uuid(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "description": zod.string().nullish(),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "status": zod.enum(['enable', 'disable', 'archive']),
+  "updated_at": zod.iso.datetime({"offset":true})
 })
 
 

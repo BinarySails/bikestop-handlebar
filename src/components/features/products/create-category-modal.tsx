@@ -33,6 +33,7 @@ const mockCategories: Category[] = [
     slug: "electronics",
     description: null,
     created_at: "",
+    status: "active",
     parent_id: null,
   },
   {
@@ -41,6 +42,7 @@ const mockCategories: Category[] = [
     slug: "clothing",
     description: null,
     created_at: "",
+    status: "active",
     parent_id: null,
   },
   {
@@ -49,6 +51,7 @@ const mockCategories: Category[] = [
     slug: "books",
     description: null,
     created_at: "",
+    status: "active",
     parent_id: null,
   },
   {
@@ -57,6 +60,7 @@ const mockCategories: Category[] = [
     slug: "smartphones",
     description: null,
     created_at: "",
+    status: "active",
     parent_id: "1",
   },
   {
@@ -65,6 +69,7 @@ const mockCategories: Category[] = [
     slug: "laptops",
     description: null,
     created_at: "",
+    status: "active",
     parent_id: "1",
   },
   {
@@ -73,6 +78,7 @@ const mockCategories: Category[] = [
     slug: "t-shirts",
     description: null,
     created_at: "",
+    status: "active",
     parent_id: "2",
   },
 ];
