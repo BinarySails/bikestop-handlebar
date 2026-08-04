@@ -264,8 +264,9 @@ function ProductDetailView({
                           placeholder="Selecciona una marca"
                           render={() => (
                             <span>
-                              {brands.find((brand) => brand.id === field.state.value)
-                                ?.display_name ?? "Selecciona una marca"}
+                              {brands.find(
+                                (brand) => brand.id === field.state.value
+                              )?.display_name ?? "Selecciona una marca"}
                             </span>
                           )}
                         />
