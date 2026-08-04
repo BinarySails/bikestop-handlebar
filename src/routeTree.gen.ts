@@ -17,8 +17,14 @@ import { Route as LayoutInventoryRouteImport } from './routes/_layout/inventory'
 import { Route as LayoutLocationsRouteImport } from './routes/_layout/locations'
 import { Route as LayoutSalesRouteImport } from './routes/_layout/sales'
 import { Route as LayoutTeamRouteImport } from './routes/_layout/team'
+import { Route as LayoutWarehousesRouteImport } from './routes/_layout/warehouses'
 import { Route as LayoutBrandsIndexRouteImport } from './routes/_layout/brands/index'
 import { Route as LayoutBrandsBrandIdRouteImport } from './routes/_layout/brands/$brandId'
+import { Route as LayoutProductsIndexRouteImport } from './routes/_layout/products/index'
+import { Route as LayoutProductsProductIdRouteImport } from './routes/_layout/products/$productId'
+import { Route as LayoutTeamIndexRouteImport } from './routes/_layout/team.index'
+import { Route as LayoutTeamPermisosRouteImport } from './routes/_layout/team.permisos'
+import { Route as LayoutTeamRolesRouteImport } from './routes/_layout/team.roles'
 import { Route as LayoutWarehousesIndexRouteImport } from './routes/_layout/warehouses/index'
 import { Route as LayoutWarehousesWarehouseIdRouteImport } from './routes/_layout/warehouses/$warehouseId'
 
@@ -61,6 +67,11 @@ const LayoutTeamRoute = LayoutTeamRouteImport.update({
   path: '/team',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutWarehousesRoute = LayoutWarehousesRouteImport.update({
+  id: '/warehouses',
+  path: '/warehouses',
+  getParentRoute: () => LayoutRoute,
+} as any)
 const LayoutBrandsIndexRoute = LayoutBrandsIndexRouteImport.update({
   id: '/brands/',
   path: '/brands/',
@@ -71,16 +82,41 @@ const LayoutBrandsBrandIdRoute = LayoutBrandsBrandIdRouteImport.update({
   path: '/brands/$brandId',
   getParentRoute: () => LayoutRoute,
 } as any)
-const LayoutWarehousesIndexRoute = LayoutWarehousesIndexRouteImport.update({
-  id: '/warehouses/',
-  path: '/warehouses/',
+const LayoutProductsIndexRoute = LayoutProductsIndexRouteImport.update({
+  id: '/products/',
+  path: '/products/',
   getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutProductsProductIdRoute = LayoutProductsProductIdRouteImport.update({
+  id: '/products/$productId',
+  path: '/products/$productId',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutTeamIndexRoute = LayoutTeamIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LayoutTeamRoute,
+} as any)
+const LayoutTeamPermisosRoute = LayoutTeamPermisosRouteImport.update({
+  id: '/permisos',
+  path: '/permisos',
+  getParentRoute: () => LayoutTeamRoute,
+} as any)
+const LayoutTeamRolesRoute = LayoutTeamRolesRouteImport.update({
+  id: '/roles',
+  path: '/roles',
+  getParentRoute: () => LayoutTeamRoute,
+} as any)
+const LayoutWarehousesIndexRoute = LayoutWarehousesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LayoutWarehousesRoute,
 } as any)
 const LayoutWarehousesWarehouseIdRoute =
   LayoutWarehousesWarehouseIdRouteImport.update({
-    id: '/warehouses/$warehouseId',
-    path: '/warehouses/$warehouseId',
-    getParentRoute: () => LayoutRoute,
+    id: '/$warehouseId',
+    path: '/$warehouseId',
+    getParentRoute: () => LayoutWarehousesRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -90,10 +126,16 @@ export interface FileRoutesByFullPath {
   '/inventory': typeof LayoutInventoryRoute
   '/locations': typeof LayoutLocationsRoute
   '/sales': typeof LayoutSalesRoute
-  '/team': typeof LayoutTeamRoute
+  '/team': typeof LayoutTeamRouteWithChildren
+  '/warehouses': typeof LayoutWarehousesRouteWithChildren
   '/brands/$brandId': typeof LayoutBrandsBrandIdRoute
+  '/products/$productId': typeof LayoutProductsProductIdRoute
+  '/team/permisos': typeof LayoutTeamPermisosRoute
+  '/team/roles': typeof LayoutTeamRolesRoute
   '/warehouses/$warehouseId': typeof LayoutWarehousesWarehouseIdRoute
   '/brands/': typeof LayoutBrandsIndexRoute
+  '/products/': typeof LayoutProductsIndexRoute
+  '/team/': typeof LayoutTeamIndexRoute
   '/warehouses/': typeof LayoutWarehousesIndexRoute
 }
 export interface FileRoutesByTo {
@@ -103,10 +145,14 @@ export interface FileRoutesByTo {
   '/inventory': typeof LayoutInventoryRoute
   '/locations': typeof LayoutLocationsRoute
   '/sales': typeof LayoutSalesRoute
-  '/team': typeof LayoutTeamRoute
   '/brands/$brandId': typeof LayoutBrandsBrandIdRoute
+  '/products/$productId': typeof LayoutProductsProductIdRoute
+  '/team/permisos': typeof LayoutTeamPermisosRoute
+  '/team/roles': typeof LayoutTeamRolesRoute
   '/warehouses/$warehouseId': typeof LayoutWarehousesWarehouseIdRoute
   '/brands': typeof LayoutBrandsIndexRoute
+  '/products': typeof LayoutProductsIndexRoute
+  '/team': typeof LayoutTeamIndexRoute
   '/warehouses': typeof LayoutWarehousesIndexRoute
 }
 export interface FileRoutesById {
@@ -118,10 +164,16 @@ export interface FileRoutesById {
   '/_layout/inventory': typeof LayoutInventoryRoute
   '/_layout/locations': typeof LayoutLocationsRoute
   '/_layout/sales': typeof LayoutSalesRoute
-  '/_layout/team': typeof LayoutTeamRoute
+  '/_layout/team': typeof LayoutTeamRouteWithChildren
+  '/_layout/warehouses': typeof LayoutWarehousesRouteWithChildren
   '/_layout/brands/$brandId': typeof LayoutBrandsBrandIdRoute
+  '/_layout/products/$productId': typeof LayoutProductsProductIdRoute
+  '/_layout/team/permisos': typeof LayoutTeamPermisosRoute
+  '/_layout/team/roles': typeof LayoutTeamRolesRoute
   '/_layout/warehouses/$warehouseId': typeof LayoutWarehousesWarehouseIdRoute
   '/_layout/brands/': typeof LayoutBrandsIndexRoute
+  '/_layout/products/': typeof LayoutProductsIndexRoute
+  '/_layout/team/': typeof LayoutTeamIndexRoute
   '/_layout/warehouses/': typeof LayoutWarehousesIndexRoute
 }
 export interface FileRouteTypes {
@@ -134,9 +186,15 @@ export interface FileRouteTypes {
     | '/locations'
     | '/sales'
     | '/team'
+    | '/warehouses'
     | '/brands/$brandId'
+    | '/products/$productId'
+    | '/team/permisos'
+    | '/team/roles'
     | '/warehouses/$warehouseId'
     | '/brands/'
+    | '/products/'
+    | '/team/'
     | '/warehouses/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -146,10 +204,14 @@ export interface FileRouteTypes {
     | '/inventory'
     | '/locations'
     | '/sales'
-    | '/team'
     | '/brands/$brandId'
+    | '/products/$productId'
+    | '/team/permisos'
+    | '/team/roles'
     | '/warehouses/$warehouseId'
     | '/brands'
+    | '/products'
+    | '/team'
     | '/warehouses'
   id:
     | '__root__'
@@ -161,9 +223,15 @@ export interface FileRouteTypes {
     | '/_layout/locations'
     | '/_layout/sales'
     | '/_layout/team'
+    | '/_layout/warehouses'
     | '/_layout/brands/$brandId'
+    | '/_layout/products/$productId'
+    | '/_layout/team/permisos'
+    | '/_layout/team/roles'
     | '/_layout/warehouses/$warehouseId'
     | '/_layout/brands/'
+    | '/_layout/products/'
+    | '/_layout/team/'
     | '/_layout/warehouses/'
   fileRoutesById: FileRoutesById
 }
@@ -231,6 +299,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutTeamRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/warehouses': {
+      id: '/_layout/warehouses'
+      path: '/warehouses'
+      fullPath: '/warehouses'
+      preLoaderRoute: typeof LayoutWarehousesRouteImport
+      parentRoute: typeof LayoutRoute
+    }
     '/_layout/brands/': {
       id: '/_layout/brands/'
       path: '/brands'
@@ -245,33 +320,98 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutBrandsBrandIdRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/products/': {
+      id: '/_layout/products/'
+      path: '/products'
+      fullPath: '/products/'
+      preLoaderRoute: typeof LayoutProductsIndexRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/products/$productId': {
+      id: '/_layout/products/$productId'
+      path: '/products/$productId'
+      fullPath: '/products/$productId'
+      preLoaderRoute: typeof LayoutProductsProductIdRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/team/': {
+      id: '/_layout/team/'
+      path: '/'
+      fullPath: '/team/'
+      preLoaderRoute: typeof LayoutTeamIndexRouteImport
+      parentRoute: typeof LayoutTeamRoute
+    }
+    '/_layout/team/permisos': {
+      id: '/_layout/team/permisos'
+      path: '/permisos'
+      fullPath: '/team/permisos'
+      preLoaderRoute: typeof LayoutTeamPermisosRouteImport
+      parentRoute: typeof LayoutTeamRoute
+    }
+    '/_layout/team/roles': {
+      id: '/_layout/team/roles'
+      path: '/roles'
+      fullPath: '/team/roles'
+      preLoaderRoute: typeof LayoutTeamRolesRouteImport
+      parentRoute: typeof LayoutTeamRoute
+    }
     '/_layout/warehouses/': {
       id: '/_layout/warehouses/'
-      path: '/warehouses'
+      path: '/'
       fullPath: '/warehouses/'
       preLoaderRoute: typeof LayoutWarehousesIndexRouteImport
-      parentRoute: typeof LayoutRoute
+      parentRoute: typeof LayoutWarehousesRoute
     }
     '/_layout/warehouses/$warehouseId': {
       id: '/_layout/warehouses/$warehouseId'
-      path: '/warehouses/$warehouseId'
+      path: '/$warehouseId'
       fullPath: '/warehouses/$warehouseId'
       preLoaderRoute: typeof LayoutWarehousesWarehouseIdRouteImport
-      parentRoute: typeof LayoutRoute
+      parentRoute: typeof LayoutWarehousesRoute
     }
   }
 }
+
+interface LayoutTeamRouteChildren {
+  LayoutTeamPermisosRoute: typeof LayoutTeamPermisosRoute
+  LayoutTeamRolesRoute: typeof LayoutTeamRolesRoute
+  LayoutTeamIndexRoute: typeof LayoutTeamIndexRoute
+}
+
+const LayoutTeamRouteChildren: LayoutTeamRouteChildren = {
+  LayoutTeamPermisosRoute: LayoutTeamPermisosRoute,
+  LayoutTeamRolesRoute: LayoutTeamRolesRoute,
+  LayoutTeamIndexRoute: LayoutTeamIndexRoute,
+}
+
+const LayoutTeamRouteWithChildren = LayoutTeamRoute._addFileChildren(
+  LayoutTeamRouteChildren,
+)
+
+interface LayoutWarehousesRouteChildren {
+  LayoutWarehousesWarehouseIdRoute: typeof LayoutWarehousesWarehouseIdRoute
+  LayoutWarehousesIndexRoute: typeof LayoutWarehousesIndexRoute
+}
+
+const LayoutWarehousesRouteChildren: LayoutWarehousesRouteChildren = {
+  LayoutWarehousesWarehouseIdRoute: LayoutWarehousesWarehouseIdRoute,
+  LayoutWarehousesIndexRoute: LayoutWarehousesIndexRoute,
+}
+
+const LayoutWarehousesRouteWithChildren =
+  LayoutWarehousesRoute._addFileChildren(LayoutWarehousesRouteChildren)
 
 interface LayoutRouteChildren {
   LayoutDashboardRoute: typeof LayoutDashboardRoute
   LayoutInventoryRoute: typeof LayoutInventoryRoute
   LayoutLocationsRoute: typeof LayoutLocationsRoute
   LayoutSalesRoute: typeof LayoutSalesRoute
-  LayoutTeamRoute: typeof LayoutTeamRoute
+  LayoutTeamRoute: typeof LayoutTeamRouteWithChildren
+  LayoutWarehousesRoute: typeof LayoutWarehousesRouteWithChildren
   LayoutBrandsBrandIdRoute: typeof LayoutBrandsBrandIdRoute
-  LayoutWarehousesWarehouseIdRoute: typeof LayoutWarehousesWarehouseIdRoute
+  LayoutProductsProductIdRoute: typeof LayoutProductsProductIdRoute
   LayoutBrandsIndexRoute: typeof LayoutBrandsIndexRoute
-  LayoutWarehousesIndexRoute: typeof LayoutWarehousesIndexRoute
+  LayoutProductsIndexRoute: typeof LayoutProductsIndexRoute
 }
 
 const LayoutRouteChildren: LayoutRouteChildren = {
@@ -279,11 +419,12 @@ const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutInventoryRoute: LayoutInventoryRoute,
   LayoutLocationsRoute: LayoutLocationsRoute,
   LayoutSalesRoute: LayoutSalesRoute,
-  LayoutTeamRoute: LayoutTeamRoute,
+  LayoutTeamRoute: LayoutTeamRouteWithChildren,
+  LayoutWarehousesRoute: LayoutWarehousesRouteWithChildren,
   LayoutBrandsBrandIdRoute: LayoutBrandsBrandIdRoute,
-  LayoutWarehousesWarehouseIdRoute: LayoutWarehousesWarehouseIdRoute,
+  LayoutProductsProductIdRoute: LayoutProductsProductIdRoute,
   LayoutBrandsIndexRoute: LayoutBrandsIndexRoute,
-  LayoutWarehousesIndexRoute: LayoutWarehousesIndexRoute,
+  LayoutProductsIndexRoute: LayoutProductsIndexRoute,
 }
 
 const LayoutRouteWithChildren =

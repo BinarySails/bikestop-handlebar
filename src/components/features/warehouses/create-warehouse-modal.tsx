@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useForm } from "@tanstack/react-form";
 import { toast } from "sonner";
-import { useCreateWarehouseRequest } from "@/lib/api/api";
+import { useCreateWarehouseRequest, useListStatesRequest } from "@/lib/api/api";
 import { CreateWarehouseRequestBody } from "@/lib/api/zods";
 
 import { Button } from "@/components/ui/button";
@@ -16,11 +16,28 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+const DEFAULT_COUNTRY = "México";
+
+const requiredMessage = (label: string, value: string) => {
+  return value.trim() ? undefined : `El ${label} es requerido`;
+};
 
 export function CreateWarehouseDialog() {
   const [open, setOpen] = useState(false);
   const { trigger } = useCreateWarehouseRequest();
+  const { data: statesResponse, isLoading: isLoadingStates } =
+    useListStatesRequest();
+
+  const states =
+    statesResponse?.status === 200 ? (statesResponse.data ?? []) : [];
 
   const form = useForm({
     defaultValues: {
@@ -28,10 +45,10 @@ export function CreateWarehouseDialog() {
       name: "",
       description: "",
       address: {
-        country: "",
+        country: DEFAULT_COUNTRY,
         state: "",
         city: "",
-        postalCode: "",
+        postal_code: "",
         address: "",
       },
     },
@@ -40,13 +57,7 @@ export function CreateWarehouseDialog() {
         code: value.code || null,
         name: value.name,
         description: value.description || null,
-        address: {
-          country: value.address.country,
-          state: value.address.state,
-          city: value.address.city,
-          postal_code: value.address.postalCode,
-          address: value.address.address,
-        },
+        address: value.address,
       });
 
       const errorData =
@@ -55,26 +66,24 @@ export function CreateWarehouseDialog() {
           : null;
 
       if (result.status === 201) {
-        toast.success(`Almacén "${value.name}" creado.`);
+        toast.success(`Almacén "${value.name}" creado correctamente`);
         form.reset();
         setOpen(false);
       } else {
-        toast.error(errorData?.message ?? "Error al crear el almacén.");
+        toast.error(errorData?.message ?? "No se pudo crear el almacén");
       }
     },
   });
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger>
-        <Button>Crear Almacén</Button>
-      </DialogTrigger>
+      <DialogTrigger render={<Button>Crear Almacén</Button>} />
 
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Crear Almacén</DialogTitle>
+          <DialogTitle>Crear almacén</DialogTitle>
           <DialogDescription>
-            Ingresa la información del nuevo almacén.
+            Ingresa la información para el nuevo almacén.
           </DialogDescription>
         </DialogHeader>
 
@@ -107,7 +116,13 @@ export function CreateWarehouseDialog() {
                   name={field.name}
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
-                  placeholder="ALM-01"
+                  placeholder="WH-QRO-001"
+                  aria-invalid={
+                    field.state.meta.isTouched &&
+                    field.state.meta.errors.length > 0
+                      ? "true"
+                      : undefined
+                  }
                 />
                 {field.state.meta.errors?.[0] && (
                   <p className="text-sm text-red-500">
@@ -121,22 +136,8 @@ export function CreateWarehouseDialog() {
           <form.Field
             name="name"
             validators={{
-              onChange: ({ value }) => {
-                if (!value.trim()) return "El nombre es requerido";
-                const result =
-                  CreateWarehouseRequestBody.shape.name.safeParse(value);
-                return result.success
-                  ? undefined
-                  : result.error.issues[0].message;
-              },
-              onSubmit: ({ value }) => {
-                if (!value.trim()) return "El nombre es requerido";
-                const result =
-                  CreateWarehouseRequestBody.shape.name.safeParse(value);
-                return result.success
-                  ? undefined
-                  : result.error.issues[0].message;
-              },
+              onChange: ({ value }) => requiredMessage("Nombre", value),
+              onSubmit: ({ value }) => requiredMessage("Nombre", value),
             }}
           >
             {(field) => (
@@ -147,7 +148,7 @@ export function CreateWarehouseDialog() {
                   name={field.name}
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
-                  placeholder="Almacén Principal"
+                  placeholder="Almacén principal"
                   aria-invalid={
                     field.state.meta.isTouched &&
                     field.state.meta.errors.length > 0
@@ -181,7 +182,7 @@ export function CreateWarehouseDialog() {
             {(field) => (
               <div className="grid gap-2">
                 <Label htmlFor={field.name}>Descripción</Label>
-                <Textarea
+                <Input
                   id={field.name}
                   name={field.name}
                   value={field.state.value}
@@ -197,258 +198,204 @@ export function CreateWarehouseDialog() {
             )}
           </form.Field>
 
-          <div className="space-y-4 rounded-lg border p-4">
-            <p className="text-sm font-medium">Dirección</p>
+          <div className="space-y-2">
+            <Label>Dirección</Label>
+            <div className="grid gap-4 rounded-lg border p-4">
+              <form.Field
+                name="address.country"
+                validators={{
+                  onChange: ({ value }) => requiredMessage("País", value),
+                  onSubmit: ({ value }) => requiredMessage("País", value),
+                }}
+              >
+                {(field) => (
+                  <div className="grid gap-2">
+                    <Label htmlFor={field.name}>País</Label>
+                    <Select
+                      value={field.state.value}
+                      onValueChange={(value) => {
+                        if (value) field.handleChange(value);
+                      }}
+                    >
+                      <SelectTrigger
+                        id={field.name}
+                        className="w-full"
+                        aria-invalid={
+                          field.state.meta.isTouched &&
+                          field.state.meta.errors.length > 0
+                            ? "true"
+                            : undefined
+                        }
+                      >
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={DEFAULT_COUNTRY}>
+                          {DEFAULT_COUNTRY}
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {field.state.meta.errors?.[0] && (
+                      <p className="text-sm text-red-500">
+                        {field.state.meta.errors[0]}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </form.Field>
 
-            <form.Field
-              name="address.country"
-              validators={{
-                onChange: ({ value }) => {
-                  if (!value.trim()) return "El país es requerido";
-                  const result =
-                    CreateWarehouseRequestBody.shape.address.shape.country.safeParse(
-                      value
-                    );
-                  return result.success
-                    ? undefined
-                    : result.error.issues[0].message;
-                },
-                onSubmit: ({ value }) => {
-                  if (!value.trim()) return "El país es requerido";
-                  const result =
-                    CreateWarehouseRequestBody.shape.address.shape.country.safeParse(
-                      value
-                    );
-                  return result.success
-                    ? undefined
-                    : result.error.issues[0].message;
-                },
-              }}
-            >
-              {(field) => (
-                <div className="grid gap-2">
-                  <Label htmlFor={field.name}>País</Label>
-                  <Input
-                    id={field.name}
-                    name={field.name}
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    placeholder="México"
-                    aria-invalid={
-                      field.state.meta.isTouched &&
-                      field.state.meta.errors.length > 0
-                        ? "true"
-                        : undefined
-                    }
-                  />
-                  {field.state.meta.errors?.[0] && (
-                    <p className="text-sm text-red-500">
-                      {field.state.meta.errors[0]}
-                    </p>
-                  )}
-                </div>
-              )}
-            </form.Field>
+              <form.Field
+                name="address.state"
+                validators={{
+                  onChange: ({ value }) => requiredMessage("Estado", value),
+                  onSubmit: ({ value }) => requiredMessage("Estado", value),
+                }}
+              >
+                {(field) => (
+                  <div className="grid gap-2">
+                    <Label htmlFor={field.name}>Estado</Label>
+                    <Select
+                      value={field.state.value}
+                      onValueChange={(value) => {
+                        if (value) field.handleChange(value);
+                      }}
+                      disabled={isLoadingStates}
+                    >
+                      <SelectTrigger
+                        id={field.name}
+                        className="w-full"
+                        aria-invalid={
+                          field.state.meta.isTouched &&
+                          field.state.meta.errors.length > 0
+                            ? "true"
+                            : undefined
+                        }
+                      >
+                        <SelectValue
+                          placeholder={
+                            isLoadingStates
+                              ? "Cargando estados..."
+                              : "Selecciona un estado"
+                          }
+                        />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {states.map((state) => (
+                          <SelectItem key={state.id} value={state.display_name}>
+                            {state.display_name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {field.state.meta.errors?.[0] && (
+                      <p className="text-sm text-red-500">
+                        {field.state.meta.errors[0]}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </form.Field>
 
-            <form.Field
-              name="address.state"
-              validators={{
-                onChange: ({ value }) => {
-                  if (!value.trim()) return "El estado es requerido";
-                  const result =
-                    CreateWarehouseRequestBody.shape.address.shape.state.safeParse(
-                      value
-                    );
-                  return result.success
-                    ? undefined
-                    : result.error.issues[0].message;
-                },
-                onSubmit: ({ value }) => {
-                  if (!value.trim()) return "El estado es requerido";
-                  const result =
-                    CreateWarehouseRequestBody.shape.address.shape.state.safeParse(
-                      value
-                    );
-                  return result.success
-                    ? undefined
-                    : result.error.issues[0].message;
-                },
-              }}
-            >
-              {(field) => (
-                <div className="grid gap-2">
-                  <Label htmlFor={field.name}>Estado</Label>
-                  <Input
-                    id={field.name}
-                    name={field.name}
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    placeholder="Jalisco"
-                    aria-invalid={
-                      field.state.meta.isTouched &&
-                      field.state.meta.errors.length > 0
-                        ? "true"
-                        : undefined
-                    }
-                  />
-                  {field.state.meta.errors?.[0] && (
-                    <p className="text-sm text-red-500">
-                      {field.state.meta.errors[0]}
-                    </p>
-                  )}
-                </div>
-              )}
-            </form.Field>
+              <form.Field
+                name="address.city"
+                validators={{
+                  onChange: ({ value }) => requiredMessage("Ciudad", value),
+                  onSubmit: ({ value }) => requiredMessage("Ciudad", value),
+                }}
+              >
+                {(field) => (
+                  <div className="grid gap-2">
+                    <Label htmlFor={field.name}>Ciudad</Label>
+                    <Input
+                      id={field.name}
+                      name={field.name}
+                      value={field.state.value}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      placeholder="Querétaro"
+                      aria-invalid={
+                        field.state.meta.isTouched &&
+                        field.state.meta.errors.length > 0
+                          ? "true"
+                          : undefined
+                      }
+                    />
+                    {field.state.meta.errors?.[0] && (
+                      <p className="text-sm text-red-500">
+                        {field.state.meta.errors[0]}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </form.Field>
 
-            <form.Field
-              name="address.city"
-              validators={{
-                onChange: ({ value }) => {
-                  if (!value.trim()) return "La ciudad es requerida";
-                  const result =
-                    CreateWarehouseRequestBody.shape.address.shape.city.safeParse(
-                      value
-                    );
-                  return result.success
-                    ? undefined
-                    : result.error.issues[0].message;
-                },
-                onSubmit: ({ value }) => {
-                  if (!value.trim()) return "La ciudad es requerida";
-                  const result =
-                    CreateWarehouseRequestBody.shape.address.shape.city.safeParse(
-                      value
-                    );
-                  return result.success
-                    ? undefined
-                    : result.error.issues[0].message;
-                },
-              }}
-            >
-              {(field) => (
-                <div className="grid gap-2">
-                  <Label htmlFor={field.name}>Ciudad</Label>
-                  <Input
-                    id={field.name}
-                    name={field.name}
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    placeholder="Guadalajara"
-                    aria-invalid={
-                      field.state.meta.isTouched &&
-                      field.state.meta.errors.length > 0
-                        ? "true"
-                        : undefined
-                    }
-                  />
-                  {field.state.meta.errors?.[0] && (
-                    <p className="text-sm text-red-500">
-                      {field.state.meta.errors[0]}
-                    </p>
-                  )}
-                </div>
-              )}
-            </form.Field>
+              <form.Field
+                name="address.postal_code"
+                validators={{
+                  onChange: ({ value }) =>
+                    requiredMessage("Código postal", value),
+                  onSubmit: ({ value }) =>
+                    requiredMessage("Código postal", value),
+                }}
+              >
+                {(field) => (
+                  <div className="grid gap-2">
+                    <Label htmlFor={field.name}>Código postal</Label>
+                    <Input
+                      id={field.name}
+                      name={field.name}
+                      value={field.state.value}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      placeholder="76000"
+                      aria-invalid={
+                        field.state.meta.isTouched &&
+                        field.state.meta.errors.length > 0
+                          ? "true"
+                          : undefined
+                      }
+                    />
+                    {field.state.meta.errors?.[0] && (
+                      <p className="text-sm text-red-500">
+                        {field.state.meta.errors[0]}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </form.Field>
 
-            <form.Field
-              name="address.postalCode"
-              validators={{
-                onChange: ({ value }) => {
-                  if (!value.trim()) return "El código postal es requerido";
-                  const result =
-                    CreateWarehouseRequestBody.shape.address.shape.postal_code.safeParse(
-                      value
-                    );
-                  return result.success
-                    ? undefined
-                    : result.error.issues[0].message;
-                },
-                onSubmit: ({ value }) => {
-                  if (!value.trim()) return "El código postal es requerido";
-                  const result =
-                    CreateWarehouseRequestBody.shape.address.shape.postal_code.safeParse(
-                      value
-                    );
-                  return result.success
-                    ? undefined
-                    : result.error.issues[0].message;
-                },
-              }}
-            >
-              {(field) => (
-                <div className="grid gap-2">
-                  <Label htmlFor={field.name}>Código Postal</Label>
-                  <Input
-                    id={field.name}
-                    name={field.name}
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    placeholder="44100"
-                    aria-invalid={
-                      field.state.meta.isTouched &&
-                      field.state.meta.errors.length > 0
-                        ? "true"
-                        : undefined
-                    }
-                  />
-                  {field.state.meta.errors?.[0] && (
-                    <p className="text-sm text-red-500">
-                      {field.state.meta.errors[0]}
-                    </p>
-                  )}
-                </div>
-              )}
-            </form.Field>
-
-            <form.Field
-              name="address.address"
-              validators={{
-                onChange: ({ value }) => {
-                  if (!value.trim()) return "La dirección es requerida";
-                  const result =
-                    CreateWarehouseRequestBody.shape.address.shape.address.safeParse(
-                      value
-                    );
-                  return result.success
-                    ? undefined
-                    : result.error.issues[0].message;
-                },
-                onSubmit: ({ value }) => {
-                  if (!value.trim()) return "La dirección es requerida";
-                  const result =
-                    CreateWarehouseRequestBody.shape.address.shape.address.safeParse(
-                      value
-                    );
-                  return result.success
-                    ? undefined
-                    : result.error.issues[0].message;
-                },
-              }}
-            >
-              {(field) => (
-                <div className="grid gap-2">
-                  <Label htmlFor={field.name}>Calle y Número</Label>
-                  <Input
-                    id={field.name}
-                    name={field.name}
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    placeholder="Av. Vallarta 1234"
-                    aria-invalid={
-                      field.state.meta.isTouched &&
-                      field.state.meta.errors.length > 0
-                        ? "true"
-                        : undefined
-                    }
-                  />
-                  {field.state.meta.errors?.[0] && (
-                    <p className="text-sm text-red-500">
-                      {field.state.meta.errors[0]}
-                    </p>
-                  )}
-                </div>
-              )}
-            </form.Field>
+              <form.Field
+                name="address.address"
+                validators={{
+                  onChange: ({ value }) =>
+                    requiredMessage("Calle y número", value),
+                  onSubmit: ({ value }) =>
+                    requiredMessage("Calle y número", value),
+                }}
+              >
+                {(field) => (
+                  <div className="grid gap-2">
+                    <Label htmlFor={field.name}>Calle y número</Label>
+                    <Input
+                      id={field.name}
+                      name={field.name}
+                      value={field.state.value}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      placeholder="Av. Constituyentes 1234"
+                      aria-invalid={
+                        field.state.meta.isTouched &&
+                        field.state.meta.errors.length > 0
+                          ? "true"
+                          : undefined
+                      }
+                    />
+                    {field.state.meta.errors?.[0] && (
+                      <p className="text-sm text-red-500">
+                        {field.state.meta.errors[0]}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </form.Field>
+            </div>
           </div>
 
           <DialogFooter>

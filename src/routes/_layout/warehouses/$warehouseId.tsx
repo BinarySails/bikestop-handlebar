@@ -208,6 +208,7 @@ function WarehouseDetailView({
               isDirty={isDirty}
               isSubmitting={isSubmitting}
               onSave={() => form.handleSubmit()}
+              onDiscard={() => form.reset()}
               onDeleteClick={() => setDeleteOpen(true)}
             />
           )}

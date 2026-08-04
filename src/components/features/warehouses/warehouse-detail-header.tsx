@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowLeft, Save, Trash2 } from "lucide-react";
+import { ArrowLeft, RotateCcw, Save, Trash2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ type WarehouseDetailHeaderProps = {
   isDirty?: boolean;
   isSubmitting?: boolean;
   onSave?: () => void;
+  onDiscard?: () => void;
   onDeleteClick?: () => void;
 };
 
@@ -25,6 +26,7 @@ export function WarehouseDetailHeader({
   isDirty,
   isSubmitting,
   onSave,
+  onDiscard,
   onDeleteClick,
 }: WarehouseDetailHeaderProps) {
   return (
@@ -44,16 +46,27 @@ export function WarehouseDetailHeader({
       </div>
 
       {isDirty ? (
-        <Button type="button" disabled={isSubmitting} onClick={onSave}>
-          {isSubmitting ? (
-            <span>Guardando...</span>
-          ) : (
-            <>
-              <Save className="size-4" />
-              <span>Guardar cambios</span>
-            </>
-          )}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            disabled={isSubmitting}
+            onClick={onDiscard}
+          >
+            <RotateCcw className="size-4" />
+            <span>Descartar</span>
+          </Button>
+          <Button type="button" disabled={isSubmitting} onClick={onSave}>
+            {isSubmitting ? (
+              <span>Guardando...</span>
+            ) : (
+              <>
+                <Save className="size-4" />
+                <span>Guardar cambios</span>
+              </>
+            )}
+          </Button>
+        </div>
       ) : warehouse.status === "active" ? (
         <Button type="button" variant="destructive" onClick={onDeleteClick}>
           <Trash2 className="size-4" />
