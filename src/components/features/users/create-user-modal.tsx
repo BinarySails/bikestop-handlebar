@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { PlusIcon } from "lucide-react";
 import { useForm } from "@tanstack/react-form";
 import { toast } from "sonner";
 import { useCreateUserRequest } from "@/lib/api/api";
@@ -84,8 +85,11 @@ export function CreateUserDialog() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger>
-        <Button>Crear Usuario</Button>
+      <DialogTrigger
+        render={<Button className="bg-gray-900 text-white hover:bg-gray-800" />}
+      >
+        <PlusIcon data-icon="inline-start" />
+        Crear Usuario
       </DialogTrigger>
 
       <DialogContent className="sm:max-w-lg">
