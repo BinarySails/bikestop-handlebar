@@ -26,6 +26,10 @@ import {
 
 const DEFAULT_COUNTRY = "México";
 
+const requiredMessage = (label: string, value: string) => {
+  return value.trim() ? undefined : `El ${label} es requerido`;
+};
+
 export function CreateWarehouseDialog() {
   const [open, setOpen] = useState(false);
   const { trigger } = useCreateWarehouseRequest();
@@ -134,13 +138,8 @@ export function CreateWarehouseDialog() {
           <form.Field
             name="name"
             validators={{
-              onChange: ({ value }) => {
-                const result =
-                  CreateWarehouseRequestBody.shape.name.safeParse(value);
-                return result.success
-                  ? undefined
-                  : result.error.issues[0].message;
-              },
+              onChange: ({ value }) => requiredMessage("Nombre", value),
+              onSubmit: ({ value }) => requiredMessage("Nombre", value),
             }}
           >
             {(field) => (
@@ -207,15 +206,8 @@ export function CreateWarehouseDialog() {
               <form.Field
                 name="address.country"
                 validators={{
-                  onChange: ({ value }) => {
-                    const result =
-                      CreateWarehouseRequestBody.shape.address.shape.country.safeParse(
-                        value
-                      );
-                    return result.success
-                      ? undefined
-                      : result.error.issues[0].message;
-                  },
+                  onChange: ({ value }) => requiredMessage("País", value),
+                  onSubmit: ({ value }) => requiredMessage("País", value),
                 }}
               >
                 {(field) => (
@@ -257,15 +249,8 @@ export function CreateWarehouseDialog() {
               <form.Field
                 name="address.state"
                 validators={{
-                  onChange: ({ value }) => {
-                    const result =
-                      CreateWarehouseRequestBody.shape.address.shape.state.safeParse(
-                        value
-                      );
-                    return result.success
-                      ? undefined
-                      : result.error.issues[0].message;
-                  },
+                  onChange: ({ value }) => requiredMessage("Estado", value),
+                  onSubmit: ({ value }) => requiredMessage("Estado", value),
                 }}
               >
                 {(field) => (
@@ -316,15 +301,8 @@ export function CreateWarehouseDialog() {
               <form.Field
                 name="address.city"
                 validators={{
-                  onChange: ({ value }) => {
-                    const result =
-                      CreateWarehouseRequestBody.shape.address.shape.city.safeParse(
-                        value
-                      );
-                    return result.success
-                      ? undefined
-                      : result.error.issues[0].message;
-                  },
+                  onChange: ({ value }) => requiredMessage("Ciudad", value),
+                  onSubmit: ({ value }) => requiredMessage("Ciudad", value),
                 }}
               >
                 {(field) => (
@@ -355,15 +333,10 @@ export function CreateWarehouseDialog() {
               <form.Field
                 name="address.postal_code"
                 validators={{
-                  onChange: ({ value }) => {
-                    const result =
-                      CreateWarehouseRequestBody.shape.address.shape.postal_code.safeParse(
-                        value
-                      );
-                    return result.success
-                      ? undefined
-                      : result.error.issues[0].message;
-                  },
+                  onChange: ({ value }) =>
+                    requiredMessage("Código postal", value),
+                  onSubmit: ({ value }) =>
+                    requiredMessage("Código postal", value),
                 }}
               >
                 {(field) => (
@@ -394,15 +367,10 @@ export function CreateWarehouseDialog() {
               <form.Field
                 name="address.address"
                 validators={{
-                  onChange: ({ value }) => {
-                    const result =
-                      CreateWarehouseRequestBody.shape.address.shape.address.safeParse(
-                        value
-                      );
-                    return result.success
-                      ? undefined
-                      : result.error.issues[0].message;
-                  },
+                  onChange: ({ value }) =>
+                    requiredMessage("Calle y número", value),
+                  onSubmit: ({ value }) =>
+                    requiredMessage("Calle y número", value),
                 }}
               >
                 {(field) => (
