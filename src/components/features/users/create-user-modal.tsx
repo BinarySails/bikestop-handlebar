@@ -276,8 +276,8 @@ export function CreateUserDialog() {
                 const result =
                   CreateUserRequestBody.shape.password.safeParse(value);
                 if (!result.success) return result.error.issues[0].message;
-                if (value.length < 8)
-                  return "La contraseña debe de tener al menos 8 caracteres";
+                if (value.length < 12)
+                  return "La contraseña debe de tener al menos 12 caracteres";
                 if (!/[A-Z]/.test(value))
                   return "La contraseña debe de tener al menos una mayúscula";
                 if (!/[0-9]/.test(value))
@@ -295,7 +295,7 @@ export function CreateUserDialog() {
                   type="password"
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
-                  placeholder="••••••••"
+                  placeholder="••••••••••••"
                   aria-invalid={
                     field.state.meta.isTouched &&
                     field.state.meta.errors.length > 0
