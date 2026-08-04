@@ -1,10 +1,10 @@
-import { useState } from "react"
-import { useForm } from "@tanstack/react-form"
-import { toast } from "sonner"
-import { useCreateWarehouseRequest } from "@/lib/api/api"
-import { CreateWarehouseRequestBody } from "@/lib/api/zods"
+import { useState } from "react";
+import { useForm } from "@tanstack/react-form";
+import { toast } from "sonner";
+import { useCreateWarehouseRequest } from "@/lib/api/api";
+import { CreateWarehouseRequestBody } from "@/lib/api/zods";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -13,14 +13,14 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 export function CreateWarehouseDialog() {
-  const [open, setOpen] = useState(false)
-  const { trigger } = useCreateWarehouseRequest()
+  const [open, setOpen] = useState(false);
+  const { trigger } = useCreateWarehouseRequest();
 
   const form = useForm({
     defaultValues: {
@@ -47,22 +47,22 @@ export function CreateWarehouseDialog() {
           postal_code: value.address.postalCode,
           address: value.address.address,
         },
-      })
+      });
 
       const errorData =
         "data" in result
           ? (result as { data: { message?: string } }).data
-          : null
+          : null;
 
       if (result.status === 201) {
-        toast.success(`Almacén "${value.name}" creado.`)
-        form.reset()
-        setOpen(false)
+        toast.success(`Almacén "${value.name}" creado.`);
+        form.reset();
+        setOpen(false);
       } else {
-        toast.error(errorData?.message ?? "Error al crear el almacén.")
+        toast.error(errorData?.message ?? "Error al crear el almacén.");
       }
     },
-  })
+  });
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -80,9 +80,9 @@ export function CreateWarehouseDialog() {
 
         <form
           onSubmit={(e) => {
-            e.preventDefault()
-            e.stopPropagation()
-            form.handleSubmit()
+            e.preventDefault();
+            e.stopPropagation();
+            form.handleSubmit();
           }}
           className="space-y-4"
         >
@@ -90,11 +90,12 @@ export function CreateWarehouseDialog() {
             name="code"
             validators={{
               onChange: ({ value }) => {
-                const result =
-                  CreateWarehouseRequestBody.shape.code.safeParse(value || null)
+                const result = CreateWarehouseRequestBody.shape.code.safeParse(
+                  value || null
+                );
                 return result.success
                   ? undefined
-                  : result.error.issues[0].message
+                  : result.error.issues[0].message;
               },
             }}
           >
@@ -121,20 +122,20 @@ export function CreateWarehouseDialog() {
             name="name"
             validators={{
               onChange: ({ value }) => {
-                if (!value.trim()) return "El nombre es requerido"
+                if (!value.trim()) return "El nombre es requerido";
                 const result =
-                  CreateWarehouseRequestBody.shape.name.safeParse(value)
+                  CreateWarehouseRequestBody.shape.name.safeParse(value);
                 return result.success
                   ? undefined
-                  : result.error.issues[0].message
+                  : result.error.issues[0].message;
               },
               onSubmit: ({ value }) => {
-                if (!value.trim()) return "El nombre es requerido"
+                if (!value.trim()) return "El nombre es requerido";
                 const result =
-                  CreateWarehouseRequestBody.shape.name.safeParse(value)
+                  CreateWarehouseRequestBody.shape.name.safeParse(value);
                 return result.success
                   ? undefined
-                  : result.error.issues[0].message
+                  : result.error.issues[0].message;
               },
             }}
           >
@@ -170,10 +171,10 @@ export function CreateWarehouseDialog() {
                 const result =
                   CreateWarehouseRequestBody.shape.description.safeParse(
                     value || null
-                  )
+                  );
                 return result.success
                   ? undefined
-                  : result.error.issues[0].message
+                  : result.error.issues[0].message;
               },
             }}
           >
@@ -203,24 +204,24 @@ export function CreateWarehouseDialog() {
               name="address.country"
               validators={{
                 onChange: ({ value }) => {
-                  if (!value.trim()) return "El país es requerido"
+                  if (!value.trim()) return "El país es requerido";
                   const result =
                     CreateWarehouseRequestBody.shape.address.shape.country.safeParse(
                       value
-                    )
+                    );
                   return result.success
                     ? undefined
-                    : result.error.issues[0].message
+                    : result.error.issues[0].message;
                 },
                 onSubmit: ({ value }) => {
-                  if (!value.trim()) return "El país es requerido"
+                  if (!value.trim()) return "El país es requerido";
                   const result =
                     CreateWarehouseRequestBody.shape.address.shape.country.safeParse(
                       value
-                    )
+                    );
                   return result.success
                     ? undefined
-                    : result.error.issues[0].message
+                    : result.error.issues[0].message;
                 },
               }}
             >
@@ -253,24 +254,24 @@ export function CreateWarehouseDialog() {
               name="address.state"
               validators={{
                 onChange: ({ value }) => {
-                  if (!value.trim()) return "El estado es requerido"
+                  if (!value.trim()) return "El estado es requerido";
                   const result =
                     CreateWarehouseRequestBody.shape.address.shape.state.safeParse(
                       value
-                    )
+                    );
                   return result.success
                     ? undefined
-                    : result.error.issues[0].message
+                    : result.error.issues[0].message;
                 },
                 onSubmit: ({ value }) => {
-                  if (!value.trim()) return "El estado es requerido"
+                  if (!value.trim()) return "El estado es requerido";
                   const result =
                     CreateWarehouseRequestBody.shape.address.shape.state.safeParse(
                       value
-                    )
+                    );
                   return result.success
                     ? undefined
-                    : result.error.issues[0].message
+                    : result.error.issues[0].message;
                 },
               }}
             >
@@ -303,24 +304,24 @@ export function CreateWarehouseDialog() {
               name="address.city"
               validators={{
                 onChange: ({ value }) => {
-                  if (!value.trim()) return "La ciudad es requerida"
+                  if (!value.trim()) return "La ciudad es requerida";
                   const result =
                     CreateWarehouseRequestBody.shape.address.shape.city.safeParse(
                       value
-                    )
+                    );
                   return result.success
                     ? undefined
-                    : result.error.issues[0].message
+                    : result.error.issues[0].message;
                 },
                 onSubmit: ({ value }) => {
-                  if (!value.trim()) return "La ciudad es requerida"
+                  if (!value.trim()) return "La ciudad es requerida";
                   const result =
                     CreateWarehouseRequestBody.shape.address.shape.city.safeParse(
                       value
-                    )
+                    );
                   return result.success
                     ? undefined
-                    : result.error.issues[0].message
+                    : result.error.issues[0].message;
                 },
               }}
             >
@@ -353,24 +354,24 @@ export function CreateWarehouseDialog() {
               name="address.postalCode"
               validators={{
                 onChange: ({ value }) => {
-                  if (!value.trim()) return "El código postal es requerido"
+                  if (!value.trim()) return "El código postal es requerido";
                   const result =
                     CreateWarehouseRequestBody.shape.address.shape.postal_code.safeParse(
                       value
-                    )
+                    );
                   return result.success
                     ? undefined
-                    : result.error.issues[0].message
+                    : result.error.issues[0].message;
                 },
                 onSubmit: ({ value }) => {
-                  if (!value.trim()) return "El código postal es requerido"
+                  if (!value.trim()) return "El código postal es requerido";
                   const result =
                     CreateWarehouseRequestBody.shape.address.shape.postal_code.safeParse(
                       value
-                    )
+                    );
                   return result.success
                     ? undefined
-                    : result.error.issues[0].message
+                    : result.error.issues[0].message;
                 },
               }}
             >
@@ -403,24 +404,24 @@ export function CreateWarehouseDialog() {
               name="address.address"
               validators={{
                 onChange: ({ value }) => {
-                  if (!value.trim()) return "La dirección es requerida"
+                  if (!value.trim()) return "La dirección es requerida";
                   const result =
                     CreateWarehouseRequestBody.shape.address.shape.address.safeParse(
                       value
-                    )
+                    );
                   return result.success
                     ? undefined
-                    : result.error.issues[0].message
+                    : result.error.issues[0].message;
                 },
                 onSubmit: ({ value }) => {
-                  if (!value.trim()) return "La dirección es requerida"
+                  if (!value.trim()) return "La dirección es requerida";
                   const result =
                     CreateWarehouseRequestBody.shape.address.shape.address.safeParse(
                       value
-                    )
+                    );
                   return result.success
                     ? undefined
-                    : result.error.issues[0].message
+                    : result.error.issues[0].message;
                 },
               }}
             >
@@ -470,5 +471,5 @@ export function CreateWarehouseDialog() {
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

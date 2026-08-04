@@ -62,7 +62,12 @@ function WarehouseDetailSkeleton() {
 
 function WarehouseDetailPage() {
   const { warehouseId } = Route.useParams();
-  const { data: res, error, isLoading, mutate } = useGetWarehouseRequest(warehouseId);
+  const {
+    data: res,
+    error,
+    isLoading,
+    mutate,
+  } = useGetWarehouseRequest(warehouseId);
 
   const warehouse: WarehouseResponse | null =
     res?.status === 200 ? res.data : null;
@@ -79,9 +84,7 @@ function WarehouseDetailPage() {
     );
   }
 
-  return (
-    <WarehouseDetailView warehouse={warehouse} mutateWarehouse={mutate} />
-  );
+  return <WarehouseDetailView warehouse={warehouse} mutateWarehouse={mutate} />;
 }
 
 function WarehouseDetailView({
@@ -343,7 +346,9 @@ function WarehouseDetailView({
                     />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="active">{statusLabels.active}</SelectItem>
+                    <SelectItem value="active">
+                      {statusLabels.active}
+                    </SelectItem>
                     <SelectItem value="inactive">
                       {statusLabels.inactive}
                     </SelectItem>
@@ -355,7 +360,9 @@ function WarehouseDetailView({
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-base font-semibold">Dirección</CardTitle>
+              <CardTitle className="text-base font-semibold">
+                Dirección
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <form.Field
