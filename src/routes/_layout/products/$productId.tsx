@@ -29,14 +29,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import {
   useGetProductRequest,
+  useGetCategoriesRequest,
   useListBrandsRequest,
-  useListCategoriesRequest,
   useUpdateProductRequest,
 } from "@/lib/api/api";
 import type {
   Brand,
   Category,
-  ProductResponse,
+  Product,
   ProductStatus,
 } from "@/lib/api/schemas";
 
@@ -77,7 +77,7 @@ function ProductDetailPage() {
     mutate,
   } = useGetProductRequest(productId);
 
-  const product: ProductResponse | null = res?.status === 200 ? res.data : null;
+  const product: Product | null = res?.status === 200 ? res.data : null;
 
   if (isLoading) return <ProductDetailSkeleton />;
 
@@ -98,7 +98,7 @@ function ProductDetailView({
   product,
   mutateProduct,
 }: {
-  product: ProductResponse;
+  product: Product;
   mutateProduct: () => Promise<unknown>;
 }) {
   const { productId } = Route.useParams();
@@ -106,11 +106,11 @@ function ProductDetailView({
   const { trigger: updateProduct } = useUpdateProductRequest(productId);
   const { data: brandsRes, isLoading: brandsLoading } = useListBrandsRequest();
   const { data: categoriesRes, isLoading: categoriesLoading } =
-    useListCategoriesRequest();
+    useGetCategoriesRequest();
 
   const brands: Brand[] = brandsRes?.status === 200 ? brandsRes.data.data : [];
   const categories: Category[] =
-    categoriesRes?.status === 200 ? categoriesRes.data.data : [];
+    categoriesRes?.status === 200 ? categoriesRes.data.categories : [];
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deletePending, setDeletePending] = useState(false);
@@ -137,18 +137,11 @@ function ProductDetailView({
         return;
       }
 
-      const brandName =
-        brands.find((brand) => brand.id === value.brand_id)?.display_name ??
-        product.brand.display_name;
-      const categoryName =
-        categories.find((category) => category.id === value.category_id)
-          ?.display_name ?? product.category.display_name;
-
       try {
         const result = await updateProduct({
           display_name: value.display_name,
-          brand_name: brandName,
-          category_name: categoryName,
+          brand_id: value.brand_id,
+          category_id: value.category_id,
           description: value.description || null,
           status: value.status,
         });
@@ -178,8 +171,8 @@ function ProductDetailView({
     try {
       const result = await updateProduct({
         display_name: product.display_name,
-        brand_name: product.brand.display_name,
-        category_name: product.category.display_name,
+        brand_id: product.brand.id,
+        category_id: product.category.id,
         description: product.description ?? null,
         status: "archive",
       });

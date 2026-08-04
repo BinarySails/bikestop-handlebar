@@ -33,7 +33,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useListProductsRequest, useUpdateProductRequest } from "@/lib/api/api";
-import type { ProductListItemResponse } from "@/lib/api/schemas";
+import type { Product } from "@/lib/api/schemas";
 
 export const Route = createFileRoute("/_layout/products/")({
   component: ProductsListPage,
@@ -44,7 +44,7 @@ const PAGE_SIZE = 10;
 type ListStatusFilter = "all" | "enable" | "disable";
 
 const statusBadgeVariant: Record<
-  ProductListItemResponse["status"],
+  Product["status"],
   "default" | "secondary" | "destructive"
 > = {
   enable: "default",
@@ -52,7 +52,7 @@ const statusBadgeVariant: Record<
   archive: "destructive",
 };
 
-const statusLabel: Record<ProductListItemResponse["status"], string> = {
+const statusLabel: Record<Product["status"], string> = {
   enable: "Activo",
   disable: "Inactivo",
   archive: "Archivado",
@@ -82,7 +82,7 @@ function ArchiveProductMenuItem({
   product,
   onSuccess,
 }: {
-  product: ProductListItemResponse;
+  product: Product;
   onSuccess?: () => Promise<unknown>;
 }) {
   const { trigger: updateProduct } = useUpdateProductRequest(product.id);
@@ -93,8 +93,8 @@ function ArchiveProductMenuItem({
     try {
       const result = await updateProduct({
         display_name: product.display_name,
-        brand_name: product.brand.display_name,
-        category_name: product.category.display_name,
+        brand_id: product.brand.id,
+        category_id: product.category.id,
         description: product.description ?? null,
         status: "archive",
       });

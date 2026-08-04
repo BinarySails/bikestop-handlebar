@@ -3,8 +3,8 @@ import { useForm } from "@tanstack/react-form";
 import { toast } from "sonner";
 import {
   useCreateProductRequest,
+  useGetCategoriesRequest,
   useListBrandsRequest,
-  useListCategoriesRequest,
 } from "@/lib/api/api";
 import { CreateProductRequestBody } from "@/lib/api/zods";
 
@@ -39,11 +39,11 @@ export function CreateProductDialog({
   const { trigger } = useCreateProductRequest();
   const { data: brandsRes, isLoading: brandsLoading } = useListBrandsRequest();
   const { data: categoriesRes, isLoading: categoriesLoading } =
-    useListCategoriesRequest();
+    useGetCategoriesRequest();
 
   const brands: Brand[] = brandsRes?.status === 200 ? brandsRes.data.data : [];
   const categories: Category[] =
-    categoriesRes?.status === 200 ? categoriesRes.data.data : [];
+    categoriesRes?.status === 200 ? categoriesRes.data.categories : [];
 
   const form = useForm({
     defaultValues: {
