@@ -76,7 +76,11 @@ export function CreatePermissionDialog({
   });
 
   return (
-    <Dialog key={permission?.id ?? "create"} open={open} onOpenChange={onOpenChange}>
+    <Dialog
+      key={permission?.id ?? "create"}
+      open={open}
+      onOpenChange={onOpenChange}
+    >
       <DialogContent className="sm:max-w-lg" showCloseButton>
         <DialogHeader>
           <DialogTitle>

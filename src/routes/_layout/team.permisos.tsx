@@ -3,7 +3,6 @@ import { Link, createFileRoute } from "@tanstack/react-router";
 import {
   Pencil,
   Trash2,
-  Plus,
   CircleCheck,
   CircleX,
   MoreHorizontal,
@@ -61,7 +60,7 @@ function PermissionsPage() {
 
   const allPermissions = useMemo(
     () => (data?.data?.permissions ?? []).filter((p) => p.status !== "deleted"),
-    [data?.data?.permissions]
+    [data?.data?.permissions],
   );
 
   const filteredPermissions = useMemo(() => {
@@ -74,17 +73,12 @@ function PermissionsPage() {
 
   const totalPages = Math.max(
     1,
-    Math.ceil(filteredPermissions.length / PAGE_SIZE)
+    Math.ceil(filteredPermissions.length / PAGE_SIZE),
   );
   const paginatedPermissions = filteredPermissions.slice(
     (page - 1) * PAGE_SIZE,
-    page * PAGE_SIZE
+    page * PAGE_SIZE,
   );
-
-  const handleCreate = () => {
-    setEditingPermission(undefined);
-    setFormOpen(true);
-  };
 
   const handleEdit = (permission: Permission) => {
     setEditingPermission(permission);
@@ -107,7 +101,7 @@ function PermissionsPage() {
         mutate();
       } else if (result?.status === 409) {
         toast.error(
-          "No se puede eliminar: el permiso está asignado a uno o más roles."
+          "No se puede eliminar: el permiso está asignado a uno o más roles.",
         );
       } else {
         toast.error("Error al eliminar el permiso.");
@@ -132,14 +126,8 @@ function PermissionsPage() {
           </Button>
           <h1 className="text-2xl font-semibold tracking-tight">Permisos</h1>
           <p className="text-sm text-muted-foreground">
-            Administra los permisos del sistema y asígnalos a roles.
+            Permisos del sistema asignados a roles.
           </p>
-        </div>
-        <div className="flex gap-2">
-          <Button onClick={handleCreate} size="sm">
-            <Plus />
-            Crear Permiso
-          </Button>
         </div>
       </div>
 
@@ -152,7 +140,9 @@ function PermissionsPage() {
         className="mt-6"
       >
         <TabsList>
-          <TabsTrigger value="all">Todos ({allPermissions.length})</TabsTrigger>
+          <TabsTrigger value="all">
+            Todos ({allPermissions.length})
+          </TabsTrigger>
           <TabsTrigger value="active">
             Activos (
             {allPermissions.filter((p) => p.status === "active").length})
