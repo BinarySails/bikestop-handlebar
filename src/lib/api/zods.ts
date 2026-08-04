@@ -181,6 +181,61 @@ export const CreateLocalityRequestResponse = zod.object({
 })
 
 
+export const listProductsRequestQueryPageMin = 0;
+
+export const listProductsRequestQueryLimitMin = 0;
+
+
+
+export const ListProductsRequestQueryParams = zod.object({
+  "status": zod.enum(['enable', 'disable', 'archive']).optional(),
+  "search": zod.string().optional(),
+  "page": zod.int().min(listProductsRequestQueryPageMin).optional(),
+  "limit": zod.int().min(listProductsRequestQueryLimitMin).optional()
+})
+
+export const listProductsRequestResponseLimitMin = 0;
+
+export const listProductsRequestResponsePageMin = 0;
+
+
+
+export const ListProductsRequestResponse = zod.object({
+  "data": zod.array(zod.object({
+  "brand_id": zod.uuid(),
+  "category_id": zod.uuid(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "description": zod.string().nullish(),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "status": zod.enum(['enable', 'disable', 'archive']),
+  "updated_at": zod.iso.datetime({"offset":true})
+})),
+  "limit": zod.int().min(listProductsRequestResponseLimitMin),
+  "page": zod.int().min(listProductsRequestResponsePageMin),
+  "total": zod.int()
+})
+
+
+export const CreateProductRequestBody = zod.object({
+  "brand_id": zod.uuid(),
+  "category_id": zod.uuid(),
+  "description": zod.string().nullish(),
+  "display_name": zod.string()
+})
+
+export const CreateProductRequestResponse = zod.object({
+  "brand_id": zod.uuid(),
+  "category_id": zod.uuid(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "description": zod.string().nullish(),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "status": zod.enum(['enable', 'disable', 'archive']),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+
+
 export const ListBrandsRequestQueryParams = zod.object({
   "page": zod.int().optional(),
   "limit": zod.int().optional()
@@ -271,6 +326,19 @@ export const ToggleBrandRequestResponse = zod.object({
 })
 
 
+export const ListCategoriesRequestResponse = zod.object({
+  "data": zod.array(zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "description": zod.string().nullish(),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "parent_id": zod.union([zod.null(),zod.uuid()]).optional(),
+  "slug": zod.string(),
+  "status": zod.enum(['active', 'inactive'])
+}))
+})
+
+
 export const CreateCategoryRequestBody = zod.object({
   "description": zod.string().nullish(),
   "display_name": zod.string(),
@@ -344,6 +412,46 @@ export const DeleteCategoryRequestResponse = zod.object({
   "slug": zod.string(),
   "status": zod.enum(['active', 'inactive'])
 })
+})
+
+
+export const GetProductRequestParams = zod.object({
+  "id": zod.uuid().describe('Product ID')
+})
+
+export const GetProductRequestResponse = zod.object({
+  "brand_id": zod.uuid(),
+  "category_id": zod.uuid(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "description": zod.string().nullish(),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "status": zod.enum(['enable', 'disable', 'archive']),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+
+
+export const UpdateProductRequestParams = zod.object({
+  "id": zod.uuid().describe('Product ID')
+})
+
+export const UpdateProductRequestBody = zod.object({
+  "brand_id": zod.uuid(),
+  "category_id": zod.uuid(),
+  "description": zod.string().nullish(),
+  "display_name": zod.string(),
+  "status": zod.enum(['enable', 'disable', 'archive'])
+})
+
+export const UpdateProductRequestResponse = zod.object({
+  "brand_id": zod.uuid(),
+  "category_id": zod.uuid(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "description": zod.string().nullish(),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "status": zod.enum(['enable', 'disable', 'archive']),
+  "updated_at": zod.iso.datetime({"offset":true})
 })
 
 
@@ -619,6 +727,53 @@ export const RemoveUserRoleHandlerResponse = zod.object({
 })
 
 
+export const listUsersRequestQueryLimitMin = 0;
+
+export const listUsersRequestQueryOffsetMin = 0;
+
+
+
+export const ListUsersRequestQueryParams = zod.object({
+  "view": zod.enum(['client', 'staff', 'archived']),
+  "search": zod.string().optional(),
+  "role": zod.uuid().optional(),
+  "limit": zod.int().min(listUsersRequestQueryLimitMin).optional(),
+  "offset": zod.int().min(listUsersRequestQueryOffsetMin).optional(),
+  "sort_by": zod.enum(['display_name', 'created_at']).optional(),
+  "sort_order": zod.enum(['asc', 'desc']).optional()
+})
+
+export const listUsersRequestResponseLimitMin = 0;
+
+export const listUsersRequestResponseOffsetMin = 0;
+
+
+
+export const ListUsersRequestResponse = zod.object({
+  "limit": zod.int().min(listUsersRequestResponseLimitMin),
+  "offset": zod.int().min(listUsersRequestResponseOffsetMin),
+  "total": zod.int(),
+  "users": zod.array(zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "email": zod.string(),
+  "father_last_name": zod.string(),
+  "id": zod.uuid(),
+  "mother_last_name": zod.string().nullish(),
+  "name": zod.string(),
+  "status": zod.enum(['active', 'inactive']),
+  "username": zod.string()
+}).and(zod.object({
+  "roles": zod.array(zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "slug": zod.string(),
+  "status": zod.enum(['active', 'inactive', 'deleted'])
+}))
+})))
+})
+
+
 export const CreateUserRequestBody = zod.object({
   "email": zod.string(),
   "father_last_name": zod.string(),
@@ -639,6 +794,41 @@ export const CreateUserRequestResponse = zod.object({
   "status": zod.enum(['active', 'inactive']),
   "username": zod.string()
 })
+
+
+export const UpdateUserRequestParams = zod.object({
+  "id": zod.uuid().describe('User ID')
+})
+
+export const UpdateUserRequestBody = zod.object({
+  "email": zod.string().nullish(),
+  "father_last_name": zod.string().nullish(),
+  "mother_last_name": zod.string().nullish(),
+  "name": zod.string().nullish(),
+  "password": zod.string().nullish(),
+  "role_ids": zod.array(zod.uuid()).nullish(),
+  "status": zod.union([zod.null(),zod.enum(['active', 'inactive'])]).optional(),
+  "username": zod.string().nullish()
+})
+
+export const UpdateUserRequestResponse = zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "email": zod.string(),
+  "father_last_name": zod.string(),
+  "id": zod.uuid(),
+  "mother_last_name": zod.string().nullish(),
+  "name": zod.string(),
+  "status": zod.enum(['active', 'inactive']),
+  "username": zod.string()
+}).and(zod.object({
+  "roles": zod.array(zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "slug": zod.string(),
+  "status": zod.enum(['active', 'inactive', 'deleted'])
+}))
+}))
 
 
 export const ListWarehousesRequestQueryParams = zod.object({
