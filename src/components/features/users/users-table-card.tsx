@@ -1,11 +1,10 @@
 import { useMemo, useState } from "react";
 import {
-  CheckCircle2Icon,
+  ArchiveIcon,
   ChevronsLeftIcon,
   ChevronsRightIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  Clock3Icon,
   EyeIcon,
   GripVerticalIcon,
 } from "lucide-react";
@@ -39,36 +38,50 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 
-type UserStatus = "Activo" | "Desactivado";
-type Filter = "all" | "active" | "disabled";
+type UserType = "client" | "team";
+type Filter = "all" | UserType;
 
 type UserRow = {
   id: number;
   user: string;
+  email: string;
+  type: UserType;
   role: string;
-  status: UserStatus;
 };
 
 const users: UserRow[] = [
   {
     id: 1,
     user: "Juan Pérez",
+    email: "juan.perez@bikestop.mx",
+    type: "team",
     role: "Administrador",
-    status: "Activo",
   },
 ];
 
 export function UsersTableCard() {
   const [filter, setFilter] = useState<Filter>("all");
+  const [roleFilter, setRoleFilter] = useState("all");
   const [selected, setSelected] = useState<Set<number>>(new Set());
 
   const filteredUsers = useMemo(() => {
-    if (filter === "active")
-      return users.filter((user) => user.status === "Activo");
-    if (filter === "disabled")
-      return users.filter((user) => user.status === "Desactivado");
-    return users;
-  }, [filter]);
+    return users.filter((user) => {
+      if (filter !== "all" && user.type !== filter) return false;
+      if (filter === "team" && roleFilter !== "all") {
+        return user.role === roleFilter;
+      }
+      return true;
+    });
+  }, [filter, roleFilter]);
+
+  const roles = useMemo(
+    () => [
+      ...new Set(
+        users.filter((user) => user.type === "team").map((user) => user.role)
+      ),
+    ],
+    []
+  );
 
   const allVisibleSelected =
     filteredUsers.length > 0 &&
@@ -103,41 +116,73 @@ export function UsersTableCard() {
           <CreateUserDialog />
         </CardAction>
 
-        <div
-          className="col-span-full flex w-fit items-center gap-1 rounded-lg bg-gray-100 p-1"
-          aria-label="Filtros de usuarios"
-        >
-          {(
-            [
-              ["all", "Todos"],
-              ["active", "Activos"],
-              ["disabled", "Desactivados"],
-            ] as const
-          ).map(([value, label]) => (
-            <Button
-              key={value}
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => setFilter(value)}
-              className={cn(
-                "text-gray-500 hover:bg-white/70",
-                filter === value &&
-                  "border border-gray-200 bg-white text-gray-900 shadow-xs hover:bg-white"
-              )}
-            >
-              {label}
-              {value !== "all" && (
-                <Badge
-                  variant="secondary"
-                  className="h-5 min-w-5 rounded-full px-1.5 text-[11px]"
-                >
-                  {value === "active" ? 1 : 0}
-                </Badge>
-              )}
-            </Button>
-          ))}
+        <div className="col-span-full flex flex-wrap items-center justify-between gap-3">
+          <div
+            className="flex w-fit items-center gap-1 rounded-lg bg-gray-100 p-1"
+            aria-label="Filtros de usuarios"
+          >
+            {(
+              [
+                ["all", "Todos"],
+                ["client", "Clientes"],
+                ["team", "Equipo"],
+              ] as const
+            ).map(([value, label]) => (
+              <Button
+                key={value}
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setFilter(value);
+                  setRoleFilter("all");
+                }}
+                className={cn(
+                  "text-gray-500 hover:bg-white/70",
+                  filter === value &&
+                    "border border-gray-200 bg-white text-gray-900 shadow-xs hover:bg-white"
+                )}
+              >
+                {label}
+                {value !== "all" && (
+                  <Badge
+                    variant="secondary"
+                    className="h-5 min-w-5 rounded-full px-1.5 text-[11px]"
+                  >
+                    {users.filter((user) => user.type === value).length}
+                  </Badge>
+                )}
+              </Button>
+            ))}
+          </div>
+
+          <Button variant="outline" size="sm">
+            <ArchiveIcon data-icon="inline-start" />
+            Usuarios archivados
+          </Button>
         </div>
+
+        {filter === "team" && (
+          <div className="col-span-full flex items-center gap-2">
+            <span className="text-sm text-gray-500">Filtrar por rol</span>
+            <Select
+              value={roleFilter}
+              onValueChange={(value) => setRoleFilter(value ?? "all")}
+            >
+              <SelectTrigger size="sm" className="min-w-40">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos los roles</SelectItem>
+                {roles.map((role) => (
+                  <SelectItem key={role} value={role}>
+                    {role}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
       </CardHeader>
 
       <CardContent className="px-0">
@@ -155,12 +200,15 @@ export function UsersTableCard() {
                   />
                 </div>
               </TableHead>
-              <TableHead className="w-64">Usuario</TableHead>
-              <TableHead className="w-48">Rol</TableHead>
-              <TableHead className="w-36">Estado</TableHead>
-              <TableHead className="w-12">
+              <TableHead className="w-48">Usuario</TableHead>
+              <TableHead className="w-60">Correo</TableHead>
+              {filter !== "client" && (
+                <TableHead className="w-40">Rol</TableHead>
+              )}
+              <TableHead className="w-16 text-center">
                 <span className="sr-only">Ver detalles</span>
               </TableHead>
+              <TableHead aria-hidden="true" />
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -186,41 +234,29 @@ export function UsersTableCard() {
                 <TableCell className="py-3 font-semibold">
                   {user.user}
                 </TableCell>
-                <TableCell className="py-3">
-                  <Badge
-                    variant="secondary"
-                    className="rounded-full bg-gray-100 font-normal text-gray-600"
-                  >
-                    {user.role}
-                  </Badge>
+                <TableCell className="py-3 text-gray-600">
+                  {user.email}
                 </TableCell>
-                <TableCell className="py-3">
-                  <Badge
-                    variant="ghost"
-                    className={cn(
-                      "gap-1 px-0",
-                      user.status === "Activo"
-                        ? "text-emerald-600"
-                        : "text-gray-500"
-                    )}
-                  >
-                    {user.status === "Activo" ? (
-                      <CheckCircle2Icon />
-                    ) : (
-                      <Clock3Icon />
-                    )}
-                    {user.status}
-                  </Badge>
-                </TableCell>
-                <TableCell className="py-3">
+                {filter !== "client" && (
+                  <TableCell className="py-3">
+                    <Badge
+                      variant="secondary"
+                      className="rounded-full bg-gray-100 font-normal text-gray-600"
+                    >
+                      {user.role}
+                    </Badge>
+                  </TableCell>
+                )}
+                <TableCell className="py-3 text-center">
                   <Button
                     variant="ghost"
-                    size="icon-sm"
+                    size="icon"
                     aria-label={`Ver detalles de ${user.user}`}
                   >
-                    <EyeIcon />
+                    <EyeIcon className="size-5" />
                   </Button>
                 </TableCell>
+                <TableCell aria-hidden="true" />
               </TableRow>
             ))}
           </TableBody>
