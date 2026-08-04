@@ -154,14 +154,6 @@ export const GetDownloadUrlRequestResponse = zod.object({
 })
 
 
-export const ListStatesRequestResponseItem = zod.object({
-  "created_at": zod.iso.datetime({"offset":true}),
-  "display_name": zod.string(),
-  "id": zod.uuid()
-})
-export const ListStatesRequestResponse = zod.array(ListStatesRequestResponseItem)
-
-
 export const CreateStateRequestBody = zod.object({
   "display_name": zod.string()
 })
@@ -210,22 +202,8 @@ export const listProductsRequestResponsePageMin = 0;
 
 export const ListProductsRequestResponse = zod.object({
   "data": zod.array(zod.object({
-  "brand": zod.object({
-  "created_at": zod.iso.datetime({"offset":true}),
-  "display_name": zod.string(),
-  "id": zod.uuid(),
-  "image_url": zod.string(),
-  "status": zod.enum(['enable', 'disable', 'archive'])
-}),
-  "category": zod.object({
-  "created_at": zod.iso.datetime({"offset":true}),
-  "description": zod.string().nullish(),
-  "display_name": zod.string(),
-  "id": zod.uuid(),
-  "parent_id": zod.union([zod.null(),zod.uuid()]).optional(),
-  "slug": zod.string(),
-  "status": zod.enum(['active', 'inactive'])
-}),
+  "brand_id": zod.uuid(),
+  "category_id": zod.uuid(),
   "created_at": zod.iso.datetime({"offset":true}),
   "description": zod.string().nullish(),
   "display_name": zod.string(),
@@ -247,22 +225,8 @@ export const CreateProductRequestBody = zod.object({
 })
 
 export const CreateProductRequestResponse = zod.object({
-  "brand": zod.object({
-  "created_at": zod.iso.datetime({"offset":true}),
-  "display_name": zod.string(),
-  "id": zod.uuid(),
-  "image_url": zod.string(),
-  "status": zod.enum(['enable', 'disable', 'archive'])
-}),
-  "category": zod.object({
-  "created_at": zod.iso.datetime({"offset":true}),
-  "description": zod.string().nullish(),
-  "display_name": zod.string(),
-  "id": zod.uuid(),
-  "parent_id": zod.union([zod.null(),zod.uuid()]).optional(),
-  "slug": zod.string(),
-  "status": zod.enum(['active', 'inactive'])
-}),
+  "brand_id": zod.uuid(),
+  "category_id": zod.uuid(),
   "created_at": zod.iso.datetime({"offset":true}),
   "description": zod.string().nullish(),
   "display_name": zod.string(),
@@ -274,7 +238,9 @@ export const CreateProductRequestResponse = zod.object({
 
 export const ListBrandsRequestQueryParams = zod.object({
   "page": zod.int().optional(),
-  "limit": zod.int().optional()
+  "limit": zod.int().optional(),
+  "display_name": zod.string().optional(),
+  "order": zod.enum(['asc', 'desc']).optional()
 })
 
 export const ListBrandsRequestResponse = zod.object({
@@ -362,8 +328,13 @@ export const ToggleBrandRequestResponse = zod.object({
 })
 
 
-export const ListCategoriesRequestResponse = zod.object({
-  "data": zod.array(zod.object({
+export const GetCategoriesRequestQueryParams = zod.object({
+  "display_name": zod.string().nullish().describe('Case-insensitive partial match against the category display name or description.'),
+  "order": zod.union([zod.null(),zod.enum(['asc', 'desc'])]).optional().describe('Sort by creation date: `asc` for oldest first, `desc` for newest first.')
+})
+
+export const GetCategoriesRequestResponse = zod.object({
+  "categories": zod.array(zod.object({
   "created_at": zod.iso.datetime({"offset":true}),
   "description": zod.string().nullish(),
   "display_name": zod.string(),
@@ -456,22 +427,8 @@ export const GetProductRequestParams = zod.object({
 })
 
 export const GetProductRequestResponse = zod.object({
-  "brand": zod.object({
-  "created_at": zod.iso.datetime({"offset":true}),
-  "display_name": zod.string(),
-  "id": zod.uuid(),
-  "image_url": zod.string(),
-  "status": zod.enum(['enable', 'disable', 'archive'])
-}),
-  "category": zod.object({
-  "created_at": zod.iso.datetime({"offset":true}),
-  "description": zod.string().nullish(),
-  "display_name": zod.string(),
-  "id": zod.uuid(),
-  "parent_id": zod.union([zod.null(),zod.uuid()]).optional(),
-  "slug": zod.string(),
-  "status": zod.enum(['active', 'inactive'])
-}),
+  "brand_id": zod.uuid(),
+  "category_id": zod.uuid(),
   "created_at": zod.iso.datetime({"offset":true}),
   "description": zod.string().nullish(),
   "display_name": zod.string(),
@@ -486,30 +443,16 @@ export const UpdateProductRequestParams = zod.object({
 })
 
 export const UpdateProductRequestBody = zod.object({
-  "brand_name": zod.string().nullish(),
-  "category_name": zod.string().nullish(),
+  "brand_id": zod.uuid(),
+  "category_id": zod.uuid(),
   "description": zod.string().nullish(),
-  "display_name": zod.string().nullish(),
-  "status": zod.union([zod.null(),zod.enum(['enable', 'disable', 'archive'])]).optional()
+  "display_name": zod.string(),
+  "status": zod.enum(['enable', 'disable', 'archive'])
 })
 
 export const UpdateProductRequestResponse = zod.object({
-  "brand": zod.object({
-  "created_at": zod.iso.datetime({"offset":true}),
-  "display_name": zod.string(),
-  "id": zod.uuid(),
-  "image_url": zod.string(),
-  "status": zod.enum(['enable', 'disable', 'archive'])
-}),
-  "category": zod.object({
-  "created_at": zod.iso.datetime({"offset":true}),
-  "description": zod.string().nullish(),
-  "display_name": zod.string(),
-  "id": zod.uuid(),
-  "parent_id": zod.union([zod.null(),zod.uuid()]).optional(),
-  "slug": zod.string(),
-  "status": zod.enum(['active', 'inactive'])
-}),
+  "brand_id": zod.uuid(),
+  "category_id": zod.uuid(),
   "created_at": zod.iso.datetime({"offset":true}),
   "description": zod.string().nullish(),
   "display_name": zod.string(),

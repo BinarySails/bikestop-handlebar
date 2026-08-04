@@ -6,13 +6,17 @@
  */
 import type { BrandId } from './brandId.ts';
 import type { CategoryId } from './categoryId.ts';
+import type { ProductId } from './productId.ts';
 import type { ProductStatus } from './productStatus.ts';
 
-export interface UpdateProductRequest {
+export interface Product {
   brand_id: BrandId;
   category_id: CategoryId;
+  created_at: string;
   /** @nullable */
   description?: string | null;
   display_name: string;
+  id: ProductId;
   status: ProductStatus;
+  updated_at: string;
 }

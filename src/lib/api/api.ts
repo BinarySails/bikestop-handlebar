@@ -49,12 +49,13 @@ import type {
   DeleteRoleResponse,
   ErrorResponse,
   FileId,
+  GetCategoriesRequestParams,
+  GetCategoriesResponse,
   GetCategoryByIdResponse,
   GetDownloadUrlRequestParams,
   GetDownloadUrlResponse,
   GetUserPermissionsResponse,
   ListBrandsRequestParams,
-  ListCategoriesResponse,
   ListPermissionsResponse,
   ListProductsRequestParams,
   ListProductsResponse,
@@ -67,8 +68,8 @@ import type {
   MeResponse,
   PaginatedBrand,
   PermissionId,
+  Product,
   ProductId,
-  ProductResponse,
   RemovePermissionsRequest,
   RemovePermissionsResponse,
   RemoveUserRoleResponse,
@@ -664,76 +665,6 @@ export const useGetDownloadUrlRequest = <TError = Promise<ErrorResponse | void>>
   }
 }
 
-export type listStatesRequestResponse200 = {
-  data: State[]
-  status: 200
-}
-
-export type listStatesRequestResponse500 = {
-  data: void
-  status: 500
-}
-
-export type listStatesRequestResponseSuccess = (listStatesRequestResponse200) & {
-  headers: Headers;
-};
-export type listStatesRequestResponseError = (listStatesRequestResponse500) & {
-  headers: Headers;
-};
-
-export type listStatesRequestResponse = (listStatesRequestResponseSuccess | listStatesRequestResponseError)
-
-export const getListStatesRequestUrl = () => {
-
-
-
-
-  return `http://localhost:8080/api/v1/locations/states`
-}
-
-export const listStatesRequest = async ( options?: RequestInit): Promise<listStatesRequestResponse> => {
-
-  const res = await fetch(getListStatesRequestUrl(),
-  {
-      credentials: 'include',
-    ...options,
-    method: 'GET'
-
-
-  }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: listStatesRequestResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as listStatesRequestResponse
-}
-
-
-
-
-export const getListStatesRequestKey = () => [`http://localhost:8080/api/v1/locations/states`] as const;
-
-export type ListStatesRequestQueryResult = NonNullable<Awaited<ReturnType<typeof listStatesRequest>>>
-
-export const useListStatesRequest = <TError = Promise<void>>(
-   options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof listStatesRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
-) => {
-  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
-
-  const isEnabled = swrOptions?.enabled !== false
-  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getListStatesRequestKey() : null);
-  const swrFn = () => listStatesRequest(fetchOptions)
-
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
-
-  return {
-    swrKey,
-    ...query
-  }
-}
-
 export type createStateRequestResponse201 = {
   data: State
   status: 201
@@ -988,7 +919,7 @@ export const useListProductsRequest = <TError = Promise<ErrorResponse>>(
 }
 
 export type createProductRequestResponse201 = {
-  data: ProductResponse
+  data: Product
   status: 201
 }
 
@@ -1555,36 +1486,43 @@ export const useToggleBrandRequest = <TError = Promise<ErrorResponse>>(
   }
 }
 
-export type listCategoriesRequestResponse200 = {
-  data: ListCategoriesResponse
+export type getCategoriesRequestResponse200 = {
+  data: GetCategoriesResponse
   status: 200
 }
 
-export type listCategoriesRequestResponse500 = {
+export type getCategoriesRequestResponse500 = {
   data: ErrorResponse
   status: 500
 }
 
-export type listCategoriesRequestResponseSuccess = (listCategoriesRequestResponse200) & {
+export type getCategoriesRequestResponseSuccess = (getCategoriesRequestResponse200) & {
   headers: Headers;
 };
-export type listCategoriesRequestResponseError = (listCategoriesRequestResponse500) & {
+export type getCategoriesRequestResponseError = (getCategoriesRequestResponse500) & {
   headers: Headers;
 };
 
-export type listCategoriesRequestResponse = (listCategoriesRequestResponseSuccess | listCategoriesRequestResponseError)
+export type getCategoriesRequestResponse = (getCategoriesRequestResponseSuccess | getCategoriesRequestResponseError)
 
-export const getListCategoriesRequestUrl = () => {
+export const getGetCategoriesRequestUrl = (params?: GetCategoriesRequestParams,) => {
+  const normalizedParams = new URLSearchParams();
 
+  Object.entries(params || {}).forEach(([key, value]) => {
 
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
 
+  const stringifiedParams = normalizedParams.toString();
 
-  return `http://localhost:8080/api/v1/products/categories`
+  return stringifiedParams.length > 0 ? `http://localhost:8080/api/v1/products/categories?${stringifiedParams}` : `http://localhost:8080/api/v1/products/categories`
 }
 
-export const listCategoriesRequest = async ( options?: RequestInit): Promise<listCategoriesRequestResponse> => {
+export const getCategoriesRequest = async (params?: GetCategoriesRequestParams, options?: RequestInit): Promise<getCategoriesRequestResponse> => {
 
-  const res = await fetch(getListCategoriesRequestUrl(),
+  const res = await fetch(getGetCategoriesRequestUrl(params),
   {
       credentials: 'include',
     ...options,
@@ -1597,25 +1535,25 @@ export const listCategoriesRequest = async ( options?: RequestInit): Promise<lis
 
   const body = [204, 205, 304].includes(res.status) ? null : await res.text();
 
-  const data: listCategoriesRequestResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as listCategoriesRequestResponse
+  const data: getCategoriesRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as getCategoriesRequestResponse
 }
 
 
 
 
-export const getListCategoriesRequestKey = () => [`http://localhost:8080/api/v1/products/categories`] as const;
+export const getGetCategoriesRequestKey = (params?: GetCategoriesRequestParams,) => [`http://localhost:8080/api/v1/products/categories`, ...(params ? [params]: [])] as const;
 
-export type ListCategoriesRequestQueryResult = NonNullable<Awaited<ReturnType<typeof listCategoriesRequest>>>
+export type GetCategoriesRequestQueryResult = NonNullable<Awaited<ReturnType<typeof getCategoriesRequest>>>
 
-export const useListCategoriesRequest = <TError = Promise<ErrorResponse>>(
-   options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof listCategoriesRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
+export const useGetCategoriesRequest = <TError = Promise<ErrorResponse>>(
+  params?: GetCategoriesRequestParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getCategoriesRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
 ) => {
   const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
 
   const isEnabled = swrOptions?.enabled !== false
-  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getListCategoriesRequestKey() : null);
-  const swrFn = () => listCategoriesRequest(fetchOptions)
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetCategoriesRequestKey(params) : null);
+  const swrFn = () => getCategoriesRequest(params, fetchOptions)
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
@@ -1947,7 +1885,7 @@ export const useDeleteCategoryRequest = <TError = Promise<ErrorResponse>>(
 }
 
 export type getProductRequestResponse200 = {
-  data: ProductResponse
+  data: Product
   status: 200
 }
 
@@ -2022,7 +1960,7 @@ export const useGetProductRequest = <TError = Promise<ErrorResponse>>(
 }
 
 export type updateProductRequestResponse200 = {
-  data: ProductResponse
+  data: Product
   status: 200
 }
 
