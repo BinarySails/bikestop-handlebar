@@ -34,7 +34,8 @@ export function AppSidebar() {
         aria-label="Navegación principal"
       >
         {navigationItems.map(({ label, icon: Icon, to }) => {
-          const active = pathname === to;
+          const active =
+            to === "/team" ? pathname.startsWith("/team") : pathname === to;
 
           return (
             <Button
