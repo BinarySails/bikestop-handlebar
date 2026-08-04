@@ -59,7 +59,6 @@ type CategoriesCatalogProps = {
 
 const dateFormatter = new Intl.DateTimeFormat("es-MX", {
   dateStyle: "medium",
-  timeStyle: "short",
 });
 
 function formatDate(value: string): string {
