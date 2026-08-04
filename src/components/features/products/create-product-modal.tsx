@@ -48,17 +48,19 @@ export function CreateProductDialog({
   const form = useForm({
     defaultValues: {
       displayName: "",
-      brandId: "",
-      categoryId: "",
+      brand: null as Brand | null,
+      category: null as Category | null,
       description: "",
     },
     onSubmit: async ({ value }) => {
-      const result = await trigger({
-        display_name: value.displayName,
-        brand_id: value.brandId,
-        category_id: value.categoryId,
-        description: value.description || null,
-      });
+      const result = await trigger(
+        await CreateProductRequestBody.parseAsync({
+          display_name: value.displayName,
+          brand_id: value.brand?.id,
+          category_id: value.category?.id,
+          description: value.description || null,
+        })
+      );
 
       const errorData =
         "data" in result
@@ -137,11 +139,11 @@ export function CreateProductDialog({
           </form.Field>
 
           <form.Field
-            name="brandId"
+            name="brand"
             validators={{
               onChange: ({ value }) => {
                 const result =
-                  CreateProductRequestBody.shape.brand_id.safeParse(value);
+                  CreateProductRequestBody.shape.brand_id.safeParse(value?.id);
                 return result.success
                   ? undefined
                   : result.error.issues[0].message;
@@ -153,7 +155,8 @@ export function CreateProductDialog({
                 <Label htmlFor={field.name}>Marca</Label>
                 <Select
                   value={field.state.value}
-                  onValueChange={(value) => field.handleChange(value ?? "")}
+                  onValueChange={(value) => field.handleChange(value)}
+                  itemToStringLabel={(value) => value.display_name}
                 >
                   <SelectTrigger id={field.name} className="w-full">
                     <SelectValue placeholder="Selecciona una marca" />
@@ -169,7 +172,7 @@ export function CreateProductDialog({
                       </SelectItem>
                     ) : (
                       brands.map((brand) => (
-                        <SelectItem key={brand.id} value={brand.id}>
+                        <SelectItem key={brand.id} value={brand}>
                           {brand.display_name}
                         </SelectItem>
                       ))
@@ -186,11 +189,13 @@ export function CreateProductDialog({
           </form.Field>
 
           <form.Field
-            name="categoryId"
+            name="category"
             validators={{
               onChange: ({ value }) => {
                 const result =
-                  CreateProductRequestBody.shape.category_id.safeParse(value);
+                  CreateProductRequestBody.shape.category_id.safeParse(
+                    value?.id
+                  );
                 return result.success
                   ? undefined
                   : result.error.issues[0].message;
@@ -202,7 +207,8 @@ export function CreateProductDialog({
                 <Label htmlFor={field.name}>Categoría</Label>
                 <Select
                   value={field.state.value}
-                  onValueChange={(value) => field.handleChange(value ?? "")}
+                  onValueChange={(value) => field.handleChange(value)}
+                  itemToStringLabel={(value) => value.display_name}
                 >
                   <SelectTrigger id={field.name} className="w-full">
                     <SelectValue placeholder="Selecciona una categoría" />
@@ -218,7 +224,7 @@ export function CreateProductDialog({
                       </SelectItem>
                     ) : (
                       categories.map((category) => (
-                        <SelectItem key={category.id} value={category.id}>
+                        <SelectItem key={category.id} value={category}>
                           {category.display_name}
                         </SelectItem>
                       ))
