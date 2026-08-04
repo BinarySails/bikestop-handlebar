@@ -112,7 +112,12 @@ function CategoryDetailSkeleton() {
 
 function CategoryDetailPage() {
   const { categoryId } = Route.useParams();
-  const { data: res, error, isLoading, mutate } = useGetCategoryRequest(categoryId);
+  const {
+    data: res,
+    error,
+    isLoading,
+    mutate,
+  } = useGetCategoryRequest(categoryId);
 
   const category: Category | null =
     res?.status === 200 ? res.data.category : null;
@@ -153,8 +158,7 @@ function CategoryDetailView({
     defaultValues: {
       display_name: category.display_name,
       description: category.description ?? "",
-      parent:
-        mockCategories.find((c) => c.id === category.parent_id) ?? null,
+      parent: mockCategories.find((c) => c.id === category.parent_id) ?? null,
     },
     onSubmit: async ({ value }) => {
       const slug = value.display_name.toLowerCase().replace(/\s+/g, "-");
