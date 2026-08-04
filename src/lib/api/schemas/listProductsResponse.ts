@@ -4,10 +4,10 @@
  * ciclo
  * OpenAPI spec version: 0.1.0
  */
-import type { ProductListItem } from './productListItem.ts';
+import type { Product } from './product.ts';
 
 export interface ListProductsResponse {
-  data: ProductListItem[];
+  data: Product[];
   /** @minimum 0 */
   limit: number;
   /** @minimum 0 */

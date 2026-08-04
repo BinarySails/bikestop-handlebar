@@ -75,7 +75,7 @@ export const CreateFileRequestResponse = zod.object({
 
 export const AssociateFileRequestBody = zod.object({
   "entity_id": zod.uuid(),
-  "entity_type": zod.enum(['product', 'order', 'invoice', 'customer', 'warehouse']),
+  "entity_type": zod.enum(['product', 'order', 'invoice', 'customer', 'warehouse', 'brand']),
   "file_id": zod.uuid(),
   "relationship_type": zod.enum(['primary_image'])
 })
@@ -84,7 +84,7 @@ export const AssociateFileRequestResponse = zod.object({
   "association": zod.object({
   "created_at": zod.iso.datetime({"offset":true}),
   "entity_id": zod.uuid(),
-  "entity_type": zod.enum(['product', 'order', 'invoice', 'customer', 'warehouse']),
+  "entity_type": zod.enum(['product', 'order', 'invoice', 'customer', 'warehouse', 'brand']),
   "file_id": zod.uuid(),
   "id": zod.uuid(),
   "relationship_type": zod.enum(['primary_image'])
@@ -154,14 +154,6 @@ export const GetDownloadUrlRequestResponse = zod.object({
 })
 
 
-export const ListStatesRequestResponseItem = zod.object({
-  "created_at": zod.iso.datetime({"offset":true}),
-  "display_name": zod.string(),
-  "id": zod.uuid()
-})
-export const ListStatesRequestResponse = zod.array(ListStatesRequestResponseItem)
-
-
 export const CreateStateRequestBody = zod.object({
   "display_name": zod.string()
 })
@@ -211,9 +203,7 @@ export const listProductsRequestResponsePageMin = 0;
 export const ListProductsRequestResponse = zod.object({
   "data": zod.array(zod.object({
   "brand_id": zod.uuid(),
-  "brand_name": zod.string(),
   "category_id": zod.uuid(),
-  "category_name": zod.string(),
   "created_at": zod.iso.datetime({"offset":true}),
   "description": zod.string().nullish(),
   "display_name": zod.string(),
@@ -246,6 +236,13 @@ export const CreateProductRequestResponse = zod.object({
 })
 
 
+export const ListBrandsRequestQueryParams = zod.object({
+  "page": zod.int().optional(),
+  "limit": zod.int().optional(),
+  "display_name": zod.string().optional(),
+  "order": zod.enum(['asc', 'desc']).optional()
+})
+
 export const ListBrandsRequestResponse = zod.object({
   "data": zod.array(zod.object({
   "created_at": zod.iso.datetime({"offset":true}),
@@ -253,7 +250,10 @@ export const ListBrandsRequestResponse = zod.object({
   "id": zod.uuid(),
   "image_url": zod.string(),
   "status": zod.enum(['enable', 'disable', 'archive'])
-}))
+})),
+  "limit": zod.int(),
+  "page": zod.int(),
+  "total": zod.int()
 })
 
 
@@ -328,8 +328,13 @@ export const ToggleBrandRequestResponse = zod.object({
 })
 
 
-export const ListCategoriesRequestResponse = zod.object({
-  "data": zod.array(zod.object({
+export const GetCategoriesRequestQueryParams = zod.object({
+  "display_name": zod.string().nullish().describe('Case-insensitive partial match against the category display name or description.'),
+  "order": zod.union([zod.null(),zod.enum(['asc', 'desc'])]).optional().describe('Sort by creation date: `asc` for oldest first, `desc` for newest first.')
+})
+
+export const GetCategoriesRequestResponse = zod.object({
+  "categories": zod.array(zod.object({
   "created_at": zod.iso.datetime({"offset":true}),
   "description": zod.string().nullish(),
   "display_name": zod.string(),
