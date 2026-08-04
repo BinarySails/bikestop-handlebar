@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { useForm, useSelector } from "@tanstack/react-form";
 import { toast } from "sonner";
-import { useCreateCategoryRequest } from "@/lib/api/api";
+import {
+  useCreateCategoryRequest,
+  useGetCategoriesRequest,
+} from "@/lib/api/api";
 import { CreateCategoryRequestBody } from "@/lib/api/zods";
 
 import { Button } from "@/components/ui/button";
@@ -26,66 +29,14 @@ import {
 } from "@/components/ui/combobox";
 import type { Category } from "@/lib/api/schemas";
 
-const mockCategories: Category[] = [
-  {
-    id: "1",
-    display_name: "Electronics",
-    slug: "electronics",
-    description: null,
-    created_at: "",
-    status: "active",
-    parent_id: null,
-  },
-  {
-    id: "2",
-    display_name: "Clothing",
-    slug: "clothing",
-    description: null,
-    created_at: "",
-    status: "active",
-    parent_id: null,
-  },
-  {
-    id: "3",
-    display_name: "Books",
-    slug: "books",
-    description: null,
-    created_at: "",
-    status: "active",
-    parent_id: null,
-  },
-  {
-    id: "4",
-    display_name: "Smartphones",
-    slug: "smartphones",
-    description: null,
-    created_at: "",
-    status: "active",
-    parent_id: "1",
-  },
-  {
-    id: "5",
-    display_name: "Laptops",
-    slug: "laptops",
-    description: null,
-    created_at: "",
-    status: "active",
-    parent_id: "1",
-  },
-  {
-    id: "6",
-    display_name: "T-Shirts",
-    slug: "t-shirts",
-    description: null,
-    created_at: "",
-    status: "active",
-    parent_id: "2",
-  },
-];
-
 export function CreateCategoryDialog() {
   const [open, setOpen] = useState(false);
   const { trigger } = useCreateCategoryRequest();
+  const { data: categoriesRes, isLoading: categoriesLoading } =
+    useGetCategoriesRequest();
+
+  const categories =
+    categoriesRes?.status === 200 ? categoriesRes.data.categories : [];
 
   const form = useForm({
     defaultValues: {
@@ -224,14 +175,19 @@ export function CreateCategoryDialog() {
                 <Combobox
                   value={field.state.value}
                   onValueChange={(value) => field.handleChange(value)}
-                  items={mockCategories}
+                  items={categories}
                   itemToStringValue={(item) => item.id}
                   itemToStringLabel={(item) => item.display_name}
                 >
                   <ComboboxInput
-                    placeholder="Select a parent category..."
+                    placeholder={
+                      categoriesLoading
+                        ? "Loading categories..."
+                        : "Select a parent category..."
+                    }
                     showTrigger
                     showClear
+                    disabled={categoriesLoading}
                   />
                   <ComboboxContent>
                     <ComboboxEmpty>No categories found</ComboboxEmpty>
