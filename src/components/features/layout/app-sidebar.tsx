@@ -21,7 +21,7 @@ const navigationItems = [
   { label: "Inventario", icon: Package, to: "/inventory" },
   { label: "Categorías", icon: Tags, to: "/categories" },
   { label: "Locaciones", icon: MapPin, to: "/locations" },
-  { label: "Equipo", icon: Users, to: "/team" },
+  { label: "Usuarios", icon: Users, to: "/users" },
 ] as const;
 
 export function AppSidebar() {

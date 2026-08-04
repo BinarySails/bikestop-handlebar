@@ -44,7 +44,7 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 
-type UserType = "client" | "team";
+type UserType = "client" | "users";
 type Filter = "all" | UserType;
 
 type UserRow = {
@@ -60,7 +60,7 @@ const users: UserRow[] = [
     id: 1,
     user: "Juan Pérez",
     email: "juan.perez@bikestop.mx",
-    type: "team",
+    type: "users",
     role: "Administrador",
   },
 ];
@@ -74,7 +74,7 @@ export function UsersTableCard() {
   const filteredUsers = useMemo(() => {
     return users.filter((user) => {
       if (filter !== "all" && user.type !== filter) return false;
-      if (filter === "team" && roleFilter !== "all") {
+      if (filter === "users" && roleFilter !== "all") {
         return user.role === roleFilter;
       }
       if (filter === "client" && clientSearch.trim()) {
@@ -91,7 +91,7 @@ export function UsersTableCard() {
   const roles = useMemo(
     () => [
       ...new Set(
-        users.filter((user) => user.type === "team").map((user) => user.role)
+        users.filter((user) => user.type === "users").map((user) => user.role)
       ),
     ],
     []
@@ -139,7 +139,7 @@ export function UsersTableCard() {
               [
                 ["all", "Todos"],
                 ["client", "Clientes"],
-                ["team", "Equipo"],
+                ["users", "Usuarios"],
               ] as const
             ).map(([value, label]) => (
               <Button
@@ -176,7 +176,7 @@ export function UsersTableCard() {
           </Button>
         </div>
 
-        {filter === "team" && (
+        {filter === "users" && (
           <div className="col-span-full flex items-center gap-2">
             <span className="text-sm text-gray-500">Filtrar por rol</span>
             <Select
