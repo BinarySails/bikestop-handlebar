@@ -33,9 +33,14 @@ import {
   useListCategoriesRequest,
   useUpdateProductRequest,
 } from "@/lib/api/api";
-import type { Brand, Category, Product } from "@/lib/api/schemas";
+import type {
+  Brand,
+  Category,
+  ProductResponse,
+  ProductStatus,
+} from "@/lib/api/schemas";
 
-const statusLabels: Record<string, string> = {
+const statusLabels: Record<ProductStatus, string> = {
   enable: "Activo",
   disable: "Inactivo",
   archive: "Archivado",
@@ -72,7 +77,7 @@ function ProductDetailPage() {
     mutate,
   } = useGetProductRequest(productId);
 
-  const product: Product | null = res?.status === 200 ? res.data : null;
+  const product: ProductResponse | null = res?.status === 200 ? res.data : null;
 
   if (isLoading) return <ProductDetailSkeleton />;
 
@@ -93,7 +98,7 @@ function ProductDetailView({
   product,
   mutateProduct,
 }: {
-  product: Product;
+  product: ProductResponse;
   mutateProduct: () => Promise<unknown>;
 }) {
   const { productId } = Route.useParams();
@@ -115,29 +120,37 @@ function ProductDetailView({
   const form = useForm({
     defaultValues: {
       display_name: product.display_name,
-      brand_id: product.brand_id,
-      category_id: product.category_id,
+      brand_id: product.brand.id,
+      category_id: product.category.id,
       description: product.description ?? "",
       status: product.status,
     },
     onSubmit: async ({ value }) => {
       const hasChanges =
         value.display_name !== product.display_name ||
-        value.brand_id !== product.brand_id ||
-        value.category_id !== product.category_id ||
+        value.brand_id !== product.brand.id ||
+        value.category_id !== product.category.id ||
+        value.status !== product.status ||
         (value.description || null) !== (product.description ?? null);
 
       if (!hasChanges) {
         return;
       }
 
+      const brandName =
+        brands.find((brand) => brand.id === value.brand_id)?.display_name ??
+        product.brand.display_name;
+      const categoryName =
+        categories.find((category) => category.id === value.category_id)
+          ?.display_name ?? product.category.display_name;
+
       try {
         const result = await updateProduct({
           display_name: value.display_name,
-          brand_id: value.brand_id,
-          category_id: value.category_id,
+          brand_name: brandName,
+          category_name: categoryName,
           description: value.description || null,
-          status: product.status,
+          status: value.status,
         });
 
         if (result?.status !== 200) {
@@ -151,7 +164,7 @@ function ProductDetailView({
           brand_id: value.brand_id,
           category_id: value.category_id,
           description: value.description,
-          status: product.status,
+          status: value.status,
         });
         await mutateProduct();
       } catch {
@@ -165,8 +178,8 @@ function ProductDetailView({
     try {
       const result = await updateProduct({
         display_name: product.display_name,
-        brand_id: product.brand_id,
-        category_id: product.category_id,
+        brand_name: product.brand.display_name,
+        category_name: product.category.display_name,
         description: product.description ?? null,
         status: "archive",
       });
@@ -247,7 +260,15 @@ function ProductDetailView({
                       disabled={isArchived || brandsLoading}
                     >
                       <SelectTrigger id={field.name} className="w-full">
-                        <SelectValue placeholder="Selecciona una marca" />
+                        <SelectValue
+                          placeholder="Selecciona una marca"
+                          render={() => (
+                            <span>
+                              {brands.find((brand) => brand.id === field.state.value)
+                                ?.display_name ?? "Selecciona una marca"}
+                            </span>
+                          )}
+                        />
                       </SelectTrigger>
                       <SelectContent>
                         {brands.map((brand) => (
@@ -271,7 +292,16 @@ function ProductDetailView({
                       disabled={isArchived || categoriesLoading}
                     >
                       <SelectTrigger id={field.name} className="w-full">
-                        <SelectValue placeholder="Selecciona una categoría" />
+                        <SelectValue
+                          placeholder="Selecciona una categoría"
+                          render={() => (
+                            <span>
+                              {categories.find(
+                                (category) => category.id === field.state.value
+                              )?.display_name ?? "Selecciona una categoría"}
+                            </span>
+                          )}
+                        />
                       </SelectTrigger>
                       <SelectContent>
                         {categories.map((category) => (
@@ -301,28 +331,39 @@ function ProductDetailView({
                 )}
               </form.Field>
 
-              <div className="grid gap-2">
-                <Label htmlFor="status">Estado</Label>
-                <Select value={product.status} disabled>
-                  <SelectTrigger id="status" className="w-full">
-                    <SelectValue
-                      render={() => (
-                        <span>
-                          {statusLabels[product.status] ?? product.status}
-                        </span>
-                      )}
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="enable">
-                      {statusLabels.enable}
-                    </SelectItem>
-                    <SelectItem value="disable">
-                      {statusLabels.disable}
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              <form.Field name="status">
+                {(field) => (
+                  <div className="grid gap-2">
+                    <Label htmlFor={field.name}>Estado</Label>
+                    <Select
+                      value={field.state.value}
+                      onValueChange={(value) =>
+                        field.handleChange(value as ProductStatus)
+                      }
+                      disabled={isArchived}
+                    >
+                      <SelectTrigger id={field.name} className="w-full">
+                        <SelectValue
+                          render={() => (
+                            <span>
+                              {statusLabels[field.state.value] ??
+                                field.state.value}
+                            </span>
+                          )}
+                        />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="enable">
+                          {statusLabels.enable}
+                        </SelectItem>
+                        <SelectItem value="disable">
+                          {statusLabels.disable}
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </form.Field>
             </CardContent>
           </Card>
         </section>

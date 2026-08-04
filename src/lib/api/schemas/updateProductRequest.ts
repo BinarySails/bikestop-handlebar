@@ -4,15 +4,16 @@
  * ciclo
  * OpenAPI spec version: 0.1.0
  */
-import type { BrandId } from './brandId.ts';
-import type { CategoryId } from './categoryId.ts';
 import type { ProductStatus } from './productStatus.ts';
 
 export interface UpdateProductRequest {
-  brand_id: BrandId;
-  category_id: CategoryId;
+  /** @nullable */
+  brand_name?: string | null;
+  /** @nullable */
+  category_name?: string | null;
   /** @nullable */
   description?: string | null;
-  display_name: string;
-  status: ProductStatus;
+  /** @nullable */
+  display_name?: string | null;
+  status?: null | ProductStatus;
 }

@@ -4,16 +4,14 @@
  * ciclo
  * OpenAPI spec version: 0.1.0
  */
-import type { BrandId } from './brandId.ts';
-import type { CategoryId } from './categoryId.ts';
+import type { Brand } from './brand.ts';
+import type { Category } from './category.ts';
 import type { ProductId } from './productId.ts';
 import type { ProductStatus } from './productStatus.ts';
 
-export interface ProductListItem {
-  brand_id: BrandId;
-  brand_name: string;
-  category_id: CategoryId;
-  category_name: string;
+export interface ProductListItemResponse {
+  brand: Brand;
+  category: Category;
   created_at: string;
   /** @nullable */
   description?: string | null;

@@ -3,16 +3,16 @@ import { ArrowLeft, Save, Trash2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import type { Product } from "@/lib/api/schemas";
+import type { ProductResponse } from "@/lib/api/schemas";
 
-const statusLabel: Record<Product["status"], string> = {
+const statusLabel: Record<ProductResponse["status"], string> = {
   enable: "Activo",
   disable: "Inactivo",
   archive: "Archivado",
 };
 
 type ProductDetailHeaderProps = {
-  product: Product;
+  product: ProductResponse;
   isDirty?: boolean;
   isSubmitting?: boolean;
   onSave?: () => void;

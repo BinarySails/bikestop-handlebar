@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight, MoreVertical, Search } from "lucide-react";
 import { toast } from "sonner";
@@ -33,7 +33,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useListProductsRequest, useUpdateProductRequest } from "@/lib/api/api";
-import type { ProductListItem } from "@/lib/api/schemas";
+import type { ProductListItemResponse } from "@/lib/api/schemas";
 
 export const Route = createFileRoute("/_layout/products/")({
   component: ProductsListPage,
@@ -44,7 +44,7 @@ const PAGE_SIZE = 10;
 type ListStatusFilter = "all" | "enable" | "disable";
 
 const statusBadgeVariant: Record<
-  ProductListItem["status"],
+  ProductListItemResponse["status"],
   "default" | "secondary" | "destructive"
 > = {
   enable: "default",
@@ -52,10 +52,16 @@ const statusBadgeVariant: Record<
   archive: "destructive",
 };
 
-const statusLabel: Record<ProductListItem["status"], string> = {
+const statusLabel: Record<ProductListItemResponse["status"], string> = {
   enable: "Activo",
   disable: "Inactivo",
   archive: "Archivado",
+};
+
+const statusFilterLabel: Record<ListStatusFilter, string> = {
+  all: "Todos",
+  enable: "Activo",
+  disable: "Inactivo",
 };
 
 function ViewProductMenuItem({ productId }: { productId: string }) {
@@ -76,7 +82,7 @@ function ArchiveProductMenuItem({
   product,
   onSuccess,
 }: {
-  product: ProductListItem;
+  product: ProductListItemResponse;
   onSuccess?: () => Promise<unknown>;
 }) {
   const { trigger: updateProduct } = useUpdateProductRequest(product.id);
@@ -87,8 +93,8 @@ function ArchiveProductMenuItem({
     try {
       const result = await updateProduct({
         display_name: product.display_name,
-        brand_id: product.brand_id,
-        category_id: product.category_id,
+        brand_name: product.brand.display_name,
+        category_name: product.category.display_name,
         description: product.description ?? null,
         status: "archive",
       });
@@ -161,6 +167,17 @@ function ProductsListPage() {
     setPage(0);
   }
 
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (search !== appliedSearch) {
+        setAppliedSearch(search);
+        setPage(0);
+      }
+    }, 300);
+
+    return () => clearTimeout(timeout);
+  }, [search, appliedSearch]);
+
   return (
     <section
       aria-label="Productos"
@@ -203,7 +220,10 @@ function ProductsListPage() {
               }}
             >
               <SelectTrigger id="status" className="w-44">
-                <SelectValue placeholder="Seleccionar" />
+                <SelectValue
+                  placeholder="Seleccionar"
+                  render={() => <span>{statusFilterLabel[status]}</span>}
+                />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos</SelectItem>
@@ -213,12 +233,6 @@ function ProductsListPage() {
             </Select>
           </div>
 
-          <div className="flex flex-col gap-1.5">
-            <span className="text-sm font-medium">&nbsp;</span>
-            <Button className="h-8" size="sm" onClick={handleApplySearch}>
-              Buscar
-            </Button>
-          </div>
           <div className="flex flex-col gap-1.5">
             <span className="text-sm font-medium">&nbsp;</span>
             <Button
@@ -268,8 +282,8 @@ function ProductsListPage() {
                       <TableCell className="font-medium">
                         {product.display_name}
                       </TableCell>
-                      <TableCell>{product.brand_name}</TableCell>
-                      <TableCell>{product.category_name}</TableCell>
+                      <TableCell>{product.brand.display_name}</TableCell>
+                      <TableCell>{product.category.display_name}</TableCell>
                       <TableCell>
                         <DropdownMenu>
                           <DropdownMenuTrigger

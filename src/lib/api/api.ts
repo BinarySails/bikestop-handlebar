@@ -53,7 +53,7 @@ import type {
   GetDownloadUrlRequestParams,
   GetDownloadUrlResponse,
   GetUserPermissionsResponse,
-  ListBrandsResponse,
+  ListBrandsRequestParams,
   ListCategoriesResponse,
   ListPermissionsResponse,
   ListProductsRequestParams,
@@ -65,9 +65,10 @@ import type {
   LoginRequest,
   LoginResponse,
   MeResponse,
+  PaginatedBrand,
   PermissionId,
-  Product,
   ProductId,
+  ProductResponse,
   RemovePermissionsRequest,
   RemovePermissionsResponse,
   RemoveUserRoleResponse,
@@ -663,6 +664,76 @@ export const useGetDownloadUrlRequest = <TError = Promise<ErrorResponse | void>>
   }
 }
 
+export type listStatesRequestResponse200 = {
+  data: State[]
+  status: 200
+}
+
+export type listStatesRequestResponse500 = {
+  data: void
+  status: 500
+}
+
+export type listStatesRequestResponseSuccess = (listStatesRequestResponse200) & {
+  headers: Headers;
+};
+export type listStatesRequestResponseError = (listStatesRequestResponse500) & {
+  headers: Headers;
+};
+
+export type listStatesRequestResponse = (listStatesRequestResponseSuccess | listStatesRequestResponseError)
+
+export const getListStatesRequestUrl = () => {
+
+
+
+
+  return `http://localhost:8080/api/v1/locations/states`
+}
+
+export const listStatesRequest = async ( options?: RequestInit): Promise<listStatesRequestResponse> => {
+
+  const res = await fetch(getListStatesRequestUrl(),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'GET'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: listStatesRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as listStatesRequestResponse
+}
+
+
+
+
+export const getListStatesRequestKey = () => [`http://localhost:8080/api/v1/locations/states`] as const;
+
+export type ListStatesRequestQueryResult = NonNullable<Awaited<ReturnType<typeof listStatesRequest>>>
+
+export const useListStatesRequest = <TError = Promise<void>>(
+   options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof listStatesRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
+) => {
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getListStatesRequestKey() : null);
+  const swrFn = () => listStatesRequest(fetchOptions)
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
 export type createStateRequestResponse201 = {
   data: State
   status: 201
@@ -917,7 +988,7 @@ export const useListProductsRequest = <TError = Promise<ErrorResponse>>(
 }
 
 export type createProductRequestResponse201 = {
-  data: Product
+  data: ProductResponse
   status: 201
 }
 
@@ -997,7 +1068,7 @@ export const useCreateProductRequest = <TError = Promise<ErrorResponse>>(
 }
 
 export type listBrandsRequestResponse200 = {
-  data: ListBrandsResponse
+  data: PaginatedBrand
   status: 200
 }
 
@@ -1015,17 +1086,24 @@ export type listBrandsRequestResponseError = (listBrandsRequestResponse500) & {
 
 export type listBrandsRequestResponse = (listBrandsRequestResponseSuccess | listBrandsRequestResponseError)
 
-export const getListBrandsRequestUrl = () => {
+export const getListBrandsRequestUrl = (params?: ListBrandsRequestParams,) => {
+  const normalizedParams = new URLSearchParams();
 
+  Object.entries(params || {}).forEach(([key, value]) => {
 
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
 
+  const stringifiedParams = normalizedParams.toString();
 
-  return `http://localhost:8080/api/v1/products/brands`
+  return stringifiedParams.length > 0 ? `http://localhost:8080/api/v1/products/brands?${stringifiedParams}` : `http://localhost:8080/api/v1/products/brands`
 }
 
-export const listBrandsRequest = async ( options?: RequestInit): Promise<listBrandsRequestResponse> => {
+export const listBrandsRequest = async (params?: ListBrandsRequestParams, options?: RequestInit): Promise<listBrandsRequestResponse> => {
 
-  const res = await fetch(getListBrandsRequestUrl(),
+  const res = await fetch(getListBrandsRequestUrl(params),
   {
       credentials: 'include',
     ...options,
@@ -1045,18 +1123,18 @@ export const listBrandsRequest = async ( options?: RequestInit): Promise<listBra
 
 
 
-export const getListBrandsRequestKey = () => [`http://localhost:8080/api/v1/products/brands`] as const;
+export const getListBrandsRequestKey = (params?: ListBrandsRequestParams,) => [`http://localhost:8080/api/v1/products/brands`, ...(params ? [params]: [])] as const;
 
 export type ListBrandsRequestQueryResult = NonNullable<Awaited<ReturnType<typeof listBrandsRequest>>>
 
 export const useListBrandsRequest = <TError = Promise<ErrorResponse>>(
-   options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof listBrandsRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
+  params?: ListBrandsRequestParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof listBrandsRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
 ) => {
   const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
 
   const isEnabled = swrOptions?.enabled !== false
-  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getListBrandsRequestKey() : null);
-  const swrFn = () => listBrandsRequest(fetchOptions)
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getListBrandsRequestKey(params) : null);
+  const swrFn = () => listBrandsRequest(params, fetchOptions)
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
@@ -1869,7 +1947,7 @@ export const useDeleteCategoryRequest = <TError = Promise<ErrorResponse>>(
 }
 
 export type getProductRequestResponse200 = {
-  data: Product
+  data: ProductResponse
   status: 200
 }
 
@@ -1944,7 +2022,7 @@ export const useGetProductRequest = <TError = Promise<ErrorResponse>>(
 }
 
 export type updateProductRequestResponse200 = {
-  data: Product
+  data: ProductResponse
   status: 200
 }
 
