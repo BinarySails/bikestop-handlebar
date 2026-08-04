@@ -170,7 +170,7 @@ export function CreateCategoryDialog() {
                   placeholder="Electronics"
                   aria-invalid={
                     field.state.meta.isTouched &&
-                      field.state.meta.errors.length > 0
+                    field.state.meta.errors.length > 0
                       ? "true"
                       : undefined
                   }
