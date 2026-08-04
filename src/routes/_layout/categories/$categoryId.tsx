@@ -29,67 +29,22 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   useDeleteCategoryRequest,
+  useGetCategoriesRequest,
   useGetCategoryRequest,
   useUpdateCategoryRequest,
 } from "@/lib/api/api";
 import type { Category } from "@/lib/api/schemas";
 
-const mockCategories: Category[] = [
-  {
-    id: "1",
-    display_name: "Electronics",
-    slug: "electronics",
-    description: null,
-    created_at: "",
-    parent_id: null,
-    status: "active",
-  },
-  {
-    id: "2",
-    display_name: "Clothing",
-    slug: "clothing",
-    description: null,
-    created_at: "",
-    parent_id: null,
-    status: "active",
-  },
-  {
-    id: "3",
-    display_name: "Books",
-    slug: "books",
-    description: null,
-    created_at: "",
-    parent_id: null,
-    status: "active",
-  },
-  {
-    id: "4",
-    display_name: "Smartphones",
-    slug: "smartphones",
-    description: null,
-    created_at: "",
-    parent_id: "1",
-    status: "active",
-  },
-  {
-    id: "5",
-    display_name: "Laptops",
-    slug: "laptops",
-    description: null,
-    created_at: "",
-    parent_id: "1",
-    status: "active",
-  },
-  {
-    id: "6",
-    display_name: "T-Shirts",
-    slug: "t-shirts",
-    description: null,
-    created_at: "",
-    parent_id: "2",
-    status: "active",
-  },
-];
+function isDescendantOf(
+  categories: Category[],
+  categoryId: string,
+  ancestorId: string
+): boolean {
+  const category = categories.find((c) => c.id === categoryId);
+  if (!category?.parent_id) return false;
+  if (category.parent_id === ancestorId) return true;
+  return isDescendantOf(categories, category.parent_id, ancestorId);
+}
 
 export const Route = createFileRoute("/_layout/categories/$categoryId")({
   component: CategoryDetailPage,
@@ -148,6 +103,15 @@ function CategoryDetailView({
   const navigate = useNavigate();
   const { trigger: updateCategory } = useUpdateCategoryRequest(categoryId);
   const { trigger: deleteCategory } = useDeleteCategoryRequest(categoryId);
+  const { data: categoriesRes, isLoading: categoriesLoading } =
+    useGetCategoriesRequest();
+
+  const categories =
+    categoriesRes?.status === 200 ? categoriesRes.data.categories : [];
+  const availableParents = categories.filter(
+    (c) =>
+      c.id !== category.id && !isDescendantOf(categories, c.id, category.id)
+  );
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deletePending, setDeletePending] = useState(false);
@@ -158,7 +122,7 @@ function CategoryDetailView({
     defaultValues: {
       display_name: category.display_name,
       description: category.description ?? "",
-      parent: mockCategories.find((c) => c.id === category.parent_id) ?? null,
+      parent: categories.find((c) => c.id === category.parent_id) ?? null,
     },
     onSubmit: async ({ value }) => {
       const slug = value.display_name.toLowerCase().replace(/\s+/g, "-");
@@ -299,15 +263,19 @@ function CategoryDetailView({
                     <Combobox
                       value={field.state.value}
                       onValueChange={(value) => field.handleChange(value)}
-                      items={mockCategories}
+                      items={availableParents}
                       itemToStringValue={(item) => item.id}
                       itemToStringLabel={(item) => item.display_name}
                     >
                       <ComboboxInput
-                        placeholder="Selecciona una categoría padre..."
+                        placeholder={
+                          categoriesLoading
+                            ? "Cargando categorías..."
+                            : "Selecciona una categoría padre..."
+                        }
                         showTrigger
                         showClear
-                        disabled={isInactive}
+                        disabled={isInactive || categoriesLoading}
                       />
                       <ComboboxContent>
                         <ComboboxEmpty>
