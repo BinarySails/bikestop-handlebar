@@ -190,7 +190,6 @@ function ProductsListPage() {
         <div className="flex items-center gap-2">
           <Button
             render={<Link to="/categories" />}
-            variant="outline"
             size="sm"
           >
             Administrar Categorías
