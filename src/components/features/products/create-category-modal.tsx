@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useForm, useSelector } from "@tanstack/react-form";
+import { useForm } from "@tanstack/react-form";
 import { toast } from "sonner";
 import {
   useCreateCategoryRequest,
@@ -15,7 +15,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,8 +28,18 @@ import {
 } from "@/components/ui/combobox";
 import type { Category } from "@/lib/api/schemas";
 
-export function CreateCategoryDialog() {
-  const [open, setOpen] = useState(false);
+export function CreateCategoryDialog({
+  open: controlledOpen,
+  onOpenChange,
+  onSuccess,
+}: {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  onSuccess?: () => void;
+} = {}) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = onOpenChange ?? setInternalOpen;
   const { trigger } = useCreateCategoryRequest();
   const { data: categoriesRes, isLoading: categoriesLoading } =
     useGetCategoriesRequest();
@@ -60,32 +69,23 @@ export function CreateCategoryDialog() {
           : null;
 
       if (result.status === 201) {
-        toast.success(`Category "${value.displayName}" created!`);
+        toast.success(`Categoría "${value.displayName}" creada.`);
         form.reset();
         setOpen(false);
+        onSuccess?.();
       } else {
-        toast.error(errorData?.message ?? "Failed to create category");
+        toast.error(errorData?.message ?? "Error al crear la categoría.");
       }
     },
   });
 
-  const displayName = useSelector(
-    form.baseStore,
-    (state) => state.values.displayName
-  );
-  const slug = displayName.toLowerCase().replace(/\s+/g, "-");
-
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger>
-        <Button>Create Category</Button>
-      </DialogTrigger>
-
-      <DialogContent className="sm:max-w-lg">
+    <Dialog key="create-category" open={open} onOpenChange={setOpen}>
+      <DialogContent className="sm:max-w-lg" showCloseButton>
         <DialogHeader>
-          <DialogTitle>Create Category</DialogTitle>
+          <DialogTitle>Crear Categoría</DialogTitle>
           <DialogDescription>
-            Enter the information for the new category.
+            Ingresa la información de la nueva categoría.
           </DialogDescription>
         </DialogHeader>
 
@@ -105,20 +105,20 @@ export function CreateCategoryDialog() {
                   CreateCategoryRequestBody.shape.display_name.safeParse(value);
                 if (!result.success) return result.error.issues[0].message;
                 if (value.length < 3)
-                  return "Display name must be at least 3 characters";
+                  return "El nombre debe tener al menos 3 caracteres";
                 return undefined;
               },
             }}
           >
             {(field) => (
               <div className="grid gap-2">
-                <Label htmlFor={field.name}>Display Name</Label>
+                <Label htmlFor={field.name}>Nombre de la categoría</Label>
                 <Input
                   id={field.name}
                   name={field.name}
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
-                  placeholder="Electronics"
+                  placeholder="Electrónica"
                   aria-invalid={
                     field.state.meta.isTouched &&
                     field.state.meta.errors.length > 0
@@ -135,10 +135,19 @@ export function CreateCategoryDialog() {
             )}
           </form.Field>
 
-          <div className="grid gap-2">
-            <Label htmlFor="slug">Slug</Label>
-            <Input id="slug" name="slug" value={slug} disabled />
-          </div>
+          <form.Subscribe selector={(state) => [state.values.displayName]}>
+            {([displayName]) => (
+              <div className="grid gap-2">
+                <Label htmlFor="slug">Slug</Label>
+                <Input
+                  id="slug"
+                  name="slug"
+                  value={displayName.toLowerCase().replace(/\s+/g, "-")}
+                  disabled
+                />
+              </div>
+            )}
+          </form.Subscribe>
 
           <form.Field
             name="description"
@@ -156,13 +165,13 @@ export function CreateCategoryDialog() {
           >
             {(field) => (
               <div className="grid gap-2">
-                <Label htmlFor={field.name}>Description</Label>
+                <Label htmlFor={field.name}>Descripción (opcional)</Label>
                 <Input
                   id={field.name}
                   name={field.name}
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
-                  placeholder="Optional description"
+                  placeholder="Descripción de la categoría"
                 />
               </div>
             )}
@@ -171,7 +180,7 @@ export function CreateCategoryDialog() {
           <form.Field name="parent">
             {(field) => (
               <div className="grid gap-2">
-                <Label>Parent Category</Label>
+                <Label>Categoría padre</Label>
                 <Combobox
                   value={field.state.value}
                   onValueChange={(value) => field.handleChange(value)}
@@ -182,15 +191,15 @@ export function CreateCategoryDialog() {
                   <ComboboxInput
                     placeholder={
                       categoriesLoading
-                        ? "Loading categories..."
-                        : "Select a parent category..."
+                        ? "Cargando categorías..."
+                        : "Selecciona una categoría padre..."
                     }
                     showTrigger
                     showClear
                     disabled={categoriesLoading}
                   />
                   <ComboboxContent>
-                    <ComboboxEmpty>No categories found</ComboboxEmpty>
+                    <ComboboxEmpty>No se encontraron categorías</ComboboxEmpty>
 
                     <ComboboxList>
                       {(item: Category) => (
@@ -211,13 +220,13 @@ export function CreateCategoryDialog() {
               variant="outline"
               onClick={() => setOpen(false)}
             >
-              Cancel
+              Cancelar
             </Button>
 
             <form.Subscribe selector={(state) => [state.isSubmitting]}>
               {([isSubmitting]) => (
                 <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? "Creating..." : "Create Category"}
+                  {isSubmitting ? "Creando..." : "Crear Categoría"}
                 </Button>
               )}
             </form.Subscribe>

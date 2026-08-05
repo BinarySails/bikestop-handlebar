@@ -8,6 +8,8 @@ import {
   CircleX,
   MoreHorizontal,
   ArrowLeft,
+  Search,
+  RotateCcw,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -16,8 +18,17 @@ import type { Role } from "@/lib/api/schemas";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableHeader,
@@ -43,6 +54,14 @@ export const Route = createFileRoute("/_layout/team/roles")({
 
 const PAGE_SIZE = 10;
 
+type StatusFilter = "all" | "active" | "inactive";
+
+const statusFilterLabel: Record<StatusFilter, string> = {
+  all: "Todos",
+  active: "Activos",
+  inactive: "Inactivos",
+};
+
 function RolesPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [editingRole, setEditingRole] = useState<Role | undefined>(undefined);
@@ -50,7 +69,8 @@ function RolesPage() {
   const [viewingRolePermissions, setViewingRolePermissions] =
     useState<Role | null>(null);
   const [assigningRole, setAssigningRole] = useState<Role | null>(null);
-  const [activeTab, setActiveTab] = useState("all");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
 
   const { data, isLoading, mutate } = useListRolesHandler();
@@ -63,12 +83,20 @@ function RolesPage() {
   );
 
   const filteredRoles = useMemo(() => {
-    if (activeTab === "active")
-      return allRoles.filter((r) => r.status === "active");
-    if (activeTab === "inactive")
-      return allRoles.filter((r) => r.status === "inactive");
-    return allRoles;
-  }, [allRoles, activeTab]);
+    const query = search.trim().toLowerCase();
+    return allRoles.filter((role) => {
+      if (statusFilter === "active" && role.status !== "active") return false;
+      if (statusFilter === "inactive" && role.status !== "inactive")
+        return false;
+      if (query) {
+        const matches =
+          role.display_name.toLowerCase().includes(query) ||
+          role.slug.toLowerCase().includes(query);
+        if (!matches) return false;
+      }
+      return true;
+    });
+  }, [allRoles, statusFilter, search]);
 
   const totalPages = Math.max(1, Math.ceil(filteredRoles.length / PAGE_SIZE));
   const paginatedRoles = filteredRoles.slice(
@@ -128,8 +156,22 @@ function RolesPage() {
     }
   };
 
+  function handleStatusChange(value: StatusFilter | null) {
+    setStatusFilter(value ?? "all");
+    setPage(1);
+  }
+
+  function handleClearFilters() {
+    setSearch("");
+    setStatusFilter("all");
+    setPage(1);
+  }
+
   return (
-    <main className="container mx-auto max-w-5xl p-6">
+    <section
+      aria-label="Roles"
+      className="mx-auto flex w-full max-w-6xl flex-col gap-6 p-6"
+    >
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <Button
@@ -146,53 +188,78 @@ function RolesPage() {
             Administra los roles del sistema y sus niveles de acceso.
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button onClick={handleCreate} size="sm">
-            <Plus />
-            Crear Rol
-          </Button>
+        <Button onClick={handleCreate}>
+          <Plus />
+          Crear Rol
+        </Button>
+      </div>
+
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-wrap items-end gap-4">
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="role-search">Búsqueda</Label>
+            <div className="relative">
+              <Search className="absolute top-2.5 left-2.5 size-4 text-muted-foreground" />
+              <Input
+                id="role-search"
+                placeholder="Nombre o slug"
+                value={search}
+                onChange={(event) => {
+                  setSearch(event.target.value);
+                  setPage(1);
+                }}
+                className="w-72 pl-9"
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="role-status">Estatus</Label>
+            <Select value={statusFilter} onValueChange={handleStatusChange}>
+              <SelectTrigger id="role-status" className="w-44">
+                <SelectValue
+                  placeholder="Seleccionar"
+                  render={() => <span>{statusFilterLabel[statusFilter]}</span>}
+                />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="active">Activos</SelectItem>
+                <SelectItem value="inactive">Inactivos</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <span className="text-sm font-medium">&nbsp;</span>
+            <Button
+              className="h-8"
+              variant="outline"
+              size="sm"
+              onClick={handleClearFilters}
+            >
+              <RotateCcw /> Limpiar
+            </Button>
+          </div>
         </div>
       </div>
 
-      <Tabs
-        value={activeTab}
-        onValueChange={(v) => {
-          setActiveTab(v);
-          setPage(1);
-        }}
-        className="mt-6"
-      >
-        <TabsList>
-          <TabsTrigger value="all">Todos ({allRoles.length})</TabsTrigger>
-          <TabsTrigger value="active">
-            Activos ({allRoles.filter((r) => r.status === "active").length})
-          </TabsTrigger>
-          <TabsTrigger value="inactive">
-            Inactivos ({allRoles.filter((r) => r.status === "inactive").length})
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value={activeTab}>
+      <Card>
+        <CardContent className="space-y-4">
           {isLoading ? (
-            <div className="mt-4 space-y-2">
-              <Skeleton className="h-12 w-full" />
-              <Skeleton className="h-12 w-full" />
-              <Skeleton className="h-12 w-full" />
+            <div className="space-y-3">
+              {Array.from({ length: 5 }).map((_, index) => (
+                <Skeleton key={index} className="h-12 w-full" />
+              ))}
             </div>
           ) : paginatedRoles.length === 0 ? (
-            <div className="mt-4 rounded-lg border border-dashed p-8 text-center">
-              <p className="text-sm text-muted-foreground">
-                No hay roles{" "}
-                {activeTab === "active"
-                  ? "activos"
-                  : activeTab === "inactive"
-                    ? "inactivos"
-                    : "registrados"}
-                .
-              </p>
-            </div>
+            <p className="py-12 text-center text-sm text-muted-foreground">
+              {search || statusFilter !== "all"
+                ? "No hay roles que coincidan con los filtros."
+                : "No hay roles registrados."}
+            </p>
           ) : (
-            <div className="mt-4">
+            <>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -284,10 +351,10 @@ function RolesPage() {
                   </div>
                 </div>
               )}
-            </div>
+            </>
           )}
-        </TabsContent>
-      </Tabs>
+        </CardContent>
+      </Card>
 
       <CreateRoleDialog
         open={formOpen}
@@ -322,6 +389,6 @@ function RolesPage() {
         role={assigningRole}
         onBack={handleBackToView}
       />
-    </main>
+    </section>
   );
 }
