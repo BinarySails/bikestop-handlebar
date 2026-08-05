@@ -7,6 +7,7 @@ import {
   Package,
   Settings,
   ShoppingCart,
+  UserRound,
   Users,
 } from "lucide-react";
 
@@ -78,7 +79,18 @@ export function AppSidebar() {
       <div className="border-t p-3">
         <div className="space-y-1">
           {settingsOpen && (
-            <div id="sidebar-settings-menu">
+            <div id="sidebar-settings-menu" className="space-y-1">
+              <Button
+                type="button"
+                variant="ghost"
+                render={<Link to="/profile" />}
+                className="h-10 w-full justify-center px-2 md:justify-start md:px-3"
+                aria-label="Perfil"
+                onClick={() => setSettingsOpen(false)}
+              >
+                <UserRound className="size-4" aria-hidden="true" />
+                <span className="hidden md:inline">Perfil</span>
+              </Button>
               <Button
                 type="button"
                 variant="ghost"
@@ -105,11 +117,7 @@ export function AppSidebar() {
           </Button>
         </div>
 
-        <Link
-          to="/profile"
-          className="mt-2 flex items-center justify-center gap-2 rounded-md border-t pt-3 transition-colors hover:bg-muted/50 md:justify-start"
-          aria-label={`Perfil de ${displayName}`}
-        >
+        <div className="mt-2 flex items-center justify-center gap-2 rounded-md border-t pt-3 md:justify-start">
           <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
             {initials}
           </span>
@@ -121,7 +129,7 @@ export function AppSidebar() {
               {displayEmail || "Perfil de usuario"}
             </span>
           </span>
-        </Link>
+        </div>
       </div>
     </aside>
   );
