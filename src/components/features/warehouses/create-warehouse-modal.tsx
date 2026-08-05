@@ -77,9 +77,7 @@ export function CreateWarehouseDialog() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger>
-        <Button>Crear Almacén</Button>
-      </DialogTrigger>
+      <DialogTrigger render={<Button>Crear Almacén</Button>} />
 
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
