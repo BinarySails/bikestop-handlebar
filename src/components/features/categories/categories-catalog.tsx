@@ -5,7 +5,6 @@ import {
   MoreVertical,
   Pencil,
   Plus,
-  RotateCcw,
   Search,
   Tags,
   Trash2,
@@ -36,10 +35,10 @@ import type { Category } from "@/lib/api/schemas";
 
 import { CategoryDeleteDialog } from "./category-delete-dialog";
 import { CategoryFormDialog } from "./category-form-dialog";
+import { buildCategoryOptions } from "./category-hierarchy";
 
 export type CategoryCatalogFilters = {
   display_name?: string;
-  order?: "asc" | "desc";
 };
 
 type CategoriesCatalogProps = {
@@ -81,13 +80,35 @@ export function CategoriesCatalog({
 
   const listQuery = useCategories(filters);
   const hierarchyQuery = useCategories();
-  const categories = listQuery.data?.categories ?? [];
-  const hierarchyCategories = hierarchyQuery.data?.categories ?? categories;
+  const categories = useMemo(
+    () => listQuery.data?.categories ?? [],
+    [listQuery.data?.categories]
+  );
+  const hierarchyCategories = useMemo(
+    () => hierarchyQuery.data?.categories ?? categories,
+    [categories, hierarchyQuery.data?.categories]
+  );
   const categoryMap = useMemo(
     () =>
       new Map(hierarchyCategories.map((category) => [category.id, category])),
     [hierarchyCategories]
   );
+  const categoryRows = useMemo(() => {
+    const options = buildCategoryOptions(hierarchyCategories);
+    if (!filters.display_name) return options;
+
+    const visibleIds = new Set(categories.map((category) => category.id));
+    for (const category of categories) {
+      let parentId = category.parent_id;
+      while (parentId) {
+        if (visibleIds.has(parentId)) break;
+        visibleIds.add(parentId);
+        parentId = categoryMap.get(parentId)?.parent_id ?? null;
+      }
+    }
+
+    return options.filter(({ category }) => visibleIds.has(category.id));
+  }, [categories, categoryMap, filters.display_name, hierarchyCategories]);
 
   useEffect(() => {
     setSearchValue(filters.display_name ?? "");
@@ -103,7 +124,7 @@ export function CategoriesCatalog({
     return () => window.clearTimeout(timer);
   }, [filters, onFiltersChange, searchValue]);
 
-  const hasFilters = Boolean(filters.display_name || filters.order);
+  const hasFilters = Boolean(filters.display_name);
   const getParentName = (category: Category): string => {
     if (!category.parent_id) return "Sin categoría padre";
     return (
@@ -150,38 +171,6 @@ export function CategoriesCatalog({
                 placeholder="Buscar por nombre o descripción"
               />
             </div>
-            <label className="flex items-center gap-2 text-sm">
-              <span className="sr-only">Ordenar categorías</span>
-              <select
-                aria-label="Ordenar categorías"
-                value={filters.order ?? ""}
-                onChange={(event) =>
-                  onFiltersChange({
-                    ...filters,
-                    order: (event.target.value || undefined) as
-                      | "asc"
-                      | "desc"
-                      | undefined,
-                  })
-                }
-                className="h-9 rounded-lg border border-input bg-transparent px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-              >
-                <option value="">Orden predeterminado</option>
-                <option value="asc">Más antiguas primero</option>
-                <option value="desc">Más recientes primero</option>
-              </select>
-            </label>
-            <Button
-              type="button"
-              variant="outline"
-              disabled={!hasFilters}
-              onClick={() => {
-                setSearchValue("");
-                onFiltersChange({});
-              }}
-            >
-              <RotateCcw className="size-4" /> Limpiar filtros
-            </Button>
           </div>
         </CardHeader>
         <CardContent>
@@ -232,10 +221,29 @@ export function CategoriesCatalog({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {categories.map((category) => (
-                    <TableRow key={category.id}>
+                  {categoryRows.map(({ category, depth }) => (
+                    <TableRow
+                      key={category.id}
+                      className={depth === 0 ? "bg-muted/50" : undefined}
+                    >
                       <TableCell className="font-medium">
-                        {category.display_name}
+                        <div
+                          className="flex items-center gap-2"
+                          style={{ paddingInlineStart: `${depth * 1.5}rem` }}
+                        >
+                          {depth > 0 && (
+                            <span
+                              className="text-muted-foreground"
+                              aria-hidden="true"
+                            >
+                              └─
+                            </span>
+                          )}
+                          <span>{category.display_name}</span>
+                          <span className="sr-only">
+                            Nivel jerárquico {depth + 1}
+                          </span>
+                        </div>
                       </TableCell>
                       <TableCell className="font-mono text-xs">
                         {category.slug}

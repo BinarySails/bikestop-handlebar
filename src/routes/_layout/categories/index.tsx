@@ -8,7 +8,6 @@ import {
 
 const categorySearchSchema = z.object({
   display_name: z.string().trim().min(1).optional().catch(undefined),
-  order: z.enum(["asc", "desc"]).optional().catch(undefined),
 });
 
 export const Route = createFileRoute("/_layout/categories/")({

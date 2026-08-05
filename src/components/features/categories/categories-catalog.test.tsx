@@ -83,7 +83,7 @@ describe("CategoriesCatalog", () => {
     expect(screen.getByText("Inactiva")).toBeTruthy();
   });
 
-  it("debounces search and sends ordering through filter changes", async () => {
+  it("debounces search and keeps the filter controls focused on searching", async () => {
     const onFiltersChange = vi.fn();
     render(
       <CategoriesCatalog filters={{}} onFiltersChange={onFiltersChange} />
@@ -101,10 +101,17 @@ describe("CategoriesCatalog", () => {
       { timeout: 700 }
     );
 
-    fireEvent.change(screen.getByLabelText("Ordenar categorías"), {
-      target: { value: "desc" },
-    });
-    expect(onFiltersChange).toHaveBeenLastCalledWith({ order: "desc" });
+    expect(screen.queryByLabelText("Ordenar categorías")).toBeNull();
+    expect(screen.queryByRole("button", { name: /limpiar/i })).toBeNull();
+  });
+
+  it("renders parent rows before indented child rows", () => {
+    render(<CategoriesCatalog filters={{}} onFiltersChange={vi.fn()} />);
+
+    const rows = screen.getAllByRole("row");
+    expect(rows[1]?.textContent).toContain("Bicicletas");
+    expect(rows[2]?.textContent).toContain("Montaña");
+    expect(screen.getByText("Nivel jerárquico 2")).toBeTruthy();
   });
 
   it("shows loading, empty and retryable error states", () => {
