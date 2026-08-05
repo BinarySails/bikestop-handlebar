@@ -7,6 +7,9 @@ import {
   CircleX,
   MoreHorizontal,
   ArrowLeft,
+  Plus,
+  Search,
+  RotateCcw,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -18,8 +21,17 @@ import type { Permission } from "@/lib/api/schemas";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableHeader,
@@ -43,6 +55,14 @@ export const Route = createFileRoute("/_layout/team/permisos")({
 
 const PAGE_SIZE = 10;
 
+type StatusFilter = "all" | "active" | "inactive";
+
+const statusFilterLabel: Record<StatusFilter, string> = {
+  all: "Todos",
+  active: "Activos",
+  inactive: "Inactivos",
+};
+
 function PermissionsPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [editingPermission, setEditingPermission] = useState<
@@ -51,7 +71,8 @@ function PermissionsPage() {
   const [deletePermission, setDeletePermission] = useState<
     Permission | undefined
   >(undefined);
-  const [activeTab, setActiveTab] = useState("all");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
 
   const { data, isLoading, mutate } = useListPermissionsHandler();
@@ -64,12 +85,21 @@ function PermissionsPage() {
   );
 
   const filteredPermissions = useMemo(() => {
-    if (activeTab === "active")
-      return allPermissions.filter((p) => p.status === "active");
-    if (activeTab === "inactive")
-      return allPermissions.filter((p) => p.status === "inactive");
-    return allPermissions;
-  }, [allPermissions, activeTab]);
+    const query = search.trim().toLowerCase();
+    return allPermissions.filter((permission) => {
+      if (statusFilter === "active" && permission.status !== "active")
+        return false;
+      if (statusFilter === "inactive" && permission.status !== "inactive")
+        return false;
+      if (query) {
+        const matches =
+          permission.display_name.toLowerCase().includes(query) ||
+          permission.slug.toLowerCase().includes(query);
+        if (!matches) return false;
+      }
+      return true;
+    });
+  }, [allPermissions, statusFilter, search]);
 
   const totalPages = Math.max(
     1,
@@ -79,6 +109,11 @@ function PermissionsPage() {
     (page - 1) * PAGE_SIZE,
     page * PAGE_SIZE
   );
+
+  const handleCreate = () => {
+    setEditingPermission(undefined);
+    setFormOpen(true);
+  };
 
   const handleEdit = (permission: Permission) => {
     setEditingPermission(permission);
@@ -111,8 +146,22 @@ function PermissionsPage() {
     }
   };
 
+  function handleStatusChange(value: StatusFilter | null) {
+    setStatusFilter(value ?? "all");
+    setPage(1);
+  }
+
+  function handleClearFilters() {
+    setSearch("");
+    setStatusFilter("all");
+    setPage(1);
+  }
+
   return (
-    <main className="container mx-auto max-w-5xl p-6">
+    <section
+      aria-label="Permisos"
+      className="mx-auto flex w-full max-w-6xl flex-col gap-6 p-6"
+    >
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <Button
@@ -129,49 +178,78 @@ function PermissionsPage() {
             Permisos del sistema asignados a roles.
           </p>
         </div>
+        <Button onClick={handleCreate}>
+          <Plus />
+          Crear permiso
+        </Button>
       </div>
 
-      <Tabs
-        value={activeTab}
-        onValueChange={(v) => {
-          setActiveTab(v);
-          setPage(1);
-        }}
-        className="mt-6"
-      >
-        <TabsList>
-          <TabsTrigger value="all">Todos ({allPermissions.length})</TabsTrigger>
-          <TabsTrigger value="active">
-            Activos (
-            {allPermissions.filter((p) => p.status === "active").length})
-          </TabsTrigger>
-          <TabsTrigger value="inactive">
-            Inactivos (
-            {allPermissions.filter((p) => p.status === "inactive").length})
-          </TabsTrigger>
-        </TabsList>
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-wrap items-end gap-4">
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="permission-search">Búsqueda</Label>
+            <div className="relative">
+              <Search className="absolute top-2.5 left-2.5 size-4 text-muted-foreground" />
+              <Input
+                id="permission-search"
+                placeholder="Nombre o slug"
+                value={search}
+                onChange={(event) => {
+                  setSearch(event.target.value);
+                  setPage(1);
+                }}
+                className="w-72 pl-9"
+              />
+            </div>
+          </div>
 
-        <TabsContent value={activeTab}>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="permission-status">Estatus</Label>
+            <Select value={statusFilter} onValueChange={handleStatusChange}>
+              <SelectTrigger id="permission-status" className="w-44">
+                <SelectValue
+                  placeholder="Seleccionar"
+                  render={() => <span>{statusFilterLabel[statusFilter]}</span>}
+                />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="active">Activos</SelectItem>
+                <SelectItem value="inactive">Inactivos</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <span className="text-sm font-medium">&nbsp;</span>
+            <Button
+              className="h-8"
+              variant="outline"
+              size="sm"
+              onClick={handleClearFilters}
+            >
+              <RotateCcw /> Limpiar
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      <Card>
+        <CardContent className="space-y-4">
           {isLoading ? (
-            <div className="mt-4 space-y-2">
-              <Skeleton className="h-12 w-full" />
-              <Skeleton className="h-12 w-full" />
-              <Skeleton className="h-12 w-full" />
+            <div className="space-y-3">
+              {Array.from({ length: 5 }).map((_, index) => (
+                <Skeleton key={index} className="h-12 w-full" />
+              ))}
             </div>
           ) : paginatedPermissions.length === 0 ? (
-            <div className="mt-4 rounded-lg border border-dashed p-8 text-center">
-              <p className="text-sm text-muted-foreground">
-                No hay permisos{" "}
-                {activeTab === "active"
-                  ? "activos"
-                  : activeTab === "inactive"
-                    ? "inactivos"
-                    : "registrados"}
-                .
-              </p>
-            </div>
+            <p className="py-12 text-center text-sm text-muted-foreground">
+              {search || statusFilter !== "all"
+                ? "No hay permisos que coincidan con los filtros."
+                : "No hay permisos registrados."}
+            </p>
           ) : (
-            <div className="mt-4">
+            <>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -269,10 +347,10 @@ function PermissionsPage() {
                   </div>
                 </div>
               )}
-            </div>
+            </>
           )}
-        </TabsContent>
-      </Tabs>
+        </CardContent>
+      </Card>
 
       <CreatePermissionDialog
         open={formOpen}
@@ -293,6 +371,6 @@ function PermissionsPage() {
           isDeleting={isDeleting}
         />
       )}
-    </main>
+    </section>
   );
 }

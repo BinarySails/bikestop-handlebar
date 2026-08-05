@@ -46,7 +46,7 @@ function RoleFormDialog({
   const form = useForm({
     defaultValues: {
       displayName: role?.display_name ?? "",
-      isActive: role?.is_active ?? true,
+      isActive: role?.status === "active",
     },
     onSubmit: async ({ value }) => {
       const slug = value.displayName.toLowerCase().replace(/\s+/g, "-");
@@ -55,9 +55,9 @@ function RoleFormDialog({
         const result = await updateTrigger({
           display_name: value.displayName,
           slug,
-          is_active: value.isActive,
+          status: value.isActive ? "active" : "inactive",
         });
-        if (result?.data?.role) {
+        if (result?.status === 200) {
           toast.success(`Rol "${value.displayName}" actualizado.`);
           form.reset();
           onSuccess();
@@ -69,7 +69,7 @@ function RoleFormDialog({
           display_name: value.displayName,
           slug,
         });
-        if (result?.data?.role) {
+        if (result?.status === 201) {
           toast.success(`Rol "${value.displayName}" creado.`);
           form.reset();
           onSuccess();
@@ -223,7 +223,7 @@ function DeleteRoleDialog({
           <DialogDescription>
             ¿Estás seguro de eliminar el rol{" "}
             <strong>{role.display_name}</strong>?
-            {role.is_active && (
+            {role.status === "active" && (
               <span className="mt-2 block text-destructive">
                 Este rol está activo. Si tiene usuarios asignados no se podrá
                 eliminar.
@@ -278,18 +278,17 @@ export function ManageRolesDialog() {
     if (!deleteRole) return;
     try {
       const result = await deleteTrigger(null);
-      if (result?.data?.success) {
+      if (result?.status === 200) {
         toast.success(`Rol "${deleteRole.display_name}" eliminado.`);
         setDeleteRole(undefined);
         mutate();
-      }
-    } catch (e: unknown) {
-      const err = e as { status?: number };
-      if (err.status === 409) {
+      } else if (result?.status === 409) {
         toast.error("No se puede eliminar: el rol tiene usuarios asignados.");
       } else {
         toast.error("Error al eliminar el rol.");
       }
+    } catch {
+      toast.error("Error al eliminar el rol.");
     }
   };
 
@@ -336,51 +335,57 @@ export function ManageRolesDialog() {
                 No hay roles registrados. Crea el primero.
               </p>
             ) : (
-              data?.data?.roles?.map((role) => (
-                <div
-                  key={role.id}
-                  className="flex items-center justify-between rounded-lg border p-3"
-                >
-                  <div className="flex items-center gap-3">
-                    <div>
-                      <p className="text-sm font-medium">{role.display_name}</p>
-                      <p className="font-mono text-xs text-muted-foreground">
-                        {role.slug}
-                      </p>
+              data?.data?.roles
+                ?.filter((r) => r.status !== "deleted")
+                .map((role) => (
+                  <div
+                    key={role.id}
+                    className="flex items-center justify-between rounded-lg border p-3"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div>
+                        <p className="text-sm font-medium">
+                          {role.display_name}
+                        </p>
+                        <p className="font-mono text-xs text-muted-foreground">
+                          {role.slug}
+                        </p>
+                      </div>
+                      <Badge
+                        variant={
+                          role.status === "active" ? "default" : "secondary"
+                        }
+                        className="gap-1"
+                      >
+                        {role.status === "active" ? (
+                          <CircleCheck className="size-3" />
+                        ) : (
+                          <CircleX className="size-3" />
+                        )}
+                        {role.status === "active" ? "Activo" : "Inactivo"}
+                      </Badge>
                     </div>
-                    <Badge
-                      variant={role.is_active ? "default" : "secondary"}
-                      className="gap-1"
-                    >
-                      {role.is_active ? (
-                        <CircleCheck className="size-3" />
-                      ) : (
-                        <CircleX className="size-3" />
-                      )}
-                      {role.is_active ? "Activo" : "Inactivo"}
-                    </Badge>
-                  </div>
 
-                  <div className="flex gap-1">
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      onClick={() => handleEdit(role)}
-                      aria-label={`Editar ${role.display_name}`}
-                    >
-                      <Pencil className="size-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      onClick={() => setDeleteRole(role)}
-                      aria-label={`Eliminar ${role.display_name}`}
-                    >
-                      <Trash2 className="size-4 text-destructive" />
-                    </Button>
+                    <div className="flex gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={() => handleEdit(role)}
+                        aria-label={`Editar ${role.display_name}`}
+                      >
+                        <Pencil className="size-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={() => setDeleteRole(role)}
+                        aria-label={`Eliminar ${role.display_name}`}
+                      >
+                        <Trash2 className="size-4 text-destructive" />
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              ))
+                ))
             )}
           </div>
 
