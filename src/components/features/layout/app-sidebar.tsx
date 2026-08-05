@@ -41,10 +41,12 @@ export function AppSidebar() {
   const displayName =
     actor && "name" in actor && actor.name
       ? actor.name
-      : actor?.username ?? "Usuario";
+      : (actor?.username ?? "Usuario");
   const displayEmail = actor?.email ?? "";
   const initials = getInitials(
-    actor && "name" in actor && actor.name ? actor.name : actor?.username ?? "U"
+    actor && "name" in actor && actor.name
+      ? actor.name
+      : (actor?.username ?? "U")
   );
 
   return (
