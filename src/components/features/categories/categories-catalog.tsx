@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import {
   Eye,
   MoreVertical,
@@ -13,13 +14,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,11 +31,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  CategoryApiError,
-  useCategories,
-  useCategory,
-} from "@/lib/api/categories";
+import { useCategories } from "@/lib/api/categories";
 import type { Category } from "@/lib/api/schemas";
 
 import { CategoryDeleteDialog } from "./category-delete-dialog";
@@ -78,81 +68,13 @@ function CategoriesSkeleton() {
   );
 }
 
-function CategoryDetailDialog({
-  category,
-  parentName,
-  onOpenChange,
-}: {
-  category: Category | null;
-  parentName: string;
-  onOpenChange: (open: boolean) => void;
-}) {
-  const detailQuery = useCategory(category?.id);
-  const detail = detailQuery.data?.category ?? category;
-
-  return (
-    <Dialog open={Boolean(category)} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{detail?.display_name}</DialogTitle>
-          <DialogDescription>
-            Detalle de la categoría seleccionada.
-          </DialogDescription>
-        </DialogHeader>
-        {detailQuery.isLoading ? (
-          <div className="space-y-3" aria-label="Cargando detalle de categoría">
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-20 w-full" />
-          </div>
-        ) : detailQuery.error ? (
-          <div className="space-y-3" role="alert">
-            <p>
-              {detailQuery.error instanceof CategoryApiError &&
-              detailQuery.error.status === 404
-                ? "La categoría ya no existe."
-                : "No se pudo cargar el detalle."}
-            </p>
-            <Button variant="outline" onClick={() => detailQuery.mutate()}>
-              Reintentar
-            </Button>
-          </div>
-        ) : detail ? (
-          <dl className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <dt className="text-xs text-muted-foreground">Slug</dt>
-              <dd className="font-mono text-sm">{detail.slug}</dd>
-            </div>
-            <div>
-              <dt className="text-xs text-muted-foreground">Estado</dt>
-              <dd>{detail.status === "active" ? "Activa" : "Inactiva"}</dd>
-            </div>
-            <div>
-              <dt className="text-xs text-muted-foreground">Categoría padre</dt>
-              <dd>{parentName}</dd>
-            </div>
-            <div>
-              <dt className="text-xs text-muted-foreground">Creada</dt>
-              <dd>{formatDate(detail.created_at)}</dd>
-            </div>
-            <div className="sm:col-span-2">
-              <dt className="text-xs text-muted-foreground">Descripción</dt>
-              <dd>{detail.description || "Sin descripción"}</dd>
-            </div>
-          </dl>
-        ) : null}
-      </DialogContent>
-    </Dialog>
-  );
-}
-
 export function CategoriesCatalog({
   filters,
   onFiltersChange,
 }: CategoriesCatalogProps) {
+  const navigate = useNavigate();
   const [searchValue, setSearchValue] = useState(filters.display_name ?? "");
   const [formOpen, setFormOpen] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const [viewingCategory, setViewingCategory] = useState<Category | null>(null);
   const [deletingCategory, setDeletingCategory] = useState<Category | null>(
     null
   );
@@ -204,7 +126,6 @@ export function CategoriesCatalog({
         </div>
         <Button
           onClick={() => {
-            setEditingCategory(null);
             setFormOpen(true);
           }}
         >
@@ -356,15 +277,22 @@ export function CategoriesCatalog({
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem
-                              onClick={() => setViewingCategory(category)}
+                              onClick={() =>
+                                navigate({
+                                  to: "/categories/$categoryId",
+                                  params: { categoryId: category.id },
+                                })
+                              }
                             >
                               <Eye className="size-4" /> Ver
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              onClick={() => {
-                                setEditingCategory(category);
-                                setFormOpen(true);
-                              }}
+                              onClick={() =>
+                                navigate({
+                                  to: "/categories/$categoryId/edit",
+                                  params: { categoryId: category.id },
+                                })
+                              }
                             >
                               <Pencil className="size-4" /> Editar
                             </DropdownMenuItem>
@@ -396,18 +324,10 @@ export function CategoriesCatalog({
       </Card>
 
       <CategoryFormDialog
-        key={editingCategory?.id ?? "new"}
+        key="new"
         open={formOpen}
         onOpenChange={setFormOpen}
         categories={hierarchyCategories}
-        category={editingCategory}
-      />
-      <CategoryDetailDialog
-        category={viewingCategory}
-        parentName={viewingCategory ? getParentName(viewingCategory) : ""}
-        onOpenChange={(open) => {
-          if (!open) setViewingCategory(null);
-        }}
       />
       <CategoryDeleteDialog
         category={deletingCategory}

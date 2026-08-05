@@ -11,7 +11,7 @@ const categorySearchSchema = z.object({
   order: z.enum(["asc", "desc"]).optional().catch(undefined),
 });
 
-export const Route = createFileRoute("/_layout/categories")({
+export const Route = createFileRoute("/_layout/categories/")({
   validateSearch: categorySearchSchema,
   component: CategoriesPage,
 });

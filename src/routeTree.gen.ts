@@ -12,7 +12,6 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as LayoutCategoriesRouteImport } from './routes/_layout/categories'
 import { Route as LayoutDashboardRouteImport } from './routes/_layout/dashboard'
 import { Route as LayoutInventoryRouteImport } from './routes/_layout/inventory'
 import { Route as LayoutLocationsRouteImport } from './routes/_layout/locations'
@@ -20,6 +19,9 @@ import { Route as LayoutSalesRouteImport } from './routes/_layout/sales'
 import { Route as LayoutTeamRouteImport } from './routes/_layout/team'
 import { Route as LayoutBrandsIndexRouteImport } from './routes/_layout/brands/index'
 import { Route as LayoutBrandsBrandIdRouteImport } from './routes/_layout/brands/$brandId'
+import { Route as LayoutCategoriesIndexRouteImport } from './routes/_layout/categories/index'
+import { Route as LayoutCategoriesCategoryIdRouteImport } from './routes/_layout/categories/$categoryId'
+import { Route as LayoutCategoriesCategoryIdEditRouteImport } from './routes/_layout/categories/$categoryId_.edit'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -34,11 +36,6 @@ const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
   getParentRoute: () => rootRouteImport,
-} as any)
-const LayoutCategoriesRoute = LayoutCategoriesRouteImport.update({
-  id: '/categories',
-  path: '/categories',
-  getParentRoute: () => LayoutRoute,
 } as any)
 const LayoutDashboardRoute = LayoutDashboardRouteImport.update({
   id: '/dashboard',
@@ -75,83 +72,112 @@ const LayoutBrandsBrandIdRoute = LayoutBrandsBrandIdRouteImport.update({
   path: '/brands/$brandId',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutCategoriesIndexRoute = LayoutCategoriesIndexRouteImport.update({
+  id: '/categories/',
+  path: '/categories/',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutCategoriesCategoryIdRoute =
+  LayoutCategoriesCategoryIdRouteImport.update({
+    id: '/categories/$categoryId',
+    path: '/categories/$categoryId',
+    getParentRoute: () => LayoutRoute,
+  } as any)
+const LayoutCategoriesCategoryIdEditRoute =
+  LayoutCategoriesCategoryIdEditRouteImport.update({
+    id: '/categories/$categoryId_/edit',
+    path: '/categories/$categoryId/edit',
+    getParentRoute: () => LayoutRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
-  '/categories': typeof LayoutCategoriesRoute
   '/dashboard': typeof LayoutDashboardRoute
   '/inventory': typeof LayoutInventoryRoute
   '/locations': typeof LayoutLocationsRoute
   '/sales': typeof LayoutSalesRoute
   '/team': typeof LayoutTeamRoute
   '/brands/$brandId': typeof LayoutBrandsBrandIdRoute
+  '/categories/$categoryId': typeof LayoutCategoriesCategoryIdRoute
   '/brands/': typeof LayoutBrandsIndexRoute
+  '/categories/': typeof LayoutCategoriesIndexRoute
+  '/categories/$categoryId/edit': typeof LayoutCategoriesCategoryIdEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
-  '/categories': typeof LayoutCategoriesRoute
   '/dashboard': typeof LayoutDashboardRoute
   '/inventory': typeof LayoutInventoryRoute
   '/locations': typeof LayoutLocationsRoute
   '/sales': typeof LayoutSalesRoute
   '/team': typeof LayoutTeamRoute
   '/brands/$brandId': typeof LayoutBrandsBrandIdRoute
+  '/categories/$categoryId': typeof LayoutCategoriesCategoryIdRoute
   '/brands': typeof LayoutBrandsIndexRoute
+  '/categories': typeof LayoutCategoriesIndexRoute
+  '/categories/$categoryId/edit': typeof LayoutCategoriesCategoryIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_layout': typeof LayoutRouteWithChildren
   '/login': typeof LoginRoute
-  '/_layout/categories': typeof LayoutCategoriesRoute
   '/_layout/dashboard': typeof LayoutDashboardRoute
   '/_layout/inventory': typeof LayoutInventoryRoute
   '/_layout/locations': typeof LayoutLocationsRoute
   '/_layout/sales': typeof LayoutSalesRoute
   '/_layout/team': typeof LayoutTeamRoute
   '/_layout/brands/$brandId': typeof LayoutBrandsBrandIdRoute
+  '/_layout/categories/$categoryId': typeof LayoutCategoriesCategoryIdRoute
   '/_layout/brands/': typeof LayoutBrandsIndexRoute
+  '/_layout/categories/': typeof LayoutCategoriesIndexRoute
+  '/_layout/categories/$categoryId_/edit': typeof LayoutCategoriesCategoryIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/login'
-    | '/categories'
     | '/dashboard'
     | '/inventory'
     | '/locations'
     | '/sales'
     | '/team'
     | '/brands/$brandId'
+    | '/categories/$categoryId'
     | '/brands/'
+    | '/categories/'
+    | '/categories/$categoryId/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/login'
-    | '/categories'
     | '/dashboard'
     | '/inventory'
     | '/locations'
     | '/sales'
     | '/team'
     | '/brands/$brandId'
+    | '/categories/$categoryId'
     | '/brands'
+    | '/categories'
+    | '/categories/$categoryId/edit'
   id:
     | '__root__'
     | '/'
     | '/_layout'
     | '/login'
-    | '/_layout/categories'
     | '/_layout/dashboard'
     | '/_layout/inventory'
     | '/_layout/locations'
     | '/_layout/sales'
     | '/_layout/team'
     | '/_layout/brands/$brandId'
+    | '/_layout/categories/$categoryId'
     | '/_layout/brands/'
+    | '/_layout/categories/'
+    | '/_layout/categories/$categoryId_/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -182,13 +208,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
-    }
-    '/_layout/categories': {
-      id: '/_layout/categories'
-      path: '/categories'
-      fullPath: '/categories'
-      preLoaderRoute: typeof LayoutCategoriesRouteImport
-      parentRoute: typeof LayoutRoute
     }
     '/_layout/dashboard': {
       id: '/_layout/dashboard'
@@ -239,29 +258,54 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutBrandsBrandIdRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/categories/': {
+      id: '/_layout/categories/'
+      path: '/categories'
+      fullPath: '/categories/'
+      preLoaderRoute: typeof LayoutCategoriesIndexRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/categories/$categoryId': {
+      id: '/_layout/categories/$categoryId'
+      path: '/categories/$categoryId'
+      fullPath: '/categories/$categoryId'
+      preLoaderRoute: typeof LayoutCategoriesCategoryIdRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/categories/$categoryId_/edit': {
+      id: '/_layout/categories/$categoryId_/edit'
+      path: '/categories/$categoryId/edit'
+      fullPath: '/categories/$categoryId/edit'
+      preLoaderRoute: typeof LayoutCategoriesCategoryIdEditRouteImport
+      parentRoute: typeof LayoutRoute
+    }
   }
 }
 
 interface LayoutRouteChildren {
-  LayoutCategoriesRoute: typeof LayoutCategoriesRoute
   LayoutDashboardRoute: typeof LayoutDashboardRoute
   LayoutInventoryRoute: typeof LayoutInventoryRoute
   LayoutLocationsRoute: typeof LayoutLocationsRoute
   LayoutSalesRoute: typeof LayoutSalesRoute
   LayoutTeamRoute: typeof LayoutTeamRoute
   LayoutBrandsBrandIdRoute: typeof LayoutBrandsBrandIdRoute
+  LayoutCategoriesCategoryIdRoute: typeof LayoutCategoriesCategoryIdRoute
   LayoutBrandsIndexRoute: typeof LayoutBrandsIndexRoute
+  LayoutCategoriesIndexRoute: typeof LayoutCategoriesIndexRoute
+  LayoutCategoriesCategoryIdEditRoute: typeof LayoutCategoriesCategoryIdEditRoute
 }
 
 const LayoutRouteChildren: LayoutRouteChildren = {
-  LayoutCategoriesRoute: LayoutCategoriesRoute,
   LayoutDashboardRoute: LayoutDashboardRoute,
   LayoutInventoryRoute: LayoutInventoryRoute,
   LayoutLocationsRoute: LayoutLocationsRoute,
   LayoutSalesRoute: LayoutSalesRoute,
   LayoutTeamRoute: LayoutTeamRoute,
   LayoutBrandsBrandIdRoute: LayoutBrandsBrandIdRoute,
+  LayoutCategoriesCategoryIdRoute: LayoutCategoriesCategoryIdRoute,
   LayoutBrandsIndexRoute: LayoutBrandsIndexRoute,
+  LayoutCategoriesIndexRoute: LayoutCategoriesIndexRoute,
+  LayoutCategoriesCategoryIdEditRoute: LayoutCategoriesCategoryIdEditRoute,
 }
 
 const LayoutRouteWithChildren =
