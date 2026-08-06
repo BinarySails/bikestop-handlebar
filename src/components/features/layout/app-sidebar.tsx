@@ -7,9 +7,11 @@ import {
   Package,
   Settings,
   ShoppingCart,
+  Tag,
   Tags,
   UserRound,
   Users,
+  Warehouse,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -17,10 +19,13 @@ import { cn } from "@/lib/utils";
 
 const navigationItems = [
   { label: "Dashboard", icon: LayoutDashboard, to: "/dashboard" },
+  { label: "Productos", icon: Package, to: "/products" },
   { label: "Ventas", icon: ShoppingCart, to: "/sales" },
   { label: "Inventario", icon: Package, to: "/inventory" },
   { label: "Categorías", icon: Tags, to: "/categories" },
+  { label: "Marcas", icon: Tag, to: "/brands" },
   { label: "Locaciones", icon: MapPin, to: "/locations" },
+  { label: "Almacenes", icon: Warehouse, to: "/warehouses" },
   { label: "Equipo", icon: Users, to: "/team" },
 ] as const;
 

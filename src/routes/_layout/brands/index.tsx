@@ -1,70 +1,32 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { PackagePlus } from "lucide-react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { z } from "zod";
 
-import { CreateBrandDialog } from "@/components/features/products/create-brand-modal";
-import { BrandsTable } from "@/components/features/brands/brands-table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useListBrandsRequest } from "@/lib/api/api";
-import type { Brand } from "@/lib/api/schemas";
+import {
+  BrandsCatalog,
+  type BrandCatalogFilters,
+} from "@/components/features/brands/brands-catalog";
 
-export const Route = createFileRoute("/_layout/brands/")({
-  component: BrandsListPage,
+const brandSearchSchema = z.object({
+  page: z.coerce.number().int().nonnegative().optional().catch(undefined),
+  limit: z.coerce.number().int().positive().optional().catch(undefined),
+  display_name: z.string().trim().min(1).optional().catch(undefined),
+  order: z.enum(["asc", "desc"]).optional().catch(undefined),
 });
 
-function BrandsListSkeleton() {
-  return (
-    <div className="space-y-3">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <Skeleton key={i} className="h-12 w-full" />
-      ))}
-    </div>
-  );
-}
+export const Route = createFileRoute("/_layout/brands/")({
+  validateSearch: brandSearchSchema,
+  component: BrandsPage,
+});
 
-function BrandsListPage() {
-  const { data: res, error, isLoading } = useListBrandsRequest();
+function BrandsPage() {
+  const filters = Route.useSearch();
+  const navigate = useNavigate({ from: Route.fullPath });
 
-  const brands: Brand[] = res?.status === 200 ? res.data.data : [];
+  function handleFiltersChange(nextFilters: BrandCatalogFilters) {
+    navigate({ search: nextFilters, replace: true });
+  }
 
   return (
-    <section
-      aria-label="Marcas"
-      className="mx-auto flex w-full max-w-6xl flex-col gap-6 p-6"
-    >
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Marcas</h1>
-          <p className="text-sm text-muted-foreground">
-            Gestiona las marcas de productos disponibles en BikeStop.
-          </p>
-        </div>
-        <CreateBrandDialog />
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base font-semibold">
-            <PackagePlus className="size-4" />
-            Marcas registradas
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <BrandsListSkeleton />
-          ) : error ? (
-            <p className="text-sm text-muted-foreground">
-              Error al cargar las marcas.
-            </p>
-          ) : brands.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              No hay marcas registradas.
-            </p>
-          ) : (
-            <BrandsTable brands={brands} />
-          )}
-        </CardContent>
-      </Card>
-    </section>
+    <BrandsCatalog filters={filters} onFiltersChange={handleFiltersChange} />
   );
 }

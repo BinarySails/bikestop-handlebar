@@ -3,43 +3,43 @@ import { ArrowLeft, Save, Trash2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import type { Brand } from "@/lib/api/schemas";
+import type { Product } from "@/lib/api/schemas";
 
-const statusLabel: Record<Brand["status"], string> = {
-  enable: "Activa",
-  disable: "Inactiva",
-  archive: "Archivada",
+const statusLabel: Record<Product["status"], string> = {
+  enable: "Activo",
+  disable: "Inactivo",
+  archive: "Archivado",
 };
 
-type BrandDetailHeaderProps = {
-  brand: Brand;
+type ProductDetailHeaderProps = {
+  product: Product;
   isDirty?: boolean;
   isSubmitting?: boolean;
   onSave?: () => void;
   onDeleteClick?: () => void;
 };
 
-export function BrandDetailHeader({
-  brand,
+export function ProductDetailHeader({
+  product,
   isDirty,
   isSubmitting,
   onSave,
   onDeleteClick,
-}: BrandDetailHeaderProps) {
+}: ProductDetailHeaderProps) {
   return (
     <div className="flex items-center justify-between gap-4">
       <div className="flex items-center gap-3">
         <Button
-          render={<Link to="/brands" />}
+          render={<Link to="/products" />}
           variant="ghost"
           size="icon"
-          aria-label="Volver a todas las marcas"
+          aria-label="Volver a todos los productos"
           className="size-9"
         >
           <ArrowLeft className="size-4" />
         </Button>
-        <h1 className="text-xl font-semibold tracking-tight">Marca</h1>
-        <Badge variant="outline">{statusLabel[brand.status]}</Badge>
+        <h1 className="text-xl font-semibold tracking-tight">Producto</h1>
+        <Badge variant="outline">{statusLabel[product.status]}</Badge>
       </div>
 
       {isDirty ? (
@@ -53,7 +53,7 @@ export function BrandDetailHeader({
             </>
           )}
         </Button>
-      ) : brand.status !== "archive" ? (
+      ) : product.status !== "archive" ? (
         <Button type="button" variant="destructive" onClick={onDeleteClick}>
           <Trash2 className="size-4" />
           <span>Eliminar</span>

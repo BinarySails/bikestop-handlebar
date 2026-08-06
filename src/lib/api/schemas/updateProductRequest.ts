@@ -9,10 +9,11 @@ import type { CategoryId } from './categoryId.ts';
 import type { ProductStatus } from './productStatus.ts';
 
 export interface UpdateProductRequest {
-  brand_id: BrandId;
-  category_id: CategoryId;
+  brand_id?: null | BrandId;
+  category_id?: null | CategoryId;
   /** @nullable */
   description?: string | null;
-  display_name: string;
-  status: ProductStatus;
+  /** @nullable */
+  display_name?: string | null;
+  status?: null | ProductStatus;
 }
