@@ -1,9 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { Outlet, createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_layout/sales")({
-  component: SalesPage,
+  component: SalesLayout,
 });
 
-function SalesPage() {
-  return <section aria-label="Ventas" />;
+function SalesLayout() {
+  return <Outlet />;
 }
