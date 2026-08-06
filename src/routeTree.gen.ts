@@ -28,6 +28,7 @@ import { Route as LayoutTeamPermisosRouteImport } from './routes/_layout/team.pe
 import { Route as LayoutTeamRolesRouteImport } from './routes/_layout/team.roles'
 import { Route as LayoutWarehousesIndexRouteImport } from './routes/_layout/warehouses/index'
 import { Route as LayoutWarehousesWarehouseIdRouteImport } from './routes/_layout/warehouses/$warehouseId'
+import { Route as LayoutCategoriesCategoryIdEditRouteImport } from './routes/_layout/categories/$categoryId_.edit'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -125,6 +126,12 @@ const LayoutWarehousesWarehouseIdRoute =
     path: '/$warehouseId',
     getParentRoute: () => LayoutWarehousesRoute,
   } as any)
+const LayoutCategoriesCategoryIdEditRoute =
+  LayoutCategoriesCategoryIdEditRouteImport.update({
+    id: '/categories/$categoryId_/edit',
+    path: '/categories/$categoryId/edit',
+    getParentRoute: () => LayoutRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -145,6 +152,7 @@ export interface FileRoutesByFullPath {
   '/products/': typeof LayoutProductsIndexRoute
   '/team/': typeof LayoutTeamIndexRoute
   '/warehouses/': typeof LayoutWarehousesIndexRoute
+  '/categories/$categoryId/edit': typeof LayoutCategoriesCategoryIdEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -163,6 +171,7 @@ export interface FileRoutesByTo {
   '/products': typeof LayoutProductsIndexRoute
   '/team': typeof LayoutTeamIndexRoute
   '/warehouses': typeof LayoutWarehousesIndexRoute
+  '/categories/$categoryId/edit': typeof LayoutCategoriesCategoryIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -185,6 +194,7 @@ export interface FileRoutesById {
   '/_layout/products/': typeof LayoutProductsIndexRoute
   '/_layout/team/': typeof LayoutTeamIndexRoute
   '/_layout/warehouses/': typeof LayoutWarehousesIndexRoute
+  '/_layout/categories/$categoryId_/edit': typeof LayoutCategoriesCategoryIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -207,6 +217,7 @@ export interface FileRouteTypes {
     | '/products/'
     | '/team/'
     | '/warehouses/'
+    | '/categories/$categoryId/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -225,6 +236,7 @@ export interface FileRouteTypes {
     | '/products'
     | '/team'
     | '/warehouses'
+    | '/categories/$categoryId/edit'
   id:
     | '__root__'
     | '/'
@@ -246,6 +258,7 @@ export interface FileRouteTypes {
     | '/_layout/products/'
     | '/_layout/team/'
     | '/_layout/warehouses/'
+    | '/_layout/categories/$categoryId_/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -389,6 +402,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutWarehousesWarehouseIdRouteImport
       parentRoute: typeof LayoutWarehousesRoute
     }
+    '/_layout/categories/$categoryId_/edit': {
+      id: '/_layout/categories/$categoryId_/edit'
+      path: '/categories/$categoryId/edit'
+      fullPath: '/categories/$categoryId/edit'
+      preLoaderRoute: typeof LayoutCategoriesCategoryIdEditRouteImport
+      parentRoute: typeof LayoutRoute
+    }
   }
 }
 
@@ -433,6 +453,7 @@ interface LayoutRouteChildren {
   LayoutBrandsIndexRoute: typeof LayoutBrandsIndexRoute
   LayoutCategoriesIndexRoute: typeof LayoutCategoriesIndexRoute
   LayoutProductsIndexRoute: typeof LayoutProductsIndexRoute
+  LayoutCategoriesCategoryIdEditRoute: typeof LayoutCategoriesCategoryIdEditRoute
 }
 
 const LayoutRouteChildren: LayoutRouteChildren = {
@@ -447,6 +468,7 @@ const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutBrandsIndexRoute: LayoutBrandsIndexRoute,
   LayoutCategoriesIndexRoute: LayoutCategoriesIndexRoute,
   LayoutProductsIndexRoute: LayoutProductsIndexRoute,
+  LayoutCategoriesCategoryIdEditRoute: LayoutCategoriesCategoryIdEditRoute,
 }
 
 const LayoutRouteWithChildren =

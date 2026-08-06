@@ -1,333 +1,147 @@
-import { useForm } from "@tanstack/react-form";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
-import { FolderOpen } from "lucide-react";
-import { toast } from "sonner";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { ArrowLeft, Pencil, Tags } from "lucide-react";
 
-import { CategoryDetailHeader } from "@/components/features/categories/category-detail-header";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Combobox,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxInput,
-  ComboboxItem,
-  ComboboxList,
-} from "@/components/ui/combobox";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  useDeleteCategoryRequest,
-  useGetCategoriesRequest,
-  useGetCategoryRequest,
-  useUpdateCategoryRequest,
-} from "@/lib/api/api";
-import type { Category } from "@/lib/api/schemas";
-
-function isDescendantOf(
-  categories: Category[],
-  categoryId: string,
-  ancestorId: string
-): boolean {
-  const category = categories.find((c) => c.id === categoryId);
-  if (!category?.parent_id) return false;
-  if (category.parent_id === ancestorId) return true;
-  return isDescendantOf(categories, category.parent_id, ancestorId);
-}
+  CategoryApiError,
+  useCategories,
+  useCategory,
+} from "@/lib/api/categories";
 
 export const Route = createFileRoute("/_layout/categories/$categoryId")({
   component: CategoryDetailPage,
 });
 
-function CategoryDetailSkeleton() {
-  return (
-    <div className="flex flex-1 flex-col gap-6 p-6">
-      <div className="flex items-center gap-3">
-        <Skeleton className="size-9 shrink-0 rounded-md" />
-        <Skeleton className="h-7 w-32" />
-        <Skeleton className="h-6 w-20 rounded-full" />
-      </div>
-      <div className="flex flex-col gap-4">
-        <Skeleton className="h-[200px] w-full rounded-xl" />
-      </div>
-    </div>
-  );
-}
+const dateFormatter = new Intl.DateTimeFormat("es-MX", {
+  dateStyle: "long",
+});
 
 function CategoryDetailPage() {
   const { categoryId } = Route.useParams();
-  const {
-    data: res,
-    error,
-    isLoading,
-    mutate,
-  } = useGetCategoryRequest(categoryId);
+  const detailQuery = useCategory(categoryId);
+  const categoriesQuery = useCategories();
+  const category = detailQuery.data?.category;
+  const parentName = category?.parent_id
+    ? (categoriesQuery.data?.categories.find(
+        (item) => item.id === category.parent_id
+      )?.display_name ?? "Categoría padre no disponible")
+    : "Sin categoría padre";
 
-  const category: Category | null =
-    res?.status === 200 ? res.data.category : null;
-
-  if (isLoading) return <CategoryDetailSkeleton />;
-
-  if (error || !category) {
+  if (detailQuery.isLoading) {
     return (
-      <div className="flex flex-1 flex-col items-center justify-center gap-4 p-6">
-        <p className="text-muted-foreground">
-          Categoría no encontrada o error al cargar.
-        </p>
-      </div>
+      <main className="mx-auto flex w-full max-w-5xl flex-col gap-6 p-4 sm:p-6">
+        <Skeleton className="h-10 w-64" />
+        <Skeleton className="h-72 w-full rounded-xl" />
+      </main>
     );
   }
 
-  return <CategoryDetailView category={category} mutateCategory={mutate} />;
-}
+  if (detailQuery.error || !category) {
+    const notFound =
+      detailQuery.error instanceof CategoryApiError &&
+      detailQuery.error.status === 404;
 
-function CategoryDetailView({
-  category,
-  mutateCategory,
-}: {
-  category: Category;
-  mutateCategory: () => Promise<unknown>;
-}) {
-  const { categoryId } = Route.useParams();
-  const navigate = useNavigate();
-  const { trigger: updateCategory } = useUpdateCategoryRequest(categoryId);
-  const { trigger: deleteCategory } = useDeleteCategoryRequest(categoryId);
-  const { data: categoriesRes, isLoading: categoriesLoading } =
-    useGetCategoriesRequest();
-
-  const categories =
-    categoriesRes?.status === 200 ? categoriesRes.data.categories : [];
-  const availableParents = categories.filter(
-    (c) =>
-      c.id !== category.id && !isDescendantOf(categories, c.id, category.id)
-  );
-
-  const [deleteOpen, setDeleteOpen] = useState(false);
-  const [deletePending, setDeletePending] = useState(false);
-
-  const isInactive = category.status === "inactive";
-
-  const form = useForm({
-    defaultValues: {
-      display_name: category.display_name,
-      description: category.description ?? "",
-      parent: categories.find((c) => c.id === category.parent_id) ?? null,
-    },
-    onSubmit: async ({ value }) => {
-      const slug = value.display_name.toLowerCase().replace(/\s+/g, "-");
-
-      if (
-        value.display_name === category.display_name &&
-        value.description === (category.description ?? "") &&
-        (value.parent?.id ?? null) === (category.parent_id ?? null)
-      ) {
-        return;
-      }
-
-      try {
-        const result = await updateCategory({
-          display_name: value.display_name,
-          slug,
-          description: value.description || null,
-          parent_id: value.parent?.id || null,
-        });
-
-        if (result?.status !== 200) {
-          toast.error("Error al actualizar la categoría.");
-          return;
-        }
-
-        toast.success("Categoría actualizada correctamente.");
-        form.reset({
-          display_name: value.display_name,
-          description: value.description,
-          parent: value.parent,
-        });
-        await mutateCategory();
-      } catch {
-        toast.error("Error al actualizar la categoría.");
-      }
-    },
-  });
-
-  async function handleDelete() {
-    setDeletePending(true);
-    try {
-      await deleteCategory();
-      toast.success("Categoría eliminada correctamente.");
-      setDeleteOpen(false);
-      navigate({ to: "/categories" });
-    } catch {
-      toast.error("No se pudo eliminar la categoría.");
-    } finally {
-      setDeletePending(false);
-    }
+    return (
+      <main className="flex flex-1 flex-col items-center justify-center gap-4 p-6 text-center">
+        <h1 className="text-xl font-semibold">
+          {notFound
+            ? "Categoría no encontrada"
+            : "No se pudo cargar la categoría"}
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          {notFound
+            ? "La categoría solicitada ya no existe."
+            : "Intenta cargar la información nuevamente."}
+        </p>
+        <div className="flex gap-2">
+          <Button variant="outline" render={<Link to="/categories" />}>
+            Volver a categorías
+          </Button>
+          {!notFound && (
+            <Button onClick={() => detailQuery.mutate()}>Reintentar</Button>
+          )}
+        </div>
+      </main>
+    );
   }
 
   return (
-    <main className="flex flex-1 flex-col gap-6 p-6">
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          form.handleSubmit();
-        }}
-        className="space-y-8"
-      >
-        <form.Subscribe
-          selector={(state) => [state.isSubmitting, state.isDirty]}
+    <main className="mx-auto flex w-full max-w-5xl flex-col gap-6 p-4 sm:p-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-start gap-3">
+          <Button
+            variant="outline"
+            size="icon"
+            aria-label="Volver a categorías"
+            render={<Link to="/categories" />}
+          >
+            <ArrowLeft className="size-4" />
+          </Button>
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-2xl font-semibold tracking-tight">
+                {category.display_name}
+              </h1>
+              <Badge
+                variant={category.status === "active" ? "default" : "secondary"}
+              >
+                {category.status === "active" ? "Activa" : "Inactiva"}
+              </Badge>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Detalle de la categoría
+            </p>
+          </div>
+        </div>
+        <Button
+          render={
+            <Link to="/categories/$categoryId/edit" params={{ categoryId }} />
+          }
         >
-          {([isSubmitting, isDirty]) => (
-            <CategoryDetailHeader
-              category={category}
-              isDirty={isDirty}
-              isSubmitting={isSubmitting}
-              onSave={() => form.handleSubmit()}
-              onDeleteClick={() => setDeleteOpen(true)}
-            />
-          )}
-        </form.Subscribe>
+          <Pencil className="size-4" /> Editar categoría
+        </Button>
+      </div>
 
-        <Separator />
-
-        <section id="information" className="scroll-mt-4 space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base font-semibold">
-                <FolderOpen className="size-4" />
-                Información de la categoría
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <form.Field name="display_name">
-                {(field) => (
-                  <div className="grid gap-2">
-                    <Label htmlFor={field.name}>Nombre de la categoría</Label>
-                    <Input
-                      id={field.name}
-                      name={field.name}
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      placeholder="Electrónica"
-                      disabled={isInactive}
-                    />
-                  </div>
-                )}
-              </form.Field>
-
-              <form.Subscribe selector={(state) => [state.values.display_name]}>
-                {([displayName]) => (
-                  <div className="grid gap-2">
-                    <Label htmlFor="slug">Slug</Label>
-                    <Input
-                      id="slug"
-                      name="slug"
-                      value={displayName.toLowerCase().replace(/\s+/g, "-")}
-                      disabled
-                    />
-                  </div>
-                )}
-              </form.Subscribe>
-
-              <form.Field name="description">
-                {(field) => (
-                  <div className="grid gap-2">
-                    <Label htmlFor={field.name}>Descripción</Label>
-                    <Input
-                      id={field.name}
-                      name={field.name}
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      placeholder="Descripción opcional"
-                      disabled={isInactive}
-                    />
-                  </div>
-                )}
-              </form.Field>
-
-              <form.Field name="parent">
-                {(field) => (
-                  <div className="grid gap-2">
-                    <Label>Categoría padre</Label>
-                    <Combobox
-                      value={field.state.value}
-                      onValueChange={(value) => field.handleChange(value)}
-                      items={availableParents}
-                      itemToStringValue={(item) => item.id}
-                      itemToStringLabel={(item) => item.display_name}
-                    >
-                      <ComboboxInput
-                        placeholder={
-                          categoriesLoading
-                            ? "Cargando categorías..."
-                            : "Selecciona una categoría padre..."
-                        }
-                        showTrigger
-                        showClear
-                        disabled={isInactive || categoriesLoading}
-                      />
-                      <ComboboxContent>
-                        <ComboboxEmpty>
-                          No se encontraron categorías
-                        </ComboboxEmpty>
-
-                        <ComboboxList>
-                          {(item: Category) => (
-                            <ComboboxItem key={item.id} value={item}>
-                              {item.display_name}
-                            </ComboboxItem>
-                          )}
-                        </ComboboxList>
-                      </ComboboxContent>
-                    </Combobox>
-                  </div>
-                )}
-              </form.Field>
-            </CardContent>
-          </Card>
-        </section>
-      </form>
-
-      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Eliminar categoría</DialogTitle>
-            <DialogDescription>
-              ¿Estás seguro de que deseas eliminar &quot;{category.display_name}
-              &quot;? Esta acción no se puede deshacer.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setDeleteOpen(false)}
-              disabled={deletePending}
-            >
-              Cancelar
-            </Button>
-            <Button
-              type="button"
-              variant="destructive"
-              onClick={handleDelete}
-              disabled={deletePending}
-            >
-              {deletePending ? "Eliminando..." : "Eliminar"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Tags className="size-4" /> Información general
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <dl className="grid gap-6 sm:grid-cols-2">
+            <div>
+              <dt className="text-sm text-muted-foreground">Nombre visible</dt>
+              <dd className="mt-1 font-medium">{category.display_name}</dd>
+            </div>
+            <div>
+              <dt className="text-sm text-muted-foreground">Slug</dt>
+              <dd className="mt-1 font-mono text-sm">{category.slug}</dd>
+            </div>
+            <div>
+              <dt className="text-sm text-muted-foreground">Categoría padre</dt>
+              <dd className="mt-1">{parentName}</dd>
+            </div>
+            <div>
+              <dt className="text-sm text-muted-foreground">
+                Fecha de creación
+              </dt>
+              <dd className="mt-1">
+                {dateFormatter.format(new Date(category.created_at))}
+              </dd>
+            </div>
+            <div className="sm:col-span-2">
+              <dt className="text-sm text-muted-foreground">Descripción</dt>
+              <dd className="mt-1 whitespace-pre-wrap">
+                {category.description || "Sin descripción"}
+              </dd>
+            </div>
+          </dl>
+        </CardContent>
+      </Card>
     </main>
   );
 }

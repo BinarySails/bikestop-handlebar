@@ -8,6 +8,7 @@ import {
   Settings,
   ShoppingCart,
   Tag,
+  Tags,
   UserRound,
   Users,
   Warehouse,
@@ -21,6 +22,7 @@ const navigationItems = [
   { label: "Productos", icon: Package, to: "/products" },
   { label: "Ventas", icon: ShoppingCart, to: "/sales" },
   { label: "Inventario", icon: Package, to: "/inventory" },
+  { label: "Categorías", icon: Tags, to: "/categories" },
   { label: "Marcas", icon: Tag, to: "/brands" },
   { label: "Locaciones", icon: MapPin, to: "/locations" },
   { label: "Almacenes", icon: Warehouse, to: "/warehouses" },
@@ -38,8 +40,7 @@ export function AppSidebar() {
         aria-label="Navegación principal"
       >
         {navigationItems.map(({ label, icon: Icon, to }) => {
-          const active =
-            to === "/team" ? pathname.startsWith("/team") : pathname === to;
+          const active = pathname === to;
 
           return (
             <Button
