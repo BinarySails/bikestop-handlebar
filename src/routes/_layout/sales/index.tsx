@@ -19,9 +19,6 @@ function SalesPage() {
       </div>
 
       <div className="mt-8 flex flex-col gap-4 sm:flex-row">
-        <Button render={<Link to="/sales/customers" />} size="sm">
-          Administrar Clientes
-        </Button>
         <Button render={<Link to="/sales/tags" />} size="sm">
           Administrar Etiquetas
         </Button>
