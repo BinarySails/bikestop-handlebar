@@ -88,10 +88,12 @@ import type {
   UpdateProductRequest,
   UpdateRoleRequest,
   UpdateRoleResponse,
+  UpdateUserProfileRequest,
   UpdateWarehouseRequest,
   UpdateWarehouseStatusRequest,
   User,
   UserId,
+  UserResponse,
   WarehouseId,
   WarehouseResponse
 } from './schemas';
@@ -3656,6 +3658,172 @@ export const useCreateUserRequest = <TError = Promise<ErrorResponse | void>>(
 
   const swrKey = swrOptions?.swrKey ?? getCreateUserRequestMutationKey();
   const swrFn = getCreateUserRequestMutationFetcher(fetchOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type getUserRequestResponse200 = {
+  data: UserResponse
+  status: 200
+}
+
+export type getUserRequestResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type getUserRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type getUserRequestResponseSuccess = (getUserRequestResponse200) & {
+  headers: Headers;
+};
+export type getUserRequestResponseError = (getUserRequestResponse404 | getUserRequestResponse500) & {
+  headers: Headers;
+};
+
+export type getUserRequestResponse = (getUserRequestResponseSuccess | getUserRequestResponseError)
+
+export const getGetUserRequestUrl = (id: UserId,) => {
+
+
+
+
+  return `http://localhost:8080/api/v1/user/${id}`
+}
+
+export const getUserRequest = async (id: UserId, options?: RequestInit): Promise<getUserRequestResponse> => {
+
+  const res = await fetch(getGetUserRequestUrl(id),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'GET'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: getUserRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as getUserRequestResponse
+}
+
+
+
+
+export const getGetUserRequestKey = (id: UserId,) => [`http://localhost:8080/api/v1/user/${id}`] as const;
+
+export type GetUserRequestQueryResult = NonNullable<Awaited<ReturnType<typeof getUserRequest>>>
+
+export const useGetUserRequest = <TError = Promise<ErrorResponse>>(
+  id: UserId, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getUserRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
+) => {
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false && id !== null && id !== undefined
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetUserRequestKey(id) : null);
+  const swrFn = () => getUserRequest(id, fetchOptions)
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type updateUserRequestResponse200 = {
+  data: UserResponse
+  status: 200
+}
+
+export type updateUserRequestResponse400 = {
+  data: ErrorResponse
+  status: 400
+}
+
+export type updateUserRequestResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type updateUserRequestResponse409 = {
+  data: ErrorResponse
+  status: 409
+}
+
+export type updateUserRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type updateUserRequestResponseSuccess = (updateUserRequestResponse200) & {
+  headers: Headers;
+};
+export type updateUserRequestResponseError = (updateUserRequestResponse400 | updateUserRequestResponse404 | updateUserRequestResponse409 | updateUserRequestResponse500) & {
+  headers: Headers;
+};
+
+export type updateUserRequestResponse = (updateUserRequestResponseSuccess | updateUserRequestResponseError)
+
+export const getUpdateUserRequestUrl = (id: UserId,) => {
+
+
+
+
+  return `http://localhost:8080/api/v1/user/${id}`
+}
+
+export const updateUserRequest = async (id: UserId,
+    updateUserProfileRequest: UpdateUserProfileRequest, options?: RequestInit): Promise<updateUserRequestResponse> => {
+
+  const res = await fetch(getUpdateUserRequestUrl(id),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(updateUserProfileRequest)
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: updateUserRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as updateUserRequestResponse
+}
+
+
+
+
+export const getUpdateUserRequestMutationFetcher = (id: UserId, options?: RequestInit) => {
+  return (_: Key, { arg }: { arg: UpdateUserProfileRequest }) => {
+    return updateUserRequest(id, arg, options);
+  }
+}
+export const getUpdateUserRequestMutationKey = (id: UserId,) => [`http://localhost:8080/api/v1/user/${id}`] as const;
+
+export type UpdateUserRequestMutationResult = NonNullable<Awaited<ReturnType<typeof updateUserRequest>>>
+
+export const useUpdateUserRequest = <TError = Promise<ErrorResponse>>(
+  id: UserId, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof updateUserRequest>>, TError, Key, UpdateUserProfileRequest, Awaited<ReturnType<typeof updateUserRequest>>> & { swrKey?: string }, fetch?: RequestInit}
+) => {
+
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getUpdateUserRequestMutationKey(id);
+  const swrFn = getUpdateUserRequestMutationFetcher(id, fetchOptions);
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions)
 

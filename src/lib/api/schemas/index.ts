@@ -99,6 +99,7 @@ export * from './updatePermissionResponse.ts';
 export * from './updateProductRequest.ts';
 export * from './updateRoleRequest.ts';
 export * from './updateRoleResponse.ts';
+export * from './updateUserProfileRequest.ts';
 export * from './updateWarehouseAddressRequest.ts';
 export * from './updateWarehouseRequest.ts';
 export * from './updateWarehouseStatusRequest.ts';

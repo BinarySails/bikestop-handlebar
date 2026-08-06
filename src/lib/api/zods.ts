@@ -20,6 +20,7 @@ export const LoginHandlerResponse = zod.object({
   "id": zod.uuid(),
   "mother_last_name": zod.string().nullish(),
   "name": zod.string(),
+  "phone": zod.string().nullish(),
   "status": zod.enum(['active', 'inactive']),
   "username": zod.string()
 })
@@ -856,6 +857,49 @@ export const CreateUserRequestResponse = zod.object({
   "id": zod.uuid(),
   "mother_last_name": zod.string().nullish(),
   "name": zod.string(),
+  "phone": zod.string().nullish(),
+  "status": zod.enum(['active', 'inactive']),
+  "username": zod.string()
+})
+
+
+export const GetUserRequestParams = zod.object({
+  "id": zod.uuid().describe('User ID')
+})
+
+export const GetUserRequestResponse = zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "email": zod.string(),
+  "father_last_name": zod.string(),
+  "id": zod.uuid(),
+  "mother_last_name": zod.string().nullish(),
+  "name": zod.string(),
+  "phone": zod.string().nullish(),
+  "status": zod.enum(['active', 'inactive']),
+  "username": zod.string()
+})
+
+
+export const UpdateUserRequestParams = zod.object({
+  "id": zod.uuid().describe('User ID')
+})
+
+export const UpdateUserRequestBody = zod.object({
+  "email": zod.string().nullish(),
+  "father_last_name": zod.string().nullish(),
+  "mother_last_name": zod.string().nullish(),
+  "name": zod.string().nullish(),
+  "phone": zod.string().nullish()
+})
+
+export const UpdateUserRequestResponse = zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "email": zod.string(),
+  "father_last_name": zod.string(),
+  "id": zod.uuid(),
+  "mother_last_name": zod.string().nullish(),
+  "name": zod.string(),
+  "phone": zod.string().nullish(),
   "status": zod.enum(['active', 'inactive']),
   "username": zod.string()
 })
