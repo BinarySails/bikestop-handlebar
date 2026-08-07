@@ -1,5 +1,6 @@
 import { redirect } from "@tanstack/react-router";
 import { meHandler } from "@/lib/api/api";
+import { policiesFromAuthUser, rolesFromAuthUser } from "./derive-policies";
 import { useAuthStore } from "./use-auth-store";
 
 /**
@@ -46,8 +47,9 @@ export async function requireAuth({
       if (user && status === 200) {
         setAuth(
           {
-            ...user.user,
-            policies: [],
+            ...user,
+            policies: policiesFromAuthUser(user),
+            roles: rolesFromAuthUser(user),
           },
           expiresAt || undefined
         );
@@ -67,8 +69,9 @@ export async function requireAuth({
     if (user && status === 200) {
       setAuth(
         {
-          ...user.user,
-          policies: [],
+          ...user,
+          policies: policiesFromAuthUser(user),
+          roles: rolesFromAuthUser(user),
         },
         expiresAt || undefined
       );

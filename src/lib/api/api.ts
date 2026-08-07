@@ -23,6 +23,7 @@ import type {
   AssignRolesToUserResponse,
   AssociateFileRequest,
   AssociateFileResponse,
+  AuthUser,
   Brand,
   BrandId,
   Category,
@@ -75,7 +76,6 @@ import type {
   LocalityId,
   LoginRequest,
   LoginResponse,
-  MeResponse,
   PaginatedBrand,
   PermissionId,
   Product,
@@ -268,7 +268,7 @@ export const useLogoutHandler = <TError = Promise<void>>(
 }
 
 export type meHandlerResponse200 = {
-  data: MeResponse
+  data: AuthUser
   status: 200
 }
 

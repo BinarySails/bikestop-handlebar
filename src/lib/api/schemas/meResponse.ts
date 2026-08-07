@@ -4,8 +4,8 @@
  * ciclo
  * OpenAPI spec version: 0.1.0
  */
-import type { SessionUser } from './sessionUser.ts';
+import type { AuthUser } from './authUser.ts';
 
 export interface MeResponse {
-  user: SessionUser;
+  user: AuthUser;
 }
