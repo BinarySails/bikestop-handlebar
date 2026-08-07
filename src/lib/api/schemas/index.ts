@@ -107,6 +107,7 @@ export * from './salesOrderId.ts';
 export * from './salesOrderLine.ts';
 export * from './salesOrderLineId.ts';
 export * from './salesOrderStatus.ts';
+export * from './sessionUser.ts';
 export * from './sortOrderParam.ts';
 export * from './state.ts';
 export * from './stateId.ts';

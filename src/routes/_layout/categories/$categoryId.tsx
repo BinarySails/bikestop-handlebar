@@ -5,11 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  CategoryApiError,
-  useCategories,
-  useCategory,
-} from "@/lib/api/categories";
+import { useGetCategoriesRequest, useGetCategoryRequest } from "@/lib/api/api";
 
 export const Route = createFileRoute("/_layout/categories/$categoryId")({
   component: CategoryDetailPage,
@@ -21,13 +17,19 @@ const dateFormatter = new Intl.DateTimeFormat("es-MX", {
 
 function CategoryDetailPage() {
   const { categoryId } = Route.useParams();
-  const detailQuery = useCategory(categoryId);
-  const categoriesQuery = useCategories();
-  const category = detailQuery.data?.category;
+  const detailQuery = useGetCategoryRequest(categoryId);
+  const categoriesQuery = useGetCategoriesRequest();
+  const category =
+    detailQuery.data?.status === 200
+      ? detailQuery.data.data.category
+      : undefined;
+  const categories =
+    categoriesQuery.data?.status === 200
+      ? categoriesQuery.data.data.categories
+      : [];
   const parentName = category?.parent_id
-    ? (categoriesQuery.data?.categories.find(
-        (item) => item.id === category.parent_id
-      )?.display_name ?? "Categoría padre no disponible")
+    ? (categories.find((item) => item.id === category.parent_id)
+        ?.display_name ?? "Categoría padre no disponible")
     : "Sin categoría padre";
 
   if (detailQuery.isLoading) {
@@ -39,10 +41,8 @@ function CategoryDetailPage() {
     );
   }
 
-  if (detailQuery.error || !category) {
-    const notFound =
-      detailQuery.error instanceof CategoryApiError &&
-      detailQuery.error.status === 404;
+  if (detailQuery.error || detailQuery.data?.status !== 200 || !category) {
+    const notFound = detailQuery.data?.status === 404;
 
     return (
       <main className="flex flex-1 flex-col items-center justify-center gap-4 p-6 text-center">

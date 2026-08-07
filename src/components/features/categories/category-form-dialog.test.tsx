@@ -17,14 +17,12 @@ import { CategoryFormDialog } from "./category-form-dialog";
 const api = vi.hoisted(() => ({
   create: vi.fn<(...args: unknown[]) => Promise<unknown>>(),
   update: vi.fn<(...args: unknown[]) => Promise<unknown>>(),
-  invalidate: vi.fn<() => Promise<void>>(),
+  saved: vi.fn<() => Promise<void>>(),
 }));
 
-vi.mock("@/lib/api/categories", () => ({
-  CategoryApiError: class extends Error {},
-  createCategory: api.create,
-  updateCategory: api.update,
-  invalidateCategories: api.invalidate,
+vi.mock("@/lib/api/api", () => ({
+  createCategoryRequest: api.create,
+  updateCategoryRequest: api.update,
 }));
 
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
@@ -60,9 +58,9 @@ const grandchild: Category = {
 describe("CategoryFormDialog", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    api.create.mockResolvedValue({});
-    api.update.mockResolvedValue({});
-    api.invalidate.mockResolvedValue();
+    api.create.mockResolvedValue({ status: 201, data: root });
+    api.update.mockResolvedValue({ status: 200, data: { category: root } });
+    api.saved.mockResolvedValue();
   });
   afterEach(cleanup);
 
@@ -73,7 +71,12 @@ describe("CategoryFormDialog", () => {
     "creates a category with parent value %s",
     async (selectedParent, expectedParent) => {
       render(
-        <CategoryFormDialog open onOpenChange={vi.fn()} categories={[root]} />
+        <CategoryFormDialog
+          open
+          onOpenChange={vi.fn()}
+          categories={[root]}
+          onSaved={api.saved}
+        />
       );
       fireEvent.change(screen.getByLabelText("Nombre visible"), {
         target: { value: "Accesorios" },
@@ -95,6 +98,7 @@ describe("CategoryFormDialog", () => {
           parent_id: expectedParent,
         })
       );
+      expect(api.saved).toHaveBeenCalled();
     }
   );
 

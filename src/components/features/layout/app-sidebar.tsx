@@ -6,8 +6,8 @@ import {
   MapPin,
   Package,
   Settings,
+  Shapes,
   ShoppingCart,
-  Tag,
   Tags,
   UserRound,
   Users,
@@ -31,11 +31,12 @@ const navigationItems = [
   { label: "Productos", icon: Package, to: "/products" },
   { label: "Ventas", icon: ShoppingCart, to: "/sales" },
   { label: "Inventario", icon: Package, to: "/inventory" },
-  { label: "Categorías", icon: Tags, to: "/categories" },
-  { label: "Marcas", icon: Tag, to: "/brands" },
+  { label: "Categorías", icon: Shapes, to: "/categories" },
+  { label: "Marcas", icon: Tags, to: "/brands" },
   { label: "Locaciones", icon: MapPin, to: "/locations" },
+  { label: "Usuarios", icon: Users, to: "/users" },
+  { label: "Roles y permisos", icon: Users, to: "/team" },
   { label: "Almacenes", icon: Warehouse, to: "/warehouses" },
-  { label: "Equipo", icon: Users, to: "/team" },
 ] as const;
 
 function getInitials(name: string): string {
