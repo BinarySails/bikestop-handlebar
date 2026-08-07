@@ -4,8 +4,8 @@
  * ciclo
  * OpenAPI spec version: 0.1.0
  */
-import type { AuthUser } from './authUser.ts';
 
-export interface MeResponse {
-  user: AuthUser;
+export interface CreateVariantPropertyRequest {
+  property_name: string;
+  property_value: string;
 }

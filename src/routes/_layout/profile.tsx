@@ -16,13 +16,7 @@ export const Route = createFileRoute("/_layout/profile")({
 
 function ProfilePage() {
   const actor = useAuthStore((state) => state.actor);
-  const userId = (
-    actor && "user_id" in actor
-      ? actor.user_id
-      : actor && "id" in actor
-        ? actor.id
-        : undefined
-  )!;
+  const userId = actor?.id ?? "";
   const { data: res, error, isLoading } = useGetUserRequest(userId);
   const { trigger } = useUpdateUserProfileRequest(userId);
   const [user, setUser] = useState<UserResponse | null>(null);
