@@ -2,12 +2,12 @@ import { useState } from "react";
 import { Link, useLocation } from "@tanstack/react-router";
 import {
   LayoutDashboard,
-  BadgeIcon,
   LogOut,
   MapPin,
   Package,
   Settings,
   ShoppingCart,
+  Tags,
   UserRound,
   Users,
 } from "lucide-react";
@@ -19,7 +19,7 @@ const navigationItems = [
   { label: "Dashboard", icon: LayoutDashboard, to: "/dashboard" },
   { label: "Ventas", icon: ShoppingCart, to: "/sales" },
   { label: "Inventario", icon: Package, to: "/inventory" },
-  { label: "Marcas", icon: BadgeIcon, to: "/brands" },
+  { label: "Marcas", icon: Tags, to: "/brands" },
   { label: "Locaciones", icon: MapPin, to: "/locations" },
   { label: "Equipo", icon: Users, to: "/team" },
 ] as const;

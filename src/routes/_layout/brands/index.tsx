@@ -8,9 +8,7 @@ import {
 
 const brandSearchSchema = z.object({
   page: z.coerce.number().int().nonnegative().optional().catch(undefined),
-  limit: z.coerce.number().int().positive().optional().catch(undefined),
   display_name: z.string().trim().min(1).optional().catch(undefined),
-  order: z.enum(["asc", "desc"]).optional().catch(undefined),
 });
 
 export const Route = createFileRoute("/_layout/brands/")({

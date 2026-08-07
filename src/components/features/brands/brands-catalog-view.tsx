@@ -6,8 +6,6 @@ import {
   MoreVertical,
   Pencil,
   Plus,
-  Power,
-  RotateCcw,
   Search,
   Tags,
 } from "lucide-react";
@@ -35,32 +33,25 @@ import {
 } from "@/components/ui/table";
 import type { Brand } from "@/lib/api/schemas";
 
-export type BrandOrder = "asc" | "desc" | undefined;
-
 export type BrandsCatalogViewProps = {
   brands: Brand[];
   page: number;
   limit: number;
   total: number;
   search: string;
-  order: BrandOrder;
+  archivedOnly: boolean;
   loading?: boolean;
   refreshing?: boolean;
   error?: string | null;
   onSearchChange: (value: string) => void;
-  onOrderChange: (value: BrandOrder) => void;
-  onLimitChange: (value: number) => void;
+  onArchivedOnlyChange: (value: boolean) => void;
   onPageChange: (page: number) => void;
-  onClearFilters: () => void;
   onRetry: () => void;
   onCreate: () => void;
   onView: (brand: Brand) => void;
   onEdit: (brand: Brand) => void;
-  onToggle: (brand: Brand) => void;
   onArchive: (brand: Brand) => void;
 };
-
-const dateFormatter = new Intl.DateTimeFormat("es-MX", { dateStyle: "medium" });
 
 export function getBrandPageCount(total: number, limit: number): number {
   if (limit <= 0) return 1;
@@ -71,12 +62,10 @@ function BrandActions({
   brand,
   onView,
   onEdit,
-  onToggle,
   onArchive,
-}: Pick<
-  BrandsCatalogViewProps,
-  "onView" | "onEdit" | "onToggle" | "onArchive"
-> & { brand: Brand }) {
+}: Pick<BrandsCatalogViewProps, "onView" | "onEdit" | "onArchive"> & {
+  brand: Brand;
+}) {
   const archived = brand.status === "archive";
   return (
     <DropdownMenu>
@@ -98,9 +87,6 @@ function BrandActions({
         </DropdownMenuItem>
         <DropdownMenuItem disabled={archived} onClick={() => onEdit(brand)}>
           <Pencil /> Editar
-        </DropdownMenuItem>
-        <DropdownMenuItem disabled={archived} onClick={() => onToggle(brand)}>
-          <Power /> {brand.status === "enable" ? "Desactivar" : "Activar"}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
@@ -132,24 +118,20 @@ export function BrandsCatalogView(props: BrandsCatalogViewProps) {
     limit,
     total,
     search,
-    order,
+    archivedOnly,
     loading,
     refreshing,
     error,
     onSearchChange,
-    onOrderChange,
-    onLimitChange,
+    onArchivedOnlyChange,
     onPageChange,
-    onClearFilters,
     onRetry,
     onCreate,
     onView,
     onEdit,
-    onToggle,
     onArchive,
   } = props;
   const pageCount = getBrandPageCount(total, limit);
-  const hasFilters = Boolean(search || order);
 
   return (
     <section
@@ -173,8 +155,8 @@ export function BrandsCatalogView(props: BrandsCatalogViewProps) {
           <CardTitle className="flex items-center gap-2 text-base">
             <Tags className="size-4" /> Catálogo de marcas
           </CardTitle>
-          <div className="grid gap-3 md:grid-cols-[minmax(12rem,1fr)_auto_auto_auto]">
-            <div className="relative">
+          <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="relative flex-1">
               <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 type="search"
@@ -185,36 +167,15 @@ export function BrandsCatalogView(props: BrandsCatalogViewProps) {
                 placeholder="Buscar por nombre"
               />
             </div>
-            <select
-              aria-label="Ordenar marcas"
-              value={order ?? ""}
-              onChange={(event) =>
-                onOrderChange((event.target.value || undefined) as BrandOrder)
-              }
-              className="h-9 rounded-lg border border-input bg-transparent px-3 text-sm"
-            >
-              <option value="">Orden por nombre</option>
-              <option value="asc">Más antiguas primero</option>
-              <option value="desc">Más recientes primero</option>
-            </select>
-            <select
-              aria-label="Resultados por página"
-              value={limit}
-              onChange={(event) => onLimitChange(Number(event.target.value))}
-              className="h-9 rounded-lg border border-input bg-transparent px-3 text-sm"
-            >
-              {[10, 20, 50].map((value) => (
-                <option key={value} value={value}>
-                  {value} por página
-                </option>
-              ))}
-            </select>
             <Button
+              type="button"
               variant="outline"
-              disabled={!hasFilters}
-              onClick={onClearFilters}
+              className="sm:ml-auto"
+              aria-pressed={archivedOnly}
+              onClick={() => onArchivedOnlyChange(!archivedOnly)}
             >
-              <RotateCcw /> Limpiar
+              <Archive />
+              {archivedOnly ? "Mostrar activas" : "Mostrar archivadas"}
             </Button>
           </div>
         </CardHeader>
@@ -238,7 +199,7 @@ export function BrandsCatalogView(props: BrandsCatalogViewProps) {
               </p>
               <p className="mt-1 text-sm text-muted-foreground">
                 {search
-                  ? "Prueba con otro nombre o limpia los filtros."
+                  ? "Prueba con otro nombre."
                   : "Crea la primera marca para comenzar."}
               </p>
             </div>
@@ -249,8 +210,6 @@ export function BrandsCatalogView(props: BrandsCatalogViewProps) {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Marca</TableHead>
-                      <TableHead>Estado</TableHead>
-                      <TableHead>Creación</TableHead>
                       <TableHead className="w-12">
                         <span className="sr-only">Acciones</span>
                       </TableHead>
@@ -259,29 +218,28 @@ export function BrandsCatalogView(props: BrandsCatalogViewProps) {
                   <TableBody>
                     {brands.map((brand) => (
                       <TableRow key={brand.id}>
-                        <TableCell>
-                          <div className="flex items-center gap-3">
+                        <TableCell className="py-4">
+                          <div className="flex items-center gap-4">
                             <BrandImage
                               src={brand.image_url}
                               alt={brand.display_name}
+                              className="size-14 rounded-xl bg-background shadow-sm"
                             />
-                            <span className="font-medium">
-                              {brand.display_name}
-                            </span>
+                            <div className="flex min-w-0 items-center gap-3">
+                              <p className="truncate text-base font-semibold tracking-tight">
+                                {brand.display_name}
+                              </p>
+                              {archivedOnly && (
+                                <BrandStatusBadge status="archive" />
+                              )}
+                            </div>
                           </div>
                         </TableCell>
-                        <TableCell>
-                          <BrandStatusBadge status={brand.status} />
-                        </TableCell>
-                        <TableCell>
-                          {dateFormatter.format(new Date(brand.created_at))}
-                        </TableCell>
-                        <TableCell>
+                        <TableCell className="py-4">
                           <BrandActions
                             brand={brand}
                             onView={onView}
                             onEdit={onEdit}
-                            onToggle={onToggle}
                             onArchive={onArchive}
                           />
                         </TableCell>
@@ -294,30 +252,25 @@ export function BrandsCatalogView(props: BrandsCatalogViewProps) {
                 {brands.map((brand) => (
                   <article
                     key={brand.id}
-                    className="flex items-center gap-3 rounded-lg border p-3"
+                    className="flex items-center gap-4 rounded-xl border bg-card p-4 shadow-sm transition-shadow hover:shadow-md"
                   >
                     <BrandImage
                       src={brand.image_url}
                       alt={brand.display_name}
-                      className="size-12"
+                      className="size-16 rounded-xl bg-background"
                     />
                     <div className="min-w-0 flex-1">
-                      <h3 className="truncate font-medium">
-                        {brand.display_name}
-                      </h3>
-                      <div className="mt-1">
-                        <BrandStatusBadge status={brand.status} />
+                      <div className="flex min-w-0 items-center gap-2">
+                        <h3 className="truncate text-base font-semibold tracking-tight">
+                          {brand.display_name}
+                        </h3>
+                        {archivedOnly && <BrandStatusBadge status="archive" />}
                       </div>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        Creada{" "}
-                        {dateFormatter.format(new Date(brand.created_at))}
-                      </p>
                     </div>
                     <BrandActions
                       brand={brand}
                       onView={onView}
                       onEdit={onEdit}
-                      onToggle={onToggle}
                       onArchive={onArchive}
                     />
                   </article>

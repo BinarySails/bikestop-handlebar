@@ -1,30 +1,25 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 
 import {
   createBrandRequest,
   deleteBrandRequest,
-  toggleBrandRequest,
-  updateBrandRequest,
-  useGetBrandRequest,
   useListBrandsRequest,
 } from "@/lib/api/api";
 import type { Brand, ErrorResponse } from "@/lib/api/schemas";
 
-import { BrandActionDialog, type BrandAction } from "./brand-action-dialog";
-import { BrandDetailDialog } from "./brand-detail-dialog";
+import { BrandActionDialog } from "./brand-action-dialog";
 import {
   BrandFormDialog,
   type BrandFormErrors,
   type BrandFormValues,
 } from "./brand-form-dialog";
-import { BrandsCatalogView, type BrandOrder } from "./brands-catalog-view";
+import { BrandsCatalogView } from "./brands-catalog-view";
 
 export type BrandCatalogFilters = {
   page?: number;
-  limit?: number;
   display_name?: string;
-  order?: BrandOrder;
 };
 
 type BrandsCatalogProps = {
@@ -48,30 +43,26 @@ export function BrandsCatalog({
   filters,
   onFiltersChange,
 }: BrandsCatalogProps) {
+  const navigate = useNavigate();
   const page = filters.page ?? 0;
-  const limit = filters.limit ?? 10;
+  const limit = 10;
   const [search, setSearch] = useState(filters.display_name ?? "");
-  const [formBrand, setFormBrand] = useState<Brand | null | undefined>();
-  const [detailId, setDetailId] = useState<string>();
-  const [action, setAction] = useState<{
-    brand: Brand;
-    type: BrandAction;
-  } | null>(null);
+  const [archivedOnly, setArchivedOnly] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [archiveBrand, setArchiveBrand] = useState<Brand | null>(null);
   const [actionPending, setActionPending] = useState(false);
 
   const listQuery = useListBrandsRequest({
     page,
     limit,
     display_name: filters.display_name,
-    order: filters.order,
-  });
-  const detailQuery = useGetBrandRequest(detailId ?? "", {
-    swr: { enabled: Boolean(detailId) },
   });
   const response =
     listQuery.data?.status === 200 ? listQuery.data.data : undefined;
-  const detail =
-    detailQuery.data?.status === 200 ? detailQuery.data.data : null;
+  const visibleBrands =
+    response?.data.filter((brand) =>
+      archivedOnly ? brand.status === "archive" : brand.status !== "archive"
+    ) ?? [];
 
   useEffect(
     () => setSearch(filters.display_name ?? ""),
@@ -91,17 +82,10 @@ export function BrandsCatalog({
     values: BrandFormValues
   ): Promise<BrandFormErrors | void> {
     try {
-      if (formBrand) {
-        const result = await updateBrandRequest(formBrand.id, values);
-        if (result.status !== 200)
-          return mutationErrors(result.status, result.data);
-        toast.success("Marca actualizada correctamente.");
-      } else {
-        const result = await createBrandRequest(values);
-        if (result.status !== 201)
-          return mutationErrors(result.status, result.data);
-        toast.success("Marca creada correctamente.");
-      }
+      const result = await createBrandRequest(values);
+      if (result.status !== 201)
+        return mutationErrors(result.status, result.data);
+      toast.success("Marca creada correctamente.");
       await listQuery.mutate();
     } catch {
       return mutationErrors(0);
@@ -109,39 +93,24 @@ export function BrandsCatalog({
   }
 
   async function handleConfirmAction() {
-    if (!action || actionPending || action.brand.status === "archive") return;
+    if (!archiveBrand || actionPending || archiveBrand.status === "archive")
+      return;
     setActionPending(true);
     try {
-      if (action.type === "archive") {
-        const result = await deleteBrandRequest(action.brand.id);
-        if (result.status !== 200) throw result;
-        toast.success("Marca archivada correctamente.");
-      } else {
-        const result = await toggleBrandRequest(action.brand.id);
-        if (result.status !== 200) throw result;
-        toast.success(
-          action.brand.status === "enable"
-            ? "Marca desactivada correctamente."
-            : "Marca activada correctamente."
-        );
-      }
+      const result = await deleteBrandRequest(archiveBrand.id);
+      if (result.status !== 200) throw result;
+      toast.success("Marca archivada correctamente.");
       await listQuery.mutate();
-      setAction(null);
+      setArchiveBrand(null);
     } catch (error) {
       const status =
         typeof error === "object" && error && "status" in error
           ? error.status
           : 0;
-      if (status === 409) {
-        toast.error("Una marca archivada no puede activarse ni desactivarse.");
-      } else if (status === 404) {
+      if (status === 404) {
         toast.error("La marca ya no está disponible.");
       } else {
-        toast.error(
-          action.type === "archive"
-            ? "No se pudo archivar la marca."
-            : "No se pudo cambiar el estado de la marca."
-        );
+        toast.error("No se pudo archivar la marca.");
       }
     } finally {
       setActionPending(false);
@@ -152,72 +121,48 @@ export function BrandsCatalog({
     listQuery.error || (listQuery.data && listQuery.data.status !== 200)
       ? "Revisa tu conexión e intenta nuevamente."
       : null;
-  const detailError =
-    detailQuery.data?.status === 404
-      ? "La marca ya no está disponible. Regresa al catálogo."
-      : detailQuery.error ||
-          (detailQuery.data && detailQuery.data.status !== 200)
-        ? "No se pudo cargar el detalle de la marca."
-        : null;
-
   return (
     <>
       <BrandsCatalogView
-        brands={response?.data ?? []}
+        brands={visibleBrands}
         page={response?.page ?? page}
         limit={response?.limit ?? limit}
         total={response?.total ?? 0}
         search={search}
-        order={filters.order}
+        archivedOnly={archivedOnly}
         loading={listQuery.isLoading}
         refreshing={listQuery.isValidating && Boolean(response)}
         error={listError}
         onSearchChange={setSearch}
-        onOrderChange={(order) =>
-          onFiltersChange({ ...filters, page: undefined, order })
-        }
-        onLimitChange={(nextLimit) =>
-          onFiltersChange({ ...filters, page: undefined, limit: nextLimit })
-        }
+        onArchivedOnlyChange={setArchivedOnly}
         onPageChange={(nextPage) =>
           onFiltersChange({ ...filters, page: nextPage || undefined })
         }
-        onClearFilters={() => {
-          setSearch("");
-          onFiltersChange({ limit: filters.limit });
-        }}
         onRetry={() => listQuery.mutate()}
-        onCreate={() => setFormBrand(null)}
-        onView={(brand) => setDetailId(brand.id)}
-        onEdit={setFormBrand}
-        onToggle={(brand) => setAction({ brand, type: "toggle" })}
-        onArchive={(brand) => setAction({ brand, type: "archive" })}
+        onCreate={() => setCreateOpen(true)}
+        onView={(brand) =>
+          navigate({ to: "/brands/$brandId", params: { brandId: brand.id } })
+        }
+        onEdit={(brand) =>
+          navigate({
+            to: "/brands/$brandId/edit",
+            params: { brandId: brand.id },
+          })
+        }
+        onArchive={setArchiveBrand}
       />
       <BrandFormDialog
-        key={formBrand?.id ?? "create"}
-        open={formBrand !== undefined}
-        brand={formBrand}
+        open={createOpen}
         onOpenChange={(open) => {
-          if (!open) setFormBrand(undefined);
+          setCreateOpen(open);
         }}
         onSubmit={handleSave}
       />
-      <BrandDetailDialog
-        open={Boolean(detailId)}
-        brand={detail}
-        loading={detailQuery.isLoading}
-        error={detailError}
-        onOpenChange={(open) => {
-          if (!open) setDetailId(undefined);
-        }}
-        onRetry={() => detailQuery.mutate()}
-      />
       <BrandActionDialog
-        brand={action?.brand ?? null}
-        action={action?.type ?? "toggle"}
+        brand={archiveBrand}
         pending={actionPending}
         onOpenChange={(open) => {
-          if (!open) setAction(null);
+          if (!open) setArchiveBrand(null);
         }}
         onConfirm={handleConfirmAction}
       />

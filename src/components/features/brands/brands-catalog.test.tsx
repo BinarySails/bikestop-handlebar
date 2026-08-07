@@ -15,18 +15,18 @@ import { BrandsCatalog } from "./brands-catalog";
 
 const api = vi.hoisted(() => ({
   create: vi.fn(),
-  update: vi.fn(),
   archive: vi.fn(),
-  toggle: vi.fn(),
   listMutate: vi.fn(),
-  detailMutate: vi.fn(),
+  navigate: vi.fn(),
+}));
+
+vi.mock("@tanstack/react-router", () => ({
+  useNavigate: () => api.navigate,
 }));
 
 vi.mock("@/lib/api/api", () => ({
   createBrandRequest: api.create,
-  updateBrandRequest: api.update,
   deleteBrandRequest: api.archive,
-  toggleBrandRequest: api.toggle,
   useListBrandsRequest: () => ({
     data: {
       status: 200,
@@ -37,12 +37,6 @@ vi.mock("@/lib/api/api", () => ({
     error: undefined,
     mutate: api.listMutate,
   }),
-  useGetBrandRequest: () => ({
-    data: undefined,
-    isLoading: false,
-    error: undefined,
-    mutate: api.detailMutate,
-  }),
 }));
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 
@@ -50,8 +44,6 @@ describe("BrandsCatalog API container", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     api.create.mockResolvedValue({ status: 201, data: brandFixtures[0] });
-    api.update.mockResolvedValue({ status: 200, data: brandFixtures[0] });
-    api.toggle.mockResolvedValue({ status: 200, data: brandFixtures[0] });
     api.archive.mockResolvedValue({ status: 200, data: brandFixtures[0] });
     api.listMutate.mockResolvedValue(undefined);
   });
@@ -60,10 +52,7 @@ describe("BrandsCatalog API container", () => {
   it("debounces server search and resets the zero-based page", async () => {
     const onFiltersChange = vi.fn();
     render(
-      <BrandsCatalog
-        filters={{ page: 2, limit: 10 }}
-        onFiltersChange={onFiltersChange}
-      />
+      <BrandsCatalog filters={{ page: 2 }} onFiltersChange={onFiltersChange} />
     );
     fireEvent.change(screen.getByLabelText("Buscar marcas"), {
       target: { value: "trek" },
@@ -73,11 +62,24 @@ describe("BrandsCatalog API container", () => {
       () =>
         expect(onFiltersChange).toHaveBeenCalledWith({
           page: undefined,
-          limit: 10,
           display_name: "trek",
         }),
       { timeout: 700 }
     );
+  });
+
+  it("shows active and archived brands in separate views", () => {
+    render(<BrandsCatalog filters={{}} onFiltersChange={vi.fn()} />);
+    expect(screen.getAllByText("Specialized").length).toBeGreaterThan(0);
+    expect(screen.queryByText("Cannondale")).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: "Mostrar archivadas" }));
+    expect(screen.getAllByText("Cannondale").length).toBeGreaterThan(0);
+    expect(screen.queryByText("Specialized")).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: "Mostrar activas" }));
+    expect(screen.getAllByText("Specialized").length).toBeGreaterThan(0);
+    expect(screen.queryByText("Cannondale")).toBeNull();
   });
 
   it("creates a brand and invalidates the list", async () => {
@@ -118,41 +120,31 @@ describe("BrandsCatalog API container", () => {
     ).toBeTruthy();
   });
 
-  it("edits a brand and invalidates the catalog", async () => {
+  it("navigates to the brand edit page", async () => {
     render(<BrandsCatalog filters={{}} onFiltersChange={vi.fn()} />);
     fireEvent.click(
       screen.getAllByRole("button", { name: "Acciones de Specialized" })[0]
     );
     fireEvent.click(await screen.findByText("Editar"));
-    fireEvent.change(screen.getByLabelText("Nombre visible"), {
-      target: { value: "Specialized México" },
+    expect(api.navigate).toHaveBeenCalledWith({
+      to: "/brands/$brandId/edit",
+      params: { brandId: brandFixtures[0].id },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Guardar cambios" }));
-    await waitFor(() =>
-      expect(api.update).toHaveBeenCalledWith(brandFixtures[0].id, {
-        display_name: "Specialized México",
-        image_url: brandFixtures[0].image_url,
-      })
-    );
-    expect(api.listMutate).toHaveBeenCalled();
   });
 
-  it("confirms toggle and archive operations before invalidating", async () => {
-    const { unmount } = render(
-      <BrandsCatalog filters={{}} onFiltersChange={vi.fn()} />
-    );
+  it("navigates to the brand detail page", async () => {
+    render(<BrandsCatalog filters={{}} onFiltersChange={vi.fn()} />);
     fireEvent.click(
       screen.getAllByRole("button", { name: "Acciones de Specialized" })[0]
     );
-    fireEvent.click(await screen.findByText("Desactivar"));
-    fireEvent.click(screen.getByRole("button", { name: "Desactivar marca" }));
-    await waitFor(() =>
-      expect(api.toggle).toHaveBeenCalledWith(brandFixtures[0].id)
-    );
-    expect(api.listMutate).toHaveBeenCalled();
+    fireEvent.click(await screen.findByText("Ver detalle"));
+    expect(api.navigate).toHaveBeenCalledWith({
+      to: "/brands/$brandId",
+      params: { brandId: brandFixtures[0].id },
+    });
+  });
 
-    unmount();
-    vi.clearAllMocks();
+  it("confirms archive before calling delete and refreshing", async () => {
     render(<BrandsCatalog filters={{}} onFiltersChange={vi.fn()} />);
     fireEvent.click(
       screen.getAllByRole("button", { name: "Acciones de Specialized" })[0]

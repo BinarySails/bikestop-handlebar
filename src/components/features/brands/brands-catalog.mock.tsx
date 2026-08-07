@@ -1,23 +1,18 @@
 import { useState } from "react";
 
-import { BrandActionDialog, type BrandAction } from "./brand-action-dialog";
-import { BrandDetailDialog } from "./brand-detail-dialog";
+import { BrandActionDialog } from "./brand-action-dialog";
 import { brandFixtures } from "./brand-fixtures";
 import { BrandFormDialog, type BrandFormValues } from "./brand-form-dialog";
-import { BrandsCatalogView, type BrandOrder } from "./brands-catalog-view";
+import { BrandsCatalogView } from "./brands-catalog-view";
 import type { Brand } from "@/lib/api/schemas";
 
 /** Development harness for validating all visual states without a backend. */
 export function BrandsCatalogMock() {
   const [brands, setBrands] = useState(brandFixtures);
   const [search, setSearch] = useState("");
-  const [order, setOrder] = useState<BrandOrder>();
+  const [archivedOnly, setArchivedOnly] = useState(false);
   const [formBrand, setFormBrand] = useState<Brand | null | undefined>();
-  const [detailBrand, setDetailBrand] = useState<Brand | null>(null);
-  const [action, setAction] = useState<{
-    brand: Brand;
-    type: BrandAction;
-  } | null>(null);
+  const [archiveBrand, setArchiveBrand] = useState<Brand | null>(null);
 
   async function saveBrand(values: BrandFormValues) {
     if (formBrand) {
@@ -42,26 +37,22 @@ export function BrandsCatalogMock() {
   return (
     <>
       <BrandsCatalogView
-        brands={brands}
+        brands={brands.filter((brand) =>
+          archivedOnly ? brand.status === "archive" : brand.status !== "archive"
+        )}
         page={0}
         limit={10}
         total={brands.length}
         search={search}
-        order={order}
+        archivedOnly={archivedOnly}
         onSearchChange={setSearch}
-        onOrderChange={setOrder}
-        onLimitChange={() => undefined}
+        onArchivedOnlyChange={setArchivedOnly}
         onPageChange={() => undefined}
-        onClearFilters={() => {
-          setSearch("");
-          setOrder(undefined);
-        }}
         onRetry={() => undefined}
         onCreate={() => setFormBrand(null)}
-        onView={setDetailBrand}
-        onEdit={(brand) => setFormBrand(brand)}
-        onToggle={(brand) => setAction({ brand, type: "toggle" })}
-        onArchive={(brand) => setAction({ brand, type: "archive" })}
+        onView={() => undefined}
+        onEdit={() => undefined}
+        onArchive={setArchiveBrand}
       />
       <BrandFormDialog
         key={formBrand?.id ?? "create"}
@@ -72,21 +63,12 @@ export function BrandsCatalogMock() {
         }}
         onSubmit={saveBrand}
       />
-      <BrandDetailDialog
-        open={Boolean(detailBrand)}
-        brand={detailBrand}
-        onOpenChange={(open) => {
-          if (!open) setDetailBrand(null);
-        }}
-        onRetry={() => undefined}
-      />
       <BrandActionDialog
-        brand={action?.brand ?? null}
-        action={action?.type ?? "toggle"}
+        brand={archiveBrand}
         onOpenChange={(open) => {
-          if (!open) setAction(null);
+          if (!open) setArchiveBrand(null);
         }}
-        onConfirm={() => setAction(null)}
+        onConfirm={() => setArchiveBrand(null)}
       />
     </>
   );
