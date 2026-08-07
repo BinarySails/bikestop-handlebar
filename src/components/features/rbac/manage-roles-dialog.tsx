@@ -365,7 +365,6 @@ export function ManageRolesDialog() {
                         {role.status === "active" ? "Activo" : "Inactivo"}
                       </Badge>
                     </div>
-
                     <div className="flex gap-1">
                       <Button
                         variant="ghost"

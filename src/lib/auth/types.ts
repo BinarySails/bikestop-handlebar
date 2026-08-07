@@ -1,5 +1,6 @@
-import type { AuthUser, UserResponse } from "@/lib/api/schemas";
+import type { AuthUser, Role } from "@/lib/api/schemas";
 
-export type Actor = (UserResponse | AuthUser) & {
+export type Actor = AuthUser & {
   policies: string[];
+  roles: Role[];
 };

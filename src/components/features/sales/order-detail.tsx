@@ -122,7 +122,14 @@ export function OrderDetail({
     const taxes = draft.taxTotal ?? taxableAmount * draft.taxRate;
     const total = draft.grandTotal ?? taxableAmount + taxes;
     return { subtotal, taxes, total };
-  }, [draft.products, draft.discount, draft.taxRate]);
+  }, [
+    draft.products,
+    draft.discount,
+    draft.taxRate,
+    draft.subtotal,
+    draft.taxTotal,
+    draft.grandTotal,
+  ]);
 
   async function saveDraft(message = "Cambios guardados") {
     await onSave?.(draft);

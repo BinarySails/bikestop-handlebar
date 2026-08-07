@@ -13,10 +13,33 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { brandFixtures } from "./brand-fixtures";
 import { BrandFormDialog } from "./brand-form-dialog";
 
+vi.mock("./image-upload-field", () => ({
+  ImageUploadField: ({
+    label,
+    value,
+    onChange,
+  }: {
+    label: string;
+    value: string;
+    onChange: (value: string) => void;
+  }) => (
+    <div>
+      <button
+        type="button"
+        aria-label={label}
+        onClick={() => onChange("https://example.com/uploaded.png")}
+      >
+        Seleccionar imagen
+      </button>
+      <output data-testid="image-url">{value}</output>
+    </div>
+  ),
+}));
+
 describe("BrandFormDialog visual phase", () => {
   afterEach(cleanup);
 
-  it("validates required, minimum length and URL fields", async () => {
+  it("validates required name and image fields", async () => {
     const onSubmit = vi.fn<() => Promise<void>>();
     render(<BrandFormDialog open onOpenChange={vi.fn()} onSubmit={onSubmit} />);
     fireEvent.click(screen.getByRole("button", { name: "Crear marca" }));
@@ -32,11 +55,6 @@ describe("BrandFormDialog visual phase", () => {
     expect(
       await screen.findByText("El nombre debe tener al menos 3 caracteres.")
     ).toBeTruthy();
-    fireEvent.change(screen.getByLabelText("URL de la imagen"), {
-      target: { value: "no-es-url" },
-    });
-    fireEvent.blur(screen.getByLabelText("URL de la imagen"));
-    expect(await screen.findByText(/Ingresa una URL válida/)).toBeTruthy();
     expect(onSubmit).not.toHaveBeenCalled();
   });
 
@@ -50,15 +68,12 @@ describe("BrandFormDialog visual phase", () => {
     fireEvent.change(screen.getByLabelText("Nombre visible"), {
       target: { value: "  Giant  " },
     });
-    fireEvent.change(screen.getByLabelText("URL de la imagen"), {
-      target: { value: "https://example.com/giant.png" },
-    });
-    expect(screen.getByText("Vista previa de la imagen")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Imagen de la marca" }));
     fireEvent.click(screen.getByRole("button", { name: "Crear marca" }));
     await waitFor(() =>
       expect(onSubmit).toHaveBeenCalledWith({
         display_name: "Giant",
-        image_url: "https://example.com/giant.png",
+        image_url: "https://example.com/uploaded.png",
       })
     );
     expect(onSubmit).toHaveBeenCalledTimes(1);
@@ -76,9 +91,9 @@ describe("BrandFormDialog visual phase", () => {
     expect(
       (screen.getByLabelText("Nombre visible") as HTMLInputElement).value
     ).toBe("Specialized");
-    expect(
-      (screen.getByLabelText("URL de la imagen") as HTMLInputElement).value
-    ).toBe(brandFixtures[0].image_url);
+    expect(screen.getByTestId("image-url").textContent).toBe(
+      brandFixtures[0].image_url
+    );
     expect(
       screen.getByRole("button", { name: "Guardar cambios" })
     ).toBeTruthy();

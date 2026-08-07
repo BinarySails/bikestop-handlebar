@@ -4,17 +4,15 @@ import {
   ChevronRight,
   Eye,
   MoreVertical,
-  Pencil,
   Plus,
-  Power,
-  RotateCcw,
   Search,
+  Tags,
 } from "lucide-react";
 
 import { BrandImage } from "@/components/features/brands/brand-image";
 import { BrandStatusBadge } from "@/components/features/brands/brand-status-badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,7 +21,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -35,32 +32,24 @@ import {
 } from "@/components/ui/table";
 import type { Brand } from "@/lib/api/schemas";
 
-export type BrandOrder = "asc" | "desc" | undefined;
-
 export type BrandsCatalogViewProps = {
   brands: Brand[];
   page: number;
   limit: number;
   total: number;
   search: string;
-  order: BrandOrder;
+  archivedOnly: boolean;
   loading?: boolean;
   refreshing?: boolean;
   error?: string | null;
   onSearchChange: (value: string) => void;
-  onOrderChange: (value: BrandOrder) => void;
-  onLimitChange: (value: number) => void;
+  onArchivedOnlyChange: (value: boolean) => void;
   onPageChange: (page: number) => void;
-  onClearFilters: () => void;
   onRetry: () => void;
   onCreate: () => void;
   onView: (brand: Brand) => void;
-  onEdit: (brand: Brand) => void;
-  onToggle: (brand: Brand) => void;
   onArchive: (brand: Brand) => void;
 };
-
-const dateFormatter = new Intl.DateTimeFormat("es-MX", { dateStyle: "medium" });
 
 export function getBrandPageCount(total: number, limit: number): number {
   if (limit <= 0) return 1;
@@ -70,13 +59,10 @@ export function getBrandPageCount(total: number, limit: number): number {
 function BrandActions({
   brand,
   onView,
-  onEdit,
-  onToggle,
   onArchive,
-}: Pick<
-  BrandsCatalogViewProps,
-  "onView" | "onEdit" | "onToggle" | "onArchive"
-> & { brand: Brand }) {
+}: Pick<BrandsCatalogViewProps, "onView" | "onArchive"> & {
+  brand: Brand;
+}) {
   const archived = brand.status === "archive";
   return (
     <DropdownMenu>
@@ -95,12 +81,6 @@ function BrandActions({
       <DropdownMenuContent align="end">
         <DropdownMenuItem onClick={() => onView(brand)}>
           <Eye /> Ver detalle
-        </DropdownMenuItem>
-        <DropdownMenuItem disabled={archived} onClick={() => onEdit(brand)}>
-          <Pencil /> Editar
-        </DropdownMenuItem>
-        <DropdownMenuItem disabled={archived} onClick={() => onToggle(brand)}>
-          <Power /> {brand.status === "enable" ? "Desactivar" : "Activar"}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
@@ -132,19 +112,16 @@ export function BrandsCatalogView(props: BrandsCatalogViewProps) {
     limit,
     total,
     search,
-    order,
+    archivedOnly,
     loading,
+    refreshing,
     error,
     onSearchChange,
-    onOrderChange,
-    onLimitChange,
+    onArchivedOnlyChange,
     onPageChange,
-    onClearFilters,
     onRetry,
     onCreate,
     onView,
-    onEdit,
-    onToggle,
     onArchive,
   } = props;
   const pageCount = getBrandPageCount(total, limit);
@@ -152,84 +129,50 @@ export function BrandsCatalogView(props: BrandsCatalogViewProps) {
   return (
     <section
       aria-label="Marcas"
-      className="mx-auto flex w-full max-w-6xl flex-col gap-6 p-6"
+      className="mx-auto flex w-full max-w-7xl flex-col gap-6 p-4 sm:p-6"
     >
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Marcas</h1>
+          <p className="text-sm text-muted-foreground">
+            Gestiona las marcas de productos disponibles en BikeStop.
+          </p>
         </div>
         <Button onClick={onCreate}>
           <Plus /> Crear marca
         </Button>
       </div>
 
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-wrap items-end gap-4">
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="brand-search">Búsqueda</Label>
-            <div className="relative">
-              <Search className="absolute top-2.5 left-2.5 size-4 text-muted-foreground" />
+      <Card>
+        <CardHeader className="gap-4">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Tags className="size-4" /> Catálogo de marcas
+          </CardTitle>
+          <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="relative flex-1">
+              <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                id="brand-search"
-                aria-label="Buscar marcas"
-                placeholder="Buscar por nombre"
+                type="search"
+                className="pl-9"
                 value={search}
                 onChange={(event) => onSearchChange(event.target.value)}
-                className="w-72 pl-9"
+                aria-label="Buscar marcas"
+                placeholder="Buscar por nombre"
               />
             </div>
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="brand-order">Orden</Label>
-            <select
-              id="brand-order"
-              aria-label="Ordenar marcas"
-              value={order ?? ""}
-              onChange={(event) =>
-                onOrderChange((event.target.value || undefined) as BrandOrder)
-              }
-              className="h-9 w-44 rounded-lg border border-input bg-transparent px-3 text-sm"
-            >
-              <option value="">Orden por nombre</option>
-              <option value="asc">Más antiguas primero</option>
-              <option value="desc">Más recientes primero</option>
-            </select>
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="brand-limit">Resultados</Label>
-            <select
-              id="brand-limit"
-              aria-label="Resultados por página"
-              value={limit}
-              onChange={(event) => onLimitChange(Number(event.target.value))}
-              className="h-9 w-36 rounded-lg border border-input bg-transparent px-3 text-sm"
-            >
-              {[10, 20, 50].map((value) => (
-                <option key={value} value={value}>
-                  {value} por página
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <span className="text-sm font-medium">&nbsp;</span>
             <Button
-              className="h-8"
+              type="button"
               variant="outline"
-              size="sm"
-              onClick={onClearFilters}
+              className="sm:ml-auto"
+              aria-pressed={archivedOnly}
+              onClick={() => onArchivedOnlyChange(!archivedOnly)}
             >
-              <RotateCcw /> Limpiar
+              <Archive />
+              {archivedOnly ? "Mostrar activas" : "Mostrar archivadas"}
             </Button>
           </div>
-        </div>
-      </div>
-
-      <Card>
-        <CardContent className="space-y-4">
+        </CardHeader>
+        <CardContent>
           {loading ? (
             <LoadingState />
           ) : error ? (
@@ -249,83 +192,119 @@ export function BrandsCatalogView(props: BrandsCatalogViewProps) {
               </p>
               <p className="mt-1 text-sm text-muted-foreground">
                 {search
-                  ? "Prueba con otro nombre o limpia los filtros."
+                  ? "Prueba con otro nombre."
                   : "Crea la primera marca para comenzar."}
               </p>
             </div>
           ) : (
             <>
-              <Table aria-label="Listado de marcas">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Estatus</TableHead>
-                    <TableHead>Marca</TableHead>
-                    <TableHead>Creación</TableHead>
-                    <TableHead className="w-12">
-                      <span className="sr-only">Acciones</span>
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {brands.map((brand) => (
-                    <TableRow key={brand.id}>
-                      <TableCell>
-                        <BrandStatusBadge status={brand.status} />
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <BrandImage
-                            src={brand.image_url}
-                            alt={brand.display_name}
-                          />
-                          <span className="font-medium">
-                            {brand.display_name}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {dateFormatter.format(new Date(brand.created_at))}
-                      </TableCell>
-                      <TableCell>
-                        <BrandActions
-                          brand={brand}
-                          onView={onView}
-                          onEdit={onEdit}
-                          onToggle={onToggle}
-                          onArchive={onArchive}
-                        />
-                      </TableCell>
+              <div className="hidden overflow-x-auto md:block">
+                <Table aria-label="Listado de marcas">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Marca</TableHead>
+                      <TableHead className="w-12">
+                        <span className="sr-only">Acciones</span>
+                      </TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-
-              {total > 0 && (
-                <div className="mt-4 flex items-center justify-between">
-                  <p className="text-sm text-muted-foreground">
-                    Página {page + 1} de {pageCount}
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={page <= 0}
-                      onClick={() => onPageChange(page - 1)}
-                    >
-                      <ChevronLeft className="size-4" /> Anterior
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={page >= pageCount - 1}
-                      onClick={() => onPageChange(page + 1)}
-                    >
-                      Siguiente <ChevronRight className="size-4" />
-                    </Button>
-                  </div>
-                </div>
+                  </TableHeader>
+                  <TableBody>
+                    {brands.map((brand) => (
+                      <TableRow key={brand.id}>
+                        <TableCell className="py-4">
+                          <div className="flex items-center gap-4">
+                            <BrandImage
+                              src={brand.image_url}
+                              alt={brand.display_name}
+                              className="size-14 rounded-xl bg-background shadow-sm"
+                            />
+                            <div className="flex min-w-0 items-center gap-3">
+                              <p className="truncate text-base font-semibold tracking-tight">
+                                {brand.display_name}
+                              </p>
+                              {archivedOnly && (
+                                <BrandStatusBadge status="archive" />
+                              )}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="py-4">
+                          <BrandActions
+                            brand={brand}
+                            onView={onView}
+                            onArchive={onArchive}
+                          />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+              <div className="grid gap-3 md:hidden">
+                {brands.map((brand) => (
+                  <article
+                    key={brand.id}
+                    className="flex items-center gap-4 rounded-xl border bg-card p-4 shadow-sm transition-shadow hover:shadow-md"
+                  >
+                    <BrandImage
+                      src={brand.image_url}
+                      alt={brand.display_name}
+                      className="size-16 rounded-xl bg-background"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex min-w-0 items-center gap-2">
+                        <h3 className="truncate text-base font-semibold tracking-tight">
+                          {brand.display_name}
+                        </h3>
+                        {archivedOnly && <BrandStatusBadge status="archive" />}
+                      </div>
+                    </div>
+                    <BrandActions
+                      brand={brand}
+                      onView={onView}
+                      onArchive={onArchive}
+                    />
+                  </article>
+                ))}
+              </div>
+              {refreshing && (
+                <p
+                  className="mt-3 text-xs text-muted-foreground"
+                  aria-live="polite"
+                >
+                  Actualizando marcas…
+                </p>
               )}
             </>
+          )}
+
+          {!loading && !error && total > 0 && (
+            <nav
+              aria-label="Paginación de marcas"
+              className="mt-5 flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between"
+            >
+              <p className="text-sm text-muted-foreground">
+                Página {page + 1} de {pageCount} · {total} marcas
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={page <= 0}
+                  onClick={() => onPageChange(page - 1)}
+                >
+                  <ChevronLeft /> Anterior
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={page >= pageCount - 1}
+                  onClick={() => onPageChange(page + 1)}
+                >
+                  Siguiente <ChevronRight />
+                </Button>
+              </div>
+            </nav>
           )}
         </CardContent>
       </Card>
