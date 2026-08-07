@@ -20,7 +20,22 @@ export const LoginHandlerResponse = zod.object({
   "id": zod.uuid(),
   "mother_last_name": zod.string().nullish(),
   "name": zod.string(),
+  "permissions": zod.array(zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "description": zod.string().nullish(),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "slug": zod.string(),
+  "status": zod.enum(['active', 'inactive', 'deleted'])
+})),
   "phone": zod.string().nullish(),
+  "roles": zod.array(zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "slug": zod.string(),
+  "status": zod.enum(['active', 'inactive', 'deleted'])
+})),
   "status": zod.enum(['active', 'inactive']),
   "username": zod.string()
 })
@@ -31,12 +46,30 @@ export const LogoutHandlerResponse = zod.void()
 
 
 export const MeHandlerResponse = zod.object({
-  "user": zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
   "email": zod.string(),
-  "session_id": zod.string(),
-  "user_id": zod.uuid(),
+  "father_last_name": zod.string(),
+  "id": zod.uuid(),
+  "mother_last_name": zod.string().nullish(),
+  "name": zod.string(),
+  "permissions": zod.array(zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "description": zod.string().nullish(),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "slug": zod.string(),
+  "status": zod.enum(['active', 'inactive', 'deleted'])
+})),
+  "phone": zod.string().nullish(),
+  "roles": zod.array(zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "slug": zod.string(),
+  "status": zod.enum(['active', 'inactive', 'deleted'])
+})),
+  "status": zod.enum(['active', 'inactive']),
   "username": zod.string()
-})
 })
 
 
