@@ -15,4 +15,5 @@ export const EntityType = {
   customer: 'customer',
   warehouse: 'warehouse',
   brand: 'brand',
+  variant: 'variant',
 } as const;

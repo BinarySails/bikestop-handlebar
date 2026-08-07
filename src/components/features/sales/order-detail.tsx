@@ -31,6 +31,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
+import type { SalesOrderStatus } from "@/lib/api/schemas";
 
 export type OrderProduct = {
   id: string;
@@ -43,11 +44,13 @@ export type OrderProduct = {
 
 export type OrderDetailData = {
   folio: string;
+  status: SalesOrderStatus;
   products: OrderProduct[];
   customer: {
+    id: string;
     name: string;
-    rfc: string;
-    email: string;
+    rfc?: string;
+    email?: string;
     avatarUrl?: string;
   };
   shipping: {
@@ -57,6 +60,9 @@ export type OrderDetailData = {
   };
   discount: number;
   taxRate: number;
+  subtotal?: number;
+  taxTotal?: number;
+  grandTotal?: number;
   notes?: string;
   payments: Array<{
     method: string;
@@ -106,19 +112,24 @@ export function OrderDetail({
   >(null);
 
   const totals = useMemo(() => {
-    const subtotal = draft.products.reduce(
-      (sum, product) => sum + product.quantity * product.unitPrice,
-      0
-    );
+    const subtotal =
+      draft.subtotal ??
+      draft.products.reduce(
+        (sum, product) => sum + product.quantity * product.unitPrice,
+        0
+      );
     const taxableAmount = Math.max(0, subtotal - draft.discount);
-    const taxes = taxableAmount * draft.taxRate;
-    return { subtotal, taxes, total: taxableAmount + taxes };
+    const taxes = draft.taxTotal ?? taxableAmount * draft.taxRate;
+    const total = draft.grandTotal ?? taxableAmount + taxes;
+    return { subtotal, taxes, total };
   }, [draft.products, draft.discount, draft.taxRate]);
 
   async function saveDraft(message = "Cambios guardados") {
     await onSave?.(draft);
     toast.success(message);
   }
+
+  const isQuote = draft.status === "quote";
 
   async function dispatchOrder() {
     setPendingAction("dispatch");
@@ -154,9 +165,14 @@ export function OrderDetail({
         >
           <ArrowLeft />
         </Button>
-        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-          PEDIDO #{draft.folio}
-        </h1>
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+            {isQuote ? "COTIZACIÓN" : "PEDIDO"} #{draft.folio}
+          </h1>
+          <p className="text-sm text-muted-foreground capitalize">
+            Estado: {draft.status.replaceAll("_", " ")}
+          </p>
+        </div>
       </header>
 
       <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_340px]">
@@ -221,13 +237,15 @@ export function OrderDetail({
             </div>
           </section>
 
-          <Button
-            type="button"
-            className="h-12 w-full rounded-none font-bold tracking-wide"
-            onClick={() => onOpenPaymentsAndInvoices?.(draft)}
-          >
-            PAGOS Y FACTURAS
-          </Button>
+          {!isQuote && (
+            <Button
+              type="button"
+              className="h-12 w-full rounded-none font-bold tracking-wide"
+              onClick={() => onOpenPaymentsAndInvoices?.(draft)}
+            >
+              PAGOS Y FACTURAS
+            </Button>
+          )}
 
           <section aria-labelledby="notes-title">
             <div className="mb-3 flex items-center justify-between gap-4">
@@ -256,16 +274,24 @@ export function OrderDetail({
             />
           </section>
 
-          <div className="grid grid-cols-[minmax(0,2fr)_minmax(180px,1fr)] gap-4">
-            <Button
-              type="button"
-              size="lg"
-              className="h-12 font-bold"
-              disabled={pendingAction !== null}
-              onClick={dispatchOrder}
-            >
-              {pendingAction === "dispatch" ? "DESPACHANDO..." : "DESPACHAR"}
-            </Button>
+          <div
+            className={
+              isQuote
+                ? "grid"
+                : "grid grid-cols-[minmax(0,2fr)_minmax(180px,1fr)] gap-4"
+            }
+          >
+            {!isQuote && (
+              <Button
+                type="button"
+                size="lg"
+                className="h-12 font-bold"
+                disabled={pendingAction !== null}
+                onClick={dispatchOrder}
+              >
+                {pendingAction === "dispatch" ? "DESPACHANDO..." : "DESPACHAR"}
+              </Button>
+            )}
             <Button
               type="button"
               variant="destructive"
@@ -298,14 +324,26 @@ export function OrderDetail({
                 <p className="font-bold uppercase">{draft.customer.name}</p>
               </div>
               <dl className="grid grid-cols-[auto_1fr] gap-x-2 gap-y-1 text-sm">
-                <dt className="font-semibold">RFC:</dt>
+                <dt className="font-semibold">ID:</dt>
                 <dd className="break-all text-muted-foreground">
-                  {draft.customer.rfc}
+                  {draft.customer.id}
                 </dd>
-                <dt className="font-semibold">Email:</dt>
-                <dd className="break-all text-muted-foreground">
-                  {draft.customer.email}
-                </dd>
+                {draft.customer.rfc && (
+                  <>
+                    <dt className="font-semibold">RFC:</dt>
+                    <dd className="break-all text-muted-foreground">
+                      {draft.customer.rfc}
+                    </dd>
+                  </>
+                )}
+                {draft.customer.email && (
+                  <>
+                    <dt className="font-semibold">Email:</dt>
+                    <dd className="break-all text-muted-foreground">
+                      {draft.customer.email}
+                    </dd>
+                  </>
+                )}
               </dl>
             </CardContent>
           </Card>

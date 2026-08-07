@@ -1,7 +1,9 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useGetSaleOrderRequest } from "@/lib/api/api";
 
 export const Route = createFileRoute(
   "/_layout/sales/$orderId/payments-invoices"
@@ -11,6 +13,27 @@ export const Route = createFileRoute(
 
 function PaymentsAndInvoicesPage() {
   const { orderId } = Route.useParams();
+  const { data: response, error, isLoading } = useGetSaleOrderRequest(orderId);
+
+  if (isLoading) {
+    return <Skeleton className="m-8 h-64 rounded-xl" />;
+  }
+
+  const order = response?.status === 200 ? response.data : null;
+
+  if (order?.status === "quote") {
+    return <Navigate to="/sales/$orderId" params={{ orderId }} replace />;
+  }
+
+  if (error || !order) {
+    return (
+      <main className="flex min-h-[50vh] items-center justify-center p-6">
+        <p className="text-sm text-muted-foreground">
+          No se encontró la orden de venta o ocurrió un error al cargarla.
+        </p>
+      </main>
+    );
+  }
 
   return (
     <main className="w-full p-4 sm:p-6 lg:p-8">

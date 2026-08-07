@@ -4,10 +4,12 @@
  * ciclo
  * OpenAPI spec version: 0.1.0
  */
+import type { Permission } from './permission.ts';
+import type { Role } from './role.ts';
 import type { UserId } from './userId.ts';
 import type { UserStatus } from './userStatus.ts';
 
-export interface User {
+export interface AuthUser {
   created_at: string;
   email: string;
   father_last_name: string;
@@ -15,8 +17,10 @@ export interface User {
   /** @nullable */
   mother_last_name?: string | null;
   name: string;
+  permissions: Permission[];
   /** @nullable */
   phone?: string | null;
+  roles: Role[];
   status: UserStatus;
   username: string;
 }
