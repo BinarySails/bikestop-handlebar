@@ -19,19 +19,11 @@ const api = vi.hoisted(() => ({
   mutate: vi.fn(),
 }));
 
-vi.mock("@/lib/api/categories", () => ({
-  useCategories: api.query,
-  useCategory: () => ({
-    data: undefined,
-    error: undefined,
-    isLoading: false,
-    mutate: vi.fn(),
-  }),
-  CategoryApiError: class extends Error {},
-  createCategory: vi.fn(),
-  updateCategory: vi.fn(),
-  deleteCategory: vi.fn(),
-  invalidateCategories: vi.fn(),
+vi.mock("@/lib/api/api", () => ({
+  useGetCategoriesRequest: api.query,
+  createCategoryRequest: vi.fn(),
+  updateCategoryRequest: vi.fn(),
+  deleteCategoryRequest: vi.fn(),
 }));
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 
@@ -56,7 +48,7 @@ const child: Category = {
 
 function queryState(overrides: Record<string, unknown> = {}) {
   return {
-    data: { categories: [root, child] },
+    data: { status: 200, data: { categories: [root, child] } },
     error: undefined,
     isLoading: false,
     isValidating: false,
@@ -121,7 +113,9 @@ describe("CategoriesCatalog", () => {
     );
     expect(screen.getByLabelText("Cargando categorías")).toBeTruthy();
 
-    api.query.mockReturnValue(queryState({ data: { categories: [] } }));
+    api.query.mockReturnValue(
+      queryState({ data: { status: 200, data: { categories: [] } } })
+    );
     rerender(<CategoriesCatalog filters={{}} onFiltersChange={vi.fn()} />);
     expect(screen.getByText("No hay categorías registradas.")).toBeTruthy();
 

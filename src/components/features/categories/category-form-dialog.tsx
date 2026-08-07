@@ -14,13 +14,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  CategoryApiError,
-  createCategory,
-  invalidateCategories,
-  updateCategory,
-} from "@/lib/api/categories";
-import type { Category } from "@/lib/api/schemas";
+import { createCategoryRequest, updateCategoryRequest } from "@/lib/api/api";
+import type { Category, ErrorResponse } from "@/lib/api/schemas";
 
 import { buildCategoryOptions, getDescendantIds } from "./category-hierarchy";
 
@@ -30,17 +25,21 @@ type CategoryFormDialogProps = {
   categories: Category[];
   category?: Category | null;
   presentation?: "dialog" | "page";
+  onSaved?: () => Promise<void> | void;
 };
 
 function requiredMessage(value: string, label: string): string | undefined {
   return value.trim() ? undefined : `${label} es obligatorio.`;
 }
 
-function mutationErrorMessage(error: unknown, action: string): string {
-  if (error instanceof CategoryApiError) {
-    if (error.status === 400) return error.message;
-    if (error.status === 404) return "La categoría ya no existe.";
-  }
+function mutationErrorMessage(
+  status: number,
+  error: ErrorResponse | undefined,
+  action: string
+): string {
+  if (status === 400)
+    return error?.message ?? `No se pudo ${action} la categoría.`;
+  if (status === 404) return "La categoría ya no existe.";
   return `No se pudo ${action} la categoría.`;
 }
 
@@ -50,6 +49,7 @@ export function CategoryFormDialog({
   categories,
   category,
   presentation = "dialog",
+  onSaved,
 }: CategoryFormDialogProps) {
   const isEditing = Boolean(category);
   const blockedParentIds = category
@@ -78,18 +78,30 @@ export function CategoryFormDialog({
 
       try {
         if (category) {
-          await updateCategory(category.id, input);
+          const result = await updateCategoryRequest(category.id, input);
+          if (result.status !== 200) {
+            toast.error(
+              mutationErrorMessage(result.status, result.data, "actualizar")
+            );
+            return;
+          }
           toast.success("Categoría actualizada correctamente.");
         } else {
-          await createCategory(input);
+          const result = await createCategoryRequest(input);
+          if (result.status !== 201) {
+            toast.error(
+              mutationErrorMessage(result.status, result.data, "crear")
+            );
+            return;
+          }
           toast.success("Categoría creada correctamente.");
         }
-        await invalidateCategories();
+        await onSaved?.();
         onOpenChange(false);
         form.reset();
-      } catch (error) {
+      } catch {
         toast.error(
-          mutationErrorMessage(error, category ? "actualizar" : "crear")
+          `No se pudo ${category ? "actualizar" : "crear"} la categoría.`
         );
       }
     },
