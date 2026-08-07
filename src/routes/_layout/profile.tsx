@@ -6,7 +6,7 @@ import {
   ProfileSettingsCard,
   type ProfileField,
 } from "@/components/features/profile/profile-settings-card";
-import { useGetUserRequest, useUpdateUserRequest } from "@/lib/api/api";
+import { useGetUserRequest, useUpdateUserProfileRequest } from "@/lib/api/api";
 import { useAuthStore } from "@/lib/auth/use-auth-store";
 import type { UpdateUserProfileRequest, UserResponse } from "@/lib/api/schemas";
 
@@ -24,7 +24,7 @@ function ProfilePage() {
         : undefined
   )!;
   const { data: res, error, isLoading } = useGetUserRequest(userId);
-  const { trigger } = useUpdateUserRequest(userId);
+  const { trigger } = useUpdateUserProfileRequest(userId);
   const [user, setUser] = useState<UserResponse | null>(null);
 
   useEffect(() => {

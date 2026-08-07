@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { Link, useLocation } from "@tanstack/react-router";
+import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import {
+  Building2,
   LayoutDashboard,
   LogOut,
   MapPin,
@@ -15,6 +15,14 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { logoutHandler } from "@/lib/api/api";
 import { useAuthStore } from "@/lib/auth/use-auth-store";
 import { cn } from "@/lib/utils";
 
@@ -40,7 +48,7 @@ function getInitials(name: string): string {
 }
 
 export function AppSidebar() {
-  const [settingsOpen, setSettingsOpen] = useState(false);
+  const navigate = useNavigate();
   const pathname = useLocation({ select: (location) => location.pathname });
   const actor = useAuthStore((state) => state.actor);
 
@@ -54,6 +62,16 @@ export function AppSidebar() {
       ? actor.name
       : (actor?.username ?? "U")
   );
+
+  async function handleLogout() {
+    try {
+      await logoutHandler();
+    } catch {
+      // clear the local session regardless of the server response
+    }
+    useAuthStore.getState().clearAuth();
+    navigate({ to: "/login" });
+  }
 
   return (
     <aside className="flex w-20 shrink-0 flex-col border-r bg-background md:w-64">
@@ -85,43 +103,36 @@ export function AppSidebar() {
 
       <div className="border-t p-3">
         <div className="space-y-1">
-          {settingsOpen && (
-            <div id="sidebar-settings-menu" className="space-y-1">
-              <Button
-                type="button"
-                variant="ghost"
-                render={<Link to="/profile" />}
-                className="h-10 w-full justify-center px-2 md:justify-start md:px-3"
-                aria-label="Perfil"
-                onClick={() => setSettingsOpen(false)}
-              >
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="h-10 w-full justify-center px-2 md:justify-start md:px-3"
+                  aria-label="Configuración"
+                >
+                  <Settings className="size-4" aria-hidden="true" />
+                  <span className="hidden md:inline">Configuración</span>
+                </Button>
+              }
+            />
+            <DropdownMenuContent align="start" side="top" className="w-52">
+              <DropdownMenuItem onClick={() => navigate({ to: "/profile" })}>
                 <UserRound className="size-4" aria-hidden="true" />
-                <span className="hidden md:inline">Perfil</span>
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                className="h-10 w-full justify-center px-2 text-destructive hover:bg-destructive/10 hover:text-destructive md:justify-start md:px-3"
-                aria-label="Cerrar sesión"
-              >
+                Perfil
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate({ to: "/customer" })}>
+                <Building2 className="size-4" aria-hidden="true" />
+                Cliente
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem variant="destructive" onClick={handleLogout}>
                 <LogOut className="size-4" aria-hidden="true" />
-                <span className="hidden md:inline">Cerrar sesión</span>
-              </Button>
-            </div>
-          )}
-
-          <Button
-            type="button"
-            variant="ghost"
-            className="h-10 w-full justify-center px-2 md:justify-start md:px-3"
-            aria-expanded={settingsOpen}
-            aria-controls="sidebar-settings-menu"
-            aria-label="Configuración"
-            onClick={() => setSettingsOpen((open) => !open)}
-          >
-            <Settings className="size-4" aria-hidden="true" />
-            <span className="hidden md:inline">Configuración</span>
-          </Button>
+                Cerrar sesión
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         <div className="mt-2 flex items-center justify-center gap-2 rounded-md border-t pt-3 md:justify-start">
