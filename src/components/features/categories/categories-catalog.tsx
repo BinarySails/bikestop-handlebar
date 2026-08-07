@@ -6,7 +6,7 @@ import {
   Pencil,
   Plus,
   Search,
-  Tags,
+  Shapes,
   Trash2,
 } from "lucide-react";
 
@@ -157,7 +157,7 @@ export function CategoriesCatalog({
       <Card>
         <CardHeader className="gap-4">
           <CardTitle className="flex items-center gap-2 text-base font-semibold">
-            <Tags className="size-4" /> Catálogo de categorías
+            <Shapes className="size-4" /> Catálogo de categorías
           </CardTitle>
           <div className="flex flex-col gap-3 md:flex-row md:items-center">
             <div className="relative flex-1">

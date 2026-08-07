@@ -4,7 +4,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 
-import { BrandImage } from "@/components/features/brands/brand-image";
+import { ImageUploadField } from "@/components/features/brands/image-upload-field";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -56,6 +56,7 @@ function BrandEditForm({
   const [imageUrl, setImageUrl] = useState(brand.image_url);
   const [error, setError] = useState<string>();
   const [pending, setPending] = useState(false);
+  const [imageUploading, setImageUploading] = useState(false);
 
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -114,27 +115,12 @@ function BrandEditForm({
                 onChange={(event) => setName(event.target.value)}
               />
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="image_url">URL de la imagen</Label>
-              <Input
-                id="image_url"
-                type="url"
-                value={imageUrl}
-                onChange={(event) => setImageUrl(event.target.value)}
-              />
-            </div>
-            {imageUrl && (
-              <div className="flex items-center gap-4 rounded-xl border p-4">
-                <BrandImage
-                  src={imageUrl}
-                  alt={name}
-                  className="size-20 rounded-xl"
-                />
-                <span className="text-sm text-muted-foreground">
-                  Vista previa
-                </span>
-              </div>
-            )}
+            <ImageUploadField
+              id="image_url"
+              value={imageUrl}
+              onChange={setImageUrl}
+              onUploadingChange={setImageUploading}
+            />
             {error && (
               <p role="alert" className="text-sm text-destructive">
                 {error}
@@ -148,7 +134,7 @@ function BrandEditForm({
               >
                 Cancelar
               </Button>
-              <Button type="submit" disabled={pending}>
+              <Button type="submit" disabled={pending || imageUploading}>
                 {pending ? "Guardando..." : "Guardar cambios"}
               </Button>
             </div>

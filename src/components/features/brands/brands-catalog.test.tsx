@@ -39,6 +39,17 @@ vi.mock("@/lib/api/api", () => ({
   }),
 }));
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
+vi.mock("./image-upload-field", () => ({
+  ImageUploadField: ({ onChange }: { onChange: (value: string) => void }) => (
+    <button
+      type="button"
+      aria-label="Imagen de la marca"
+      onClick={() => onChange("https://example.com/uploaded.png")}
+    >
+      Seleccionar imagen
+    </button>
+  ),
+}));
 
 describe("BrandsCatalog API container", () => {
   beforeEach(() => {
@@ -88,14 +99,12 @@ describe("BrandsCatalog API container", () => {
     fireEvent.change(screen.getByLabelText("Nombre visible"), {
       target: { value: "Giant" },
     });
-    fireEvent.change(screen.getByLabelText("URL de la imagen"), {
-      target: { value: "https://example.com/giant.png" },
-    });
+    fireEvent.click(screen.getByRole("button", { name: "Imagen de la marca" }));
     fireEvent.click(screen.getByRole("button", { name: "Crear marca" }));
     await waitFor(() =>
       expect(api.create).toHaveBeenCalledWith({
         display_name: "Giant",
-        image_url: "https://example.com/giant.png",
+        image_url: "https://example.com/uploaded.png",
       })
     );
     expect(api.listMutate).toHaveBeenCalled();
@@ -111,9 +120,7 @@ describe("BrandsCatalog API container", () => {
     fireEvent.change(screen.getByLabelText("Nombre visible"), {
       target: { value: "Trek" },
     });
-    fireEvent.change(screen.getByLabelText("URL de la imagen"), {
-      target: { value: "https://example.com/trek.png" },
-    });
+    fireEvent.click(screen.getByRole("button", { name: "Imagen de la marca" }));
     fireEvent.click(screen.getByRole("button", { name: "Crear marca" }));
     expect(
       await screen.findByText("Ya existe una marca con este nombre.")

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useForm } from "@tanstack/react-form";
 
-import { BrandImage } from "@/components/features/brands/brand-image";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -14,6 +13,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { Brand } from "@/lib/api/schemas";
+
+import { ImageUploadField } from "./image-upload-field";
 
 export type BrandFormValues = {
   display_name: string;
@@ -55,6 +56,7 @@ export function BrandFormDialog({
   onSubmit,
 }: BrandFormDialogProps) {
   const [submissionErrors, setSubmissionErrors] = useState<BrandFormErrors>({});
+  const [imageUploading, setImageUploading] = useState(false);
   const isEditing = Boolean(brand);
   const form = useForm({
     defaultValues: {
@@ -140,18 +142,12 @@ export function BrandFormDialog({
           >
             {(field) => (
               <div className="grid gap-2">
-                <Label htmlFor={field.name}>URL de la imagen</Label>
-                <Input
+                <ImageUploadField
                   id={field.name}
-                  type="url"
+                  label="Imagen de la marca"
                   value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(event) => field.handleChange(event.target.value)}
-                  placeholder="https://ejemplo.com/logo.png"
-                  aria-invalid={Boolean(
-                    field.state.meta.errors[0] || submissionErrors.image_url
-                  )}
-                  aria-describedby={`${field.name}-error`}
+                  onChange={field.handleChange}
+                  onUploadingChange={setImageUploading}
                 />
                 {(field.state.meta.errors[0] || submissionErrors.image_url) && (
                   <p
@@ -160,18 +156,6 @@ export function BrandFormDialog({
                   >
                     {field.state.meta.errors[0] || submissionErrors.image_url}
                   </p>
-                )}
-                {field.state.value && !validateImageUrl(field.state.value) && (
-                  <div className="flex items-center gap-3 rounded-lg border p-3">
-                    <BrandImage
-                      src={field.state.value}
-                      alt={field.state.value}
-                      className="size-16"
-                    />
-                    <span className="text-xs text-muted-foreground">
-                      Vista previa de la imagen
-                    </span>
-                  </div>
                 )}
               </div>
             )}
@@ -193,7 +177,7 @@ export function BrandFormDialog({
             </Button>
             <form.Subscribe selector={(state) => state.isSubmitting}>
               {(isSubmitting) => (
-                <Button type="submit" disabled={isSubmitting}>
+                <Button type="submit" disabled={isSubmitting || imageUploading}>
                   {isSubmitting
                     ? "Guardando..."
                     : isEditing
