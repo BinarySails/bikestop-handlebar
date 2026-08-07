@@ -40,6 +40,7 @@ import type {
   CreateProductRequest,
   CreateRoleRequest,
   CreateRoleResponse,
+  CreateSalesOrderRequest,
   CreateStateRequest,
   CreateUserRequest,
   CreateVariantRequest,
@@ -83,6 +84,7 @@ import type {
   RemovePermissionsResponse,
   RemoveUserRoleResponse,
   RoleId,
+  SalesOrder,
   State,
   StateId,
   UpdateBrandRequest,
@@ -4288,6 +4290,91 @@ export const useRemoveUserRoleHandler = <TError = Promise<void>>(
 
   const swrKey = swrOptions?.swrKey ?? getRemoveUserRoleHandlerMutationKey(userId,roleId);
   const swrFn = getRemoveUserRoleHandlerMutationFetcher(userId,roleId, fetchOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type createSalesOrderRequestResponse201 = {
+  data: SalesOrder
+  status: 201
+}
+
+export type createSalesOrderRequestResponse400 = {
+  data: ErrorResponse
+  status: 400
+}
+
+export type createSalesOrderRequestResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type createSalesOrderRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type createSalesOrderRequestResponseSuccess = (createSalesOrderRequestResponse201) & {
+  headers: Headers;
+};
+export type createSalesOrderRequestResponseError = (createSalesOrderRequestResponse400 | createSalesOrderRequestResponse404 | createSalesOrderRequestResponse500) & {
+  headers: Headers;
+};
+
+export type createSalesOrderRequestResponse = (createSalesOrderRequestResponseSuccess | createSalesOrderRequestResponseError)
+
+export const getCreateSalesOrderRequestUrl = () => {
+
+
+
+
+  return `http://localhost:8080/api/v1/sales-orders`
+}
+
+export const createSalesOrderRequest = async (createSalesOrderRequest: CreateSalesOrderRequest, options?: RequestInit): Promise<createSalesOrderRequestResponse> => {
+
+  const res = await fetch(getCreateSalesOrderRequestUrl(),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(createSalesOrderRequest)
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: createSalesOrderRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as createSalesOrderRequestResponse
+}
+
+
+
+
+export const getCreateSalesOrderRequestMutationFetcher = ( options?: RequestInit) => {
+  return (_: Key, { arg }: { arg: CreateSalesOrderRequest }) => {
+    return createSalesOrderRequest(arg, options);
+  }
+}
+export const getCreateSalesOrderRequestMutationKey = () => [`http://localhost:8080/api/v1/sales-orders`] as const;
+
+export type CreateSalesOrderRequestMutationResult = NonNullable<Awaited<ReturnType<typeof createSalesOrderRequest>>>
+
+export const useCreateSalesOrderRequest = <TError = Promise<ErrorResponse>>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof createSalesOrderRequest>>, TError, Key, CreateSalesOrderRequest, Awaited<ReturnType<typeof createSalesOrderRequest>>> & { swrKey?: string }, fetch?: RequestInit}
+) => {
+
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getCreateSalesOrderRequestMutationKey();
+  const swrFn = getCreateSalesOrderRequestMutationFetcher(fetchOptions);
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
