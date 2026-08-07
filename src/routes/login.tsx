@@ -10,7 +10,7 @@ import {
   rolesFromAuthUser,
 } from "@/lib/auth/derive-policies";
 import { useAuthStore } from "@/lib/auth/use-auth-store";
-import type { MeResponse } from "@/lib/api/schemas";
+import type { AuthUser } from "@/lib/api/schemas";
 
 const DEFAULT_SESSION_DURATION_MS = 24 * 60 * 60 * 1000;
 
@@ -56,7 +56,7 @@ export const Route = createFileRoute("/login")({
     }
 
     try {
-      let data: MeResponse | undefined = undefined;
+      let data: AuthUser | undefined = undefined;
 
       try {
         const { data: user, status } = await meHandler();
@@ -74,9 +74,9 @@ export const Route = createFileRoute("/login")({
       if (data) {
         setAuth(
           {
-            ...data.user,
-            policies: policiesFromAuthUser(data.user),
-            roles: rolesFromAuthUser(data.user),
+            ...data,
+            policies: policiesFromAuthUser(data),
+            roles: rolesFromAuthUser(data),
           },
           expiresAt || undefined
         );

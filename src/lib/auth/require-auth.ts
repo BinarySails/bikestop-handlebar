@@ -47,9 +47,9 @@ export async function requireAuth({
       if (user && status === 200) {
         setAuth(
           {
-            ...user.user,
-            policies: policiesFromAuthUser(user.user),
-            roles: rolesFromAuthUser(user.user),
+            ...user,
+            policies: policiesFromAuthUser(user),
+            roles: rolesFromAuthUser(user),
           },
           expiresAt || undefined
         );
@@ -69,9 +69,9 @@ export async function requireAuth({
     if (user && status === 200) {
       setAuth(
         {
-          ...user.user,
-          policies: policiesFromAuthUser(user.user),
-          roles: rolesFromAuthUser(user.user),
+          ...user,
+          policies: policiesFromAuthUser(user),
+          roles: rolesFromAuthUser(user),
         },
         expiresAt || undefined
       );

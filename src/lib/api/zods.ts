@@ -46,7 +46,6 @@ export const LogoutHandlerResponse = zod.void()
 
 
 export const MeHandlerResponse = zod.object({
-  "user": zod.object({
   "created_at": zod.iso.datetime({"offset":true}),
   "email": zod.string(),
   "father_last_name": zod.string(),
@@ -71,7 +70,6 @@ export const MeHandlerResponse = zod.object({
 })),
   "status": zod.enum(['active', 'inactive']),
   "username": zod.string()
-})
 })
 
 

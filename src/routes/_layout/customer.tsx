@@ -45,13 +45,7 @@ const statusLabels: Record<CustomerStatus, string> = {
 
 function CustomerPage() {
   const actor = useAuthStore((state) => state.actor);
-  const userId = (
-    actor && "user_id" in actor
-      ? actor.user_id
-      : actor && "id" in actor
-        ? actor.id
-        : undefined
-  )!;
+  const userId = actor?.id ?? "";
   const { data: res, error, isLoading, mutate } = useGetCustomerRequest(userId);
   const { trigger: createCustomer } = useCreateCustomerRequest();
   const { trigger: updateCustomer } = useUpdateCustomerRequest(userId);
