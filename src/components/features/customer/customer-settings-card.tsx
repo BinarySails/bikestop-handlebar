@@ -3,12 +3,12 @@ import { Check, Loader2, Pencil, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import type { CustomerResponse } from "@/lib/api/schemas";
+import type { Customer } from "@/lib/api/schemas";
 
 export type CustomerField = "company_name" | "tax_id" | "phone" | "email";
 
 interface CustomerSettingsCardProps {
-  customer: CustomerResponse;
+  customer: Customer;
   onUpdateField: (field: CustomerField, value: string) => Promise<void>;
   disabled?: boolean;
 }

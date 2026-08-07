@@ -43,7 +43,7 @@ import type {
   CreateStateRequest,
   CreateUserRequest,
   CreateWarehouseRequest,
-  CustomerResponse,
+  Customer,
   DeleteCategoryResponse,
   DeleteFileRequestParams,
   DeleteFileResponse,
@@ -337,7 +337,7 @@ export const useMeHandler = <TError = Promise<void>>(
 }
 
 export type createCustomerRequestResponse201 = {
-  data: CustomerResponse
+  data: Customer
   status: 201
 }
 
@@ -427,7 +427,7 @@ export const useCreateCustomerRequest = <TError = Promise<ErrorResponse>>(
 }
 
 export type getCustomerRequestResponse200 = {
-  data: CustomerResponse
+  data: Customer
   status: 200
 }
 
@@ -512,7 +512,7 @@ export const useGetCustomerRequest = <TError = Promise<ErrorResponse>>(
 }
 
 export type updateCustomerRequestResponse200 = {
-  data: CustomerResponse
+  data: Customer
   status: 200
 }
 
@@ -613,7 +613,7 @@ export const useUpdateCustomerRequest = <TError = Promise<ErrorResponse>>(
 }
 
 export type updateCustomerStatusRequestResponse200 = {
-  data: CustomerResponse
+  data: Customer
   status: 200
 }
 

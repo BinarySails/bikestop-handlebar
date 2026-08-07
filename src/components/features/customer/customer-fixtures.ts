@@ -1,6 +1,6 @@
-import type { CustomerResponse } from "@/lib/api/schemas";
+import type { Customer } from "@/lib/api/schemas";
 
-export const customerFixtures: CustomerResponse[] = [
+export const customerFixtures: Customer[] = [
   {
     id: "11111111-1111-1111-1111-111111111111",
     user_id: "22222222-2222-2222-2222-222222222222",

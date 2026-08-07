@@ -8,7 +8,7 @@ import type { CustomerId } from './customerId.ts';
 import type { CustomerStatus } from './customerStatus.ts';
 import type { UserId } from './userId.ts';
 
-export interface CustomerResponse {
+export interface Customer {
   company_name: string;
   created_at: string;
   /** @nullable */

@@ -29,7 +29,7 @@ import {
 import { useAuthStore } from "@/lib/auth/use-auth-store";
 import type {
   CreateCustomerRequest,
-  CustomerResponse,
+  Customer,
   UpdateCustomerRequest,
 } from "@/lib/api/schemas";
 import type { CustomerStatus } from "@/lib/api/schemas";
@@ -58,8 +58,7 @@ function CustomerPage() {
   const { trigger: updateCustomerStatus } =
     useUpdateCustomerStatusRequest(userId);
 
-  const customer: CustomerResponse | null =
-    res?.status === 200 ? res.data : null;
+  const customer: Customer | null = res?.status === 200 ? res.data : null;
 
   const [deactivateOpen, setDeactivateOpen] = useState(false);
   const [statusPending, setStatusPending] = useState(false);
