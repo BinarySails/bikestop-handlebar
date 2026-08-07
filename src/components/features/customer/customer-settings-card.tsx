@@ -3,58 +3,66 @@ import { Check, Loader2, Pencil, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import type { UserResponse } from "@/lib/api/schemas";
+import type { Customer } from "@/lib/api/schemas";
 
-export type ProfileField = "name" | "father_last_name" | "email" | "phone";
+export type CustomerField = "company_name" | "tax_id" | "phone" | "email";
 
-interface ProfileSettingsCardProps {
-  user: UserResponse;
-  onUpdateField: (field: ProfileField, value: string) => Promise<void>;
+interface CustomerSettingsCardProps {
+  customer: Customer;
+  onUpdateField: (field: CustomerField, value: string) => Promise<void>;
+  disabled?: boolean;
 }
 
 const fieldRows: {
-  field: ProfileField;
+  field: CustomerField;
   label: string;
   placeholder: string;
+  required: boolean;
   inputType?: string;
-  required?: boolean;
 }[] = [
-  { field: "name", label: "Nombre", placeholder: "Tu nombre", required: true },
   {
-    field: "father_last_name",
-    label: "Apellido",
-    placeholder: "Tu apellido",
+    field: "company_name",
+    label: "Nombre de la empresa",
+    placeholder: "Nombre de tu empresa",
     required: true,
+  },
+  {
+    field: "tax_id",
+    label: "RFC",
+    placeholder: "RFC de la empresa",
+    required: true,
+  },
+  {
+    field: "phone",
+    label: "Teléfono",
+    placeholder: "Ej. 5512345678",
+    required: false,
   },
   {
     field: "email",
     label: "Correo Electrónico",
     placeholder: "tu@correo.com",
+    required: false,
     inputType: "email",
-    required: true,
-  },
-  {
-    field: "phone",
-    label: "Número de Celular",
-    placeholder: "Ej. 5512345678",
-    required: true,
   },
 ];
 
-export function ProfileSettingsCard({
-  user,
+export function CustomerSettingsCard({
+  customer,
   onUpdateField,
-}: ProfileSettingsCardProps) {
+  disabled = false,
+}: CustomerSettingsCardProps) {
   return (
     <div className="flex w-full max-w-5xl flex-col gap-3">
       {fieldRows.map((row) => (
-        <ProfileFieldCard
+        <CustomerFieldCard
           key={row.field}
           label={row.label}
-          value={user[row.field] ?? ""}
+          value={customer[row.field] ?? ""}
           placeholder={row.placeholder}
-          inputType={row.inputType}
           required={row.required}
+          inputType={row.inputType}
+          disabled={disabled}
           onSave={(value) => onUpdateField(row.field, value)}
         />
       ))}
@@ -62,26 +70,28 @@ export function ProfileSettingsCard({
   );
 }
 
-function ProfileFieldCard({
+function CustomerFieldCard({
   label,
   value,
   placeholder,
-  inputType,
   required,
+  inputType,
+  disabled,
   onSave,
 }: {
   label: string;
   value: string;
   placeholder?: string;
+  required: boolean;
   inputType?: string;
-  required?: boolean;
+  disabled?: boolean;
   onSave: (value: string) => Promise<void>;
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const inputId = `profile-${label.replace(/\s+/g, "-").toLowerCase()}`;
+  const inputId = `customer-${label.replace(/\s+/g, "-").toLowerCase()}`;
 
   function startEdit() {
     setDraft(value);
@@ -91,20 +101,20 @@ function ProfileFieldCard({
 
   function validate(): string | null {
     const trimmed = draft.trim();
-    if (label === "Nombre" || label === "Apellido") {
-      if (!trimmed) return "Este campo es requerido";
-      if (trimmed.length < 3) return "Debe tener al menos 3 caracteres";
-    }
+    if (required && !trimmed) return "Este campo es requerido";
+    if (required && trimmed.length < 3)
+      return "Debe tener al menos 3 caracteres";
     if (label === "Correo Electrónico") {
-      if (!trimmed) return "Este campo es requerido";
+      if (!trimmed) return null;
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
         return "Correo inválido";
       }
     }
-    if (label === "Número de Celular") {
-      if (!trimmed) return "Este campo es requerido";
-      if (trimmed.length < 10)
-        return "El número debe tener al menos 10 dígitos";
+    if (label === "Teléfono") {
+      if (!trimmed) return null;
+      if (trimmed.length < 10 || trimmed.length > 15) {
+        return "El número debe tener entre 10 y 15 dígitos";
+      }
     }
     return null;
   }
@@ -143,23 +153,9 @@ function ProfileFieldCard({
             className="text-xs font-medium text-muted-foreground"
           >
             {label}
-            {required && (
-              <span className="text-destructive" aria-hidden="true">
-                {" "}
-                *
-              </span>
-            )}
           </label>
         ) : (
-          <p className="text-xs font-medium text-muted-foreground">
-            {label}
-            {required && (
-              <span className="text-destructive" aria-hidden="true">
-                {" "}
-                *
-              </span>
-            )}
-          </p>
+          <p className="text-xs font-medium text-muted-foreground">{label}</p>
         )}
 
         {editing ? (
@@ -199,6 +195,7 @@ function ProfileFieldCard({
             variant="outline"
             className="shrink-0 rounded-lg"
             onClick={startEdit}
+            disabled={disabled}
           >
             <Pencil className="size-3.5" aria-hidden="true" />
             Modificar
@@ -213,7 +210,6 @@ function ProfileFieldCard({
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
           placeholder={placeholder}
-          aria-required={required ? "true" : undefined}
           onKeyDown={(event) => {
             if (event.key === "Enter") {
               event.preventDefault();
