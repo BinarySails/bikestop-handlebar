@@ -29,7 +29,6 @@ import { Route as LayoutTeamPermisosRouteImport } from './routes/_layout/team.pe
 import { Route as LayoutTeamRolesRouteImport } from './routes/_layout/team.roles'
 import { Route as LayoutWarehousesIndexRouteImport } from './routes/_layout/warehouses/index'
 import { Route as LayoutWarehousesWarehouseIdRouteImport } from './routes/_layout/warehouses/$warehouseId'
-import { Route as LayoutBrandsBrandIdIndexRouteImport } from './routes/_layout/brands/$brandId.index'
 import { Route as LayoutBrandsBrandIdEditRouteImport } from './routes/_layout/brands/$brandId.edit'
 import { Route as LayoutCategoriesCategoryIdEditRouteImport } from './routes/_layout/categories/$categoryId_.edit'
 
@@ -134,12 +133,6 @@ const LayoutWarehousesWarehouseIdRoute =
     path: '/$warehouseId',
     getParentRoute: () => LayoutWarehousesRoute,
   } as any)
-const LayoutBrandsBrandIdIndexRoute =
-  LayoutBrandsBrandIdIndexRouteImport.update({
-    id: '/brands/$brandId/',
-    path: '/brands/$brandId/',
-    getParentRoute: () => LayoutRoute,
-  } as any)
 const LayoutBrandsBrandIdEditRoute = LayoutBrandsBrandIdEditRouteImport.update({
   id: '/brands/$brandId/edit',
   path: '/brands/$brandId/edit',
@@ -174,7 +167,6 @@ export interface FileRoutesByFullPath {
   '/warehouses/': typeof LayoutWarehousesIndexRoute
   '/brands/$brandId/edit': typeof LayoutBrandsBrandIdEditRoute
   '/categories/$categoryId/edit': typeof LayoutCategoriesCategoryIdEditRoute
-  '/brands/$brandId/': typeof LayoutBrandsBrandIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -196,7 +188,6 @@ export interface FileRoutesByTo {
   '/warehouses': typeof LayoutWarehousesIndexRoute
   '/brands/$brandId/edit': typeof LayoutBrandsBrandIdEditRoute
   '/categories/$categoryId/edit': typeof LayoutCategoriesCategoryIdEditRoute
-  '/brands/$brandId': typeof LayoutBrandsBrandIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -222,7 +213,6 @@ export interface FileRoutesById {
   '/_layout/warehouses/': typeof LayoutWarehousesIndexRoute
   '/_layout/brands/$brandId/edit': typeof LayoutBrandsBrandIdEditRoute
   '/_layout/categories/$categoryId_/edit': typeof LayoutCategoriesCategoryIdEditRoute
-  '/_layout/brands/$brandId/': typeof LayoutBrandsBrandIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -248,7 +238,6 @@ export interface FileRouteTypes {
     | '/warehouses/'
     | '/brands/$brandId/edit'
     | '/categories/$categoryId/edit'
-    | '/brands/$brandId/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -270,7 +259,6 @@ export interface FileRouteTypes {
     | '/warehouses'
     | '/brands/$brandId/edit'
     | '/categories/$categoryId/edit'
-    | '/brands/$brandId'
   id:
     | '__root__'
     | '/'
@@ -295,7 +283,6 @@ export interface FileRouteTypes {
     | '/_layout/warehouses/'
     | '/_layout/brands/$brandId/edit'
     | '/_layout/categories/$categoryId_/edit'
-    | '/_layout/brands/$brandId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -446,13 +433,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutWarehousesWarehouseIdRouteImport
       parentRoute: typeof LayoutWarehousesRoute
     }
-    '/_layout/brands/$brandId/': {
-      id: '/_layout/brands/$brandId/'
-      path: '/brands/$brandId'
-      fullPath: '/brands/$brandId/'
-      preLoaderRoute: typeof LayoutBrandsBrandIdIndexRouteImport
-      parentRoute: typeof LayoutRoute
-    }
     '/_layout/brands/$brandId/edit': {
       id: '/_layout/brands/$brandId/edit'
       path: '/brands/$brandId/edit'
@@ -514,7 +494,6 @@ interface LayoutRouteChildren {
   LayoutProductsIndexRoute: typeof LayoutProductsIndexRoute
   LayoutBrandsBrandIdEditRoute: typeof LayoutBrandsBrandIdEditRoute
   LayoutCategoriesCategoryIdEditRoute: typeof LayoutCategoriesCategoryIdEditRoute
-  LayoutBrandsBrandIdIndexRoute: typeof LayoutBrandsBrandIdIndexRoute
 }
 
 const LayoutRouteChildren: LayoutRouteChildren = {
@@ -532,7 +511,6 @@ const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutProductsIndexRoute: LayoutProductsIndexRoute,
   LayoutBrandsBrandIdEditRoute: LayoutBrandsBrandIdEditRoute,
   LayoutCategoriesCategoryIdEditRoute: LayoutCategoriesCategoryIdEditRoute,
-  LayoutBrandsBrandIdIndexRoute: LayoutBrandsBrandIdIndexRoute,
 }
 
 const LayoutRouteWithChildren =

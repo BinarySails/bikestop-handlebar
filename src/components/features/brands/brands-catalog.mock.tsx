@@ -51,7 +51,6 @@ export function BrandsCatalogMock() {
         onRetry={() => undefined}
         onCreate={() => setFormBrand(null)}
         onView={() => undefined}
-        onEdit={() => undefined}
         onArchive={setArchiveBrand}
       />
       <BrandFormDialog

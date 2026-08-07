@@ -141,9 +141,6 @@ export function BrandsCatalog({
         onRetry={() => listQuery.mutate()}
         onCreate={() => setCreateOpen(true)}
         onView={(brand) =>
-          navigate({ to: "/brands/$brandId", params: { brandId: brand.id } })
-        }
-        onEdit={(brand) =>
           navigate({
             to: "/brands/$brandId/edit",
             params: { brandId: brand.id },

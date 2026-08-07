@@ -4,7 +4,6 @@ import {
   ChevronRight,
   Eye,
   MoreVertical,
-  Pencil,
   Plus,
   Search,
   Tags,
@@ -49,7 +48,6 @@ export type BrandsCatalogViewProps = {
   onRetry: () => void;
   onCreate: () => void;
   onView: (brand: Brand) => void;
-  onEdit: (brand: Brand) => void;
   onArchive: (brand: Brand) => void;
 };
 
@@ -61,9 +59,8 @@ export function getBrandPageCount(total: number, limit: number): number {
 function BrandActions({
   brand,
   onView,
-  onEdit,
   onArchive,
-}: Pick<BrandsCatalogViewProps, "onView" | "onEdit" | "onArchive"> & {
+}: Pick<BrandsCatalogViewProps, "onView" | "onArchive"> & {
   brand: Brand;
 }) {
   const archived = brand.status === "archive";
@@ -84,9 +81,6 @@ function BrandActions({
       <DropdownMenuContent align="end">
         <DropdownMenuItem onClick={() => onView(brand)}>
           <Eye /> Ver detalle
-        </DropdownMenuItem>
-        <DropdownMenuItem disabled={archived} onClick={() => onEdit(brand)}>
-          <Pencil /> Editar
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
@@ -128,7 +122,6 @@ export function BrandsCatalogView(props: BrandsCatalogViewProps) {
     onRetry,
     onCreate,
     onView,
-    onEdit,
     onArchive,
   } = props;
   const pageCount = getBrandPageCount(total, limit);
@@ -239,7 +232,6 @@ export function BrandsCatalogView(props: BrandsCatalogViewProps) {
                           <BrandActions
                             brand={brand}
                             onView={onView}
-                            onEdit={onEdit}
                             onArchive={onArchive}
                           />
                         </TableCell>
@@ -270,7 +262,6 @@ export function BrandsCatalogView(props: BrandsCatalogViewProps) {
                     <BrandActions
                       brand={brand}
                       onView={onView}
-                      onEdit={onEdit}
                       onArchive={onArchive}
                     />
                   </article>

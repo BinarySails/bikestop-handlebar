@@ -40,9 +40,7 @@ function BrandEditPage() {
     <BrandEditForm
       key={brand.id}
       brand={brand}
-      onSaved={() =>
-        navigate({ to: "/brands/$brandId", params: { brandId }, replace: true })
-      }
+      onSaved={() => navigate({ to: "/brands", replace: true })}
     />
   );
 }
@@ -99,11 +97,8 @@ function BrandEditForm({
 
   return (
     <section className="mx-auto w-full max-w-3xl space-y-6 p-4 sm:p-6">
-      <Button
-        variant="ghost"
-        render={<Link to="/brands/$brandId" params={{ brandId: brand.id }} />}
-      >
-        <ArrowLeft /> Volver al detalle
+      <Button variant="ghost" render={<Link to="/brands" />}>
+        <ArrowLeft /> Volver a marcas
       </Button>
       <Card>
         <CardHeader>
@@ -149,9 +144,7 @@ function BrandEditForm({
               <Button
                 type="button"
                 variant="outline"
-                render={
-                  <Link to="/brands/$brandId" params={{ brandId: brand.id }} />
-                }
+                render={<Link to="/brands" />}
               >
                 Cancelar
               </Button>

@@ -120,26 +120,14 @@ describe("BrandsCatalog API container", () => {
     ).toBeTruthy();
   });
 
-  it("navigates to the brand edit page", async () => {
-    render(<BrandsCatalog filters={{}} onFiltersChange={vi.fn()} />);
-    fireEvent.click(
-      screen.getAllByRole("button", { name: "Acciones de Specialized" })[0]
-    );
-    fireEvent.click(await screen.findByText("Editar"));
-    expect(api.navigate).toHaveBeenCalledWith({
-      to: "/brands/$brandId/edit",
-      params: { brandId: brandFixtures[0].id },
-    });
-  });
-
-  it("navigates to the brand detail page", async () => {
+  it("opens the editable brand page from view details", async () => {
     render(<BrandsCatalog filters={{}} onFiltersChange={vi.fn()} />);
     fireEvent.click(
       screen.getAllByRole("button", { name: "Acciones de Specialized" })[0]
     );
     fireEvent.click(await screen.findByText("Ver detalle"));
     expect(api.navigate).toHaveBeenCalledWith({
-      to: "/brands/$brandId",
+      to: "/brands/$brandId/edit",
       params: { brandId: brandFixtures[0].id },
     });
   });

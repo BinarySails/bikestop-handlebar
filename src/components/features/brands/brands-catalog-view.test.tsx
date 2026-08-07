@@ -28,7 +28,6 @@ function props(
     onRetry: vi.fn(),
     onCreate: vi.fn(),
     onView: vi.fn(),
-    onEdit: vi.fn(),
     onArchive: vi.fn(),
     ...overrides,
   };
