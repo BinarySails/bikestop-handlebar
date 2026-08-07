@@ -5,11 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { UserResponse } from "@/lib/api/schemas";
 
-export type ProfileField = "name" | "father_last_name" | "email" | "phone";
+export type ProfileField = "name" | "father_last_name" | "email";
 
 interface ProfileSettingsCardProps {
   user: UserResponse;
-  onUpdateField: (field: ProfileField, value: string) => Promise<void>;
+  onUpdateField?: (field: ProfileField, value: string) => Promise<void>;
 }
 
 const fieldRows: {
@@ -26,11 +26,6 @@ const fieldRows: {
     placeholder: "tu@correo.com",
     inputType: "email",
   },
-  {
-    field: "phone",
-    label: "Número de Celular",
-    placeholder: "Ej. 5512345678",
-  },
 ];
 
 export function ProfileSettingsCard({
@@ -46,7 +41,11 @@ export function ProfileSettingsCard({
           value={user[row.field] ?? ""}
           placeholder={row.placeholder}
           inputType={row.inputType}
-          onSave={(value) => onUpdateField(row.field, value)}
+          onSave={
+            onUpdateField
+              ? (value) => onUpdateField(row.field, value)
+              : undefined
+          }
         />
       ))}
     </div>
@@ -64,7 +63,7 @@ function ProfileFieldCard({
   value: string;
   placeholder?: string;
   inputType?: string;
-  onSave: (value: string) => Promise<void>;
+  onSave?: (value: string) => Promise<void>;
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value);
@@ -105,6 +104,11 @@ function ProfileFieldCard({
 
     const trimmed = draft.trim();
     if (trimmed === value) {
+      setEditing(false);
+      return;
+    }
+
+    if (!onSave) {
       setEditing(false);
       return;
     }
@@ -166,7 +170,7 @@ function ProfileFieldCard({
               )}
             </Button>
           </div>
-        ) : (
+        ) : onSave ? (
           <Button
             type="button"
             variant="outline"
@@ -176,7 +180,7 @@ function ProfileFieldCard({
             <Pencil className="size-3.5" aria-hidden="true" />
             Modificar
           </Button>
-        )}
+        ) : null}
       </div>
 
       {editing ? (
