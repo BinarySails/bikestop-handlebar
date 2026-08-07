@@ -8,7 +8,7 @@ import {
   UserViewParam,
 } from "@/lib/api/schemas";
 
-export const Route = createFileRoute("/_layout/users")({
+export const Route = createFileRoute("/_layout/users/")({
   validateSearch: z.object({
     view: z.enum(UserViewParam).catch(UserViewParam.staff),
     search: z.string().optional(),
@@ -26,7 +26,10 @@ function UsersPage() {
   const navigate = Route.useNavigate();
 
   return (
-    <section aria-label="Usuarios" className="p-4 md:p-6">
+    <section
+      aria-label="Usuarios"
+      className="mx-auto w-full max-w-7xl p-4 sm:p-6"
+    >
       <UsersTableCard
         params={search}
         onParamsChange={(updates) =>

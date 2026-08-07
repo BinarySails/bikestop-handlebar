@@ -16,13 +16,11 @@ import { CategoryDeleteDialog } from "./category-delete-dialog";
 
 const api = vi.hoisted(() => ({
   remove: vi.fn<(...args: unknown[]) => Promise<unknown>>(),
-  invalidate: vi.fn<() => Promise<void>>(),
+  deleted: vi.fn<() => Promise<void>>(),
 }));
 
-vi.mock("@/lib/api/categories", () => ({
-  CategoryApiError: class extends Error {},
-  deleteCategory: api.remove,
-  invalidateCategories: api.invalidate,
+vi.mock("@/lib/api/api", () => ({
+  deleteCategoryRequest: api.remove,
 }));
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 
@@ -46,8 +44,8 @@ const child: Category = {
 describe("CategoryDeleteDialog", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    api.remove.mockResolvedValue({});
-    api.invalidate.mockResolvedValue();
+    api.remove.mockResolvedValue({ status: 200, data: { id: "parent" } });
+    api.deleted.mockResolvedValue();
   });
   afterEach(cleanup);
 
@@ -58,6 +56,7 @@ describe("CategoryDeleteDialog", () => {
         category={parent}
         categories={[parent, child]}
         onOpenChange={onOpenChange}
+        onDeleted={api.deleted}
       />
     );
 
@@ -67,7 +66,7 @@ describe("CategoryDeleteDialog", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Eliminar categoría" }));
     await waitFor(() => expect(api.remove).toHaveBeenCalledWith("parent"));
-    expect(api.invalidate).toHaveBeenCalled();
+    expect(api.deleted).toHaveBeenCalled();
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 });

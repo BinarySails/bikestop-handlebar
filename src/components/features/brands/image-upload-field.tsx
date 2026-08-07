@@ -1,112 +1,123 @@
 import { useId, useState } from "react";
-import { Upload } from "lucide-react";
+import type { ChangeEvent } from "react";
+import { ImageUp, LoaderCircle } from "lucide-react";
 import { toast } from "sonner";
 
-import { useCreateFileRequest } from "@/lib/api/api";
-
-import { Button } from "@/components/ui/button";
+import { BrandImage } from "@/components/features/brands/brand-image";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { createFileRequest } from "@/lib/api/api";
 
 async function sha256Checksum(file: File): Promise<string> {
   const buffer = await file.arrayBuffer();
-  const hashBuffer = await crypto.subtle.digest("SHA-256", buffer);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+  const hash = await crypto.subtle.digest("SHA-256", buffer);
+  return Array.from(new Uint8Array(hash), (byte) =>
+    byte.toString(16).padStart(2, "0")
+  ).join("");
 }
 
 type ImageUploadFieldProps = {
   id?: string;
-  label: string;
+  label?: string;
   value: string;
   onChange: (url: string) => void;
+  onUploadingChange?: (uploading: boolean) => void;
   disabled?: boolean;
 };
 
 export function ImageUploadField({
   id,
-  label,
+  label = "Imagen de la marca",
   value,
   onChange,
+  onUploadingChange,
   disabled,
 }: ImageUploadFieldProps) {
   const fallbackId = useId();
   const inputId = id ?? fallbackId;
-  const { trigger: createFile } = useCreateFileRequest();
-  const [isUploading, setIsUploading] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
-  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
+  async function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
     if (!file) return;
-
     if (!file.type.startsWith("image/")) {
       toast.error("Solo se permiten archivos de imagen.");
+      event.target.value = "";
       return;
     }
 
-    setIsUploading(true);
+    setUploading(true);
+    onUploadingChange?.(true);
     try {
-      const checksum = await sha256Checksum(file);
-      const createResult = await createFile({
-        checksum,
+      const result = await createFileRequest({
+        checksum: await sha256Checksum(file),
         content_type: file.type,
         file_name: file.name,
         file_type: "public",
         original_filename: file.name,
         size: file.size,
       });
-
-      if (createResult.status !== 201) {
-        toast.error("Error al preparar la subida de la imagen.");
+      if (result.status !== 201) {
+        toast.error(result.data?.message ?? "No se pudo preparar la imagen.");
         return;
       }
 
-      const { upload_url, public_url } = createResult.data;
-
-      const uploadRes = await fetch(upload_url, {
+      const upload = await fetch(result.data.upload_url, {
         method: "PUT",
         body: file,
-        headers: {
-          "Content-Type": file.type,
-        },
+        headers: { "Content-Type": file.type },
       });
-
-      if (!uploadRes.ok) {
-        toast.error("Error al subir la imagen.");
+      if (!upload.ok) {
+        toast.error("No se pudo subir la imagen.");
         return;
       }
 
-      onChange(public_url);
+      onChange(result.data.public_url);
       toast.success("Imagen subida correctamente.");
     } catch {
-      toast.error("Error al subir la imagen.");
+      toast.error("No se pudo subir la imagen.");
     } finally {
-      setIsUploading(false);
+      setUploading(false);
+      onUploadingChange?.(false);
+      event.target.value = "";
     }
   }
 
   return (
     <div className="grid gap-2">
       <Label htmlFor={inputId}>{label}</Label>
-      <div className="flex items-center gap-2">
+      <div className="relative">
         <Input
           id={inputId}
-          name={inputId}
           type="file"
           accept="image/*"
           onChange={handleFileChange}
-          disabled={isUploading || disabled}
-          className="file:inline-flex"
+          disabled={uploading || disabled}
+          className="cursor-pointer pr-10 file:cursor-pointer"
         />
-        {isUploading && (
-          <Button type="button" variant="outline" disabled>
-            <Upload className="size-4 animate-pulse" />
-          </Button>
+        {uploading ? (
+          <LoaderCircle className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 animate-spin text-muted-foreground" />
+        ) : (
+          <ImageUp className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-muted-foreground" />
         )}
       </div>
-      {value ? (
-        <p className="text-xs break-all text-muted-foreground">{value}</p>
-      ) : null}
+      {uploading && (
+        <p className="text-xs text-muted-foreground" aria-live="polite">
+          Subiendo imagen…
+        </p>
+      )}
+      {value && (
+        <div className="flex items-center gap-3 rounded-xl border p-3">
+          <BrandImage
+            src={value}
+            alt="Vista previa"
+            className="size-16 rounded-xl"
+          />
+          <span className="text-xs text-muted-foreground">
+            Vista previa de la imagen
+          </span>
+        </div>
+      )}
     </div>
   );
 }

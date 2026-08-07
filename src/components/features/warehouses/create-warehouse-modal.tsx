@@ -30,7 +30,13 @@ const requiredMessage = (label: string, value: string) => {
   return value.trim() ? undefined : `El ${label} es requerido`;
 };
 
-export function CreateWarehouseDialog() {
+type CreateWarehouseDialogProps = {
+  onSuccess?: () => void;
+};
+
+export function CreateWarehouseDialog({
+  onSuccess,
+}: CreateWarehouseDialogProps) {
   const [open, setOpen] = useState(false);
   const { trigger } = useCreateWarehouseRequest();
   const { data: statesResponse, isLoading: isLoadingStates } =
@@ -69,6 +75,7 @@ export function CreateWarehouseDialog() {
         toast.success(`Almacén "${value.name}" creado correctamente`);
         form.reset();
         setOpen(false);
+        onSuccess?.();
       } else {
         toast.error(errorData?.message ?? "No se pudo crear el almacén");
       }
@@ -77,9 +84,7 @@ export function CreateWarehouseDialog() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger>
-        <Button>Crear Almacén</Button>
-      </DialogTrigger>
+      <DialogTrigger render={<Button>Crear Almacén</Button>} />
 
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>

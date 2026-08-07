@@ -6,15 +6,15 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   SearchIcon,
+  UsersIcon,
 } from "lucide-react";
 
 import { CreateUserDialog } from "@/components/features/users/create-user-modal";
-import { EditUserDialog } from "@/components/features/users/edit-user-dialog";
+import { UserActionsMenu } from "@/components/features/users/user-actions-menu";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
-  CardAction,
   CardContent,
   CardFooter,
   CardHeader,
@@ -93,7 +93,12 @@ export function UsersTableCard({
   }, [onParamsChange, params.search, params.view, searchInput]);
 
   const response = query.data?.status === 200 ? query.data.data : undefined;
-  const users = response?.users ?? [];
+  const users = (response?.users ?? []).filter(
+    (user) =>
+      params.view !== UserViewParam.archived ||
+      (user.status === "inactive" &&
+        user.roles.some((role) => role.slug !== "client"))
+  );
   const total = response?.total ?? 0;
   const limit = response?.limit ?? params.limit ?? 20;
   const offset = response?.offset ?? params.offset ?? 0;
@@ -124,311 +129,326 @@ export function UsersTableCard({
     });
   }
 
-  const columnCount = 5;
+  const columnCount = showRoles ? 4 : 3;
 
   return (
-    <Card className="mx-auto max-w-5xl gap-0 border border-gray-200 py-0 shadow-none ring-0">
-      <CardHeader className="gap-4 border-b border-gray-100 px-5 py-5">
-        <CardTitle className="text-lg font-semibold">Usuarios</CardTitle>
-        <CardAction>
-          <CreateUserDialog onCreated={() => query.mutate()} />
-        </CardAction>
-
-        <div className="col-span-full flex flex-wrap items-center justify-between gap-3">
-          <div
-            className="flex w-fit items-center gap-1 rounded-lg bg-gray-100 p-1"
-            aria-label="Vistas de usuarios"
-          >
-            {(
-              [
-                [UserViewParam.client, "Clientes"],
-                [UserViewParam.staff, "Usuarios"],
-              ] as const
-            ).map(([view, label]) => (
-              <Button
-                key={view}
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => changeView(view)}
-                className={cn(
-                  "text-gray-500 hover:bg-white/70",
-                  params.view === view &&
-                    "border border-gray-200 bg-white text-gray-900 shadow-xs hover:bg-white"
-                )}
-              >
-                {label}
-              </Button>
-            ))}
-          </div>
-
-          <Button
-            variant={
-              params.view === UserViewParam.archived ? "default" : "outline"
-            }
-            size="sm"
-            onClick={() => changeView(UserViewParam.archived)}
-          >
-            <ArchiveIcon data-icon="inline-start" />
-            Usuarios archivados
-          </Button>
+    <div className="flex w-full flex-col gap-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Usuarios</h1>
+          <p className="text-sm text-muted-foreground">
+            Administra los usuarios, clientes y sus accesos en BikeStop.
+          </p>
         </div>
+        <div className="shrink-0">
+          <CreateUserDialog onCreated={() => query.mutate()} />
+        </div>
+      </div>
 
-        <div className="col-span-full flex flex-wrap items-center justify-between gap-3">
-          {params.view === UserViewParam.client ? (
-            <InputGroup className="max-w-sm">
-              <InputGroupAddon>
-                <SearchIcon />
-              </InputGroupAddon>
-              <InputGroupInput
-                type="search"
-                value={searchInput}
-                onChange={(event) => setSearchInput(event.target.value)}
-                placeholder="Buscar por nombre, usuario o correo"
-                aria-label="Buscar por nombre, usuario o correo"
-              />
-            </InputGroup>
-          ) : params.view === UserViewParam.staff ? (
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-500">Filtrar por rol</span>
-              <Select
-                value={params.role ?? "all"}
-                onValueChange={(value) =>
-                  onParamsChange({
-                    role: value && value !== "all" ? value : undefined,
-                    offset: 0,
-                  })
+      <Card>
+        <CardHeader className="gap-4">
+          <CardTitle className="flex items-center gap-2 text-base font-semibold">
+            <UsersIcon className="size-4" /> Directorio de usuarios
+          </CardTitle>
+
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div
+              className="flex w-fit items-center gap-1 rounded-lg bg-gray-100 p-1"
+              aria-label="Vistas de usuarios"
+            >
+              {(
+                [
+                  [UserViewParam.client, "Clientes"],
+                  [UserViewParam.staff, "Usuarios"],
+                ] as const
+              ).map(([view, label]) => (
+                <Button
+                  key={view}
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => changeView(view)}
+                  className={cn(
+                    "text-gray-500 hover:bg-white/70",
+                    params.view === view &&
+                      "border border-gray-200 bg-white text-gray-900 shadow-xs hover:bg-white"
+                  )}
+                >
+                  {label}
+                </Button>
+              ))}
+            </div>
+
+            {params.view !== UserViewParam.client && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  changeView(
+                    params.view === UserViewParam.archived
+                      ? UserViewParam.staff
+                      : UserViewParam.archived
+                  )
                 }
               >
-                <SelectTrigger size="sm" className="min-w-40">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos los roles</SelectItem>
-                  {roles.map((role) => (
-                    <SelectItem key={role.id} value={role.id}>
-                      {role.display_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          ) : (
-            <span className="text-sm text-muted-foreground">
-              Usuarios inactivos
-            </span>
-          )}
-        </div>
-      </CardHeader>
-
-      <CardContent className="px-0">
-        <Table>
-          <TableHeader className="bg-gray-50">
-            <TableRow className="hover:bg-gray-50">
-              <TableHead className="w-56 pl-5">Usuario</TableHead>
-              {params.view === UserViewParam.client && (
-                <TableHead className="w-40">Fecha de registro</TableHead>
-              )}
-              <TableHead className="w-64">Correo</TableHead>
-              {showRoles && <TableHead>Roles</TableHead>}
-              <TableHead className="w-24">Estado</TableHead>
-              <TableHead className="w-16 text-center">
-                <span className="sr-only">Ver detalles</span>
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {query.isLoading && !response
-              ? Array.from({ length: 5 }, (_, index) => (
-                  <TableRow key={index}>
-                    {Array.from({ length: columnCount }, (__, cell) => (
-                      <TableCell key={cell} className="py-3">
-                        <Skeleton className="h-5 w-full max-w-36" />
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              : null}
-
-            {hasError && (
-              <TableRow>
-                <TableCell colSpan={columnCount} className="h-36 text-center">
-                  <p className="mb-3 text-sm text-destructive">
-                    No fue posible cargar los usuarios.
-                  </p>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => query.mutate()}
-                  >
-                    Reintentar
-                  </Button>
-                </TableCell>
-              </TableRow>
+                <ArchiveIcon data-icon="inline-start" />
+                {params.view === UserViewParam.archived
+                  ? "Mostrar activos"
+                  : "Mostrar archivados"}
+              </Button>
             )}
+          </div>
 
-            {!query.isLoading && !hasError && users.length === 0 && (
-              <TableRow>
-                <TableCell
-                  colSpan={columnCount}
-                  className="h-36 text-center text-muted-foreground"
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            {params.view === UserViewParam.client ? (
+              <InputGroup className="w-full max-w-xl">
+                <InputGroupAddon>
+                  <SearchIcon />
+                </InputGroupAddon>
+                <InputGroupInput
+                  type="search"
+                  value={searchInput}
+                  onChange={(event) => setSearchInput(event.target.value)}
+                  placeholder="Buscar por nombre, usuario o correo"
+                  aria-label="Buscar por nombre, usuario o correo"
+                />
+              </InputGroup>
+            ) : params.view === UserViewParam.staff ? (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-500">Filtrar por rol</span>
+                <Select
+                  value={params.role ?? "all"}
+                  onValueChange={(value) =>
+                    onParamsChange({
+                      role: value && value !== "all" ? value : undefined,
+                      offset: 0,
+                    })
+                  }
                 >
-                  {params.search || params.role
-                    ? "No hay usuarios que coincidan con los filtros."
-                    : params.view === UserViewParam.client
-                      ? "No se encontraron clientes."
-                      : "No hay usuarios en esta vista."}
-                </TableCell>
-              </TableRow>
+                  <SelectTrigger size="sm" className="min-w-40">
+                    <SelectValue>
+                      {params.role
+                        ? (roles.find((role) => role.id === params.role)
+                            ?.display_name ?? "Rol seleccionado")
+                        : "Todos los roles"}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos los roles</SelectItem>
+                    {roles.map((role) => (
+                      <SelectItem key={role.id} value={role.id}>
+                        {role.display_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : (
+              <span className="text-sm text-muted-foreground">
+                Usuarios inactivos
+              </span>
             )}
+          </div>
+        </CardHeader>
 
-            {!hasError &&
-              users.map((user) => {
-                const displayName = [
-                  user.name,
-                  user.father_last_name,
-                  user.mother_last_name,
-                ]
-                  .filter(Boolean)
-                  .join(" ");
-                return (
-                  <TableRow
-                    key={user.id}
-                    className="border-gray-100 hover:bg-gray-50/80"
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-56 pl-5">Usuario</TableHead>
+                <TableHead className="w-64">Correo</TableHead>
+                {showRoles && <TableHead>Roles</TableHead>}
+                <TableHead className="w-16 text-center">
+                  <span className="sr-only">Ver detalles</span>
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {query.isLoading && !response
+                ? Array.from({ length: 5 }, (_, index) => (
+                    <TableRow key={index}>
+                      {Array.from({ length: columnCount }, (__, cell) => (
+                        <TableCell key={cell} className="py-3">
+                          <Skeleton className="h-5 w-full max-w-36" />
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                : null}
+
+              {hasError && (
+                <TableRow>
+                  <TableCell colSpan={columnCount} className="h-36 text-center">
+                    <p className="mb-3 text-sm text-destructive">
+                      No fue posible cargar los usuarios.
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => query.mutate()}
+                    >
+                      Reintentar
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              )}
+
+              {!query.isLoading && !hasError && users.length === 0 && (
+                <TableRow>
+                  <TableCell
+                    colSpan={columnCount}
+                    className="h-36 text-center text-muted-foreground"
                   >
-                    <TableCell className="py-3 pl-5">
-                      <span className="block font-semibold">{displayName}</span>
-                      <span className="text-xs text-muted-foreground">
-                        @{user.username}
-                      </span>
-                    </TableCell>
-                    {params.view === UserViewParam.client && (
-                      <TableCell className="py-3 text-gray-600">
-                        {new Intl.DateTimeFormat("es-MX", {
-                          dateStyle: "medium",
-                        }).format(new Date(user.created_at))}
-                      </TableCell>
-                    )}
-                    <TableCell className="py-3 text-gray-600">
-                      {user.email}
-                    </TableCell>
-                    {showRoles && (
-                      <TableCell className="py-3">
-                        <div className="flex flex-wrap gap-1">
-                          {user.roles.map((role) => (
-                            <Badge
-                              key={role.id}
-                              variant="secondary"
-                              className="rounded-full font-normal"
-                            >
-                              {role.display_name}
+                    {params.search || params.role
+                      ? "No hay usuarios que coincidan con los filtros."
+                      : params.view === UserViewParam.client
+                        ? "No se encontraron clientes."
+                        : "No hay usuarios en esta vista."}
+                  </TableCell>
+                </TableRow>
+              )}
+
+              {!hasError &&
+                users.map((user) => {
+                  const displayName = [
+                    user.name,
+                    user.father_last_name,
+                    user.mother_last_name,
+                  ]
+                    .filter(Boolean)
+                    .join(" ");
+                  return (
+                    <TableRow
+                      key={user.id}
+                      className="border-gray-100 hover:bg-gray-50/80"
+                    >
+                      <TableCell className="py-3 pl-5">
+                        <div className="flex items-center gap-2">
+                          <span className="block font-semibold">
+                            {displayName}
+                          </span>
+                          {params.view === UserViewParam.archived && (
+                            <Badge variant="destructive">
+                              <ArchiveIcon className="size-3" />
+                              Archivado
                             </Badge>
-                          ))}
-                          {user.roles.length === 0 && (
-                            <span className="text-xs text-muted-foreground">
-                              Sin roles
-                            </span>
                           )}
                         </div>
+                        <span className="text-xs text-muted-foreground">
+                          @{user.username}
+                        </span>
                       </TableCell>
-                    )}
-                    <TableCell className="py-3">
-                      <Badge
-                        variant={
-                          user.status === "active" ? "secondary" : "outline"
-                        }
-                      >
-                        {user.status === "active" ? "Activo" : "Inactivo"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="py-3 text-center">
-                      <EditUserDialog
-                        user={user}
-                        roles={roles}
-                        archived={params.view === UserViewParam.archived}
-                        onUpdated={() => query.mutate()}
-                      />
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-          </TableBody>
-        </Table>
-        {query.isValidating && response && (
-          <div
-            className="h-0.5 animate-pulse bg-primary/40"
-            aria-label="Actualizando usuarios"
-          />
-        )}
-      </CardContent>
+                      <TableCell className="py-3 text-gray-600">
+                        {user.email}
+                      </TableCell>
+                      {showRoles && (
+                        <TableCell className="py-3">
+                          <div className="flex flex-wrap gap-1">
+                            {user.roles.map((role) => (
+                              <Badge
+                                key={role.id}
+                                variant="secondary"
+                                className="rounded-full font-normal"
+                              >
+                                {role.display_name}
+                              </Badge>
+                            ))}
+                            {user.roles.length === 0 && (
+                              <span className="text-xs text-muted-foreground">
+                                Sin roles
+                              </span>
+                            )}
+                          </div>
+                        </TableCell>
+                      )}
+                      <TableCell className="py-3 text-center">
+                        <UserActionsMenu
+                          user={user}
+                          archived={params.view === UserViewParam.archived}
+                          onUpdated={() => query.mutate()}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+            </TableBody>
+          </Table>
+          {query.isValidating && response && (
+            <div
+              className="h-0.5 animate-pulse bg-primary/40"
+              aria-label="Actualizando usuarios"
+            />
+          )}
+        </CardContent>
 
-      <CardFooter className="justify-end gap-3 bg-white px-5 py-4">
-        <div className="flex flex-wrap items-center justify-end gap-3 text-sm">
-          <span>Filas por página</span>
-          <Select
-            value={String(limit)}
-            onValueChange={(value) =>
-              onParamsChange({ limit: Number(value), offset: 0 })
-            }
-          >
-            <SelectTrigger size="sm">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent align="end">
-              {[10, 20, 50].map((size) => (
-                <SelectItem key={size} value={String(size)}>
-                  {size}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <span className="mx-1">
-            Página {currentPage} de {totalPages}
-          </span>
-          <div className="flex items-center gap-1">
-            <Button
-              variant="outline"
-              size="icon-sm"
-              disabled={offset === 0}
-              aria-label="Primera página"
-              onClick={() => onParamsChange({ offset: 0 })}
-            >
-              <ChevronsLeftIcon />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon-sm"
-              disabled={offset === 0}
-              aria-label="Página anterior"
-              onClick={() =>
-                onParamsChange({ offset: Math.max(0, offset - limit) })
+        <CardFooter className="justify-end gap-3 border-t">
+          <div className="flex flex-wrap items-center justify-end gap-3 text-sm">
+            <span>Filas por página</span>
+            <Select
+              value={String(limit)}
+              onValueChange={(value) =>
+                onParamsChange({ limit: Number(value), offset: 0 })
               }
             >
-              <ChevronLeftIcon />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon-sm"
-              disabled={currentPage >= totalPages}
-              aria-label="Página siguiente"
-              onClick={() => onParamsChange({ offset: offset + limit })}
-            >
-              <ChevronRightIcon />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon-sm"
-              disabled={currentPage >= totalPages}
-              aria-label="Última página"
-              onClick={() =>
-                onParamsChange({ offset: (totalPages - 1) * limit })
-              }
-            >
-              <ChevronsRightIcon />
-            </Button>
+              <SelectTrigger size="sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent align="end">
+                {[10, 20, 50].map((size) => (
+                  <SelectItem key={size} value={String(size)}>
+                    {size}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <span className="mx-1">
+              Página {currentPage} de {totalPages}
+            </span>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="outline"
+                size="icon-sm"
+                disabled={offset === 0}
+                aria-label="Primera página"
+                onClick={() => onParamsChange({ offset: 0 })}
+              >
+                <ChevronsLeftIcon />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon-sm"
+                disabled={offset === 0}
+                aria-label="Página anterior"
+                onClick={() =>
+                  onParamsChange({ offset: Math.max(0, offset - limit) })
+                }
+              >
+                <ChevronLeftIcon />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon-sm"
+                disabled={currentPage >= totalPages}
+                aria-label="Página siguiente"
+                onClick={() => onParamsChange({ offset: offset + limit })}
+              >
+                <ChevronRightIcon />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon-sm"
+                disabled={currentPage >= totalPages}
+                aria-label="Última página"
+                onClick={() =>
+                  onParamsChange({ offset: (totalPages - 1) * limit })
+                }
+              >
+                <ChevronsRightIcon />
+              </Button>
+            </div>
           </div>
-        </div>
-      </CardFooter>
-    </Card>
+        </CardFooter>
+      </Card>
+    </div>
   );
 }

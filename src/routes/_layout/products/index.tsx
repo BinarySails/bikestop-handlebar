@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight, MoreVertical, Search } from "lucide-react";
 import { toast } from "sonner";
 
@@ -187,7 +187,16 @@ function ProductsListPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Productos</h1>
         </div>
-        <CreateProductDialog onSuccess={mutate} />
+        <div className="flex items-center gap-2">
+          <Button
+            render={<Link to="/categories" />}
+            variant="outline"
+            size="sm"
+          >
+            Administrar Categorías
+          </Button>
+          <CreateProductDialog onSuccess={mutate} />
+        </div>
       </div>
       <div className="flex flex-col gap-4">
         <div className="flex flex-wrap items-end gap-4">

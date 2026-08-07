@@ -27,8 +27,8 @@ vi.mock("@/lib/api/api", () => ({
 vi.mock("./create-user-modal", () => ({
   CreateUserDialog: () => <button>Crear Usuario</button>,
 }));
-vi.mock("./edit-user-dialog", () => ({
-  EditUserDialog: () => <button aria-label="Editar usuario">Ver</button>,
+vi.mock("./user-actions-menu", () => ({
+  UserActionsMenu: () => <button aria-label="Editar usuario">Ver</button>,
 }));
 
 const adminRole = {
@@ -96,9 +96,12 @@ describe("UsersTableCard", () => {
     expect(api.listUsers).toHaveBeenCalledWith(params, {
       swr: { keepPreviousData: true },
     });
-    expect(screen.getByText("Administrador")).toBeTruthy();
+    expect(screen.getAllByText("Administrador")).toHaveLength(2);
     expect(screen.getByText("Ventas")).toBeTruthy();
     expect(screen.getByText("juan@example.com")).toBeTruthy();
+    const roleFilter = screen.getAllByRole("combobox")[0];
+    expect(roleFilter.textContent).toContain("Administrador");
+    expect(roleFilter.textContent).not.toContain(adminRole.id);
   });
 
   it("debounces client search and resets pagination", async () => {
@@ -119,15 +122,18 @@ describe("UsersTableCard", () => {
       },
       { swr: { keepPreviousData: true } }
     );
-    expect(screen.getByText("Fecha de registro")).toBeTruthy();
+    expect(screen.queryByText("Fecha de registro")).toBeNull();
     expect(
-      screen.getByText(
+      screen.queryByText(
         new Intl.DateTimeFormat("es-MX", { dateStyle: "medium" }).format(
           new Date(user.created_at)
         )
       )
-    ).toBeTruthy();
+    ).toBeNull();
     expect(screen.queryByText("Nombre: A–Z")).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: "Mostrar archivados" })
+    ).toBeNull();
 
     fireEvent.change(
       screen.getByLabelText("Buscar por nombre, usuario o correo"),
@@ -151,9 +157,7 @@ describe("UsersTableCard", () => {
       <UsersTableCard params={defaultParams} onParamsChange={onParamsChange} />
     );
 
-    fireEvent.click(
-      screen.getByRole("button", { name: "Usuarios archivados" })
-    );
+    fireEvent.click(screen.getByRole("button", { name: "Mostrar archivados" }));
     expect(onParamsChange).toHaveBeenCalledWith({
       view: UserViewParam.archived,
       search: undefined,
@@ -166,5 +170,60 @@ describe("UsersTableCard", () => {
     fireEvent.click(screen.getByRole("button", { name: "Página siguiente" }));
     expect(onParamsChange).toHaveBeenCalledWith({ offset: 20 });
     expect(screen.getByText("Página 1 de 3")).toBeTruthy();
+  });
+
+  it("only renders inactive non-client users in the archived view", () => {
+    api.listUsers.mockReturnValue({
+      ...queryState(),
+      data: {
+        status: 200,
+        data: {
+          users: [
+            { ...user, status: "inactive" },
+            {
+              ...user,
+              id: "44444444-4444-4444-8444-444444444444",
+              email: "cliente@example.com",
+              status: "inactive",
+              roles: [
+                { ...salesRole, slug: "client", display_name: "Cliente" },
+              ],
+            },
+            {
+              ...user,
+              id: "55555555-5555-4555-8555-555555555555",
+              email: "activo@example.com",
+              status: "active",
+            },
+          ],
+          limit: 20,
+          offset: 0,
+          total: 3,
+        },
+      },
+    });
+
+    const onParamsChange = vi.fn();
+    render(
+      <UsersTableCard
+        params={{ ...defaultParams, view: UserViewParam.archived }}
+        onParamsChange={onParamsChange}
+      />
+    );
+
+    expect(screen.getByText("juan@example.com")).toBeTruthy();
+    expect(screen.queryByText("cliente@example.com")).toBeNull();
+    expect(screen.queryByText("activo@example.com")).toBeNull();
+    expect(screen.getByText("Archivado")).toBeTruthy();
+
+    fireEvent.click(screen.getByRole("button", { name: "Mostrar activos" }));
+    expect(onParamsChange).toHaveBeenCalledWith({
+      view: UserViewParam.staff,
+      search: undefined,
+      role: undefined,
+      sort_by: "display_name",
+      sort_order: "asc",
+      offset: 0,
+    });
   });
 });
