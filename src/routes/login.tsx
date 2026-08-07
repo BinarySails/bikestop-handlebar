@@ -108,6 +108,7 @@ function LoginPage() {
   const { trigger, isMutating } = useLoginHandler();
   const navigate = useNavigate();
   const search = Route.useSearch();
+  const setAuth = useAuthStore((store) => store.setAuth);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -128,7 +129,7 @@ function LoginPage() {
         getExpiryFromHeaders(result.headers) ||
         new Date(Date.now() + DEFAULT_SESSION_DURATION_MS).toISOString();
 
-      useAuthStore.getState().setAuth(
+      setAuth(
         {
           ...result.data.user,
           policies: policiesFromAuthUser(result.data.user),
