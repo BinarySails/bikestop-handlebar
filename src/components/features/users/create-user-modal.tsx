@@ -1,10 +1,12 @@
 import { useState } from "react";
+import { PlusIcon } from "lucide-react";
 import { useForm } from "@tanstack/react-form";
 import { toast } from "sonner";
-import { useCreateUserRequest } from "@/lib/api/api";
+import { useCreateUserRequest, useListRolesHandler } from "@/lib/api/api";
 import { CreateUserRequestBody } from "@/lib/api/zods";
 
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -17,9 +19,15 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-export function CreateUserDialog() {
+export function CreateUserDialog({ onCreated }: { onCreated?: () => void }) {
   const [open, setOpen] = useState(false);
+  const [roleIds, setRoleIds] = useState<string[]>([]);
   const { trigger } = useCreateUserRequest();
+  const rolesQuery = useListRolesHandler();
+  const roles =
+    rolesQuery.data?.status === 200
+      ? rolesQuery.data.data.roles.filter((role) => role.status === "active")
+      : [];
 
   const form = useForm({
     defaultValues: {
@@ -38,6 +46,7 @@ export function CreateUserDialog() {
         email: value.email,
         username: value.username,
         password: value.password,
+        role_ids: roleIds,
       });
 
       const errorData =
@@ -48,7 +57,9 @@ export function CreateUserDialog() {
       if (result.status === 201) {
         toast.success(`Usuario "${value.username}" creado.`);
         form.reset();
+        setRoleIds([]);
         setOpen(false);
+        onCreated?.();
       } else {
         toast.error(errorData?.message ?? "Error al crear usuario.");
       }
@@ -84,8 +95,11 @@ export function CreateUserDialog() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger>
-        <Button>Crear Usuario</Button>
+      <DialogTrigger
+        render={<Button className="bg-gray-900 text-white hover:bg-gray-800" />}
+      >
+        <PlusIcon data-icon="inline-start" />
+        Crear Usuario
       </DialogTrigger>
 
       <DialogContent className="sm:max-w-lg">
@@ -272,8 +286,8 @@ export function CreateUserDialog() {
                 const result =
                   CreateUserRequestBody.shape.password.safeParse(value);
                 if (!result.success) return result.error.issues[0].message;
-                if (value.length < 8)
-                  return "La contraseña debe de tener al menos 8 caracteres";
+                if (value.length < 12)
+                  return "La contraseña debe de tener al menos 12 caracteres";
                 if (!/[A-Z]/.test(value))
                   return "La contraseña debe de tener al menos una mayúscula";
                 if (!/[0-9]/.test(value))
@@ -291,7 +305,7 @@ export function CreateUserDialog() {
                   type="password"
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
-                  placeholder="••••••••"
+                  placeholder="••••••••••••"
                   aria-invalid={
                     field.state.meta.isTouched &&
                     field.state.meta.errors.length > 0
@@ -307,6 +321,35 @@ export function CreateUserDialog() {
               </div>
             )}
           </form.Field>
+
+          <div className="grid gap-2">
+            <Label>Roles</Label>
+            <div className="grid gap-2 rounded-lg border p-3 sm:grid-cols-2">
+              {roles.map((role) => (
+                <label
+                  key={role.id}
+                  className="flex items-center gap-2 text-sm"
+                >
+                  <Checkbox
+                    checked={roleIds.includes(role.id)}
+                    onCheckedChange={(checked) =>
+                      setRoleIds((current) =>
+                        checked
+                          ? [...current, role.id]
+                          : current.filter((id) => id !== role.id)
+                      )
+                    }
+                  />
+                  {role.display_name}
+                </label>
+              ))}
+              {roles.length === 0 && (
+                <span className="text-sm text-muted-foreground">
+                  No hay roles disponibles.
+                </span>
+              )}
+            </div>
+          </div>
 
           <DialogFooter>
             <Button

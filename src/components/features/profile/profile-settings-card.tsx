@@ -5,11 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { UserResponse } from "@/lib/api/schemas";
 
-export type ProfileField = "name" | "father_last_name" | "email";
+export type ProfileField = "name" | "father_last_name" | "email" | "phone";
 
 interface ProfileSettingsCardProps {
   user: UserResponse;
-  onUpdateField?: (field: ProfileField, value: string) => Promise<void>;
+  onUpdateField: (field: ProfileField, value: string) => Promise<void>;
 }
 
 const fieldRows: {
@@ -17,14 +17,27 @@ const fieldRows: {
   label: string;
   placeholder: string;
   inputType?: string;
+  required?: boolean;
 }[] = [
-  { field: "name", label: "Nombre", placeholder: "Tu nombre" },
-  { field: "father_last_name", label: "Apellido", placeholder: "Tu apellido" },
+  { field: "name", label: "Nombre", placeholder: "Tu nombre", required: true },
+  {
+    field: "father_last_name",
+    label: "Apellido",
+    placeholder: "Tu apellido",
+    required: true,
+  },
   {
     field: "email",
     label: "Correo Electrónico",
     placeholder: "tu@correo.com",
     inputType: "email",
+    required: true,
+  },
+  {
+    field: "phone",
+    label: "Número de Celular",
+    placeholder: "Ej. 5512345678",
+    required: true,
   },
 ];
 
@@ -41,11 +54,8 @@ export function ProfileSettingsCard({
           value={user[row.field] ?? ""}
           placeholder={row.placeholder}
           inputType={row.inputType}
-          onSave={
-            onUpdateField
-              ? (value) => onUpdateField(row.field, value)
-              : undefined
-          }
+          required={row.required}
+          onSave={(value) => onUpdateField(row.field, value)}
         />
       ))}
     </div>
@@ -57,13 +67,15 @@ function ProfileFieldCard({
   value,
   placeholder,
   inputType,
+  required,
   onSave,
 }: {
   label: string;
   value: string;
   placeholder?: string;
   inputType?: string;
-  onSave?: (value: string) => Promise<void>;
+  required?: boolean;
+  onSave: (value: string) => Promise<void>;
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value);
@@ -89,8 +101,10 @@ function ProfileFieldCard({
         return "Correo inválido";
       }
     }
-    if (label === "Número de Celular" && trimmed && trimmed.length < 10) {
-      return "El número debe tener al menos 10 dígitos";
+    if (label === "Número de Celular") {
+      if (!trimmed) return "Este campo es requerido";
+      if (trimmed.length < 10)
+        return "El número debe tener al menos 10 dígitos";
     }
     return null;
   }
@@ -104,11 +118,6 @@ function ProfileFieldCard({
 
     const trimmed = draft.trim();
     if (trimmed === value) {
-      setEditing(false);
-      return;
-    }
-
-    if (!onSave) {
       setEditing(false);
       return;
     }
@@ -134,9 +143,23 @@ function ProfileFieldCard({
             className="text-xs font-medium text-muted-foreground"
           >
             {label}
+            {required && (
+              <span className="text-destructive" aria-hidden="true">
+                {" "}
+                *
+              </span>
+            )}
           </label>
         ) : (
-          <p className="text-xs font-medium text-muted-foreground">{label}</p>
+          <p className="text-xs font-medium text-muted-foreground">
+            {label}
+            {required && (
+              <span className="text-destructive" aria-hidden="true">
+                {" "}
+                *
+              </span>
+            )}
+          </p>
         )}
 
         {editing ? (
@@ -170,7 +193,7 @@ function ProfileFieldCard({
               )}
             </Button>
           </div>
-        ) : onSave ? (
+        ) : (
           <Button
             type="button"
             variant="outline"
@@ -180,7 +203,7 @@ function ProfileFieldCard({
             <Pencil className="size-3.5" aria-hidden="true" />
             Modificar
           </Button>
-        ) : null}
+        )}
       </div>
 
       {editing ? (
@@ -190,6 +213,7 @@ function ProfileFieldCard({
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
           placeholder={placeholder}
+          aria-required={required ? "true" : undefined}
           onKeyDown={(event) => {
             if (event.key === "Enter") {
               event.preventDefault();

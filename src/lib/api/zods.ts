@@ -20,6 +20,22 @@ export const LoginHandlerResponse = zod.object({
   "id": zod.uuid(),
   "mother_last_name": zod.string().nullish(),
   "name": zod.string(),
+  "permissions": zod.array(zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "description": zod.string().nullish(),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "slug": zod.string(),
+  "status": zod.enum(['active', 'inactive', 'deleted'])
+})),
+  "phone": zod.string().nullish(),
+  "roles": zod.array(zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "slug": zod.string(),
+  "status": zod.enum(['active', 'inactive', 'deleted'])
+})),
   "status": zod.enum(['active', 'inactive']),
   "username": zod.string()
 })
@@ -30,12 +46,112 @@ export const LogoutHandlerResponse = zod.void()
 
 
 export const MeHandlerResponse = zod.object({
-  "user": zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
   "email": zod.string(),
-  "session_id": zod.string(),
-  "user_id": zod.uuid(),
+  "father_last_name": zod.string(),
+  "id": zod.uuid(),
+  "mother_last_name": zod.string().nullish(),
+  "name": zod.string(),
+  "permissions": zod.array(zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "description": zod.string().nullish(),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "slug": zod.string(),
+  "status": zod.enum(['active', 'inactive', 'deleted'])
+})),
+  "phone": zod.string().nullish(),
+  "roles": zod.array(zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "slug": zod.string(),
+  "status": zod.enum(['active', 'inactive', 'deleted'])
+})),
+  "status": zod.enum(['active', 'inactive']),
   "username": zod.string()
 })
+
+
+export const CreateCustomerRequestBody = zod.object({
+  "company_name": zod.string(),
+  "email": zod.string().nullish(),
+  "phone": zod.string().nullish(),
+  "tax_id": zod.string()
+})
+
+export const CreateCustomerRequestResponse = zod.object({
+  "company_name": zod.string(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "email": zod.string().nullish(),
+  "id": zod.uuid(),
+  "phone": zod.string().nullish(),
+  "status": zod.enum(['active', 'inactive']),
+  "tax_id": zod.string(),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "user_id": zod.uuid()
+})
+
+
+export const GetCustomerRequestParams = zod.object({
+  "user_id": zod.uuid().describe('User ID')
+})
+
+export const GetCustomerRequestResponse = zod.object({
+  "company_name": zod.string(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "email": zod.string().nullish(),
+  "id": zod.uuid(),
+  "phone": zod.string().nullish(),
+  "status": zod.enum(['active', 'inactive']),
+  "tax_id": zod.string(),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "user_id": zod.uuid()
+})
+
+
+export const UpdateCustomerRequestParams = zod.object({
+  "user_id": zod.uuid().describe('User ID')
+})
+
+export const UpdateCustomerRequestBody = zod.object({
+  "company_name": zod.string().nullish(),
+  "email": zod.string().nullish(),
+  "phone": zod.string().nullish(),
+  "tax_id": zod.string().nullish()
+})
+
+export const UpdateCustomerRequestResponse = zod.object({
+  "company_name": zod.string(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "email": zod.string().nullish(),
+  "id": zod.uuid(),
+  "phone": zod.string().nullish(),
+  "status": zod.enum(['active', 'inactive']),
+  "tax_id": zod.string(),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "user_id": zod.uuid()
+})
+
+
+export const UpdateCustomerStatusRequestParams = zod.object({
+  "user_id": zod.uuid().describe('User ID')
+})
+
+export const UpdateCustomerStatusRequestBody = zod.object({
+  "status": zod.enum(['active', 'inactive'])
+})
+
+export const UpdateCustomerStatusRequestResponse = zod.object({
+  "company_name": zod.string(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "email": zod.string().nullish(),
+  "id": zod.uuid(),
+  "phone": zod.string().nullish(),
+  "status": zod.enum(['active', 'inactive']),
+  "tax_id": zod.string(),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "user_id": zod.uuid()
 })
 
 
@@ -75,7 +191,7 @@ export const CreateFileRequestResponse = zod.object({
 
 export const AssociateFileRequestBody = zod.object({
   "entity_id": zod.uuid(),
-  "entity_type": zod.enum(['product', 'order', 'invoice', 'customer', 'warehouse', 'brand']),
+  "entity_type": zod.enum(['product', 'order', 'invoice', 'customer', 'warehouse', 'brand', 'variant']),
   "file_id": zod.uuid(),
   "relationship_type": zod.enum(['primary_image'])
 })
@@ -84,7 +200,7 @@ export const AssociateFileRequestResponse = zod.object({
   "association": zod.object({
   "created_at": zod.iso.datetime({"offset":true}),
   "entity_id": zod.uuid(),
-  "entity_type": zod.enum(['product', 'order', 'invoice', 'customer', 'warehouse', 'brand']),
+  "entity_type": zod.enum(['product', 'order', 'invoice', 'customer', 'warehouse', 'brand', 'variant']),
   "file_id": zod.uuid(),
   "id": zod.uuid(),
   "relationship_type": zod.enum(['primary_image'])
@@ -1011,6 +1127,129 @@ export const RemoveUserRoleHandlerResponse = zod.object({
 })
 
 
+export const CreateSalesOrderRequestBody = zod.object({
+  "billing_address": zod.object({
+  "address": zod.string(),
+  "city": zod.string(),
+  "country": zod.string(),
+  "postal_code": zod.string(),
+  "state": zod.string()
+}),
+  "comments": zod.string().nullish(),
+  "customer_id": zod.uuid(),
+  "lines": zod.array(zod.object({
+  "description": zod.string(),
+  "discount_percent": zod.int().nullish(),
+  "quantity": zod.int(),
+  "tax_rate": zod.int(),
+  "unit_price": zod.int(),
+  "variant_id": zod.uuid()
+})),
+  "order_date": zod.iso.datetime({"offset":true}),
+  "shipping_address": zod.object({
+  "address": zod.string(),
+  "city": zod.string(),
+  "country": zod.string(),
+  "postal_code": zod.string(),
+  "state": zod.string()
+})
+})
+
+export const CreateSalesOrderRequestResponse = zod.object({
+  "billing_address": zod.object({
+  "address": zod.string(),
+  "city": zod.string(),
+  "country": zod.string(),
+  "postal_code": zod.string(),
+  "state": zod.string()
+}),
+  "comments": zod.string().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "customer": zod.object({
+  "customer_id": zod.uuid(),
+  "name": zod.string()
+}),
+  "discount_total": zod.int(),
+  "grand_total": zod.int(),
+  "id": zod.uuid(),
+  "lines": zod.array(zod.object({
+  "description": zod.string(),
+  "discount_amount": zod.int(),
+  "discount_percent": zod.int().nullish(),
+  "id": zod.uuid(),
+  "line_number": zod.int(),
+  "line_total": zod.int(),
+  "product_id": zod.uuid(),
+  "quantity": zod.int(),
+  "tax_amount": zod.int(),
+  "tax_rate": zod.int(),
+  "unit_price": zod.int(),
+  "variant_id": zod.uuid()
+})),
+  "order_date": zod.iso.datetime({"offset":true}),
+  "order_number": zod.string(),
+  "shipping_address": zod.object({
+  "address": zod.string(),
+  "city": zod.string(),
+  "country": zod.string(),
+  "postal_code": zod.string(),
+  "state": zod.string()
+}),
+  "status": zod.enum(['draft', 'quote', 'confirmed', 'partially_fulfilled', 'fulfilled', 'cancelled', 'closed']),
+  "subtotal": zod.int(),
+  "tax_total": zod.int(),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+
+
+export const listUsersRequestQueryLimitMin = 0;
+
+export const listUsersRequestQueryOffsetMin = 0;
+
+
+
+export const ListUsersRequestQueryParams = zod.object({
+  "view": zod.enum(['client', 'staff', 'archived']),
+  "search": zod.string().optional(),
+  "role": zod.uuid().optional(),
+  "limit": zod.int().min(listUsersRequestQueryLimitMin).optional(),
+  "offset": zod.int().min(listUsersRequestQueryOffsetMin).optional(),
+  "sort_by": zod.enum(['display_name', 'created_at']).optional(),
+  "sort_order": zod.enum(['asc', 'desc']).optional()
+})
+
+export const listUsersRequestResponseLimitMin = 0;
+
+export const listUsersRequestResponseOffsetMin = 0;
+
+
+
+export const ListUsersRequestResponse = zod.object({
+  "limit": zod.int().min(listUsersRequestResponseLimitMin),
+  "offset": zod.int().min(listUsersRequestResponseOffsetMin),
+  "total": zod.int(),
+  "users": zod.array(zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "email": zod.string(),
+  "father_last_name": zod.string(),
+  "id": zod.uuid(),
+  "mother_last_name": zod.string().nullish(),
+  "name": zod.string(),
+  "phone": zod.string().nullish(),
+  "status": zod.enum(['active', 'inactive']),
+  "username": zod.string()
+}).and(zod.object({
+  "roles": zod.array(zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "slug": zod.string(),
+  "status": zod.enum(['active', 'inactive', 'deleted'])
+}))
+})))
+})
+
+
 export const CreateUserRequestBody = zod.object({
   "email": zod.string(),
   "father_last_name": zod.string(),
@@ -1028,6 +1267,85 @@ export const CreateUserRequestResponse = zod.object({
   "id": zod.uuid(),
   "mother_last_name": zod.string().nullish(),
   "name": zod.string(),
+  "phone": zod.string().nullish(),
+  "status": zod.enum(['active', 'inactive']),
+  "username": zod.string()
+})
+
+
+export const GetUserRequestParams = zod.object({
+  "id": zod.uuid().describe('User ID')
+})
+
+export const GetUserRequestResponse = zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "email": zod.string(),
+  "father_last_name": zod.string(),
+  "id": zod.uuid(),
+  "mother_last_name": zod.string().nullish(),
+  "name": zod.string(),
+  "phone": zod.string().nullish(),
+  "status": zod.enum(['active', 'inactive']),
+  "username": zod.string()
+})
+
+
+export const UpdateUserRequestParams = zod.object({
+  "id": zod.uuid().describe('User ID')
+})
+
+export const UpdateUserRequestBody = zod.object({
+  "email": zod.string().nullish(),
+  "father_last_name": zod.string().nullish(),
+  "mother_last_name": zod.string().nullish(),
+  "name": zod.string().nullish(),
+  "password": zod.string().nullish(),
+  "role_ids": zod.array(zod.uuid()).nullish(),
+  "status": zod.union([zod.null(),zod.enum(['active', 'inactive'])]).optional(),
+  "username": zod.string().nullish()
+})
+
+export const UpdateUserRequestResponse = zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "email": zod.string(),
+  "father_last_name": zod.string(),
+  "id": zod.uuid(),
+  "mother_last_name": zod.string().nullish(),
+  "name": zod.string(),
+  "phone": zod.string().nullish(),
+  "status": zod.enum(['active', 'inactive']),
+  "username": zod.string()
+}).and(zod.object({
+  "roles": zod.array(zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "slug": zod.string(),
+  "status": zod.enum(['active', 'inactive', 'deleted'])
+}))
+}))
+
+
+export const UpdateUserProfileRequestParams = zod.object({
+  "id": zod.uuid().describe('User ID')
+})
+
+export const UpdateUserProfileRequestBody = zod.object({
+  "email": zod.string().nullish(),
+  "father_last_name": zod.string().nullish(),
+  "mother_last_name": zod.string().nullish(),
+  "name": zod.string().nullish(),
+  "phone": zod.string().nullish()
+})
+
+export const UpdateUserProfileRequestResponse = zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "email": zod.string(),
+  "father_last_name": zod.string(),
+  "id": zod.uuid(),
+  "mother_last_name": zod.string().nullish(),
+  "name": zod.string(),
+  "phone": zod.string().nullish(),
   "status": zod.enum(['active', 'inactive']),
   "username": zod.string()
 })

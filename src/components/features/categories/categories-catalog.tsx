@@ -6,7 +6,7 @@ import {
   Pencil,
   Plus,
   Search,
-  Tags,
+  Shapes,
   Trash2,
 } from "lucide-react";
 
@@ -30,7 +30,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useCategories } from "@/lib/api/categories";
+import { useGetCategoriesRequest } from "@/lib/api/api";
 import type { Category } from "@/lib/api/schemas";
 
 import { CategoryDeleteDialog } from "./category-delete-dialog";
@@ -78,15 +78,19 @@ export function CategoriesCatalog({
     null
   );
 
-  const listQuery = useCategories(filters);
-  const hierarchyQuery = useCategories();
+  const listQuery = useGetCategoriesRequest(filters);
+  const hierarchyQuery = useGetCategoriesRequest();
+  const listResponse =
+    listQuery.data?.status === 200 ? listQuery.data.data : undefined;
+  const hierarchyResponse =
+    hierarchyQuery.data?.status === 200 ? hierarchyQuery.data.data : undefined;
   const categories = useMemo(
-    () => listQuery.data?.categories ?? [],
-    [listQuery.data?.categories]
+    () => listResponse?.categories ?? [],
+    [listResponse?.categories]
   );
   const hierarchyCategories = useMemo(
-    () => hierarchyQuery.data?.categories ?? categories,
-    [categories, hierarchyQuery.data?.categories]
+    () => hierarchyResponse?.categories ?? categories,
+    [categories, hierarchyResponse?.categories]
   );
   const categoryMap = useMemo(
     () =>
@@ -157,7 +161,7 @@ export function CategoriesCatalog({
       <Card>
         <CardHeader className="gap-4">
           <CardTitle className="flex items-center gap-2 text-base font-semibold">
-            <Tags className="size-4" /> Catálogo de categorías
+            <Shapes className="size-4" /> Catálogo de categorías
           </CardTitle>
           <div className="flex flex-col gap-3 md:flex-row md:items-center">
             <div className="relative flex-1">
@@ -176,7 +180,8 @@ export function CategoriesCatalog({
         <CardContent>
           {listQuery.isLoading ? (
             <CategoriesSkeleton />
-          ) : listQuery.error ? (
+          ) : listQuery.error ||
+            (listQuery.data && listQuery.data.status !== 200) ? (
             <div
               className="flex flex-col items-center gap-3 py-10 text-center"
               role="alert"
@@ -336,12 +341,18 @@ export function CategoriesCatalog({
         open={formOpen}
         onOpenChange={setFormOpen}
         categories={hierarchyCategories}
+        onSaved={async () => {
+          await Promise.all([listQuery.mutate(), hierarchyQuery.mutate()]);
+        }}
       />
       <CategoryDeleteDialog
         category={deletingCategory}
         categories={hierarchyCategories}
         onOpenChange={(open) => {
           if (!open) setDeletingCategory(null);
+        }}
+        onDeleted={async () => {
+          await Promise.all([listQuery.mutate(), hierarchyQuery.mutate()]);
         }}
       />
     </section>

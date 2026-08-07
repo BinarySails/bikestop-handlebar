@@ -10,23 +10,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  CategoryApiError,
-  deleteCategory,
-  invalidateCategories,
-} from "@/lib/api/categories";
+import { deleteCategoryRequest } from "@/lib/api/api";
 import type { Category } from "@/lib/api/schemas";
 
 type CategoryDeleteDialogProps = {
   category: Category | null;
   categories: Category[];
   onOpenChange: (open: boolean) => void;
+  onDeleted?: () => Promise<void> | void;
 };
 
 export function CategoryDeleteDialog({
   category,
   categories,
   onOpenChange,
+  onDeleted,
 }: CategoryDeleteDialogProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const childCount = category
@@ -37,18 +35,20 @@ export function CategoryDeleteDialog({
     if (!category || isDeleting) return;
     setIsDeleting(true);
     try {
-      await deleteCategory(category.id);
-      toast.success(`Categoría “${category.display_name}” eliminada.`);
-      await invalidateCategories();
-      onOpenChange(false);
-    } catch (error) {
-      if (error instanceof CategoryApiError) {
-        if (error.status === 404) toast.error("La categoría ya no existe.");
-        else if (error.status === 400) toast.error(error.message);
-        else toast.error("El servidor no pudo eliminar la categoría.");
-      } else {
-        toast.error("No se pudo eliminar la categoría.");
+      const result = await deleteCategoryRequest(category.id);
+      if (result.status !== 200) {
+        if (result.status === 404) toast.error("La categoría ya no existe.");
+        else
+          toast.error(
+            result.data.message ?? "El servidor no pudo eliminar la categoría."
+          );
+        return;
       }
+      toast.success(`Categoría “${category.display_name}” eliminada.`);
+      await onDeleted?.();
+      onOpenChange(false);
+    } catch {
+      toast.error("No se pudo eliminar la categoría.");
     } finally {
       setIsDeleting(false);
     }

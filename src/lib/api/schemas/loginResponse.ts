@@ -4,9 +4,9 @@
  * ciclo
  * OpenAPI spec version: 0.1.0
  */
-import type { UserResponse } from './userResponse.ts';
+import type { AuthUser } from './authUser.ts';
 
 export interface LoginResponse {
   session_id: string;
-  user: UserResponse;
+  user: AuthUser;
 }

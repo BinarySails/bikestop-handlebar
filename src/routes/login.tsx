@@ -5,8 +5,12 @@ import { z } from "zod";
 
 import { LoginForm } from "@/components/login-form";
 import { meHandler, useLoginHandler } from "@/lib/api/api";
+import {
+  policiesFromAuthUser,
+  rolesFromAuthUser,
+} from "@/lib/auth/derive-policies";
 import { useAuthStore } from "@/lib/auth/use-auth-store";
-import type { MeResponse } from "@/lib/api/schemas";
+import type { AuthUser } from "@/lib/api/schemas";
 
 const DEFAULT_SESSION_DURATION_MS = 24 * 60 * 60 * 1000;
 
@@ -52,7 +56,7 @@ export const Route = createFileRoute("/login")({
     }
 
     try {
-      let data: MeResponse | undefined = undefined;
+      let data: AuthUser | undefined = undefined;
 
       try {
         const { data: user, status } = await meHandler();
@@ -70,8 +74,9 @@ export const Route = createFileRoute("/login")({
       if (data) {
         setAuth(
           {
-            ...data.user,
-            policies: [],
+            ...data,
+            policies: policiesFromAuthUser(data),
+            roles: rolesFromAuthUser(data),
           },
           expiresAt || undefined
         );
@@ -103,6 +108,7 @@ function LoginPage() {
   const { trigger, isMutating } = useLoginHandler();
   const navigate = useNavigate();
   const search = Route.useSearch();
+  const setAuth = useAuthStore((store) => store.setAuth);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -123,9 +129,14 @@ function LoginPage() {
         getExpiryFromHeaders(result.headers) ||
         new Date(Date.now() + DEFAULT_SESSION_DURATION_MS).toISOString();
 
-      useAuthStore
-        .getState()
-        .setAuth({ ...result.data.user, policies: [] }, expiresAt);
+      setAuth(
+        {
+          ...result.data.user,
+          policies: policiesFromAuthUser(result.data.user),
+          roles: rolesFromAuthUser(result.data.user),
+        },
+        expiresAt
+      );
 
       toast.success("Sesión iniciada.");
       await navigate({ to: search.next || "/dashboard" });

@@ -4,11 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { CategoryFormDialog } from "@/components/features/categories/category-form-dialog";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  CategoryApiError,
-  useCategories,
-  useCategory,
-} from "@/lib/api/categories";
+import { useGetCategoriesRequest, useGetCategoryRequest } from "@/lib/api/api";
 
 export const Route = createFileRoute("/_layout/categories/$categoryId_/edit")({
   component: CategoryEditPage,
@@ -17,9 +13,16 @@ export const Route = createFileRoute("/_layout/categories/$categoryId_/edit")({
 function CategoryEditPage() {
   const { categoryId } = Route.useParams();
   const navigate = useNavigate();
-  const detailQuery = useCategory(categoryId);
-  const categoriesQuery = useCategories();
-  const category = detailQuery.data?.category;
+  const detailQuery = useGetCategoryRequest(categoryId);
+  const categoriesQuery = useGetCategoriesRequest();
+  const category =
+    detailQuery.data?.status === 200
+      ? detailQuery.data.data.category
+      : undefined;
+  const categories =
+    categoriesQuery.data?.status === 200
+      ? categoriesQuery.data.data.categories
+      : [];
 
   const goToDetail = () => {
     navigate({
@@ -37,10 +40,14 @@ function CategoryEditPage() {
     );
   }
 
-  if (detailQuery.error || !category || categoriesQuery.error) {
-    const notFound =
-      detailQuery.error instanceof CategoryApiError &&
-      detailQuery.error.status === 404;
+  if (
+    detailQuery.error ||
+    detailQuery.data?.status !== 200 ||
+    !category ||
+    categoriesQuery.error ||
+    (categoriesQuery.data && categoriesQuery.data.status !== 200)
+  ) {
+    const notFound = detailQuery.data?.status === 404;
 
     return (
       <main className="flex flex-1 flex-col items-center justify-center gap-4 p-6 text-center">
@@ -82,9 +89,12 @@ function CategoryEditPage() {
         onOpenChange={(open) => {
           if (!open) goToDetail();
         }}
-        categories={categoriesQuery.data?.categories ?? []}
+        categories={categories}
         category={category}
         presentation="page"
+        onSaved={async () => {
+          await Promise.all([detailQuery.mutate(), categoriesQuery.mutate()]);
+        }}
       />
     </main>
   );
