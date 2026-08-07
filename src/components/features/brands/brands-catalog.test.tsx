@@ -18,52 +18,42 @@ const api = vi.hoisted(() => ({
   update: vi.fn(),
   archive: vi.fn(),
   toggle: vi.fn(),
-  invalidate: vi.fn(),
   listMutate: vi.fn(),
   detailMutate: vi.fn(),
 }));
 
-vi.mock("@/lib/api/brands", () => {
-  class ApiError extends Error {
-    constructor(
-      public status: number,
-      message: string
-    ) {
-      super(message);
-    }
-  }
-  return {
-    BrandApiError: ApiError,
-    createBrand: api.create,
-    updateBrand: api.update,
-    archiveBrand: api.archive,
-    toggleBrand: api.toggle,
-    invalidateBrands: api.invalidate,
-    useBrands: () => ({
+vi.mock("@/lib/api/api", () => ({
+  createBrandRequest: api.create,
+  updateBrandRequest: api.update,
+  deleteBrandRequest: api.archive,
+  toggleBrandRequest: api.toggle,
+  useListBrandsRequest: () => ({
+    data: {
+      status: 200,
       data: { data: brandFixtures, page: 0, limit: 10, total: 3 },
-      isLoading: false,
-      isValidating: false,
-      error: undefined,
-      mutate: api.listMutate,
-    }),
-    useBrand: () => ({
-      data: null,
-      isLoading: false,
-      error: undefined,
-      mutate: api.detailMutate,
-    }),
-  };
-});
+    },
+    isLoading: false,
+    isValidating: false,
+    error: undefined,
+    mutate: api.listMutate,
+  }),
+  useGetBrandRequest: () => ({
+    data: undefined,
+    isLoading: false,
+    error: undefined,
+    mutate: api.detailMutate,
+  }),
+}));
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 
 describe("BrandsCatalog API container", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    api.create.mockResolvedValue(brandFixtures[0]);
-    api.update.mockResolvedValue(brandFixtures[0]);
-    api.toggle.mockResolvedValue({ ...brandFixtures[0], status: "disable" });
-    api.archive.mockResolvedValue({ ...brandFixtures[0], status: "archive" });
-    api.invalidate.mockResolvedValue(undefined);
+    api.create.mockResolvedValue({ status: 201, data: brandFixtures[0] });
+    api.update.mockResolvedValue({ status: 200, data: brandFixtures[0] });
+    api.toggle.mockResolvedValue({ status: 200, data: brandFixtures[0] });
+    api.archive.mockResolvedValue({ status: 200, data: brandFixtures[0] });
+    api.listMutate.mockResolvedValue(undefined);
   });
   afterEach(cleanup);
 
@@ -106,12 +96,14 @@ describe("BrandsCatalog API container", () => {
         image_url: "https://example.com/giant.png",
       })
     );
-    expect(api.invalidate).toHaveBeenCalled();
+    expect(api.listMutate).toHaveBeenCalled();
   });
 
   it("maps a duplicate-name conflict to the name field", async () => {
-    const { BrandApiError } = await import("@/lib/api/brands");
-    api.create.mockRejectedValue(new BrandApiError(409, "duplicate"));
+    api.create.mockResolvedValue({
+      status: 409,
+      data: { type: "conflict", message: "duplicate" },
+    });
     render(<BrandsCatalog filters={{}} onFiltersChange={vi.fn()} />);
     fireEvent.click(screen.getByRole("button", { name: "Crear marca" }));
     fireEvent.change(screen.getByLabelText("Nombre visible"), {
@@ -142,7 +134,7 @@ describe("BrandsCatalog API container", () => {
         image_url: brandFixtures[0].image_url,
       })
     );
-    expect(api.invalidate).toHaveBeenCalled();
+    expect(api.listMutate).toHaveBeenCalled();
   });
 
   it("confirms toggle and archive operations before invalidating", async () => {
@@ -157,7 +149,7 @@ describe("BrandsCatalog API container", () => {
     await waitFor(() =>
       expect(api.toggle).toHaveBeenCalledWith(brandFixtures[0].id)
     );
-    expect(api.invalidate).toHaveBeenCalled();
+    expect(api.listMutate).toHaveBeenCalled();
 
     unmount();
     vi.clearAllMocks();
@@ -170,6 +162,6 @@ describe("BrandsCatalog API container", () => {
     await waitFor(() =>
       expect(api.archive).toHaveBeenCalledWith(brandFixtures[0].id)
     );
-    expect(api.invalidate).toHaveBeenCalled();
+    expect(api.listMutate).toHaveBeenCalled();
   });
 });

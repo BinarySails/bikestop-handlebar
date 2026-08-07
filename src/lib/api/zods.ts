@@ -20,6 +20,7 @@ export const LoginHandlerResponse = zod.object({
   "id": zod.uuid(),
   "mother_last_name": zod.string().nullish(),
   "name": zod.string(),
+  "phone": zod.string().nullish(),
   "status": zod.enum(['active', 'inactive']),
   "username": zod.string()
 })
@@ -36,6 +37,88 @@ export const MeHandlerResponse = zod.object({
   "user_id": zod.uuid(),
   "username": zod.string()
 })
+})
+
+
+export const CreateCustomerRequestBody = zod.object({
+  "company_name": zod.string(),
+  "email": zod.string().nullish(),
+  "phone": zod.string().nullish(),
+  "tax_id": zod.string()
+})
+
+export const CreateCustomerRequestResponse = zod.object({
+  "company_name": zod.string(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "email": zod.string().nullish(),
+  "id": zod.uuid(),
+  "phone": zod.string().nullish(),
+  "status": zod.enum(['active', 'inactive']),
+  "tax_id": zod.string(),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "user_id": zod.uuid()
+})
+
+
+export const GetCustomerRequestParams = zod.object({
+  "user_id": zod.uuid().describe('User ID')
+})
+
+export const GetCustomerRequestResponse = zod.object({
+  "company_name": zod.string(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "email": zod.string().nullish(),
+  "id": zod.uuid(),
+  "phone": zod.string().nullish(),
+  "status": zod.enum(['active', 'inactive']),
+  "tax_id": zod.string(),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "user_id": zod.uuid()
+})
+
+
+export const UpdateCustomerRequestParams = zod.object({
+  "user_id": zod.uuid().describe('User ID')
+})
+
+export const UpdateCustomerRequestBody = zod.object({
+  "company_name": zod.string().nullish(),
+  "email": zod.string().nullish(),
+  "phone": zod.string().nullish(),
+  "tax_id": zod.string().nullish()
+})
+
+export const UpdateCustomerRequestResponse = zod.object({
+  "company_name": zod.string(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "email": zod.string().nullish(),
+  "id": zod.uuid(),
+  "phone": zod.string().nullish(),
+  "status": zod.enum(['active', 'inactive']),
+  "tax_id": zod.string(),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "user_id": zod.uuid()
+})
+
+
+export const UpdateCustomerStatusRequestParams = zod.object({
+  "user_id": zod.uuid().describe('User ID')
+})
+
+export const UpdateCustomerStatusRequestBody = zod.object({
+  "status": zod.enum(['active', 'inactive'])
+})
+
+export const UpdateCustomerStatusRequestResponse = zod.object({
+  "company_name": zod.string(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "email": zod.string().nullish(),
+  "id": zod.uuid(),
+  "phone": zod.string().nullish(),
+  "status": zod.enum(['active', 'inactive']),
+  "tax_id": zod.string(),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "user_id": zod.uuid()
 })
 
 
@@ -75,7 +158,7 @@ export const CreateFileRequestResponse = zod.object({
 
 export const AssociateFileRequestBody = zod.object({
   "entity_id": zod.uuid(),
-  "entity_type": zod.enum(['product', 'order', 'invoice', 'customer', 'warehouse']),
+  "entity_type": zod.enum(['product', 'order', 'invoice', 'customer', 'warehouse', 'brand', 'variant']),
   "file_id": zod.uuid(),
   "relationship_type": zod.enum(['primary_image'])
 })
@@ -84,7 +167,7 @@ export const AssociateFileRequestResponse = zod.object({
   "association": zod.object({
   "created_at": zod.iso.datetime({"offset":true}),
   "entity_id": zod.uuid(),
-  "entity_type": zod.enum(['product', 'order', 'invoice', 'customer', 'warehouse']),
+  "entity_type": zod.enum(['product', 'order', 'invoice', 'customer', 'warehouse', 'brand', 'variant']),
   "file_id": zod.uuid(),
   "id": zod.uuid(),
   "relationship_type": zod.enum(['primary_image'])
@@ -154,6 +237,28 @@ export const GetDownloadUrlRequestResponse = zod.object({
 })
 
 
+export const GetLocalityRequestParams = zod.object({
+  "locality_id": zod.uuid().describe('Locality ID')
+})
+
+export const GetLocalityRequestResponse = zod.object({
+  "locality": zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "state_id": zod.uuid()
+})
+})
+
+
+export const ListStatesRequestResponseItem = zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid()
+})
+export const ListStatesRequestResponse = zod.array(ListStatesRequestResponseItem)
+
+
 export const CreateStateRequestBody = zod.object({
   "display_name": zod.string()
 })
@@ -162,6 +267,33 @@ export const CreateStateRequestResponse = zod.object({
   "created_at": zod.iso.datetime({"offset":true}),
   "display_name": zod.string(),
   "id": zod.uuid()
+})
+
+
+export const GetStateRequestParams = zod.object({
+  "state_id": zod.uuid().describe('State ID')
+})
+
+export const GetStateRequestResponse = zod.object({
+  "state": zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid()
+})
+})
+
+
+export const ListLocalitiesRequestParams = zod.object({
+  "state_id": zod.uuid().describe('State ID')
+})
+
+export const ListLocalitiesRequestResponse = zod.object({
+  "data": zod.array(zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "state_id": zod.uuid()
+}))
 })
 
 
@@ -181,9 +313,94 @@ export const CreateLocalityRequestResponse = zod.object({
 })
 
 
+export const listProductsRequestQueryPageMin = 0;
+
+export const listProductsRequestQueryLimitMin = 0;
+
+
+
+export const ListProductsRequestQueryParams = zod.object({
+  "status": zod.enum(['enable', 'disable', 'archive']).optional(),
+  "search": zod.string().optional(),
+  "page": zod.int().min(listProductsRequestQueryPageMin).optional(),
+  "limit": zod.int().min(listProductsRequestQueryLimitMin).optional()
+})
+
+export const listProductsRequestResponseLimitMin = 0;
+
+export const listProductsRequestResponsePageMin = 0;
+
+
+
+export const ListProductsRequestResponse = zod.object({
+  "data": zod.array(zod.object({
+  "brand": zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "image_url": zod.string(),
+  "status": zod.enum(['enable', 'disable', 'archive'])
+}),
+  "category": zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "description": zod.string().nullish(),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "parent_id": zod.union([zod.null(),zod.uuid()]).optional(),
+  "slug": zod.string(),
+  "status": zod.enum(['active', 'inactive'])
+}),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "description": zod.string().nullish(),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "status": zod.enum(['enable', 'disable', 'archive']),
+  "updated_at": zod.iso.datetime({"offset":true})
+})),
+  "limit": zod.int().min(listProductsRequestResponseLimitMin),
+  "page": zod.int().min(listProductsRequestResponsePageMin),
+  "total": zod.int()
+})
+
+
+export const CreateProductRequestBody = zod.object({
+  "brand_id": zod.uuid(),
+  "category_id": zod.uuid(),
+  "description": zod.string().nullish(),
+  "display_name": zod.string()
+})
+
+export const CreateProductRequestResponse = zod.object({
+  "brand": zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "image_url": zod.string(),
+  "status": zod.enum(['enable', 'disable', 'archive'])
+}),
+  "category": zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "description": zod.string().nullish(),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "parent_id": zod.union([zod.null(),zod.uuid()]).optional(),
+  "slug": zod.string(),
+  "status": zod.enum(['active', 'inactive'])
+}),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "description": zod.string().nullish(),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "status": zod.enum(['enable', 'disable', 'archive']),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+
+
 export const ListBrandsRequestQueryParams = zod.object({
   "page": zod.int().optional(),
-  "limit": zod.int().optional()
+  "limit": zod.int().optional(),
+  "display_name": zod.string().optional(),
+  "order": zod.enum(['asc', 'desc']).optional()
 })
 
 export const ListBrandsRequestResponse = zod.object({
@@ -271,6 +488,24 @@ export const ToggleBrandRequestResponse = zod.object({
 })
 
 
+export const GetCategoriesRequestQueryParams = zod.object({
+  "display_name": zod.string().nullish().describe('Case-insensitive partial match against the category display name or description.'),
+  "order": zod.union([zod.null(),zod.enum(['asc', 'desc'])]).optional().describe('Sort by creation date: `asc` for oldest first, `desc` for newest first.')
+})
+
+export const GetCategoriesRequestResponse = zod.object({
+  "categories": zod.array(zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "description": zod.string().nullish(),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "parent_id": zod.union([zod.null(),zod.uuid()]).optional(),
+  "slug": zod.string(),
+  "status": zod.enum(['active', 'inactive'])
+}))
+})
+
+
 export const CreateCategoryRequestBody = zod.object({
   "description": zod.string().nullish(),
   "display_name": zod.string(),
@@ -344,6 +579,246 @@ export const DeleteCategoryRequestResponse = zod.object({
   "slug": zod.string(),
   "status": zod.enum(['active', 'inactive'])
 })
+})
+
+
+export const GetProductRequestParams = zod.object({
+  "id": zod.uuid().describe('Product ID')
+})
+
+export const GetProductRequestResponse = zod.object({
+  "brand": zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "image_url": zod.string(),
+  "status": zod.enum(['enable', 'disable', 'archive'])
+}),
+  "category": zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "description": zod.string().nullish(),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "parent_id": zod.union([zod.null(),zod.uuid()]).optional(),
+  "slug": zod.string(),
+  "status": zod.enum(['active', 'inactive'])
+}),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "description": zod.string().nullish(),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "status": zod.enum(['enable', 'disable', 'archive']),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+
+
+export const UpdateProductRequestParams = zod.object({
+  "id": zod.uuid().describe('Product ID')
+})
+
+export const UpdateProductRequestBody = zod.object({
+  "brand_id": zod.union([zod.null(),zod.uuid()]).optional(),
+  "category_id": zod.union([zod.null(),zod.uuid()]).optional(),
+  "description": zod.string().nullish(),
+  "display_name": zod.string().nullish(),
+  "status": zod.union([zod.null(),zod.enum(['enable', 'disable', 'archive'])]).optional()
+})
+
+export const UpdateProductRequestResponse = zod.object({
+  "brand": zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "image_url": zod.string(),
+  "status": zod.enum(['enable', 'disable', 'archive'])
+}),
+  "category": zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "description": zod.string().nullish(),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "parent_id": zod.union([zod.null(),zod.uuid()]).optional(),
+  "slug": zod.string(),
+  "status": zod.enum(['active', 'inactive'])
+}),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "description": zod.string().nullish(),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "status": zod.enum(['enable', 'disable', 'archive']),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+
+
+export const ListVariantsByProductRequestParams = zod.object({
+  "product_id": zod.uuid().describe('Product ID')
+})
+
+export const ListVariantsByProductRequestResponseItem = zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "image_url": zod.string(),
+  "prices": zod.array(zod.object({
+  "amount": zod.int(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "currency": zod.string(),
+  "id": zod.uuid(),
+  "price_type": zod.enum(['regular', 'sale', 'wholesale']),
+  "status": zod.enum(['enable', 'disable', 'archive']),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "variant_id": zod.uuid()
+})),
+  "product_id": zod.uuid(),
+  "properties": zod.array(zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "property_name": zod.string(),
+  "property_value": zod.string(),
+  "status": zod.enum(['enable', 'disable', 'archive']),
+  "variant_id": zod.uuid()
+})),
+  "sku": zod.string(),
+  "status": zod.enum(['enable', 'disable', 'archive']),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+export const ListVariantsByProductRequestResponse = zod.array(ListVariantsByProductRequestResponseItem)
+
+
+export const CreateVariantRequestParams = zod.object({
+  "product_id": zod.uuid().describe('Product ID')
+})
+
+export const CreateVariantRequestBody = zod.object({
+  "display_name": zod.string(),
+  "image_url": zod.string(),
+  "prices": zod.array(zod.object({
+  "amount": zod.int(),
+  "currency": zod.string(),
+  "price_type": zod.enum(['regular', 'sale', 'wholesale'])
+})),
+  "properties": zod.array(zod.object({
+  "property_name": zod.string(),
+  "property_value": zod.string()
+})),
+  "sku": zod.string()
+})
+
+export const CreateVariantRequestResponse = zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "image_url": zod.string(),
+  "prices": zod.array(zod.object({
+  "amount": zod.int(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "currency": zod.string(),
+  "id": zod.uuid(),
+  "price_type": zod.enum(['regular', 'sale', 'wholesale']),
+  "status": zod.enum(['enable', 'disable', 'archive']),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "variant_id": zod.uuid()
+})),
+  "product_id": zod.uuid(),
+  "properties": zod.array(zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "property_name": zod.string(),
+  "property_value": zod.string(),
+  "status": zod.enum(['enable', 'disable', 'archive']),
+  "variant_id": zod.uuid()
+})),
+  "sku": zod.string(),
+  "status": zod.enum(['enable', 'disable', 'archive']),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+
+
+export const GetVariantRequestParams = zod.object({
+  "product_id": zod.uuid().describe('Product ID'),
+  "id": zod.uuid().describe('Variant ID')
+})
+
+export const GetVariantRequestResponse = zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "image_url": zod.string(),
+  "prices": zod.array(zod.object({
+  "amount": zod.int(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "currency": zod.string(),
+  "id": zod.uuid(),
+  "price_type": zod.enum(['regular', 'sale', 'wholesale']),
+  "status": zod.enum(['enable', 'disable', 'archive']),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "variant_id": zod.uuid()
+})),
+  "product_id": zod.uuid(),
+  "properties": zod.array(zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "property_name": zod.string(),
+  "property_value": zod.string(),
+  "status": zod.enum(['enable', 'disable', 'archive']),
+  "variant_id": zod.uuid()
+})),
+  "sku": zod.string(),
+  "status": zod.enum(['enable', 'disable', 'archive']),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+
+
+export const UpdateVariantRequestParams = zod.object({
+  "product_id": zod.uuid().describe('Product ID'),
+  "id": zod.uuid().describe('Variant ID')
+})
+
+export const UpdateVariantRequestBody = zod.object({
+  "display_name": zod.string().nullish(),
+  "image_url": zod.string().nullish(),
+  "prices": zod.array(zod.object({
+  "amount": zod.int(),
+  "currency": zod.string(),
+  "price_type": zod.enum(['regular', 'sale', 'wholesale']),
+  "status": zod.enum(['enable', 'disable', 'archive'])
+})).nullish(),
+  "properties": zod.array(zod.object({
+  "property_name": zod.string(),
+  "property_value": zod.string(),
+  "status": zod.enum(['enable', 'disable', 'archive']).optional()
+})).nullish(),
+  "sku": zod.string().nullish(),
+  "status": zod.union([zod.null(),zod.enum(['enable', 'disable', 'archive'])]).optional()
+})
+
+export const UpdateVariantRequestResponse = zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "image_url": zod.string(),
+  "prices": zod.array(zod.object({
+  "amount": zod.int(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "currency": zod.string(),
+  "id": zod.uuid(),
+  "price_type": zod.enum(['regular', 'sale', 'wholesale']),
+  "status": zod.enum(['enable', 'disable', 'archive']),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "variant_id": zod.uuid()
+})),
+  "product_id": zod.uuid(),
+  "properties": zod.array(zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "property_name": zod.string(),
+  "property_value": zod.string(),
+  "status": zod.enum(['enable', 'disable', 'archive']),
+  "variant_id": zod.uuid()
+})),
+  "sku": zod.string(),
+  "status": zod.enum(['enable', 'disable', 'archive']),
+  "updated_at": zod.iso.datetime({"offset":true})
 })
 
 
@@ -619,6 +1094,54 @@ export const RemoveUserRoleHandlerResponse = zod.object({
 })
 
 
+export const listUsersRequestQueryLimitMin = 0;
+
+export const listUsersRequestQueryOffsetMin = 0;
+
+
+
+export const ListUsersRequestQueryParams = zod.object({
+  "view": zod.enum(['client', 'staff', 'archived']),
+  "search": zod.string().optional(),
+  "role": zod.uuid().optional(),
+  "limit": zod.int().min(listUsersRequestQueryLimitMin).optional(),
+  "offset": zod.int().min(listUsersRequestQueryOffsetMin).optional(),
+  "sort_by": zod.enum(['display_name', 'created_at']).optional(),
+  "sort_order": zod.enum(['asc', 'desc']).optional()
+})
+
+export const listUsersRequestResponseLimitMin = 0;
+
+export const listUsersRequestResponseOffsetMin = 0;
+
+
+
+export const ListUsersRequestResponse = zod.object({
+  "limit": zod.int().min(listUsersRequestResponseLimitMin),
+  "offset": zod.int().min(listUsersRequestResponseOffsetMin),
+  "total": zod.int(),
+  "users": zod.array(zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "email": zod.string(),
+  "father_last_name": zod.string(),
+  "id": zod.uuid(),
+  "mother_last_name": zod.string().nullish(),
+  "name": zod.string(),
+  "phone": zod.string().nullish(),
+  "status": zod.enum(['active', 'inactive']),
+  "username": zod.string()
+}).and(zod.object({
+  "roles": zod.array(zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "slug": zod.string(),
+  "status": zod.enum(['active', 'inactive', 'deleted'])
+}))
+})))
+})
+
+
 export const CreateUserRequestBody = zod.object({
   "email": zod.string(),
   "father_last_name": zod.string(),
@@ -636,6 +1159,85 @@ export const CreateUserRequestResponse = zod.object({
   "id": zod.uuid(),
   "mother_last_name": zod.string().nullish(),
   "name": zod.string(),
+  "phone": zod.string().nullish(),
+  "status": zod.enum(['active', 'inactive']),
+  "username": zod.string()
+})
+
+
+export const GetUserRequestParams = zod.object({
+  "id": zod.uuid().describe('User ID')
+})
+
+export const GetUserRequestResponse = zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "email": zod.string(),
+  "father_last_name": zod.string(),
+  "id": zod.uuid(),
+  "mother_last_name": zod.string().nullish(),
+  "name": zod.string(),
+  "phone": zod.string().nullish(),
+  "status": zod.enum(['active', 'inactive']),
+  "username": zod.string()
+})
+
+
+export const UpdateUserRequestParams = zod.object({
+  "id": zod.uuid().describe('User ID')
+})
+
+export const UpdateUserRequestBody = zod.object({
+  "email": zod.string().nullish(),
+  "father_last_name": zod.string().nullish(),
+  "mother_last_name": zod.string().nullish(),
+  "name": zod.string().nullish(),
+  "password": zod.string().nullish(),
+  "role_ids": zod.array(zod.uuid()).nullish(),
+  "status": zod.union([zod.null(),zod.enum(['active', 'inactive'])]).optional(),
+  "username": zod.string().nullish()
+})
+
+export const UpdateUserRequestResponse = zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "email": zod.string(),
+  "father_last_name": zod.string(),
+  "id": zod.uuid(),
+  "mother_last_name": zod.string().nullish(),
+  "name": zod.string(),
+  "phone": zod.string().nullish(),
+  "status": zod.enum(['active', 'inactive']),
+  "username": zod.string()
+}).and(zod.object({
+  "roles": zod.array(zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "slug": zod.string(),
+  "status": zod.enum(['active', 'inactive', 'deleted'])
+}))
+}))
+
+
+export const UpdateUserProfileRequestParams = zod.object({
+  "id": zod.uuid().describe('User ID')
+})
+
+export const UpdateUserProfileRequestBody = zod.object({
+  "email": zod.string().nullish(),
+  "father_last_name": zod.string().nullish(),
+  "mother_last_name": zod.string().nullish(),
+  "name": zod.string().nullish(),
+  "phone": zod.string().nullish()
+})
+
+export const UpdateUserProfileRequestResponse = zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "email": zod.string(),
+  "father_last_name": zod.string(),
+  "id": zod.uuid(),
+  "mother_last_name": zod.string().nullish(),
+  "name": zod.string(),
+  "phone": zod.string().nullish(),
   "status": zod.enum(['active', 'inactive']),
   "username": zod.string()
 })

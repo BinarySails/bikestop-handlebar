@@ -4,8 +4,11 @@
  * ciclo
  * OpenAPI spec version: 0.1.0
  */
+import type { ListBrandsRequestOrder } from './listBrandsRequestOrder.ts';
 
 export type ListBrandsRequestParams = {
 page?: number;
 limit?: number;
+display_name?: string;
+order?: ListBrandsRequestOrder;
 };

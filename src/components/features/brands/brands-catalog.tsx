@@ -2,16 +2,14 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import {
-  archiveBrand,
-  BrandApiError,
-  createBrand,
-  invalidateBrands,
-  toggleBrand,
-  updateBrand,
-  useBrand,
-  useBrands,
-} from "@/lib/api/brands";
-import type { Brand } from "@/lib/api/schemas";
+  createBrandRequest,
+  deleteBrandRequest,
+  toggleBrandRequest,
+  updateBrandRequest,
+  useGetBrandRequest,
+  useListBrandsRequest,
+} from "@/lib/api/api";
+import type { Brand, ErrorResponse } from "@/lib/api/schemas";
 
 import { BrandActionDialog, type BrandAction } from "./brand-action-dialog";
 import { BrandDetailDialog } from "./brand-detail-dialog";
@@ -34,15 +32,15 @@ type BrandsCatalogProps = {
   onFiltersChange: (filters: BrandCatalogFilters) => void;
 };
 
-function mutationErrors(error: unknown): BrandFormErrors {
-  if (error instanceof BrandApiError) {
-    if (error.status === 409)
-      return { display_name: "Ya existe una marca con este nombre." };
-    if (error.status === 400) return { form: error.message };
-    if (error.status === 404)
-      return { form: "La marca ya no está disponible." };
-    if (error.status === 0) return { form: error.message };
-  }
+function mutationErrors(
+  status: number,
+  error?: ErrorResponse
+): BrandFormErrors {
+  if (status === 409)
+    return { display_name: "Ya existe una marca con este nombre." };
+  if (status === 400)
+    return { form: error?.message ?? "Los datos de la marca no son válidos." };
+  if (status === 404) return { form: "La marca ya no está disponible." };
   return { form: "No se pudo guardar la marca. Intenta nuevamente." };
 }
 
@@ -61,14 +59,19 @@ export function BrandsCatalog({
   } | null>(null);
   const [actionPending, setActionPending] = useState(false);
 
-  const listQuery = useBrands({
+  const listQuery = useListBrandsRequest({
     page,
     limit,
     display_name: filters.display_name,
     order: filters.order,
   });
-  const detailQuery = useBrand(detailId);
-  const response = listQuery.data;
+  const detailQuery = useGetBrandRequest(detailId ?? "", {
+    swr: { enabled: Boolean(detailId) },
+  });
+  const response =
+    listQuery.data?.status === 200 ? listQuery.data.data : undefined;
+  const detail =
+    detailQuery.data?.status === 200 ? detailQuery.data.data : null;
 
   useEffect(
     () => setSearch(filters.display_name ?? ""),
@@ -89,15 +92,19 @@ export function BrandsCatalog({
   ): Promise<BrandFormErrors | void> {
     try {
       if (formBrand) {
-        await updateBrand(formBrand.id, values);
+        const result = await updateBrandRequest(formBrand.id, values);
+        if (result.status !== 200)
+          return mutationErrors(result.status, result.data);
         toast.success("Marca actualizada correctamente.");
       } else {
-        await createBrand(values);
+        const result = await createBrandRequest(values);
+        if (result.status !== 201)
+          return mutationErrors(result.status, result.data);
         toast.success("Marca creada correctamente.");
       }
-      await invalidateBrands();
-    } catch (error) {
-      return mutationErrors(error);
+      await listQuery.mutate();
+    } catch {
+      return mutationErrors(0);
     }
   }
 
@@ -106,25 +113,29 @@ export function BrandsCatalog({
     setActionPending(true);
     try {
       if (action.type === "archive") {
-        await archiveBrand(action.brand.id);
+        const result = await deleteBrandRequest(action.brand.id);
+        if (result.status !== 200) throw result;
         toast.success("Marca archivada correctamente.");
       } else {
-        await toggleBrand(action.brand.id);
+        const result = await toggleBrandRequest(action.brand.id);
+        if (result.status !== 200) throw result;
         toast.success(
           action.brand.status === "enable"
             ? "Marca desactivada correctamente."
             : "Marca activada correctamente."
         );
       }
-      await invalidateBrands();
+      await listQuery.mutate();
       setAction(null);
     } catch (error) {
-      if (error instanceof BrandApiError && error.status === 409) {
+      const status =
+        typeof error === "object" && error && "status" in error
+          ? error.status
+          : 0;
+      if (status === 409) {
         toast.error("Una marca archivada no puede activarse ni desactivarse.");
-      } else if (error instanceof BrandApiError && error.status === 404) {
+      } else if (status === 404) {
         toast.error("La marca ya no está disponible.");
-      } else if (error instanceof BrandApiError && error.status === 0) {
-        toast.error(error.message);
       } else {
         toast.error(
           action.type === "archive"
@@ -137,17 +148,17 @@ export function BrandsCatalog({
     }
   }
 
-  const listError = listQuery.error
-    ? listQuery.error instanceof BrandApiError
-      ? listQuery.error.message
-      : "Revisa tu conexión e intenta nuevamente."
-    : null;
-  const detailError = detailQuery.error
-    ? detailQuery.error instanceof BrandApiError &&
-      detailQuery.error.status === 404
+  const listError =
+    listQuery.error || (listQuery.data && listQuery.data.status !== 200)
+      ? "Revisa tu conexión e intenta nuevamente."
+      : null;
+  const detailError =
+    detailQuery.data?.status === 404
       ? "La marca ya no está disponible. Regresa al catálogo."
-      : "No se pudo cargar el detalle de la marca."
-    : null;
+      : detailQuery.error ||
+          (detailQuery.data && detailQuery.data.status !== 200)
+        ? "No se pudo cargar el detalle de la marca."
+        : null;
 
   return (
     <>
@@ -193,7 +204,7 @@ export function BrandsCatalog({
       />
       <BrandDetailDialog
         open={Boolean(detailId)}
-        brand={detailQuery.data ?? null}
+        brand={detail}
         loading={detailQuery.isLoading}
         error={detailError}
         onOpenChange={(open) => {
