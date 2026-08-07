@@ -5,6 +5,10 @@ import { z } from "zod";
 
 import { LoginForm } from "@/components/login-form";
 import { meHandler, useLoginHandler } from "@/lib/api/api";
+import {
+  policiesFromAuthUser,
+  rolesFromAuthUser,
+} from "@/lib/auth/derive-policies";
 import { useAuthStore } from "@/lib/auth/use-auth-store";
 import type { MeResponse } from "@/lib/api/schemas";
 
@@ -71,7 +75,8 @@ export const Route = createFileRoute("/login")({
         setAuth(
           {
             ...data.user,
-            policies: [],
+            policies: policiesFromAuthUser(data.user),
+            roles: rolesFromAuthUser(data.user),
           },
           expiresAt || undefined
         );
@@ -123,9 +128,14 @@ function LoginPage() {
         getExpiryFromHeaders(result.headers) ||
         new Date(Date.now() + DEFAULT_SESSION_DURATION_MS).toISOString();
 
-      useAuthStore
-        .getState()
-        .setAuth({ ...result.data.user, policies: [] }, expiresAt);
+      useAuthStore.getState().setAuth(
+        {
+          ...result.data.user,
+          policies: policiesFromAuthUser(result.data.user),
+          roles: rolesFromAuthUser(result.data.user),
+        },
+        expiresAt
+      );
 
       toast.success("Sesión iniciada.");
       await navigate({ to: search.next || "/dashboard" });

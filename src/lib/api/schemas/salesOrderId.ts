@@ -4,8 +4,5 @@
  * ciclo
  * OpenAPI spec version: 0.1.0
  */
-import type { AuthUser } from './authUser.ts';
 
-export interface MeResponse {
-  user: AuthUser;
-}
+export type SalesOrderId = string;
