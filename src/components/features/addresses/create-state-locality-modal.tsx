@@ -61,7 +61,13 @@ type ServerErrors = {
   state?: string;
 };
 
-export function CreateStateLocalityDialog() {
+type CreateStateLocalityDialogProps = {
+  onSuccess?: () => void;
+};
+
+export function CreateStateLocalityDialog({
+  onSuccess,
+}: CreateStateLocalityDialogProps) {
   const [open, setOpen] = useState(false);
   const [createdStateId, setCreatedStateId] = useState<string | null>(null);
   const [serverErrors, setServerErrors] = useState<ServerErrors>({});
@@ -136,6 +142,7 @@ export function CreateStateLocalityDialog() {
         setCreatedStateId(null);
         setServerErrors({});
         setOpen(false);
+        onSuccess?.();
       } catch {
         toast.error("No se pudo conectar al servidor al guardar la localidad");
       }

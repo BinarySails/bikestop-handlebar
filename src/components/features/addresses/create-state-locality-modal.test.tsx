@@ -1,5 +1,8 @@
-// @vitest-environment jsdom
+/**
+ * @vitest-environment jsdom
+ */
 
+import type { Mock } from "vitest";
 import {
   cleanup,
   fireEvent,
@@ -9,26 +12,36 @@ import {
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { createLocalityRequest, useCreateStateRequest } from "@/lib/api/api";
+import { toast } from "sonner";
 import { CreateStateLocalityDialog } from "./create-state-locality-modal";
 
-const api = vi.hoisted(() => ({
-  createLocality: vi.fn<(...args: unknown[]) => unknown>(),
-  createState: vi.fn<(...args: unknown[]) => unknown>(),
-}));
+vi.mock("@/lib/api/api", () => {
+  const createLocalityRequestMock = vi.fn<(...args: unknown[]) => unknown>();
+  const createStateTriggerMock = vi.fn<(...args: unknown[]) => unknown>();
+  return {
+    createLocalityRequest: createLocalityRequestMock,
+    useCreateStateRequest: () => ({ trigger: createStateTriggerMock }),
+  };
+});
 
-const notifications = vi.hoisted(() => ({
-  error: vi.fn<(...args: unknown[]) => unknown>(),
-  success: vi.fn<(...args: unknown[]) => unknown>(),
-}));
+vi.mock("sonner", () => {
+  const error = vi.fn<(...args: unknown[]) => unknown>();
+  const success = vi.fn<(...args: unknown[]) => unknown>();
+  return {
+    toast: { error, success },
+  };
+});
 
-vi.mock("@/lib/api/api", () => ({
-  createLocalityRequest: api.createLocality,
-  useCreateStateRequest: () => ({ trigger: api.createState }),
-}));
+const api = {
+  createLocality: vi.mocked(createLocalityRequest as Mock),
+  createState: vi.mocked(useCreateStateRequest().trigger as Mock),
+};
 
-vi.mock("sonner", () => ({
-  toast: notifications,
-}));
+const notifications = {
+  error: vi.mocked(toast.error as Mock),
+  success: vi.mocked(toast.success as Mock),
+};
 
 function openForm() {
   render(<CreateStateLocalityDialog />);
@@ -177,7 +190,7 @@ describe("CreateStateLocalityDialog", () => {
       "La localidad ya existe dentro de este estado",
     ],
     [500, null, "No se pudo guardar la localidad"],
-  ])(
+  ] as const)(
     "handles Locality error %s",
     async (status, backendMessage, expectedMessage) => {
       api.createState.mockResolvedValue({
