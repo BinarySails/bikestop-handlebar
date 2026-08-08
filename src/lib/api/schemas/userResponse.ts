@@ -15,8 +15,6 @@ export interface UserResponse {
   /** @nullable */
   mother_last_name?: string | null;
   name: string;
-  /** @nullable */
-  phone?: string | null;
   status: UserStatus;
   username: string;
 }
