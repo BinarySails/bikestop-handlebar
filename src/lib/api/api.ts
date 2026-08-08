@@ -23,7 +23,6 @@ import type {
   AssignRolesToUserResponse,
   AssociateFileRequest,
   AssociateFileResponse,
-  AuthUser,
   Brand,
   BrandId,
   Category,
@@ -35,6 +34,7 @@ import type {
   CreateCustomerRequest,
   CreateFileRequest,
   CreateFileResponse,
+  CreateInventoryTransactionRequest,
   CreateLocalityRequest,
   CreatePermissionRequest,
   CreatePermissionResponse,
@@ -62,12 +62,14 @@ import type {
   GetLocalityByIdResponse,
   GetStateByIdResponse,
   GetUserPermissionsResponse,
+  InventoryTransactionResponse,
   ListBrandsRequestParams,
   ListLocalitiesResponse,
   ListPermissionsResponse,
   ListProductsRequestParams,
   ListProductsResponse,
   ListRolesResponse,
+  ListSalesOrdersRequestParams,
   ListUserRolesResponse,
   ListUsersRequestParams,
   ListUsersResponse,
@@ -76,7 +78,9 @@ import type {
   LocalityId,
   LoginRequest,
   LoginResponse,
+  MeResponse,
   PaginatedBrand,
+  PaginatedSalesOrderSummary,
   PermissionId,
   Product,
   ProductId,
@@ -268,7 +272,7 @@ export const useLogoutHandler = <TError = Promise<void>>(
 }
 
 export type meHandlerResponse200 = {
-  data: AuthUser
+  data: MeResponse
   status: 200
 }
 
@@ -1050,6 +1054,91 @@ export const useGetDownloadUrlRequest = <TError = Promise<ErrorResponse | void>>
   const swrFn = () => getDownloadUrlRequest(id,params, fetchOptions)
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type createInventoryTransactionRequestResponse201 = {
+  data: InventoryTransactionResponse
+  status: 201
+}
+
+export type createInventoryTransactionRequestResponse400 = {
+  data: ErrorResponse
+  status: 400
+}
+
+export type createInventoryTransactionRequestResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type createInventoryTransactionRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type createInventoryTransactionRequestResponseSuccess = (createInventoryTransactionRequestResponse201) & {
+  headers: Headers;
+};
+export type createInventoryTransactionRequestResponseError = (createInventoryTransactionRequestResponse400 | createInventoryTransactionRequestResponse404 | createInventoryTransactionRequestResponse500) & {
+  headers: Headers;
+};
+
+export type createInventoryTransactionRequestResponse = (createInventoryTransactionRequestResponseSuccess | createInventoryTransactionRequestResponseError)
+
+export const getCreateInventoryTransactionRequestUrl = () => {
+
+
+
+
+  return `http://localhost:8080/api/v1/inventory`
+}
+
+export const createInventoryTransactionRequest = async (createInventoryTransactionRequest: CreateInventoryTransactionRequest, options?: RequestInit): Promise<createInventoryTransactionRequestResponse> => {
+
+  const res = await fetch(getCreateInventoryTransactionRequestUrl(),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(createInventoryTransactionRequest)
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: createInventoryTransactionRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as createInventoryTransactionRequestResponse
+}
+
+
+
+
+export const getCreateInventoryTransactionRequestMutationFetcher = ( options?: RequestInit) => {
+  return (_: Key, { arg }: { arg: CreateInventoryTransactionRequest }) => {
+    return createInventoryTransactionRequest(arg, options);
+  }
+}
+export const getCreateInventoryTransactionRequestMutationKey = () => [`http://localhost:8080/api/v1/inventory`] as const;
+
+export type CreateInventoryTransactionRequestMutationResult = NonNullable<Awaited<ReturnType<typeof createInventoryTransactionRequest>>>
+
+export const useCreateInventoryTransactionRequest = <TError = Promise<ErrorResponse>>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof createInventoryTransactionRequest>>, TError, Key, CreateInventoryTransactionRequest, Awaited<ReturnType<typeof createInventoryTransactionRequest>>> & { swrKey?: string }, fetch?: RequestInit}
+) => {
+
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getCreateInventoryTransactionRequestMutationKey();
+  const swrFn = getCreateInventoryTransactionRequestMutationFetcher(fetchOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
@@ -4292,6 +4381,88 @@ export const useRemoveUserRoleHandler = <TError = Promise<void>>(
   const swrFn = getRemoveUserRoleHandlerMutationFetcher(userId,roleId, fetchOptions);
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type listSalesOrdersRequestResponse200 = {
+  data: PaginatedSalesOrderSummary
+  status: 200
+}
+
+export type listSalesOrdersRequestResponse400 = {
+  data: ErrorResponse
+  status: 400
+}
+
+export type listSalesOrdersRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type listSalesOrdersRequestResponseSuccess = (listSalesOrdersRequestResponse200) & {
+  headers: Headers;
+};
+export type listSalesOrdersRequestResponseError = (listSalesOrdersRequestResponse400 | listSalesOrdersRequestResponse500) & {
+  headers: Headers;
+};
+
+export type listSalesOrdersRequestResponse = (listSalesOrdersRequestResponseSuccess | listSalesOrdersRequestResponseError)
+
+export const getListSalesOrdersRequestUrl = (params?: ListSalesOrdersRequestParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `http://localhost:8080/api/v1/sales-orders?${stringifiedParams}` : `http://localhost:8080/api/v1/sales-orders`
+}
+
+export const listSalesOrdersRequest = async (params?: ListSalesOrdersRequestParams, options?: RequestInit): Promise<listSalesOrdersRequestResponse> => {
+
+  const res = await fetch(getListSalesOrdersRequestUrl(params),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'GET'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: listSalesOrdersRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as listSalesOrdersRequestResponse
+}
+
+
+
+
+export const getListSalesOrdersRequestKey = (params?: ListSalesOrdersRequestParams,) => [`http://localhost:8080/api/v1/sales-orders`, ...(params ? [params]: [])] as const;
+
+export type ListSalesOrdersRequestQueryResult = NonNullable<Awaited<ReturnType<typeof listSalesOrdersRequest>>>
+
+export const useListSalesOrdersRequest = <TError = Promise<ErrorResponse>>(
+  params?: ListSalesOrdersRequestParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof listSalesOrdersRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
+) => {
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getListSalesOrdersRequestKey(params) : null);
+  const swrFn = () => listSalesOrdersRequest(params, fetchOptions)
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
