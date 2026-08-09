@@ -10,7 +10,7 @@ env = env.toUpperCase();
 
 const SOURCE_INPUT_URL = {
   DEVELOPMENT: "http://localhost:8080",
-  PRODUCTION: "https://cloud.bikestop.com.mx",
+  PRODUCTION: "https://ciclo.binarysails.com",
 } as Record<string, string>;
 
 console.log("You are executing orval from:", env, SOURCE_INPUT_URL[env]);
