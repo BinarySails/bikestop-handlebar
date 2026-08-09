@@ -67,6 +67,10 @@ export async function requireAuth({
     return;
   }
 
+  if (import.meta.env.SSR) {
+    return;
+  }
+
   const { ok } = await validateSession();
 
   if (!ok) {

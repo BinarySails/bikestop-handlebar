@@ -10,6 +10,10 @@ export const Route = createFileRoute("/")({
       throw redirect({ to: "/dashboard" });
     }
 
+    if (import.meta.env.SSR) {
+      return;
+    }
+
     const { ok } = await validateSession();
 
     if (ok) {
