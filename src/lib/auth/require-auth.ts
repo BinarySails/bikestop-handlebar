@@ -1,22 +1,34 @@
 import { redirect } from "@tanstack/react-router";
 import { meHandler } from "@/lib/api/api";
 import { policiesFromAuthUser, rolesFromAuthUser } from "./derive-policies";
-import { useAuthStore } from "./use-auth-store";
+import { useAuthStore, type ValidationResult } from "./use-auth-store";
+
+function isCacheFresh(expiresAt: string | null): boolean {
+  if (!expiresAt) return true;
+  return new Date(expiresAt) > new Date();
+}
 
 /**
  * Validates the current session against the backend by calling `meHandler`.
  *
- * On success, populates the auth store with the returned user and policies/roles.
- * On any failure (non-200, thrown error, missing payload), clears the auth store.
- *
- * Intended to be used in TanStack Router's `beforeLoad` hook via the `requireAuth`
- * guard or directly in routes that need to re-check the session (e.g. `/`).
+ * The result is cached in the auth store: subsequent calls within the same
+ * page lifecycle (or until `expiresAt` lapses) reuse the cached promise and
+ * do not hit the network. The cache is repopulated by `setAuth` and cleared
+ * by `clearAuth`, so login/logout/user-switch always re-validate.
  */
-export async function validateSession(): Promise<{
-  ok: boolean;
-  status?: number;
-  error?: unknown;
-}> {
+export async function validateSession(): Promise<ValidationResult> {
+  const { validationPromise, expiresAt } = useAuthStore.getState();
+
+  if (validationPromise && isCacheFresh(expiresAt)) {
+    return validationPromise;
+  }
+
+  const promise = runValidation();
+  useAuthStore.setState({ validationPromise: promise });
+  return promise;
+}
+
+async function runValidation(): Promise<ValidationResult> {
   const { setAuth, clearAuth, expiresAt } = useAuthStore.getState();
 
   try {

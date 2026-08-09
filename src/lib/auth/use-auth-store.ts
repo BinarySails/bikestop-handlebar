@@ -4,11 +4,22 @@ import type { Actor } from "./types";
 
 const IS_DEV = import.meta.env.VITE_DISABLE_AUTH === "true";
 
+export type ValidationResult = {
+  ok: boolean;
+  status?: number;
+  error?: unknown;
+};
+
+const resolvedValidation = (
+  result: ValidationResult
+): Promise<ValidationResult> => Promise.resolve(result);
+
 interface AuthState {
   actor: Actor | null;
   isAuthenticated: boolean;
   expiresAt: string | null;
   isInitialChecked: boolean;
+  validationPromise: Promise<ValidationResult> | null;
   setAuth: (actor: Actor, expiresAt?: string) => void;
   clearAuth: () => void;
   setInitialChecked: () => void;
@@ -54,6 +65,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
   isAuthenticated: false,
   expiresAt: getStoredExpiry(),
   isInitialChecked: false,
+  validationPromise: null,
   setAuth: (actor, expiresAt) => {
     if (expiresAt) {
       setStoredExpiry(expiresAt);
@@ -64,6 +76,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       isAuthenticated: true,
       expiresAt: expiresAt || getStoredExpiry() || null,
       isInitialChecked: true,
+      validationPromise: resolvedValidation({ ok: true, status: 200 }),
     });
   },
   clearAuth: () => {
@@ -74,6 +87,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       isAuthenticated: false,
       expiresAt: null,
       isInitialChecked: true,
+      validationPromise: null,
     });
   },
   setInitialChecked: () => set({ isInitialChecked: true }),
