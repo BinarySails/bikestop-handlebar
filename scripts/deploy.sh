@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-ENVIRONMENT=production
+export ENVIRONMENT=production
 
 bun run orval:generate
 bun run build
