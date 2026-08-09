@@ -3,6 +3,9 @@ import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { TanStackDevtools } from "@tanstack/react-devtools";
 import { Toaster } from "@/components/ui/sonner";
 
+// oxlint-disable-next-line import/no-unassigned-import
+import "@/lib/api/log-base-url";
+
 import appCss from "../styles.css?url";
 
 export const Route = createRootRoute({
