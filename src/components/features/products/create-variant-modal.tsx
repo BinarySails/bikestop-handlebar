@@ -17,6 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useCreateVariantRequest } from "@/lib/api/api";
+import { pesosToCents } from "@/lib/money";
 import { CreateVariantRequestBody } from "@/lib/api/zods";
 
 const MAX_PRICE_DECIMALS = 2;
@@ -62,10 +63,6 @@ function validateDisplayName(value: string): string | undefined {
 
 function normalizePropertyInput(value: string): string {
   return value.trim().toLowerCase();
-}
-
-function pesosToCents(amount: number): number {
-  return Math.trunc(amount * 100);
 }
 
 type PropertyRow = {

@@ -23,6 +23,7 @@ import type {
   AssignRolesToUserResponse,
   AssociateFileRequest,
   AssociateFileResponse,
+  AuthUser,
   Brand,
   BrandId,
   Category,
@@ -64,6 +65,7 @@ import type {
   GetUserPermissionsResponse,
   InventoryTransactionResponse,
   ListBrandsRequestParams,
+  ListCustomersRequestParams,
   ListLocalitiesResponse,
   ListPermissionsResponse,
   ListProductsRequestParams,
@@ -78,8 +80,8 @@ import type {
   LocalityId,
   LoginRequest,
   LoginResponse,
-  MeResponse,
   PaginatedBrand,
+  PaginatedCustomerSummary,
   PaginatedSalesOrderSummary,
   PermissionId,
   Product,
@@ -272,7 +274,7 @@ export const useLogoutHandler = <TError = Promise<void>>(
 }
 
 export type meHandlerResponse200 = {
-  data: MeResponse
+  data: AuthUser
   status: 200
 }
 
@@ -337,6 +339,93 @@ export const useMeHandler = <TError = Promise<void>>(
   const isEnabled = swrOptions?.enabled !== false
   const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getMeHandlerKey() : null);
   const swrFn = () => meHandler(fetchOptions)
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type listCustomersRequestResponse200 = {
+  data: PaginatedCustomerSummary
+  status: 200
+}
+
+export type listCustomersRequestResponse400 = {
+  data: ErrorResponse
+  status: 400
+}
+
+export type listCustomersRequestResponse401 = {
+  data: ErrorResponse
+  status: 401
+}
+
+export type listCustomersRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type listCustomersRequestResponseSuccess = (listCustomersRequestResponse200) & {
+  headers: Headers;
+};
+export type listCustomersRequestResponseError = (listCustomersRequestResponse400 | listCustomersRequestResponse401 | listCustomersRequestResponse500) & {
+  headers: Headers;
+};
+
+export type listCustomersRequestResponse = (listCustomersRequestResponseSuccess | listCustomersRequestResponseError)
+
+export const getListCustomersRequestUrl = (params?: ListCustomersRequestParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `http://localhost:8080/api/v1/customers?${stringifiedParams}` : `http://localhost:8080/api/v1/customers`
+}
+
+export const listCustomersRequest = async (params?: ListCustomersRequestParams, options?: RequestInit): Promise<listCustomersRequestResponse> => {
+
+  const res = await fetch(getListCustomersRequestUrl(params),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'GET'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: listCustomersRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as listCustomersRequestResponse
+}
+
+
+
+
+export const getListCustomersRequestKey = (params?: ListCustomersRequestParams,) => [`http://localhost:8080/api/v1/customers`, ...(params ? [params]: [])] as const;
+
+export type ListCustomersRequestQueryResult = NonNullable<Awaited<ReturnType<typeof listCustomersRequest>>>
+
+export const useListCustomersRequest = <TError = Promise<ErrorResponse>>(
+  params?: ListCustomersRequestParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof listCustomersRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
+) => {
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getListCustomersRequestKey(params) : null);
+  const swrFn = () => listCustomersRequest(params, fetchOptions)
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 

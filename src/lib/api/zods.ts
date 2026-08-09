@@ -46,7 +46,6 @@ export const LogoutHandlerResponse = zod.void()
 
 
 export const MeHandlerResponse = zod.object({
-  "user": zod.object({
   "created_at": zod.iso.datetime({"offset":true}),
   "email": zod.string(),
   "father_last_name": zod.string(),
@@ -72,6 +71,25 @@ export const MeHandlerResponse = zod.object({
   "status": zod.enum(['active', 'inactive']),
   "username": zod.string()
 })
+
+
+export const ListCustomersRequestQueryParams = zod.object({
+  "search": zod.string().optional(),
+  "page": zod.int().optional(),
+  "limit": zod.int().optional()
+})
+
+export const ListCustomersRequestResponse = zod.object({
+  "data": zod.array(zod.object({
+  "company_name": zod.string(),
+  "email": zod.string().nullish(),
+  "id": zod.uuid(),
+  "tax_id": zod.string(),
+  "username": zod.string()
+})),
+  "limit": zod.int(),
+  "page": zod.int(),
+  "total": zod.int()
 })
 
 

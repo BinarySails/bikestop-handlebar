@@ -29,6 +29,7 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGetVariantRequest, useUpdateVariantRequest } from "@/lib/api/api";
 import type { Variant, VariantStatus } from "@/lib/api/schemas";
+import { centsToPesosString, pesosToCents } from "@/lib/money";
 import { UpdateVariantRequestBody } from "@/lib/api/zods";
 
 const statusLabels: Record<VariantStatus, string> = {
@@ -36,14 +37,6 @@ const statusLabels: Record<VariantStatus, string> = {
   disable: "Inactivo",
   archive: "Archivado",
 };
-
-function centsToPesos(amount: number): string {
-  return (amount / 100).toFixed(2);
-}
-
-function pesosToCents(amount: number): number {
-  return Math.trunc(amount * 100);
-}
 
 function validateUrl(value: string): string | undefined {
   if (!value.trim()) return "La URL de la imagen es obligatoria.";
@@ -143,7 +136,7 @@ function VariantDetailView({
       })),
       prices: variant.prices.map((price) => ({
         price_type: price.price_type,
-        amount: centsToPesos(price.amount),
+        amount: centsToPesosString(price.amount),
         currency: price.currency,
         status: price.status,
       })),
@@ -206,7 +199,7 @@ function VariantDetailView({
           properties: normalizedProperties,
           prices: value.prices.map((price) => ({
             price_type: price.price_type,
-            amount: centsToPesos(pesosToCents(Number(price.amount))),
+            amount: centsToPesosString(pesosToCents(Number(price.amount))),
             currency: price.currency.toUpperCase(),
             status: price.status,
           })),

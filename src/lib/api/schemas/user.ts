@@ -15,6 +15,8 @@ export interface User {
   /** @nullable */
   mother_last_name?: string | null;
   name: string;
+  /** @nullable */
+  phone?: string | null;
   status: UserStatus;
   username: string;
 }

@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
   MoreVertical,
+  Plus,
   Search,
 } from "lucide-react";
 import { z } from "zod";
@@ -38,6 +39,7 @@ import {
 } from "@/components/ui/table";
 import { useListSalesOrdersRequest } from "@/lib/api/api";
 import { SalesOrderStatus } from "@/lib/api/schemas";
+import { centsToPesos } from "@/lib/money";
 
 const PAGE_SIZE = 50;
 
@@ -171,7 +173,7 @@ function useDebouncedSearchParam(
   return [input, setInput] as const;
 }
 
-export const Route = createFileRoute("/_layout/sales")({
+export const Route = createFileRoute("/_layout/sales/")({
   validateSearch: salesSearchSchema,
   component: SalesOrdersPage,
 });
@@ -375,6 +377,10 @@ function SalesOrdersPage() {
             Órdenes de venta
           </h1>
         </div>
+        <Button render={<Link to="/sales/new" />}>
+          <Plus className="size-4" />
+          Crear orden
+        </Button>
       </div>
 
       <div className="flex flex-col gap-4">
@@ -617,7 +623,9 @@ function SalesOrdersPage() {
                         {dateFormatter.format(new Date(order.created_at))}
                       </TableCell>
                       <TableCell>
-                        {currencyFormatter.format(order.grand_total)}
+                        {currencyFormatter.format(
+                          centsToPesos(order.grand_total)
+                        )}
                       </TableCell>
                       <TableCell>
                         <DropdownMenu>
