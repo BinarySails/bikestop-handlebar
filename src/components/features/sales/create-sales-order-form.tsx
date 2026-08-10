@@ -11,6 +11,7 @@ import {
   findActiveRegularPrice,
 } from "@/components/features/sales/variant-combobox";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -32,6 +33,7 @@ import {
   type Product,
   ProductStatus,
   type SalesOrder,
+  type SalesOrderStatus,
   type Variant,
   VariantStatus,
 } from "@/lib/api/schemas";
@@ -45,6 +47,29 @@ const currencyFormatter = new Intl.NumberFormat("es-MX", {
   style: "currency",
   currency: "MXN",
 });
+
+const salesOrderStatusLabel: Record<SalesOrderStatus, string> = {
+  draft: "Borrador",
+  quote: "Cotización",
+  confirmed: "Confirmada",
+  partially_fulfilled: "Parcialmente surtida",
+  fulfilled: "Surtida",
+  cancelled: "Cancelada",
+  closed: "Cerrada",
+};
+
+const salesOrderStatusVariant: Record<
+  SalesOrderStatus,
+  "default" | "secondary" | "destructive" | "outline"
+> = {
+  draft: "secondary",
+  quote: "outline",
+  confirmed: "default",
+  partially_fulfilled: "default",
+  fulfilled: "default",
+  cancelled: "destructive",
+  closed: "secondary",
+};
 
 type AddressFormValues = {
   country: string;
@@ -636,6 +661,16 @@ export function CreateSalesOrderForm({
           <CardTitle>Detalles de la orden</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
+          {order && (
+            <div className="grid items-start gap-1.5 sm:col-span-2">
+              <Label>Estado actual</Label>
+              <div>
+                <Badge variant={salesOrderStatusVariant[order.status]}>
+                  {salesOrderStatusLabel[order.status]}
+                </Badge>
+              </div>
+            </div>
+          )}
           <fieldset disabled={!editable} className="contents">
             <form.Field name="order_date">
               {(field) => (
