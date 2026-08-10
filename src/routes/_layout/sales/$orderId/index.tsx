@@ -48,7 +48,7 @@ function OrderDetailPage() {
   }
 
   const sessionUser =
-    sessionResponse?.status === 200 ? sessionResponse.data.user : null;
+    sessionResponse?.status === 200 ? sessionResponse.data : null;
   const commentAuthor = sessionUser
     ? [
         sessionUser.name,
@@ -72,6 +72,11 @@ function OrderDetailPage() {
             {order.order_number}
           </h1>
         </div>
+        {order.status === "quote" && (
+          <Button type="button" className="ml-auto">
+            Convertir en orden de compra
+          </Button>
+        )}
       </div>
 
       <CreateSalesOrderForm

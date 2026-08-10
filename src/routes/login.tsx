@@ -64,7 +64,7 @@ export const Route = createFileRoute("/login")({
 
       try {
         const { data: response, status } = await meHandler();
-        const user = status === 200 ? response.user : null;
+        const user = status === 200 ? response : null;
 
         if (user && status === 200) {
           data = user;

@@ -33,7 +33,7 @@ async function runValidation(): Promise<ValidationResult> {
 
   try {
     const { data, status } = await meHandler();
-    const user = status === 200 ? data.user : null;
+    const user = status === 200 ? data : null;
 
     if (user && status === 200) {
       setAuth(
