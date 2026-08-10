@@ -1183,9 +1183,21 @@ export function CreateSalesOrderForm({
                     </form.Subscribe>
                   )}
                   {isDetail && editable && (
-                    <form.Subscribe selector={(state) => state.isSubmitting}>
-                      {(isSubmitting) => (
-                        <Button type="submit" disabled={isSubmitting}>
+                    <form.Subscribe
+                      selector={(state) => [state.isSubmitting, state.isDirty]}
+                    >
+                      {([isSubmitting, isDirty]) => (
+                        <Button
+                          type="button"
+                          disabled={isSubmitting}
+                          onClick={() => {
+                            if (!isDirty) {
+                              toast.info("No hay cambios por guardar");
+                              return;
+                            }
+                            void form.handleSubmit();
+                          }}
+                        >
                           {isSubmitting ? "Guardando..." : "Guardar cambios"}
                         </Button>
                       )}
