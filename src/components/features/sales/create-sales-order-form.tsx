@@ -714,7 +714,7 @@ export function CreateSalesOrderForm({
 
       <Card>
         <CardHeader>
-          <CardTitle>Resumen del pedido</CardTitle>
+          <CardTitle>Lista de productos</CardTitle>
         </CardHeader>
         <CardContent>
           <form.Subscribe selector={(state) => state.values.lines}>

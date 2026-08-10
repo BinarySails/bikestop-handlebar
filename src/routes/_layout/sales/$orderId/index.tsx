@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ChevronLeft } from "lucide-react";
 
 import { CreateSalesOrderForm } from "@/components/features/sales/create-sales-order-form";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -10,6 +11,30 @@ import {
   useMeHandler,
 } from "@/lib/api/api";
 import { updateSalesOrderRequest } from "@/lib/api/update-sales-order";
+import type { SalesOrderStatus } from "@/lib/api/schemas";
+
+const statusLabel: Record<SalesOrderStatus, string> = {
+  draft: "Borrador",
+  quote: "Cotización",
+  confirmed: "Confirmada",
+  partially_fulfilled: "Parcialmente surtida",
+  fulfilled: "Surtida",
+  cancelled: "Cancelada",
+  closed: "Cerrada",
+};
+
+const statusVariant: Record<
+  SalesOrderStatus,
+  "default" | "secondary" | "destructive" | "outline"
+> = {
+  draft: "secondary",
+  quote: "outline",
+  confirmed: "default",
+  partially_fulfilled: "default",
+  fulfilled: "default",
+  cancelled: "destructive",
+  closed: "secondary",
+};
 
 export const Route = createFileRoute("/_layout/sales/$orderId/")({
   component: OrderDetailPage,
@@ -67,10 +92,15 @@ function OrderDetailPage() {
           Regresar
         </Button>
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            {order.status === "quote" ? "Cotización" : "Orden de venta"}{" "}
-            {order.order_number}
-          </h1>
+          <div className="flex flex-wrap items-center gap-3">
+            <h1 className="text-2xl font-semibold tracking-tight">
+              {order.status === "quote" ? "Cotización" : "Orden de venta"}{" "}
+              {order.order_number}
+            </h1>
+            <Badge variant={statusVariant[order.status]}>
+              {statusLabel[order.status]}
+            </Badge>
+          </div>
         </div>
         {order.status === "quote" && (
           <div className="ml-auto flex flex-wrap gap-3">
