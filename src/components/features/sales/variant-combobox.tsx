@@ -62,9 +62,7 @@ export function VariantCombobox({
     return [...active, value];
   }, [all, value]);
 
-  const selected = useMemo(() => {
-    return value;
-  }, [items, value]);
+  const selected = value;
 
   return (
     <Combobox
