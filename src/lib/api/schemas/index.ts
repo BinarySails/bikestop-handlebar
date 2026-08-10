@@ -8,6 +8,7 @@
 export * from './address.ts';
 export * from './addressId.ts';
 export * from './addressSnapshot.ts';
+export * from './addSalesOrderCommentRequest.ts';
 export * from './assignmentMode.ts';
 export * from './assignPermissionsRequest.ts';
 export * from './assignPermissionsResponse.ts';

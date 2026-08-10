@@ -5,8 +5,12 @@ import {
   type OrderDetailData,
 } from "@/components/features/sales/order-detail";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useGetSaleOrderRequest } from "@/lib/api/api";
-import type { AddressSnapshot, SalesOrder } from "@/lib/api/schemas";
+import {
+  useAddSalesOrderCommentRequest,
+  useGetSaleOrderRequest,
+  useMeHandler,
+} from "@/lib/api/api";
+import type { SalesOrder } from "@/lib/api/schemas";
 
 export const Route = createFileRoute("/_layout/sales/$orderId/")({
   component: OrderDetailPage,
@@ -15,7 +19,14 @@ export const Route = createFileRoute("/_layout/sales/$orderId/")({
 function OrderDetailPage() {
   const { orderId } = Route.useParams();
   const navigate = useNavigate();
-  const { data: response, error, isLoading } = useGetSaleOrderRequest(orderId);
+  const { data: sessionResponse } = useMeHandler();
+  const {
+    data: response,
+    error,
+    isLoading,
+    mutate,
+  } = useGetSaleOrderRequest(orderId);
+  const { trigger: addComment } = useAddSalesOrderCommentRequest(orderId);
 
   if (isLoading) {
     return (
@@ -40,10 +51,22 @@ function OrderDetailPage() {
   }
 
   const detail = toOrderDetail(order);
+  const sessionUser =
+    sessionResponse?.status === 200 ? sessionResponse.data.user : null;
+  const commentAuthor = sessionUser
+    ? [
+        sessionUser.name,
+        sessionUser.father_last_name,
+        sessionUser.mother_last_name,
+      ]
+        .filter(Boolean)
+        .join(" ")
+    : "Usuario";
 
   return (
     <OrderDetail
       order={detail}
+      commentAuthor={commentAuthor}
       onBack={() => navigate({ to: "/sales" })}
       onOpenPaymentsAndInvoices={() =>
         navigate({
@@ -51,24 +74,26 @@ function OrderDetailPage() {
           params: { orderId },
         })
       }
+      onAddComment={async (comment) => {
+        const updated = await addComment({ comment });
+        if (updated.status !== 200) {
+          throw new Error("No se pudo agregar el comentario");
+        }
+        await mutate(updated, { revalidate: false });
+      }}
     />
   );
 }
 
-function formatAddress(address: AddressSnapshot) {
-  return [
-    address.address,
-    address.city,
-    address.state,
-    address.postal_code,
-    address.country,
-  ]
-    .filter(Boolean)
-    .join(", ");
-}
-
 function toOrderDetail(order: SalesOrder): OrderDetailData {
+  const taxRates = new Set(order.lines.map((line) => line.tax_rate));
   const taxableBase = Math.max(0, order.subtotal - order.discount_total);
+  const taxRate =
+    taxRates.size === 1
+      ? (order.lines[0]?.tax_rate ?? 0) / 100
+      : taxableBase > 0
+        ? (order.tax_total / taxableBase) * 100
+        : 0;
 
   return {
     folio: order.order_number,
@@ -84,13 +109,8 @@ function toOrderDetail(order: SalesOrder): OrderDetailData {
       id: order.customer.customer_id,
       name: order.customer.name,
     },
-    shipping: {
-      carrier: "",
-      address: formatAddress(order.shipping_address),
-      estimatedDelivery: "",
-    },
     discount: order.discount_total,
-    taxRate: taxableBase > 0 ? order.tax_total / taxableBase : 0,
+    taxRate,
     subtotal: order.subtotal,
     taxTotal: order.tax_total,
     grandTotal: order.grand_total,

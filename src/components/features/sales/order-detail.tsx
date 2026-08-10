@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ArrowLeft, CalendarDays, MapPin, Package } from "lucide-react";
+import { ArrowLeft, Package } from "lucide-react";
 import { toast } from "sonner";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -13,14 +13,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import {
   Table,
@@ -53,11 +45,6 @@ export type OrderDetailData = {
     email?: string;
     avatarUrl?: string;
   };
-  shipping: {
-    carrier: string;
-    address: string;
-    estimatedDelivery: string;
-  };
   discount: number;
   taxRate: number;
   subtotal?: number;
@@ -75,18 +62,30 @@ export type OrderDetailData = {
 
 type OrderDetailProps = {
   order: OrderDetailData;
-  availableCarriers?: string[];
+  commentAuthor?: string;
   onBack?: () => void;
   onOpenPaymentsAndInvoices?: (order: OrderDetailData) => void;
   onDispatch?: (order: OrderDetailData) => void | Promise<void>;
   onCancel?: (order: OrderDetailData) => void | Promise<void>;
-  onSave?: (order: OrderDetailData) => void | Promise<void>;
+  onAddComment?: (comment: string) => void | Promise<void>;
 };
 
 const currencyFormatter = new Intl.NumberFormat("es-MX", {
   style: "currency",
   currency: "MXN",
 });
+
+const percentFormatter = new Intl.NumberFormat("es-MX", {
+  maximumFractionDigits: 2,
+});
+
+function formatMoney(amountInMinorUnits: number) {
+  return currencyFormatter.format(amountInMinorUnits / 100);
+}
+
+function shortenUuid(value: string) {
+  return value.replaceAll("-", "").slice(0, 9);
+}
 
 function initials(name: string) {
   return name
@@ -98,15 +97,17 @@ function initials(name: string) {
 
 export function OrderDetail({
   order,
-  availableCarriers = [],
+  commentAuthor = "Usuario",
   onBack,
   onOpenPaymentsAndInvoices,
   onDispatch,
   onCancel,
-  onSave,
+  onAddComment,
 }: OrderDetailProps) {
-  const [draft, setDraft] = useState(order);
+  const draft = order;
   const [cancelOpen, setCancelOpen] = useState(false);
+  const [newComment, setNewComment] = useState("");
+  const [isAddingComment, setIsAddingComment] = useState(false);
   const [pendingAction, setPendingAction] = useState<
     "dispatch" | "cancel" | null
   >(null);
@@ -119,7 +120,7 @@ export function OrderDetail({
         0
       );
     const taxableAmount = Math.max(0, subtotal - draft.discount);
-    const taxes = draft.taxTotal ?? taxableAmount * draft.taxRate;
+    const taxes = draft.taxTotal ?? taxableAmount * (draft.taxRate / 100);
     const total = draft.grandTotal ?? taxableAmount + taxes;
     return { subtotal, taxes, total };
   }, [
@@ -131,12 +132,33 @@ export function OrderDetail({
     draft.grandTotal,
   ]);
 
-  async function saveDraft(message = "Cambios guardados") {
-    await onSave?.(draft);
-    toast.success(message);
-  }
+  const comments = useMemo(
+    () =>
+      (draft.notes ?? "")
+        .split(/\n+/)
+        .map((comment) => comment.trim())
+        .filter(Boolean),
+    [draft.notes]
+  );
 
   const isQuote = draft.status === "quote";
+  const canAddComments = ["draft", "quote", "confirmed"].includes(draft.status);
+
+  async function addComment() {
+    const comment = newComment.trim();
+    if (!comment) return;
+
+    setIsAddingComment(true);
+    try {
+      await onAddComment?.(comment);
+      setNewComment("");
+      toast.success("Comentario agregado");
+    } catch {
+      toast.error("No se pudo agregar el comentario");
+    } finally {
+      setIsAddingComment(false);
+    }
+  }
 
   async function dispatchOrder() {
     setPendingAction("dispatch");
@@ -219,7 +241,9 @@ export function OrderDetail({
                         </div>
                       </TableCell>
                       <TableCell className="font-mono text-xs">
-                        {product.sku}
+                        <span title={product.sku}>
+                          {shortenUuid(product.sku)}
+                        </span>
                       </TableCell>
                       <TableCell className="font-medium">
                         {product.name}
@@ -230,12 +254,10 @@ export function OrderDetail({
                         </span>
                       </TableCell>
                       <TableCell className="text-right tabular-nums">
-                        {currencyFormatter.format(product.unitPrice)}
+                        {formatMoney(product.unitPrice)}
                       </TableCell>
                       <TableCell className="text-right font-semibold tabular-nums">
-                        {currencyFormatter.format(
-                          product.quantity * product.unitPrice
-                        )}
+                        {formatMoney(product.quantity * product.unitPrice)}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -254,31 +276,58 @@ export function OrderDetail({
             </Button>
           )}
 
-          <section aria-labelledby="notes-title">
-            <div className="mb-3 flex items-center justify-between gap-4">
-              <h2 id="notes-title" className="text-lg font-bold">
-                Notas y Observaciones
-              </h2>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => saveDraft("Notas guardadas")}
-              >
-                Guardar notas
-              </Button>
+          <section aria-labelledby="notes-title" className="space-y-3">
+            <h2 id="notes-title" className="text-lg font-bold">
+              Historial de comentarios
+            </h2>
+            <div className="space-y-3 rounded-xl border bg-card p-4">
+              {comments.length > 0 ? (
+                comments.map((comment, index) => (
+                  <article
+                    key={`${index}-${comment}`}
+                    className="max-w-[85%] rounded-2xl rounded-tl-sm bg-muted px-4 py-3"
+                  >
+                    <p className="mb-1 text-xs font-semibold text-muted-foreground">
+                      {commentAuthor}
+                    </p>
+                    <p className="text-sm whitespace-pre-wrap">{comment}</p>
+                  </article>
+                ))
+              ) : (
+                <p className="py-4 text-center text-sm text-muted-foreground">
+                  No hay comentarios registrados.
+                </p>
+              )}
             </div>
-            <Textarea
-              value={draft.notes ?? ""}
-              onChange={(event) =>
-                setDraft((current) => ({
-                  ...current,
-                  notes: event.target.value,
-                }))
-              }
-              placeholder="Agregar notas o observaciones especiales...."
-              className="min-h-32 resize-y"
-            />
+            {canAddComments && (
+              <form
+                className="mt-8 space-y-3 rounded-xl border bg-card p-4"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  void addComment();
+                }}
+              >
+                <label htmlFor="new-comment" className="text-sm font-semibold">
+                  Agregar comentario
+                </label>
+                <Textarea
+                  id="new-comment"
+                  value={newComment}
+                  onChange={(event) => setNewComment(event.target.value)}
+                  placeholder="Escribe el siguiente mensaje del seguimiento..."
+                  className="min-h-24 resize-y"
+                  disabled={isAddingComment}
+                />
+                <div className="flex justify-end">
+                  <Button
+                    type="submit"
+                    disabled={!newComment.trim() || isAddingComment}
+                  >
+                    {isAddingComment ? "AGREGANDO..." : "AGREGAR COMENTARIO"}
+                  </Button>
+                </div>
+              </form>
+            )}
           </section>
 
           <div
@@ -307,7 +356,7 @@ export function OrderDetail({
               disabled={pendingAction !== null}
               onClick={() => setCancelOpen(true)}
             >
-              CANCELAR PEDIDO
+              {isQuote ? "CANCELAR COTIZACIÓN" : "CANCELAR PEDIDO"}
             </Button>
           </div>
         </div>
@@ -333,7 +382,9 @@ export function OrderDetail({
               <dl className="grid grid-cols-[auto_1fr] gap-x-2 gap-y-1 text-sm">
                 <dt className="font-semibold">ID:</dt>
                 <dd className="break-all text-muted-foreground">
-                  {draft.customer.id}
+                  <span title={draft.customer.id}>
+                    {shortenUuid(draft.customer.id)}
+                  </span>
                 </dd>
                 {draft.customer.rfc && (
                   <>
@@ -357,89 +408,20 @@ export function OrderDetail({
 
           <Card size="sm">
             <CardHeader>
-              <CardTitle>Detalles de envío</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2.5">
-              <div className="grid gap-1 text-sm font-semibold">
-                <span>Paquetería</span>
-                <Select
-                  value={draft.shipping.carrier}
-                  onValueChange={(carrier) => {
-                    if (!carrier) return;
-                    setDraft((current) => ({
-                      ...current,
-                      shipping: { ...current.shipping, carrier },
-                    }));
-                  }}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableCarriers.map((carrier) => (
-                      <SelectItem key={carrier} value={carrier}>
-                        {carrier}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="grid gap-1 text-sm">
-                <span className="font-semibold">Dirección</span>
-                <button
-                  type="button"
-                  className="flex min-h-8 items-center gap-2 rounded-lg border px-2.5 py-1.5 text-left text-sm hover:bg-muted"
-                  onClick={() => toast.info(draft.shipping.address)}
-                >
-                  <MapPin className="size-4 shrink-0" />
-                  <span className="line-clamp-1">{draft.shipping.address}</span>
-                </button>
-              </div>
-
-              <label
-                htmlFor="estimated-delivery"
-                className="grid gap-1 text-sm font-semibold"
-              >
-                Fecha estimada de entrega
-                <span className="relative">
-                  <CalendarDays className="pointer-events-none absolute top-1/2 left-3 z-10 size-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    id="estimated-delivery"
-                    type="date"
-                    value={draft.shipping.estimatedDelivery}
-                    onChange={(event) =>
-                      setDraft((current) => ({
-                        ...current,
-                        shipping: {
-                          ...current.shipping,
-                          estimatedDelivery: event.target.value,
-                        },
-                      }))
-                    }
-                    className="pl-9"
-                  />
-                </span>
-              </label>
-            </CardContent>
-          </Card>
-
-          <Card size="sm">
-            <CardHeader>
               <CardTitle>Resumen del pedido</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
               <SummaryRow label="Subtotal" value={totals.subtotal} />
               <SummaryRow label="Descuentos" value={-draft.discount} />
               <SummaryRow
-                label={`Impuestos (${draft.taxRate * 100}% IVA)`}
+                label={`Impuestos (${percentFormatter.format(draft.taxRate)}% IVA)`}
                 value={totals.taxes}
               />
               <Separator />
               <div className="flex items-center justify-between text-lg font-bold">
                 <span>TOTAL</span>
                 <span className="tabular-nums">
-                  {currencyFormatter.format(totals.total)}
+                  {formatMoney(totals.total)}
                 </span>
               </div>
             </CardContent>
@@ -450,10 +432,13 @@ export function OrderDetail({
       <Dialog open={cancelOpen} onOpenChange={setCancelOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>¿Cancelar el pedido?</DialogTitle>
+            <DialogTitle>
+              {isQuote ? "¿Cancelar la cotización?" : "¿Cancelar el pedido?"}
+            </DialogTitle>
             <DialogDescription>
-              Esta acción cancelará por completo el pedido #{draft.folio} y no
-              se puede deshacer.
+              Esta acción cancelará por completo{" "}
+              {isQuote ? "la cotización" : "el pedido"} #{draft.folio} y no se
+              puede deshacer.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -485,9 +470,7 @@ function SummaryRow({ label, value }: { label: string; value: number }) {
   return (
     <div className="flex items-center justify-between text-sm">
       <span className="text-muted-foreground">{label}</span>
-      <span className="font-medium tabular-nums">
-        {currencyFormatter.format(value)}
-      </span>
+      <span className="font-medium tabular-nums">{formatMoney(value)}</span>
     </div>
   );
 }

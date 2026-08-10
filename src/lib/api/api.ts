@@ -17,6 +17,7 @@ import type {
 } from 'swr/mutation';
 
 import type {
+  AddSalesOrderCommentRequest,
   AssignPermissionsRequest,
   AssignPermissionsResponse,
   AssignRolesToUserRequest,
@@ -4540,6 +4541,97 @@ export const useGetSaleOrderRequest = <TError = Promise<ErrorResponse>>(
   const swrFn = () => getSaleOrderRequest(id, fetchOptions)
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type addSalesOrderCommentRequestResponse200 = {
+  data: SalesOrder
+  status: 200
+}
+
+export type addSalesOrderCommentRequestResponse400 = {
+  data: ErrorResponse
+  status: 400
+}
+
+export type addSalesOrderCommentRequestResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type addSalesOrderCommentRequestResponse409 = {
+  data: ErrorResponse
+  status: 409
+}
+
+export type addSalesOrderCommentRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type addSalesOrderCommentRequestResponseSuccess = (addSalesOrderCommentRequestResponse200) & {
+  headers: Headers;
+};
+export type addSalesOrderCommentRequestResponseError = (addSalesOrderCommentRequestResponse400 | addSalesOrderCommentRequestResponse404 | addSalesOrderCommentRequestResponse409 | addSalesOrderCommentRequestResponse500) & {
+  headers: Headers;
+};
+
+export type addSalesOrderCommentRequestResponse = (addSalesOrderCommentRequestResponseSuccess | addSalesOrderCommentRequestResponseError)
+
+export const getAddSalesOrderCommentRequestUrl = (id: SalesOrderId,) => {
+
+
+
+
+  return `http://localhost:8080/api/v1/sales-orders/${id}/comments`
+}
+
+export const addSalesOrderCommentRequest = async (id: SalesOrderId,
+    addSalesOrderCommentRequest: AddSalesOrderCommentRequest, options?: RequestInit): Promise<addSalesOrderCommentRequestResponse> => {
+
+  const res = await fetch(getAddSalesOrderCommentRequestUrl(id),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(addSalesOrderCommentRequest)
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: addSalesOrderCommentRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as addSalesOrderCommentRequestResponse
+}
+
+
+
+
+export const getAddSalesOrderCommentRequestMutationFetcher = (id: SalesOrderId, options?: RequestInit) => {
+  return (_: Key, { arg }: { arg: AddSalesOrderCommentRequest }) => {
+    return addSalesOrderCommentRequest(id, arg, options);
+  }
+}
+export const getAddSalesOrderCommentRequestMutationKey = (id: SalesOrderId,) => [`http://localhost:8080/api/v1/sales-orders/${id}/comments`] as const;
+
+export type AddSalesOrderCommentRequestMutationResult = NonNullable<Awaited<ReturnType<typeof addSalesOrderCommentRequest>>>
+
+export const useAddSalesOrderCommentRequest = <TError = Promise<ErrorResponse>>(
+  id: SalesOrderId, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof addSalesOrderCommentRequest>>, TError, Key, AddSalesOrderCommentRequest, Awaited<ReturnType<typeof addSalesOrderCommentRequest>>> & { swrKey?: string }, fetch?: RequestInit}
+) => {
+
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getAddSalesOrderCommentRequestMutationKey(id);
+  const swrFn = getAddSalesOrderCommentRequestMutationFetcher(id, fetchOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
