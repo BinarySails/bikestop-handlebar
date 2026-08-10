@@ -73,9 +73,12 @@ function OrderDetailPage() {
           </h1>
         </div>
         {order.status === "quote" && (
-          <Button type="button" className="ml-auto">
-            Convertir en orden de compra
-          </Button>
+          <div className="ml-auto flex flex-wrap gap-3">
+            <Button type="button">Convertir en orden de compra</Button>
+            <Button type="button" variant="destructive">
+              Cancelar cotización
+            </Button>
+          </div>
         )}
       </div>
 

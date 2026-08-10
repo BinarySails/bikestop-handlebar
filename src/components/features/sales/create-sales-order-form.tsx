@@ -266,6 +266,7 @@ export function CreateSalesOrderForm({
   const isDetail = Boolean(order);
   const editable =
     !order || order.status === "draft" || order.status === "quote";
+  const isReadOnlyOrder = Boolean(order) && !editable;
   const canAddComment =
     Boolean(order) &&
     ["draft", "quote", "confirmed"].includes(order?.status ?? "");
@@ -781,6 +782,21 @@ export function CreateSalesOrderForm({
         </CardContent>
       </Card>
 
+      {isReadOnlyOrder && order && (
+        <Button
+          type="button"
+          className="h-12 w-full font-semibold"
+          render={
+            <Link
+              to="/sales/$orderId/payments-invoices"
+              params={{ orderId: order.id }}
+            />
+          }
+        >
+          Pagos y facturas
+        </Button>
+      )}
+
       <fieldset disabled={!editable} className="space-y-6">
         <Card>
           <CardHeader className="flex-row items-center justify-between">
@@ -1175,6 +1191,22 @@ export function CreateSalesOrderForm({
           );
         }}
       </form.Subscribe>
+
+      {isReadOnlyOrder && (
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Button type="button" size="lg" className="h-12 font-semibold">
+            Despachar
+          </Button>
+          <Button
+            type="button"
+            variant="destructive"
+            size="lg"
+            className="h-12 font-semibold"
+          >
+            Cancelar pedido
+          </Button>
+        </div>
+      )}
     </form>
   );
 }
