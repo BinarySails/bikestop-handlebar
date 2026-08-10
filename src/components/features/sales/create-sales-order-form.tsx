@@ -269,7 +269,13 @@ export function CreateSalesOrderForm({
   const isReadOnlyOrder = Boolean(order) && !editable;
   const canAddComment =
     Boolean(order) &&
-    ["draft", "quote", "confirmed"].includes(order?.status ?? "");
+    [
+      "draft",
+      "quote",
+      "confirmed",
+      "partially_fulfilled",
+      "fulfilled",
+    ].includes(order?.status ?? "");
   const [newComment, setNewComment] = useState("");
   const [isAddingComment, setIsAddingComment] = useState(false);
   const messages = (order?.comments ?? "")
