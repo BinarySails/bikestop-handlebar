@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowLeft, Save, Trash2 } from "lucide-react";
+import { ArrowLeft, List, Save, Trash2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ const statusLabel: Record<Product["status"], string> = {
 
 type ProductDetailHeaderProps = {
   product: Product;
+  productId: string;
   isDirty?: boolean;
   isSubmitting?: boolean;
   onSave?: () => void;
@@ -21,6 +22,7 @@ type ProductDetailHeaderProps = {
 
 export function ProductDetailHeader({
   product,
+  productId,
   isDirty,
   isSubmitting,
   onSave,
@@ -42,23 +44,35 @@ export function ProductDetailHeader({
         <Badge variant="outline">{statusLabel[product.status]}</Badge>
       </div>
 
-      {isDirty ? (
-        <Button type="button" disabled={isSubmitting} onClick={onSave}>
-          {isSubmitting ? (
-            <span>Guardando...</span>
-          ) : (
-            <>
-              <Save className="size-4" />
-              <span>Guardar cambios</span>
-            </>
-          )}
+      <div className="flex items-center gap-2">
+        <Button
+          render={
+            <Link to="/products/$productId/variants" params={{ productId }} />
+          }
+          variant="outline"
+        >
+          <List className="size-4" />
+          <span>Ver variantes</span>
         </Button>
-      ) : product.status !== "archive" ? (
-        <Button type="button" variant="destructive" onClick={onDeleteClick}>
-          <Trash2 className="size-4" />
-          <span>Eliminar</span>
-        </Button>
-      ) : null}
+
+        {isDirty ? (
+          <Button type="button" disabled={isSubmitting} onClick={onSave}>
+            {isSubmitting ? (
+              <span>Guardando...</span>
+            ) : (
+              <>
+                <Save className="size-4" />
+                <span>Guardar cambios</span>
+              </>
+            )}
+          </Button>
+        ) : product.status !== "archive" ? (
+          <Button type="button" variant="destructive" onClick={onDeleteClick}>
+            <Trash2 className="size-4" />
+            <span>Eliminar</span>
+          </Button>
+        ) : null}
+      </div>
     </div>
   );
 }

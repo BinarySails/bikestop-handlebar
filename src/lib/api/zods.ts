@@ -75,6 +75,26 @@ export const MeHandlerResponse = zod.object({
 })
 
 
+export const ListCustomersRequestQueryParams = zod.object({
+  "search": zod.string().optional(),
+  "page": zod.int().optional(),
+  "limit": zod.int().optional()
+})
+
+export const ListCustomersRequestResponse = zod.object({
+  "data": zod.array(zod.object({
+  "company_name": zod.string(),
+  "email": zod.string().nullish(),
+  "id": zod.uuid(),
+  "tax_id": zod.string(),
+  "username": zod.string()
+})),
+  "limit": zod.int(),
+  "page": zod.int(),
+  "total": zod.int()
+})
+
+
 export const CreateCustomerRequestBody = zod.object({
   "company_name": zod.string(),
   "email": zod.string().nullish(),
@@ -1152,6 +1172,59 @@ export const RemoveUserRoleHandlerParams = zod.object({
 export const RemoveUserRoleHandlerResponse = zod.object({
   "role_id": zod.uuid(),
   "user_id": zod.uuid()
+})
+
+
+export const ListSalesOrdersRequestQueryParams = zod.object({
+  "status": zod.string().optional(),
+  "order_number": zod.string().optional(),
+  "customer_username": zod.string().optional(),
+  "customer_company_name": zod.string().optional(),
+  "order_date_from": zod.string().optional(),
+  "order_date_to": zod.string().optional(),
+  "grand_total_min": zod.int().optional(),
+  "grand_total_max": zod.int().optional(),
+  "shipping_state": zod.string().optional(),
+  "shipping_country": zod.string().optional(),
+  "page": zod.int().optional(),
+  "limit": zod.int().optional()
+})
+
+export const ListSalesOrdersRequestResponse = zod.object({
+  "data": zod.array(zod.object({
+  "billing_address": zod.object({
+  "address": zod.string(),
+  "city": zod.string(),
+  "country": zod.string(),
+  "postal_code": zod.string(),
+  "state": zod.string()
+}),
+  "comments": zod.string().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "customer": zod.object({
+  "customer_id": zod.uuid(),
+  "name": zod.string()
+}),
+  "discount_total": zod.int(),
+  "grand_total": zod.int(),
+  "id": zod.uuid(),
+  "order_date": zod.iso.datetime({"offset":true}),
+  "order_number": zod.string(),
+  "shipping_address": zod.object({
+  "address": zod.string(),
+  "city": zod.string(),
+  "country": zod.string(),
+  "postal_code": zod.string(),
+  "state": zod.string()
+}),
+  "status": zod.enum(['draft', 'quote', 'confirmed', 'partially_fulfilled', 'fulfilled', 'cancelled', 'closed']),
+  "subtotal": zod.int(),
+  "tax_total": zod.int(),
+  "updated_at": zod.iso.datetime({"offset":true})
+})),
+  "limit": zod.int(),
+  "page": zod.int(),
+  "total": zod.int()
 })
 
 

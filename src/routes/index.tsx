@@ -1,11 +1,22 @@
-import { useAuthStore } from "@/lib/auth/use-auth-store";
 import { createFileRoute, redirect } from "@tanstack/react-router";
+import { useAuthStore } from "@/lib/auth/use-auth-store";
+import { validateSession } from "@/lib/auth/require-auth";
 
 export const Route = createFileRoute("/")({
-  beforeLoad: () => {
-    const { isAuthenticated, checkSession, isInDev } = useAuthStore.getState();
+  beforeLoad: async () => {
+    const { isInDev } = useAuthStore.getState();
 
-    if (isInDev || (isAuthenticated && checkSession())) {
+    if (isInDev) {
+      throw redirect({ to: "/dashboard" });
+    }
+
+    if (import.meta.env.SSR) {
+      return;
+    }
+
+    const { ok } = await validateSession();
+
+    if (ok) {
       throw redirect({ to: "/dashboard" });
     }
 

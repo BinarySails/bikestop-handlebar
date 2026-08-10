@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowLeftIcon } from "lucide-react";
 import { z } from "zod";
 
+import { UserPermissionsTable } from "@/components/features/auth/consult-user-permissions-dialog";
 import { UserEditForm } from "@/components/features/users/user-edit-form";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -91,6 +92,8 @@ function UserDetailPage() {
         onCancel={goBack}
         onSaved={goBack}
       />
+
+      <UserPermissionsTable userId={user.id} />
     </main>
   );
 }

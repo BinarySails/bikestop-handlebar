@@ -55,6 +55,10 @@ export const Route = createFileRoute("/login")({
       });
     }
 
+    if (import.meta.env.SSR) {
+      return;
+    }
+
     try {
       let data: AuthUser | undefined = undefined;
 

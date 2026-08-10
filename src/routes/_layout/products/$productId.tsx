@@ -208,6 +208,7 @@ function ProductDetailView({
           {([isSubmitting, isDirty]) => (
             <ProductDetailHeader
               product={product}
+              productId={productId}
               isDirty={isDirty}
               isSubmitting={isSubmitting}
               onSave={() => form.handleSubmit()}

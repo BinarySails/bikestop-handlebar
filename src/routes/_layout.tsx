@@ -19,11 +19,11 @@ export const Route = createFileRoute("/_layout")({
 
 function LayoutComponent() {
   return (
-    <div className="flex min-h-svh flex-col bg-muted/20">
+    <div className="flex h-svh flex-col overflow-hidden bg-muted/20">
       <AppHeader />
-      <div className="flex flex-1">
+      <div className="flex min-h-0 flex-1">
         <AppSidebar />
-        <main className="min-w-0 flex-1">
+        <main className="min-w-0 flex-1 overflow-y-auto">
           <Outlet />
         </main>
       </div>
