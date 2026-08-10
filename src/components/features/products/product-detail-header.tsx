@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowLeft, List, Save, Trash2 } from "lucide-react";
+import { ArrowLeft, Save, Trash2 } from "lucide-react";
 
+import { CreateVariantDialog } from "@/components/features/products/create-variant-modal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { Product } from "@/lib/api/schemas";
@@ -18,6 +19,7 @@ type ProductDetailHeaderProps = {
   isSubmitting?: boolean;
   onSave?: () => void;
   onDeleteClick?: () => void;
+  onVariantCreated?: () => Promise<unknown>;
 };
 
 export function ProductDetailHeader({
@@ -27,6 +29,7 @@ export function ProductDetailHeader({
   isSubmitting,
   onSave,
   onDeleteClick,
+  onVariantCreated,
 }: ProductDetailHeaderProps) {
   return (
     <div className="flex items-center justify-between gap-4">
@@ -45,15 +48,10 @@ export function ProductDetailHeader({
       </div>
 
       <div className="flex items-center gap-2">
-        <Button
-          render={
-            <Link to="/products/$productId/variants" params={{ productId }} />
-          }
-          variant="outline"
-        >
-          <List className="size-4" />
-          <span>Ver variantes</span>
-        </Button>
+        <CreateVariantDialog
+          productId={productId}
+          onSuccess={onVariantCreated}
+        />
 
         {isDirty ? (
           <Button type="button" disabled={isSubmitting} onClick={onSave}>
