@@ -642,7 +642,14 @@ function SalesOrdersPage() {
                             }
                           />
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => {}}>
+                            <DropdownMenuItem
+                              onClick={() =>
+                                navigate({
+                                  to: "/sales/$orderId",
+                                  params: { orderId: order.id },
+                                })
+                              }
+                            >
                               Ver
                             </DropdownMenuItem>
                           </DropdownMenuContent>

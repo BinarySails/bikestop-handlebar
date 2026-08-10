@@ -1,16 +1,15 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { ChevronLeft } from "lucide-react";
 
-import {
-  OrderDetail,
-  type OrderDetailData,
-} from "@/components/features/sales/order-detail";
+import { CreateSalesOrderForm } from "@/components/features/sales/create-sales-order-form";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   useAddSalesOrderCommentRequest,
   useGetSaleOrderRequest,
   useMeHandler,
 } from "@/lib/api/api";
-import type { SalesOrder } from "@/lib/api/schemas";
+import { updateSalesOrderRequest } from "@/lib/api/update-sales-order";
 
 export const Route = createFileRoute("/_layout/sales/$orderId/")({
   component: OrderDetailPage,
@@ -18,7 +17,6 @@ export const Route = createFileRoute("/_layout/sales/$orderId/")({
 
 function OrderDetailPage() {
   const { orderId } = Route.useParams();
-  const navigate = useNavigate();
   const { data: sessionResponse } = useMeHandler();
   const {
     data: response,
@@ -30,11 +28,10 @@ function OrderDetailPage() {
 
   if (isLoading) {
     return (
-      <main className="space-y-8 p-4 sm:p-6 lg:p-8">
-        <Skeleton className="h-10 w-72" />
-        <Skeleton className="h-80 w-full rounded-xl" />
-        <Skeleton className="h-48 w-full rounded-xl" />
-      </main>
+      <section className="mx-auto w-full max-w-7xl space-y-6 p-6">
+        <Skeleton className="h-9 w-72" />
+        <Skeleton className="h-96 w-full rounded-xl" />
+      </section>
     );
   }
 
@@ -50,7 +47,6 @@ function OrderDetailPage() {
     );
   }
 
-  const detail = toOrderDetail(order);
   const sessionUser =
     sessionResponse?.status === 200 ? sessionResponse.data.user : null;
   const commentAuthor = sessionUser
@@ -64,58 +60,42 @@ function OrderDetailPage() {
     : "Usuario";
 
   return (
-    <OrderDetail
-      order={detail}
-      commentAuthor={commentAuthor}
-      onBack={() => navigate({ to: "/sales" })}
-      onOpenPaymentsAndInvoices={() =>
-        navigate({
-          to: "/sales/$orderId/payments-invoices",
-          params: { orderId },
-        })
-      }
-      onAddComment={async (comment) => {
-        const updated = await addComment({ comment });
-        if (updated.status !== 200) {
-          throw new Error("No se pudo agregar el comentario");
-        }
-        await mutate(updated, { revalidate: false });
-      }}
-    />
+    <section className="mx-auto flex w-full max-w-7xl flex-col gap-6 p-6">
+      <div className="flex flex-wrap items-center gap-4">
+        <Button variant="outline" size="sm" render={<Link to="/sales" />}>
+          <ChevronLeft className="size-4" />
+          Regresar
+        </Button>
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            {order.status === "quote" ? "Cotización" : "Orden de venta"}{" "}
+            {order.order_number}
+          </h1>
+        </div>
+      </div>
+
+      <CreateSalesOrderForm
+        order={order}
+        commentAuthor={commentAuthor}
+        onAddComment={async (comment) => {
+          const updated = await addComment({ comment });
+          if (updated.status !== 200) {
+            throw new Error("No se pudo agregar el comentario");
+          }
+          await mutate(updated, { revalidate: false });
+        }}
+        onSaveDraft={async (payload) => {
+          if (order.status !== "draft") return;
+          const updated = await updateSalesOrderRequest(order.id, payload);
+          if (updated.status !== 200 || !("id" in updated.data)) {
+            throw new Error("No se pudo actualizar la orden");
+          }
+          await mutate(
+            { status: 200, data: updated.data, headers: new Headers() },
+            { revalidate: false }
+          );
+        }}
+      />
+    </section>
   );
-}
-
-function toOrderDetail(order: SalesOrder): OrderDetailData {
-  const taxRates = new Set(order.lines.map((line) => line.tax_rate));
-  const taxableBase = Math.max(0, order.subtotal - order.discount_total);
-  const taxRate =
-    taxRates.size === 1
-      ? (order.lines[0]?.tax_rate ?? 0) / 100
-      : taxableBase > 0
-        ? (order.tax_total / taxableBase) * 100
-        : 0;
-
-  return {
-    folio: order.order_number,
-    status: order.status,
-    products: order.lines.map((line) => ({
-      id: line.id,
-      sku: line.variant_id,
-      name: line.description,
-      quantity: line.quantity,
-      unitPrice: line.unit_price,
-    })),
-    customer: {
-      id: order.customer.customer_id,
-      name: order.customer.name,
-    },
-    discount: order.discount_total,
-    taxRate,
-    subtotal: order.subtotal,
-    taxTotal: order.tax_total,
-    grandTotal: order.grand_total,
-    notes: order.comments ?? "",
-    payments: [],
-    invoices: [],
-  };
 }

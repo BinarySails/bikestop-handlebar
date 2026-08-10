@@ -96,7 +96,6 @@ export * from './locality.ts';
 export * from './localityId.ts';
 export * from './loginRequest.ts';
 export * from './loginResponse.ts';
-export * from './meResponse.ts';
 export * from './paginatedBrand.ts';
 export * from './paginatedBrandDataItem.ts';
 export * from './paginatedCustomerSummary.ts';
