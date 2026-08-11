@@ -320,6 +320,7 @@ function SalesOrdersPage() {
     <EntityIndexPage
       ariaLabel="Órdenes de venta"
       title="Órdenes de venta"
+      description="Consulta todas tus ordenes de venta pedientes."
       headerActions={
         <EntityCreateButton render={<Link to="/sales/new" />}>
           Crear orden
