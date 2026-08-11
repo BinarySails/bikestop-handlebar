@@ -239,7 +239,7 @@ function VariantDetailView({
 
       toast.success("Variante archivada correctamente.");
       setDeleteOpen(false);
-      navigate({ to: "/products/$productId/variants", params: { productId } });
+      navigate({ to: "/products/$productId", params: { productId } });
     } catch {
       toast.error("No se pudo archivar la variante.");
     } finally {

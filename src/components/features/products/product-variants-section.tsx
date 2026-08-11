@@ -1,15 +1,8 @@
 import { useState } from "react";
-import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
-import {
-  ArrowLeft,
-  ChevronLeft,
-  ChevronRight,
-  MoreVertical,
-  Search,
-} from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
+import { ChevronLeft, ChevronRight, MoreVertical, Search } from "lucide-react";
 import { toast } from "sonner";
 
-import { CreateVariantDialog } from "@/components/features/products/create-variant-modal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -43,10 +36,6 @@ import {
   useUpdateVariantRequest,
 } from "@/lib/api/api";
 import type { Variant } from "@/lib/api/schemas";
-
-export const Route = createFileRoute("/_layout/products/$productId_/variants")({
-  component: ProductVariantsPage,
-});
 
 const PAGE_SIZE = 10;
 
@@ -193,8 +182,15 @@ function VariantsListSkeleton() {
   );
 }
 
-function ProductVariantsPage() {
-  const { productId } = Route.useParams();
+type ProductVariantsSectionProps = {
+  productId: string;
+  onSuccess?: () => Promise<unknown>;
+};
+
+export function ProductVariantsSection({
+  productId,
+  onSuccess,
+}: ProductVariantsSectionProps) {
   const [page, setPage] = useState(0);
   const [search, setSearch] = useState("");
   const [appliedSearch, setAppliedSearch] = useState("");
@@ -249,24 +245,8 @@ function ProductVariantsPage() {
   return (
     <section
       aria-label="Variantes del producto"
-      className="mx-auto flex w-full max-w-6xl flex-col gap-6 p-6"
+      className="flex w-full flex-col gap-6"
     >
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <Button
-            render={<Link to="/products/$productId" params={{ productId }} />}
-            variant="ghost"
-            size="icon"
-            aria-label="Volver al producto"
-            className="size-9"
-          >
-            <ArrowLeft className="size-4" />
-          </Button>
-          <h1 className="text-2xl font-semibold tracking-tight">Variantes</h1>
-        </div>
-        <CreateVariantDialog productId={productId} onSuccess={mutate} />
-      </div>
-
       <div className="flex flex-col gap-4">
         <div className="flex flex-wrap items-end gap-4">
           <div className="flex flex-col gap-1.5">
@@ -392,7 +372,7 @@ function ProductVariantsPage() {
                             <ArchiveVariantMenuItem
                               productId={productId}
                               variant={variant}
-                              onSuccess={mutate}
+                              onSuccess={onSuccess ?? mutate}
                             />
                           </DropdownMenuContent>
                         </DropdownMenu>

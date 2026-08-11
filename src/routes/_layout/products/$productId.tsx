@@ -5,6 +5,7 @@ import { Package } from "lucide-react";
 import { toast } from "sonner";
 
 import { ProductDetailHeader } from "@/components/features/products/product-detail-header";
+import { ProductVariantsSection } from "@/components/features/products/product-variants-section";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -32,6 +33,7 @@ import {
   useGetCategoriesRequest,
   useListBrandsRequest,
   useUpdateProductRequest,
+  useListVariantsByProductRequest,
 } from "@/lib/api/api";
 import type {
   Brand,
@@ -107,6 +109,14 @@ function ProductDetailView({
   const { data: brandsRes, isLoading: brandsLoading } = useListBrandsRequest();
   const { data: categoriesRes, isLoading: categoriesLoading } =
     useGetCategoriesRequest();
+  const { mutate: mutateVariants } = useListVariantsByProductRequest(
+    productId,
+    {
+      swr: {
+        revalidateOnFocus: false,
+      },
+    }
+  );
 
   const brands: Brand[] = brandsRes?.status === 200 ? brandsRes.data.data : [];
   const categories: Category[] =
@@ -213,6 +223,7 @@ function ProductDetailView({
               isSubmitting={isSubmitting}
               onSave={() => form.handleSubmit()}
               onDeleteClick={() => setDeleteOpen(true)}
+              onVariantCreated={mutateVariants}
             />
           )}
         </form.Subscribe>
@@ -363,6 +374,11 @@ function ProductDetailView({
           </Card>
         </section>
       </form>
+
+      <ProductVariantsSection
+        productId={productId}
+        onSuccess={mutateVariants}
+      />
 
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <DialogContent className="sm:max-w-md">

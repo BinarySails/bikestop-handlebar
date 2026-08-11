@@ -32,12 +32,10 @@ export function VariantDetailHeader({
     <div className="flex items-center justify-between gap-4">
       <div className="flex items-center gap-3">
         <Button
-          render={
-            <Link to="/products/$productId/variants" params={{ productId }} />
-          }
+          render={<Link to="/products/$productId" params={{ productId }} />}
           variant="ghost"
           size="icon"
-          aria-label="Volver a las variantes"
+          aria-label="Volver al producto"
           className="size-9"
         >
           <ArrowLeft className="size-4" />
