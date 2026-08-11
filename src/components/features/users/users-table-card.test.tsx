@@ -96,8 +96,8 @@ describe("UsersTableCard", () => {
     expect(api.listUsers).toHaveBeenCalledWith(params, {
       swr: { keepPreviousData: true },
     });
-    expect(screen.getAllByText("Administrador")).toHaveLength(2);
-    expect(screen.getByText("Ventas")).toBeTruthy();
+    expect(screen.getAllByText("Administrador")).toHaveLength(3);
+    expect(screen.getAllByText("Ventas")).toHaveLength(2);
     expect(screen.getByText("juan@example.com")).toBeTruthy();
     const roleFilter = screen.getAllByRole("combobox")[0];
     expect(roleFilter.textContent).toContain("Administrador");
@@ -167,9 +167,9 @@ describe("UsersTableCard", () => {
       offset: 0,
     });
 
-    fireEvent.click(screen.getByRole("button", { name: "Página siguiente" }));
+    fireEvent.click(screen.getByRole("button", { name: "Siguiente" }));
     expect(onParamsChange).toHaveBeenCalledWith({ offset: 20 });
-    expect(screen.getByText("Página 1 de 3")).toBeTruthy();
+    expect(screen.getByText(/Página 1 de 3/)).toBeTruthy();
   });
 
   it("only renders inactive non-client users in the archived view", () => {
@@ -214,7 +214,7 @@ describe("UsersTableCard", () => {
     expect(screen.getByText("juan@example.com")).toBeTruthy();
     expect(screen.queryByText("cliente@example.com")).toBeNull();
     expect(screen.queryByText("activo@example.com")).toBeNull();
-    expect(screen.getByText("Archivado")).toBeTruthy();
+    expect(screen.getAllByText("Archivado")).toHaveLength(2);
 
     fireEvent.click(screen.getByRole("button", { name: "Mostrar activos" }));
     expect(onParamsChange).toHaveBeenCalledWith({

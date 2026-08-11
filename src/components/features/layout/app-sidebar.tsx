@@ -35,7 +35,7 @@ const navigationItems = [
   { label: "Marcas", icon: Tags, to: "/brands" },
   { label: "Locaciones", icon: MapPin, to: "/locations" },
   { label: "Usuarios", icon: Users, to: "/users" },
-  { label: "Roles y permisos", icon: Users, to: "/team" },
+  { label: "Roles y permisos", icon: Users, to: "/team/roles" },
   { label: "Almacenes", icon: Warehouse, to: "/warehouses" },
 ] as const;
 

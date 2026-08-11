@@ -27,7 +27,6 @@ import { Route as LayoutProductsIndexRouteImport } from './routes/_layout/produc
 import { Route as LayoutProductsProductIdRouteImport } from './routes/_layout/products/$productId'
 import { Route as LayoutSalesIndexRouteImport } from './routes/_layout/sales/index'
 import { Route as LayoutSalesNewRouteImport } from './routes/_layout/sales/new'
-import { Route as LayoutTeamIndexRouteImport } from './routes/_layout/team.index'
 import { Route as LayoutTeamPermisosRouteImport } from './routes/_layout/team.permisos'
 import { Route as LayoutTeamRolesRouteImport } from './routes/_layout/team.roles'
 import { Route as LayoutUsersIndexRouteImport } from './routes/_layout/users/index'
@@ -129,11 +128,6 @@ const LayoutSalesNewRoute = LayoutSalesNewRouteImport.update({
   path: '/new',
   getParentRoute: () => LayoutSalesRouteRoute,
 } as any)
-const LayoutTeamIndexRoute = LayoutTeamIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => LayoutTeamRoute,
-} as any)
 const LayoutTeamPermisosRoute = LayoutTeamPermisosRouteImport.update({
   id: '/permisos',
   path: '/permisos',
@@ -211,7 +205,6 @@ export interface FileRoutesByFullPath {
   '/categories/': typeof LayoutCategoriesIndexRoute
   '/products/': typeof LayoutProductsIndexRoute
   '/sales/': typeof LayoutSalesIndexRoute
-  '/team/': typeof LayoutTeamIndexRoute
   '/users/': typeof LayoutUsersIndexRoute
   '/warehouses/': typeof LayoutWarehousesIndexRoute
   '/brands/$brandId/edit': typeof LayoutBrandsBrandIdEditRoute
@@ -227,6 +220,7 @@ export interface FileRoutesByTo {
   '/inventory': typeof LayoutInventoryRoute
   '/locations': typeof LayoutLocationsRoute
   '/profile': typeof LayoutProfileRoute
+  '/team': typeof LayoutTeamRouteWithChildren
   '/categories/$categoryId': typeof LayoutCategoriesCategoryIdRoute
   '/products/$productId': typeof LayoutProductsProductIdRoute
   '/sales/new': typeof LayoutSalesNewRoute
@@ -238,7 +232,6 @@ export interface FileRoutesByTo {
   '/categories': typeof LayoutCategoriesIndexRoute
   '/products': typeof LayoutProductsIndexRoute
   '/sales': typeof LayoutSalesIndexRoute
-  '/team': typeof LayoutTeamIndexRoute
   '/users': typeof LayoutUsersIndexRoute
   '/warehouses': typeof LayoutWarehousesIndexRoute
   '/brands/$brandId/edit': typeof LayoutBrandsBrandIdEditRoute
@@ -270,7 +263,6 @@ export interface FileRoutesById {
   '/_layout/categories/': typeof LayoutCategoriesIndexRoute
   '/_layout/products/': typeof LayoutProductsIndexRoute
   '/_layout/sales/': typeof LayoutSalesIndexRoute
-  '/_layout/team/': typeof LayoutTeamIndexRoute
   '/_layout/users/': typeof LayoutUsersIndexRoute
   '/_layout/warehouses/': typeof LayoutWarehousesIndexRoute
   '/_layout/brands/$brandId/edit': typeof LayoutBrandsBrandIdEditRoute
@@ -302,7 +294,6 @@ export interface FileRouteTypes {
     | '/categories/'
     | '/products/'
     | '/sales/'
-    | '/team/'
     | '/users/'
     | '/warehouses/'
     | '/brands/$brandId/edit'
@@ -318,6 +309,7 @@ export interface FileRouteTypes {
     | '/inventory'
     | '/locations'
     | '/profile'
+    | '/team'
     | '/categories/$categoryId'
     | '/products/$productId'
     | '/sales/new'
@@ -329,7 +321,6 @@ export interface FileRouteTypes {
     | '/categories'
     | '/products'
     | '/sales'
-    | '/team'
     | '/users'
     | '/warehouses'
     | '/brands/$brandId/edit'
@@ -360,7 +351,6 @@ export interface FileRouteTypes {
     | '/_layout/categories/'
     | '/_layout/products/'
     | '/_layout/sales/'
-    | '/_layout/team/'
     | '/_layout/users/'
     | '/_layout/warehouses/'
     | '/_layout/brands/$brandId/edit'
@@ -503,13 +493,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutSalesNewRouteImport
       parentRoute: typeof LayoutSalesRouteRoute
     }
-    '/_layout/team/': {
-      id: '/_layout/team/'
-      path: '/'
-      fullPath: '/team/'
-      preLoaderRoute: typeof LayoutTeamIndexRouteImport
-      parentRoute: typeof LayoutTeamRoute
-    }
     '/_layout/team/permisos': {
       id: '/_layout/team/permisos'
       path: '/permisos'
@@ -599,13 +582,11 @@ const LayoutSalesRouteRouteWithChildren =
 interface LayoutTeamRouteChildren {
   LayoutTeamPermisosRoute: typeof LayoutTeamPermisosRoute
   LayoutTeamRolesRoute: typeof LayoutTeamRolesRoute
-  LayoutTeamIndexRoute: typeof LayoutTeamIndexRoute
 }
 
 const LayoutTeamRouteChildren: LayoutTeamRouteChildren = {
   LayoutTeamPermisosRoute: LayoutTeamPermisosRoute,
   LayoutTeamRolesRoute: LayoutTeamRolesRoute,
-  LayoutTeamIndexRoute: LayoutTeamIndexRoute,
 }
 
 const LayoutTeamRouteWithChildren = LayoutTeamRoute._addFileChildren(
@@ -683,10 +664,11 @@ export const routeTree = rootRouteImport
   ._addFileTypes<FileRouteTypes>()
 
 import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
+import type { startInstance } from './start.ts'
 declare module '@tanstack/react-start' {
   interface Register {
     ssr: true
     router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
   }
 }

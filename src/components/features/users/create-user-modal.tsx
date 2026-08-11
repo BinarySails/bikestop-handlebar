@@ -95,11 +95,9 @@ export function CreateUserDialog({ onCreated }: { onCreated?: () => void }) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger
-        render={<Button className="bg-gray-900 text-white hover:bg-gray-800" />}
-      >
-        <PlusIcon data-icon="inline-start" />
-        Crear Usuario
+      <DialogTrigger render={<Button />}>
+        <PlusIcon />
+        Crear usuario
       </DialogTrigger>
 
       <DialogContent className="sm:max-w-lg">
