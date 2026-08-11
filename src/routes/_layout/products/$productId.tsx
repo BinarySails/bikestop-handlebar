@@ -5,6 +5,7 @@ import { Package } from "lucide-react";
 import { toast } from "sonner";
 
 import { ProductDetailHeader } from "@/components/features/products/product-detail-header";
+import { ProductInventoryTable } from "@/components/features/products/product-inventory-table";
 import { ProductVariantsSection } from "@/components/features/products/product-variants-section";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -379,6 +380,10 @@ function ProductDetailView({
         productId={productId}
         onSuccess={mutateVariants}
       />
+
+      <section id="inventory" className="scroll-mt-4 space-y-6">
+        <ProductInventoryTable items={[]} />
+      </section>
 
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <DialogContent className="sm:max-w-md">
