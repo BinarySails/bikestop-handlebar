@@ -4,6 +4,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Boxes, MoreVertical, RotateCcw, SearchIcon } from "lucide-react";
 import { toast } from "sonner";
 
+import { SiteHeader } from "@/components/features/layout/site-header";
 import { EntityCardTitle } from "@/components/features/entity/entity-card-title";
 import {
   EntityIndexPage,
@@ -294,85 +295,88 @@ function ProductVariantsPage() {
   ];
 
   return (
-    <EntityIndexPage<Variant>
-      ariaLabel="Variantes del producto"
-      title="Variantes"
-      backTo="/products/$productId"
-      backParams={{ productId }}
-      backLabel="Volver al producto"
-      headerActions={
-        <CreateVariantDialog productId={productId} onSuccess={mutate} />
-      }
-      cardTitle={
-        <EntityCardTitle icon={Boxes}>Catálogo de variantes</EntityCardTitle>
-      }
-      cardHeaderExtras={
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <InputGroup className="w-full max-w-xl">
-            <InputGroupAddon>
-              <SearchIcon />
-            </InputGroupAddon>
-            <InputGroupInput
-              type="search"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") {
-                  handleApplySearch();
-                }
-              }}
-              placeholder="Buscar por nombre, SKU o propiedad"
-              aria-label="Buscar por nombre, SKU o propiedad"
-            />
-          </InputGroup>
+    <>
+      <SiteHeader
+        title="Variantes"
+        backTo={`/products/${productId}`}
+        backLabel="Volver al producto"
+        actions={
+          <CreateVariantDialog productId={productId} onSuccess={mutate} />
+        }
+      />
+      <EntityIndexPage<Variant>
+        ariaLabel="Variantes del producto"
+        cardTitle={
+          <EntityCardTitle icon={Boxes}>Catálogo de variantes</EntityCardTitle>
+        }
+        cardHeaderExtras={
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <InputGroup className="w-full max-w-xl">
+              <InputGroupAddon>
+                <SearchIcon />
+              </InputGroupAddon>
+              <InputGroupInput
+                type="search"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    handleApplySearch();
+                  }
+                }}
+                placeholder="Buscar por nombre, SKU o propiedad"
+                aria-label="Buscar por nombre, SKU o propiedad"
+              />
+            </InputGroup>
 
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-500">Estatus</span>
-            <Select
-              value={status}
-              onValueChange={(value) => {
-                setStatus(value as ListStatusFilter);
-                setPage(0);
-              }}
-            >
-              <SelectTrigger size="sm" className="min-w-36">
-                <SelectValue>{statusFilterLabel[status]}</SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="enable">Activo</SelectItem>
-                <SelectItem value="disable">Inactivo</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8"
-              onClick={handleClearFilters}
-            >
-              <RotateCcw />
-              Limpiar
-            </Button>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-500">Estatus</span>
+              <Select
+                value={status}
+                onValueChange={(value) => {
+                  setStatus(value as ListStatusFilter);
+                  setPage(0);
+                }}
+              >
+                <SelectTrigger size="sm" className="min-w-36">
+                  <SelectValue>{statusFilterLabel[status]}</SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="enable">Activo</SelectItem>
+                  <SelectItem value="disable">Inactivo</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8"
+                onClick={handleClearFilters}
+              >
+                <RotateCcw />
+                Limpiar
+              </Button>
+            </div>
           </div>
-        </div>
-      }
-      columns={columns}
-      rows={pageVariants}
-      rowKey={(variant) => variant.id}
-      loading={isLoading}
-      validating={isValidating && !!res}
-      hasError={hasError}
-      errorMessage="Error al cargar las variantes."
-      onRetry={() => mutate()}
-      emptyMessage="No hay variantes que coincidan con los filtros."
-      pagination={{
-        mode: "page",
-        total: filteredVariants.length,
-        page,
-        pageSize: PAGE_SIZE,
-        totalLabel: "variantes",
-        onPageChange: (nextPage) => setPage(nextPage),
-      }}
-    />
+        }
+        columns={columns}
+        rows={pageVariants}
+        rowKey={(variant) => variant.id}
+        loading={isLoading}
+        validating={isValidating && !!res}
+        hasError={hasError}
+        errorMessage="Error al cargar las variantes."
+        onRetry={() => mutate()}
+        emptyMessage="No hay variantes que coincidan con los filtros."
+        pagination={{
+          mode: "page",
+          total: filteredVariants.length,
+          page,
+          pageSize: PAGE_SIZE,
+          totalLabel: "variantes",
+          onPageChange: (nextPage) => setPage(nextPage),
+        }}
+      />
+    </>
   );
 }

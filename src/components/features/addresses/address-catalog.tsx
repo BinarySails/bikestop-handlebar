@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { ChevronRight, MapPin, RotateCcw, SearchIcon } from "lucide-react";
 
+import { SiteHeader } from "@/components/features/layout/site-header";
 import { EntityCardTitle } from "@/components/features/entity/entity-card-title";
 import {
   EntityIndexPage,
@@ -172,11 +173,13 @@ export function AddressCatalog() {
 
   return (
     <>
-      <EntityIndexPage<State>
-        ariaLabel="Catálogo de ubicaciones"
+      <SiteHeader
         title="Catálogo de ubicaciones"
         description="Administra los estados y localidades del catálogo de ubicaciones en BikeStop."
-        headerActions={<CreateStateLocalityDialog onSuccess={() => mutate()} />}
+        actions={<CreateStateLocalityDialog onSuccess={() => mutate()} />}
+      />
+      <EntityIndexPage<State>
+        ariaLabel="Catálogo de ubicaciones"
         cardTitle={
           <EntityCardTitle icon={MapPin}>Estados y localidades</EntityCardTitle>
         }

@@ -9,6 +9,7 @@ import {
   WarehouseIcon,
 } from "lucide-react";
 
+import { SiteHeader } from "@/components/features/layout/site-header";
 import { EntityCardTitle } from "@/components/features/entity/entity-card-title";
 import {
   EntityIndexPage,
@@ -149,69 +150,75 @@ function WarehousesIndexPage() {
   ];
 
   return (
-    <EntityIndexPage<WarehouseResponse>
-      ariaLabel="Almacenes"
-      title="Almacenes"
-      description="Administra los almacenes, sus ubicaciones y el inventario en BikeStop."
-      headerActions={<CreateWarehouseDialog onSuccess={() => mutate()} />}
-      cardTitle={
-        <EntityCardTitle icon={WarehouseIcon}>
-          Directorio de almacenes
-        </EntityCardTitle>
-      }
-      cardHeaderExtras={
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <InputGroup className="w-full max-w-xl">
-            <InputGroupAddon>
-              <SearchIcon />
-            </InputGroupAddon>
-            <InputGroupInput
-              type="search"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Buscar por nombre, ciudad o código"
-              aria-label="Buscar por nombre, ciudad o código"
-            />
-          </InputGroup>
+    <>
+      <SiteHeader
+        title="Almacenes"
+        description="Administra los almacenes, sus ubicaciones y el inventario en BikeStop."
+        actions={<CreateWarehouseDialog onSuccess={() => mutate()} />}
+      />
+      <EntityIndexPage<WarehouseResponse>
+        ariaLabel="Almacenes"
+        cardTitle={
+          <EntityCardTitle icon={WarehouseIcon}>
+            Directorio de almacenes
+          </EntityCardTitle>
+        }
+        cardHeaderExtras={
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <InputGroup className="w-full max-w-xl">
+              <InputGroupAddon>
+                <SearchIcon />
+              </InputGroupAddon>
+              <InputGroupInput
+                type="search"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Buscar por nombre, ciudad o código"
+                aria-label="Buscar por nombre, ciudad o código"
+              />
+            </InputGroup>
 
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-500">Estatus</span>
-            <Select
-              value={statusFilter}
-              onValueChange={(value) => setStatusFilter(value as StatusFilter)}
-            >
-              <SelectTrigger size="sm" className="min-w-36">
-                <SelectValue>{statusFilterLabel[statusFilter]}</SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="active">Activo</SelectItem>
-                <SelectItem value="inactive">Inactivo</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8"
-              onClick={() => {
-                setSearch("");
-                setStatusFilter("all");
-              }}
-            >
-              Limpiar
-            </Button>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-500">Estatus</span>
+              <Select
+                value={statusFilter}
+                onValueChange={(value) =>
+                  setStatusFilter(value as StatusFilter)
+                }
+              >
+                <SelectTrigger size="sm" className="min-w-36">
+                  <SelectValue>{statusFilterLabel[statusFilter]}</SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="active">Activo</SelectItem>
+                  <SelectItem value="inactive">Inactivo</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8"
+                onClick={() => {
+                  setSearch("");
+                  setStatusFilter("all");
+                }}
+              >
+                Limpiar
+              </Button>
+            </div>
           </div>
-        </div>
-      }
-      columns={columns}
-      rows={filteredWarehouses}
-      rowKey={(warehouse) => warehouse.id}
-      loading={isLoading}
-      validating={isValidating && !!data}
-      hasError={hasError}
-      errorMessage="No se pudieron cargar los almacenes. Revisa tu conexión e intenta nuevamente."
-      onRetry={() => mutate()}
-      emptyMessage="No hay almacenes que coincidan con los filtros."
-    />
+        }
+        columns={columns}
+        rows={filteredWarehouses}
+        rowKey={(warehouse) => warehouse.id}
+        loading={isLoading}
+        validating={isValidating && !!data}
+        hasError={hasError}
+        errorMessage="No se pudieron cargar los almacenes. Revisa tu conexión e intenta nuevamente."
+        onRetry={() => mutate()}
+        emptyMessage="No hay almacenes que coincidan con los filtros."
+      />
+    </>
   );
 }

@@ -1,7 +1,5 @@
 import { Fragment, type ReactNode } from "react";
-import { Link } from "@tanstack/react-router";
 import {
-  ArrowLeft,
   ChevronsLeftIcon,
   ChevronsRightIcon,
   ChevronLeftIcon,
@@ -63,12 +61,6 @@ export type EntityPagePagination = {
 
 export type EntityIndexPageProps<T> = {
   ariaLabel: string;
-  title: string;
-  description?: string;
-  backTo?: string;
-  backParams?: Record<string, string>;
-  backLabel?: string;
-  headerActions?: ReactNode;
   cardTitle?: ReactNode;
   cardHeaderExtras?: ReactNode;
   columns: EntityColumn<T>[];
@@ -106,12 +98,6 @@ function LoadingRows({ columnCount }: { columnCount: number }) {
 
 export function EntityIndexPage<T>({
   ariaLabel,
-  title,
-  description,
-  backTo,
-  backParams,
-  backLabel,
-  headerActions,
   cardTitle,
   cardHeaderExtras,
   columns,
@@ -167,28 +153,6 @@ export function EntityIndexPage<T>({
       className="mx-auto w-full max-w-7xl p-4 sm:p-6"
     >
       <div className="flex w-full flex-col gap-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            {backTo && (
-              <Button
-                render={<Link to={backTo} params={backParams as never} />}
-                variant="ghost"
-                size="sm"
-                aria-label={backLabel ?? "Volver"}
-                className="mb-2 -ml-2"
-              >
-                <ArrowLeft className="size-4" />
-                Volver
-              </Button>
-            )}
-            <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
-            {description && (
-              <p className="text-sm text-muted-foreground">{description}</p>
-            )}
-          </div>
-          {headerActions && <div className="shrink-0">{headerActions}</div>}
-        </div>
-
         <Card>
           {(cardTitle || cardHeaderExtras) && (
             <CardHeader className="gap-4">

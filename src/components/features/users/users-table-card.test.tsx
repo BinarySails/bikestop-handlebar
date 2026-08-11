@@ -27,6 +27,20 @@ vi.mock("@/lib/api/api", () => ({
 vi.mock("./create-user-modal", () => ({
   CreateUserDialog: () => <button>Crear Usuario</button>,
 }));
+vi.mock("@/components/features/layout/site-header", () => ({
+  SiteHeader: ({
+    title,
+    actions,
+  }: {
+    title: string;
+    actions?: React.ReactNode;
+  }) => (
+    <header>
+      <h1>{title}</h1>
+      {actions}
+    </header>
+  ),
+}));
 vi.mock("./user-actions-menu", () => ({
   UserActionsMenu: () => <button aria-label="Editar usuario">Ver</button>,
 }));

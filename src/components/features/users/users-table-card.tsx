@@ -4,6 +4,7 @@ import { ArchiveIcon, SearchIcon, UsersIcon } from "lucide-react";
 
 import { CreateUserDialog } from "@/components/features/users/create-user-modal";
 import { UserActionsMenu } from "@/components/features/users/user-actions-menu";
+import { SiteHeader } from "@/components/features/layout/site-header";
 import { EntityCardTitle } from "@/components/features/entity/entity-card-title";
 import {
   EntityIndexPage,
@@ -183,136 +184,141 @@ export function UsersTableCard({
         : "No hay usuarios en esta vista.";
 
   return (
-    <EntityIndexPage<UserWithRolesResponse>
-      ariaLabel="Usuarios"
-      title="Usuarios"
-      description="Administra los usuarios, clientes y sus accesos en BikeStop."
-      headerActions={<CreateUserDialog onCreated={() => query.mutate()} />}
-      cardTitle={
-        <EntityCardTitle icon={UsersIcon}>
-          Directorio de usuarios
-        </EntityCardTitle>
-      }
-      cardHeaderExtras={
-        <>
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div
-              className="flex w-fit items-center gap-1 rounded-lg bg-gray-100 p-1"
-              aria-label="Vistas de usuarios"
-            >
-              {(
-                [
-                  [UserViewParam.client, "Clientes"],
-                  [UserViewParam.staff, "Usuarios"],
-                ] as const
-              ).map(([view, label]) => (
-                <Button
-                  key={view}
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => changeView(view)}
-                  className={cn(
-                    "text-gray-500 hover:bg-white/70",
-                    params.view === view &&
-                      "border border-gray-200 bg-white text-gray-900 shadow-xs hover:bg-white"
-                  )}
-                >
-                  {label}
-                </Button>
-              ))}
-            </div>
-
-            {params.view !== UserViewParam.client && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() =>
-                  changeView(
-                    params.view === UserViewParam.archived
-                      ? UserViewParam.staff
-                      : UserViewParam.archived
-                  )
-                }
+    <>
+      <SiteHeader
+        title="Usuarios"
+        description="Administra los usuarios, clientes y sus accesos en BikeStop."
+        actions={<CreateUserDialog onCreated={() => query.mutate()} />}
+      />
+      <EntityIndexPage<UserWithRolesResponse>
+        ariaLabel="Usuarios"
+        cardTitle={
+          <EntityCardTitle icon={UsersIcon}>
+            Directorio de usuarios
+          </EntityCardTitle>
+        }
+        cardHeaderExtras={
+          <>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div
+                className="flex w-fit items-center gap-1 rounded-lg bg-gray-100 p-1"
+                aria-label="Vistas de usuarios"
               >
-                <ArchiveIcon data-icon="inline-start" />
-                {params.view === UserViewParam.archived
-                  ? "Mostrar activos"
-                  : "Mostrar archivados"}
-              </Button>
-            )}
-          </div>
+                {(
+                  [
+                    [UserViewParam.client, "Clientes"],
+                    [UserViewParam.staff, "Usuarios"],
+                  ] as const
+                ).map(([view, label]) => (
+                  <Button
+                    key={view}
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => changeView(view)}
+                    className={cn(
+                      "text-gray-500 hover:bg-white/70",
+                      params.view === view &&
+                        "border border-gray-200 bg-white text-gray-900 shadow-xs hover:bg-white"
+                    )}
+                  >
+                    {label}
+                  </Button>
+                ))}
+              </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            {params.view === UserViewParam.client ? (
-              <InputGroup className="w-full max-w-xl">
-                <InputGroupAddon>
-                  <SearchIcon />
-                </InputGroupAddon>
-                <InputGroupInput
-                  type="search"
-                  value={searchInput}
-                  onChange={(event) => setSearchInput(event.target.value)}
-                  placeholder="Buscar por nombre, usuario o correo"
-                  aria-label="Buscar por nombre, usuario o correo"
-                />
-              </InputGroup>
-            ) : params.view === UserViewParam.staff ? (
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-500">Filtrar por rol</span>
-                <Select
-                  value={params.role ?? "all"}
-                  onValueChange={(value) =>
-                    onParamsChange({
-                      role: value && value !== "all" ? value : undefined,
-                      offset: 0,
-                    })
+              {params.view !== UserViewParam.client && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    changeView(
+                      params.view === UserViewParam.archived
+                        ? UserViewParam.staff
+                        : UserViewParam.archived
+                    )
                   }
                 >
-                  <SelectTrigger size="sm" className="min-w-40">
-                    <SelectValue>
-                      {params.role
-                        ? (roles.find((role) => role.id === params.role)
-                            ?.display_name ?? "Rol seleccionado")
-                        : "Todos los roles"}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos los roles</SelectItem>
-                    {roles.map((role) => (
-                      <SelectItem key={role.id} value={role.id}>
-                        {role.display_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            ) : (
-              <span className="text-sm text-muted-foreground">
-                Usuarios inactivos
-              </span>
-            )}
-          </div>
-        </>
-      }
-      columns={columns}
-      rows={users}
-      rowKey={(user) => user.id}
-      loading={query.isLoading && !response}
-      validating={query.isValidating && !!response}
-      hasError={hasError}
-      errorMessage="No fue posible cargar los usuarios."
-      onRetry={() => query.mutate()}
-      emptyMessage={emptyMessage}
-      pagination={{
-        mode: "offset",
-        total,
-        limit,
-        offset,
-        onLimitChange: (nextLimit) =>
-          onParamsChange({ limit: nextLimit, offset: 0 }),
-        onOffsetChange: (nextOffset) => onParamsChange({ offset: nextOffset }),
-      }}
-    />
+                  <ArchiveIcon data-icon="inline-start" />
+                  {params.view === UserViewParam.archived
+                    ? "Mostrar activos"
+                    : "Mostrar archivados"}
+                </Button>
+              )}
+            </div>
+
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              {params.view === UserViewParam.client ? (
+                <InputGroup className="w-full max-w-xl">
+                  <InputGroupAddon>
+                    <SearchIcon />
+                  </InputGroupAddon>
+                  <InputGroupInput
+                    type="search"
+                    value={searchInput}
+                    onChange={(event) => setSearchInput(event.target.value)}
+                    placeholder="Buscar por nombre, usuario o correo"
+                    aria-label="Buscar por nombre, usuario o correo"
+                  />
+                </InputGroup>
+              ) : params.view === UserViewParam.staff ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-500">Filtrar por rol</span>
+                  <Select
+                    value={params.role ?? "all"}
+                    onValueChange={(value) =>
+                      onParamsChange({
+                        role: value && value !== "all" ? value : undefined,
+                        offset: 0,
+                      })
+                    }
+                  >
+                    <SelectTrigger size="sm" className="min-w-40">
+                      <SelectValue>
+                        {params.role
+                          ? (roles.find((role) => role.id === params.role)
+                              ?.display_name ?? "Rol seleccionado")
+                          : "Todos los roles"}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos los roles</SelectItem>
+                      {roles.map((role) => (
+                        <SelectItem key={role.id} value={role.id}>
+                          {role.display_name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              ) : (
+                <span className="text-sm text-muted-foreground">
+                  Usuarios inactivos
+                </span>
+              )}
+            </div>
+          </>
+        }
+        columns={columns}
+        rows={users}
+        rowKey={(user) => user.id}
+        loading={query.isLoading && !response}
+        validating={query.isValidating && !!response}
+        hasError={hasError}
+        errorMessage="No fue posible cargar los usuarios."
+        onRetry={() => query.mutate()}
+        emptyMessage={emptyMessage}
+        pagination={{
+          mode: "offset",
+          total,
+          limit,
+          offset,
+          onLimitChange: (nextLimit) =>
+            onParamsChange({ limit: nextLimit, offset: 0 }),
+          onOffsetChange: (nextOffset) =>
+            onParamsChange({ offset: nextOffset }),
+        }}
+      />
+    </>
   );
 }

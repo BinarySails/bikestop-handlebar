@@ -19,6 +19,7 @@ import {
 } from "@/lib/api/api";
 import type { Permission } from "@/lib/api/schemas";
 
+import { SiteHeader } from "@/components/features/layout/site-header";
 import { EntityCardTitle } from "@/components/features/entity/entity-card-title";
 import {
   EntityIndexPage,
@@ -221,17 +222,19 @@ function PermissionsPage() {
 
   return (
     <>
-      <EntityIndexPage<Permission>
-        ariaLabel="Permisos"
+      <SiteHeader
         title="Permisos"
         description="Permisos del sistema asignados a roles."
         backTo="/roles"
         backLabel="Volver a roles"
-        headerActions={
+        actions={
           <EntityCreateButton onClick={handleCreate}>
             Crear permiso
           </EntityCreateButton>
         }
+      />
+      <EntityIndexPage<Permission>
+        ariaLabel="Permisos"
         cardTitle={
           <EntityCardTitle icon={KeyRound}>
             Catálogo de permisos

@@ -26,6 +26,20 @@ vi.mock("@/lib/api/api", () => ({
   deleteCategoryRequest: vi.fn(),
 }));
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
+vi.mock("@/components/features/layout/site-header", () => ({
+  SiteHeader: ({
+    title,
+    actions,
+  }: {
+    title: string;
+    actions?: React.ReactNode;
+  }) => (
+    <header>
+      <h1>{title}</h1>
+      {actions}
+    </header>
+  ),
+}));
 
 const root: Category = {
   id: "root",

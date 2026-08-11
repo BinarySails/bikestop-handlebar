@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Package } from "lucide-react";
 
+import { SiteHeader } from "@/components/features/layout/site-header";
 import { EntityCardTitle } from "@/components/features/entity/entity-card-title";
 import {
   EntityIndexPage,
@@ -21,19 +22,23 @@ const columns: EntityColumn<InventoryTransactionResponse>[] = [
 
 function InventoryPage() {
   return (
-    <EntityIndexPage<InventoryTransactionResponse>
-      ariaLabel="Inventario"
-      title="Inventario"
-      description="Consulta el inventario y los movimientos de existencias en BikeStop."
-      cardTitle={
-        <EntityCardTitle icon={Package}>
-          Movimientos de inventario
-        </EntityCardTitle>
-      }
-      columns={columns}
-      rows={[]}
-      rowKey={() => "empty"}
-      emptyMessage="Aún no hay movimientos de inventario registrados."
-    />
+    <>
+      <SiteHeader
+        title="Inventario"
+        description="Consulta el inventario y los movimientos de existencias en BikeStop."
+      />
+      <EntityIndexPage<InventoryTransactionResponse>
+        ariaLabel="Inventario"
+        cardTitle={
+          <EntityCardTitle icon={Package}>
+            Movimientos de inventario
+          </EntityCardTitle>
+        }
+        columns={columns}
+        rows={[]}
+        rowKey={() => "empty"}
+        emptyMessage="Aún no hay movimientos de inventario registrados."
+      />
+    </>
   );
 }

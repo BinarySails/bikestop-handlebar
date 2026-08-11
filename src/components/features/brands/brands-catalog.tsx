@@ -4,6 +4,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { Archive, Eye, MoreVertical, SearchIcon, Tags } from "lucide-react";
 import { toast } from "sonner";
 
+import { SiteHeader } from "@/components/features/layout/site-header";
 import { EntityCardTitle } from "@/components/features/entity/entity-card-title";
 import { EntityCreateButton } from "@/components/features/entity/entity-create-button";
 import {
@@ -209,11 +210,10 @@ export function BrandsCatalog({
 
   return (
     <>
-      <EntityIndexPage<Brand>
-        ariaLabel="Marcas"
+      <SiteHeader
         title="Marcas"
         description="Gestiona las marcas de productos disponibles en BikeStop."
-        headerActions={
+        actions={
           <EntityCreateButton
             onClick={() => {
               setCreateOpen(true);
@@ -222,6 +222,9 @@ export function BrandsCatalog({
             Crear marca
           </EntityCreateButton>
         }
+      />
+      <EntityIndexPage<Brand>
+        ariaLabel="Marcas"
         cardTitle={
           <EntityCardTitle icon={Tags}>Catálogo de marcas</EntityCardTitle>
         }

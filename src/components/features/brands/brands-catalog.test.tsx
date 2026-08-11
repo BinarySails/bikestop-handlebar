@@ -39,6 +39,20 @@ vi.mock("@/lib/api/api", () => ({
   }),
 }));
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
+vi.mock("@/components/features/layout/site-header", () => ({
+  SiteHeader: ({
+    title,
+    actions,
+  }: {
+    title: string;
+    actions?: React.ReactNode;
+  }) => (
+    <header>
+      <h1>{title}</h1>
+      {actions}
+    </header>
+  ),
+}));
 vi.mock("./image-upload-field", () => ({
   ImageUploadField: ({ onChange }: { onChange: (value: string) => void }) => (
     <button

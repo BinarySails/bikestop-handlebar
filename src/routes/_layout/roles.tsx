@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { useListRolesHandler, useDeleteRoleHandler } from "@/lib/api/api";
 import type { Role } from "@/lib/api/schemas";
 
+import { SiteHeader } from "@/components/features/layout/site-header";
 import { EntityCardTitle } from "@/components/features/entity/entity-card-title";
 import {
   EntityIndexPage,
@@ -228,15 +229,17 @@ function RolesPage() {
 
   return (
     <>
-      <EntityIndexPage<Role>
-        ariaLabel="Roles"
+      <SiteHeader
         title="Roles"
         description="Administra los roles del sistema y sus niveles de acceso."
-        headerActions={
+        actions={
           <EntityCreateButton onClick={handleCreate}>
             Crear Rol
           </EntityCreateButton>
         }
+      />
+      <EntityIndexPage<Role>
+        ariaLabel="Roles"
         cardTitle={
           <EntityCardTitle icon={Shield}>Catálogo de roles</EntityCardTitle>
         }

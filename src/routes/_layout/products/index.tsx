@@ -4,6 +4,7 @@ import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { MoreVertical, Package, RotateCcw, SearchIcon } from "lucide-react";
 import { toast } from "sonner";
 
+import { SiteHeader } from "@/components/features/layout/site-header";
 import { EntityCardTitle } from "@/components/features/entity/entity-card-title";
 import {
   EntityIndexPage,
@@ -219,92 +220,98 @@ function ProductsListPage() {
   ];
 
   return (
-    <EntityIndexPage<Product>
-      ariaLabel="Productos"
-      title="Productos"
-      description="Administra el catálogo de productos y sus variantes en BikeStop."
-      headerActions={
-        <div className="flex items-center gap-2">
-          <Button
-            render={<Link to="/categories" />}
-            variant="outline"
-            size="sm"
-          >
-            Administrar Categorías
-          </Button>
-          <CreateProductDialog onSuccess={mutate} />
-        </div>
-      }
-      cardTitle={
-        <EntityCardTitle icon={Package}>Catálogo de productos</EntityCardTitle>
-      }
-      cardHeaderExtras={
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <InputGroup className="w-full max-w-xl">
-            <InputGroupAddon>
-              <SearchIcon />
-            </InputGroupAddon>
-            <InputGroupInput
-              type="search"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") {
-                  handleApplySearch();
-                }
-              }}
-              placeholder="Buscar por nombre, marca o categoría"
-              aria-label="Buscar por nombre, marca o categoría"
-            />
-          </InputGroup>
-
+    <>
+      <SiteHeader
+        title="Productos"
+        description="Administra el catálogo de productos y sus variantes en BikeStop."
+        actions={
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-500">Estatus</span>
-            <Select
-              value={status}
-              onValueChange={(value) => {
-                setStatus(value as ListStatusFilter);
-                setPage(0);
-              }}
-            >
-              <SelectTrigger size="sm" className="min-w-36">
-                <SelectValue>{statusFilterLabel[status]}</SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="enable">Activo</SelectItem>
-                <SelectItem value="disable">Inactivo</SelectItem>
-              </SelectContent>
-            </Select>
             <Button
+              render={<Link to="/categories" />}
               variant="outline"
               size="sm"
-              className="h-8"
-              onClick={handleClearFilters}
             >
-              <RotateCcw />
-              Limpiar
+              Administrar Categorías
             </Button>
+            <CreateProductDialog onSuccess={mutate} />
           </div>
-        </div>
-      }
-      columns={columns}
-      rows={products}
-      rowKey={(product) => product.id}
-      loading={isLoading}
-      validating={isValidating && !!res}
-      hasError={hasError}
-      errorMessage="Error al cargar los productos."
-      onRetry={() => mutate()}
-      emptyMessage="No hay productos que coincidan con los filtros."
-      pagination={{
-        mode: "page",
-        total,
-        page,
-        pageSize: PAGE_SIZE,
-        totalLabel: "productos",
-        onPageChange: (nextPage) => setPage(nextPage),
-      }}
-    />
+        }
+      />
+      <EntityIndexPage<Product>
+        ariaLabel="Productos"
+        cardTitle={
+          <EntityCardTitle icon={Package}>
+            Catálogo de productos
+          </EntityCardTitle>
+        }
+        cardHeaderExtras={
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <InputGroup className="w-full max-w-xl">
+              <InputGroupAddon>
+                <SearchIcon />
+              </InputGroupAddon>
+              <InputGroupInput
+                type="search"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    handleApplySearch();
+                  }
+                }}
+                placeholder="Buscar por nombre, marca o categoría"
+                aria-label="Buscar por nombre, marca o categoría"
+              />
+            </InputGroup>
+
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-500">Estatus</span>
+              <Select
+                value={status}
+                onValueChange={(value) => {
+                  setStatus(value as ListStatusFilter);
+                  setPage(0);
+                }}
+              >
+                <SelectTrigger size="sm" className="min-w-36">
+                  <SelectValue>{statusFilterLabel[status]}</SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="enable">Activo</SelectItem>
+                  <SelectItem value="disable">Inactivo</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8"
+                onClick={handleClearFilters}
+              >
+                <RotateCcw />
+                Limpiar
+              </Button>
+            </div>
+          </div>
+        }
+        columns={columns}
+        rows={products}
+        rowKey={(product) => product.id}
+        loading={isLoading}
+        validating={isValidating && !!res}
+        hasError={hasError}
+        errorMessage="Error al cargar los productos."
+        onRetry={() => mutate()}
+        emptyMessage="No hay productos que coincidan con los filtros."
+        pagination={{
+          mode: "page",
+          total,
+          page,
+          pageSize: PAGE_SIZE,
+          totalLabel: "productos",
+          onPageChange: (nextPage) => setPage(nextPage),
+        }}
+      />
+    </>
   );
 }

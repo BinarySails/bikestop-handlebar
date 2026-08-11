@@ -9,6 +9,7 @@ import {
   EntityFilterBar,
   type FilterDefinition,
 } from "@/components/features/entity/entity-filter-bar";
+import { SiteHeader } from "@/components/features/layout/site-header";
 import { EntityCardTitle } from "@/components/features/entity/entity-card-title";
 import { EntityCreateButton } from "@/components/features/entity/entity-create-button";
 import {
@@ -317,53 +318,57 @@ function SalesOrdersPage() {
   ];
 
   return (
-    <EntityIndexPage
-      ariaLabel="Órdenes de venta"
-      title="Órdenes de venta"
-      description="Consulta todas tus ordenes de venta pedientes."
-      headerActions={
-        <EntityCreateButton render={<Link to="/sales/new" />}>
-          Crear orden
-        </EntityCreateButton>
-      }
-      cardTitle={
-        <EntityCardTitle icon={ShoppingCart}>
-          Catálogo de órdenes de venta
-        </EntityCardTitle>
-      }
-      cardHeaderExtras={
-        <EntityFilterBar
-          filters={filterDefinitions}
-          values={filterValues}
-          pinned={[
-            "order_number",
-            "status",
-            "order_date_from",
-            "order_date_to",
-            "grand_total_min",
-            "grand_total_max",
-          ]}
-          onChange={handleFilterChange}
-          onClear={handleClearFilters}
-        />
-      }
-      columns={columns}
-      rows={orders}
-      rowKey={(order) => order.id}
-      loading={isLoading}
-      validating={isValidating && Boolean(res)}
-      hasError={hasError}
-      errorMessage="Error al cargar las órdenes de venta."
-      onRetry={() => mutate()}
-      emptyMessage="No hay órdenes de venta que coincidan con los filtros."
-      pagination={{
-        mode: "page",
-        total,
-        page,
-        pageSize: PAGE_SIZE,
-        totalLabel: "órdenes",
-        onPageChange: handlePageChange,
-      }}
-    />
+    <>
+      <SiteHeader
+        title="Órdenes de venta"
+        description="Consulta todas tus ordenes de venta pedientes."
+        actions={
+          <EntityCreateButton render={<Link to="/sales/new" />}>
+            Crear orden
+          </EntityCreateButton>
+        }
+      />
+      <EntityIndexPage
+        ariaLabel="Órdenes de venta"
+        cardTitle={
+          <EntityCardTitle icon={ShoppingCart}>
+            Catálogo de órdenes de venta
+          </EntityCardTitle>
+        }
+        cardHeaderExtras={
+          <EntityFilterBar
+            filters={filterDefinitions}
+            values={filterValues}
+            pinned={[
+              "order_number",
+              "status",
+              "order_date_from",
+              "order_date_to",
+              "grand_total_min",
+              "grand_total_max",
+            ]}
+            onChange={handleFilterChange}
+            onClear={handleClearFilters}
+          />
+        }
+        columns={columns}
+        rows={orders}
+        rowKey={(order) => order.id}
+        loading={isLoading}
+        validating={isValidating && Boolean(res)}
+        hasError={hasError}
+        errorMessage="Error al cargar las órdenes de venta."
+        onRetry={() => mutate()}
+        emptyMessage="No hay órdenes de venta que coincidan con los filtros."
+        pagination={{
+          mode: "page",
+          total,
+          page,
+          pageSize: PAGE_SIZE,
+          totalLabel: "órdenes",
+          onPageChange: handlePageChange,
+        }}
+      />
+    </>
   );
 }

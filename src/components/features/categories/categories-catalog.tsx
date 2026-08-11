@@ -10,6 +10,7 @@ import {
   Trash2,
 } from "lucide-react";
 
+import { SiteHeader } from "@/components/features/layout/site-header";
 import { EntityCardTitle } from "@/components/features/entity/entity-card-title";
 import { EntityCreateButton } from "@/components/features/entity/entity-create-button";
 import {
@@ -240,11 +241,10 @@ export function CategoriesCatalog({
 
   return (
     <>
-      <EntityIndexPage<{ category: Category; depth: number }>
-        ariaLabel="Categorías"
+      <SiteHeader
         title="Categorías"
         description="Administra el catálogo y la jerarquía de categorías de productos."
-        headerActions={
+        actions={
           <EntityCreateButton
             onClick={() => {
               setFormOpen(true);
@@ -253,6 +253,9 @@ export function CategoriesCatalog({
             Nueva categoría
           </EntityCreateButton>
         }
+      />
+      <EntityIndexPage<{ category: Category; depth: number }>
+        ariaLabel="Categorías"
         cardTitle={
           <EntityCardTitle icon={Shapes}>
             Catálogo de categorías
