@@ -111,7 +111,7 @@ describe("CategoriesCatalog", () => {
     const { rerender } = render(
       <CategoriesCatalog filters={{}} onFiltersChange={vi.fn()} />
     );
-    expect(screen.getByLabelText("Cargando categorías")).toBeTruthy();
+    expect(document.querySelector('[data-slot="skeleton"]')).toBeTruthy();
 
     api.query.mockReturnValue(
       queryState({ data: { status: 200, data: { categories: [] } } })

@@ -51,7 +51,7 @@ vi.mock("./image-upload-field", () => ({
   ),
 }));
 
-describe("BrandsCatalog API container", () => {
+describe("BrandsCatalog", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     api.create.mockResolvedValue({ status: 201, data: brandFixtures[0] });

@@ -12,6 +12,7 @@ import {
   UserRound,
   Users,
   Warehouse,
+  Shield,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -35,7 +36,7 @@ const navigationItems = [
   { label: "Marcas", icon: Tags, to: "/brands" },
   { label: "Locaciones", icon: MapPin, to: "/locations" },
   { label: "Usuarios", icon: Users, to: "/users" },
-  { label: "Roles y permisos", icon: Users, to: "/team" },
+  { label: "Roles", icon: Shield, to: "/roles" },
   { label: "Almacenes", icon: Warehouse, to: "/warehouses" },
 ] as const;
 

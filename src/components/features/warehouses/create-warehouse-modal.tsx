@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { useCreateWarehouseRequest, useListStatesRequest } from "@/lib/api/api";
 import { CreateWarehouseRequestBody } from "@/lib/api/zods";
 
+import { EntityCreateButton } from "@/components/features/entity/entity-create-button";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -84,7 +85,9 @@ export function CreateWarehouseDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button>Crear Almacén</Button>} />
+      <DialogTrigger
+        render={<EntityCreateButton>Crear Almacén</EntityCreateButton>}
+      />
 
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>

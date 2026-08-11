@@ -1,10 +1,11 @@
 import { useForm } from "@tanstack/react-form";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { Package } from "lucide-react";
+import { List, Package } from "lucide-react";
 import { toast } from "sonner";
 
-import { ProductDetailHeader } from "@/components/features/products/product-detail-header";
+import { EntityDetailHeader } from "@/components/features/entity/entity-detail-header";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -206,13 +207,32 @@ function ProductDetailView({
           selector={(state) => [state.isSubmitting, state.isDirty]}
         >
           {([isSubmitting, isDirty]) => (
-            <ProductDetailHeader
-              product={product}
-              productId={productId}
+            <EntityDetailHeader
+              backTo="/products"
+              backLabel="Volver a todos los productos"
+              title="Producto"
+              badge={
+                <Badge variant="outline">{statusLabels[product.status]}</Badge>
+              }
+              extraActions={
+                <Button
+                  render={
+                    <Link
+                      to="/products/$productId/variants"
+                      params={{ productId }}
+                    />
+                  }
+                  variant="outline"
+                >
+                  <List className="size-4" />
+                  <span>Ver variantes</span>
+                </Button>
+              }
               isDirty={isDirty}
               isSubmitting={isSubmitting}
               onSave={() => form.handleSubmit()}
-              onDeleteClick={() => setDeleteOpen(true)}
+              onDelete={() => setDeleteOpen(true)}
+              showDelete={product.status !== "archive"}
             />
           )}
         </form.Subscribe>

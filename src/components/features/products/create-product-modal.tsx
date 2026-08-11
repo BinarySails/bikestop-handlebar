@@ -9,6 +9,7 @@ import {
 import { CreateProductRequestBody } from "@/lib/api/zods";
 
 import { Button } from "@/components/ui/button";
+import { EntityCreateButton } from "@/components/features/entity/entity-create-button";
 import {
   Dialog,
   DialogContent,
@@ -80,9 +81,9 @@ export function CreateProductDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger>
-        <Button>Crear Producto</Button>
-      </DialogTrigger>
+      <DialogTrigger
+        render={<EntityCreateButton>Crear Producto</EntityCreateButton>}
+      />
 
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>

@@ -4,8 +4,9 @@ import { useState } from "react";
 import { Package, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
-import { VariantDetailHeader } from "@/components/features/products/variant-detail-header";
+import { EntityDetailHeader } from "@/components/features/entity/entity-detail-header";
 import { ImageUploadField } from "@/components/features/products/image-upload-field";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -261,13 +262,19 @@ function VariantDetailView({
           selector={(state) => [state.isSubmitting, state.isDirty]}
         >
           {([isSubmitting, isDirty]) => (
-            <VariantDetailHeader
-              productId={productId}
-              variant={variant}
+            <EntityDetailHeader
+              backTo="/products/$productId/variants"
+              backParams={{ productId }}
+              backLabel="Volver a las variantes"
+              title="Variante"
+              badge={
+                <Badge variant="outline">{statusLabels[variant.status]}</Badge>
+              }
               isDirty={isDirty}
               isSubmitting={isSubmitting}
               onSave={() => form.handleSubmit()}
-              onDeleteClick={() => setDeleteOpen(true)}
+              onDelete={() => setDeleteOpen(true)}
+              showDelete={variant.status !== "archive"}
             />
           )}
         </form.Subscribe>

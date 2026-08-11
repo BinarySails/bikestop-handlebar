@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { PlusIcon } from "lucide-react";
 import { useForm } from "@tanstack/react-form";
 import { toast } from "sonner";
 import { useCreateUserRequest, useListRolesHandler } from "@/lib/api/api";
 import { CreateUserRequestBody } from "@/lib/api/zods";
 
+import { EntityCreateButton } from "@/components/features/entity/entity-create-button";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -96,11 +96,8 @@ export function CreateUserDialog({ onCreated }: { onCreated?: () => void }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger
-        render={<Button className="bg-gray-900 text-white hover:bg-gray-800" />}
-      >
-        <PlusIcon data-icon="inline-start" />
-        Crear Usuario
-      </DialogTrigger>
+        render={<EntityCreateButton>Crear Usuario</EntityCreateButton>}
+      />
 
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
