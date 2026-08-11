@@ -9,6 +9,8 @@ import {
   VariantCombobox,
   findActiveRegularPrice,
 } from "@/components/features/sales/variant-combobox";
+import { CountrySelect } from "@/components/features/locations/country-select";
+import { StateSelect } from "@/components/features/locations/state-select";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -22,6 +24,7 @@ import {
   type Product,
   type Variant,
 } from "@/lib/api/schemas";
+import { DEFAULT_COUNTRY } from "@/components/features/locations/country-select";
 import { centsToPesosString, pesosToCents } from "@/lib/money";
 import { CreateSalesOrderRequestBody } from "@/lib/api/zods";
 
@@ -146,7 +149,7 @@ function computeLineTotals(line: LineFormValues) {
 }
 
 const defaultAddress: AddressFormValues = {
-  country: "México",
+  country: DEFAULT_COUNTRY,
   state: "",
   city: "",
   postal_code: "",
@@ -265,12 +268,10 @@ export function CreateSalesOrderForm() {
           {(field) => (
             <div className="grid gap-1.5">
               <Label htmlFor={field.name}>País</Label>
-              <Input
+              <CountrySelect
                 id={field.name}
                 value={field.state.value}
-                onChange={(event) => field.handleChange(event.target.value)}
-                onBlur={field.handleBlur}
-                placeholder="México"
+                onValueChange={(value) => field.handleChange(value ?? "")}
                 disabled={disabled}
                 aria-invalid={field.state.meta.errors.length > 0}
               />
@@ -292,12 +293,10 @@ export function CreateSalesOrderForm() {
           {(field) => (
             <div className="grid gap-1.5">
               <Label htmlFor={field.name}>Estado</Label>
-              <Input
+              <StateSelect
                 id={field.name}
                 value={field.state.value}
-                onChange={(event) => field.handleChange(event.target.value)}
-                onBlur={field.handleBlur}
-                placeholder="Jalisco"
+                onValueChange={(value) => field.handleChange(value ?? "")}
                 disabled={disabled}
                 aria-invalid={field.state.meta.errors.length > 0}
               />

@@ -1,9 +1,14 @@
 /* oxlint-disable react/no-unstable-nested-components -- column cells are render callbacks, not components */
-import { useEffect, useState } from "react";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
-import { ChevronDown, MoreVertical, ShoppingCart } from "lucide-react";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import { MoreVertical, ShoppingCart } from "lucide-react";
 import { z } from "zod";
 
+import {
+  EntityFilterBar,
+  type FilterDefinition,
+} from "@/components/features/entity/entity-filter-bar";
 import { EntityCardTitle } from "@/components/features/entity/entity-card-title";
 import { EntityCreateButton } from "@/components/features/entity/entity-create-button";
 import {
@@ -12,21 +17,12 @@ import {
 } from "@/components/features/entity/entity-index-page";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { DatePicker } from "@/components/ui/date-picker";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { useListSalesOrdersRequest } from "@/lib/api/api";
 import { SalesOrderStatus } from "@/lib/api/schemas";
 import { centsToPesos } from "@/lib/money";
@@ -57,8 +53,6 @@ const salesSearchSchema = z.object({
   shipping_country: z.string().trim().min(1).optional().catch(undefined),
 });
 
-type StatusFilter = "all" | keyof typeof SalesOrderStatus;
-
 const statusLabel: Record<keyof typeof SalesOrderStatus, string> = {
   draft: "Borrador",
   quote: "Cotización",
@@ -67,11 +61,6 @@ const statusLabel: Record<keyof typeof SalesOrderStatus, string> = {
   fulfilled: "Surtida",
   cancelled: "Cancelada",
   closed: "Cerrada",
-};
-
-const statusFilterLabel: Record<StatusFilter, string> = {
-  all: "Todas",
-  ...statusLabel,
 };
 
 const statusBadgeVariant: Record<
@@ -101,10 +90,6 @@ function parseISODate(value: string): Date {
   return new Date(value);
 }
 
-function toISODateString(date: Date): string {
-  return date.toISOString().split("T")[0];
-}
-
 function toStartOfDayISO(value: string): string {
   const date = parseISODate(value);
   date.setUTCHours(0, 0, 0, 0);
@@ -117,124 +102,101 @@ function toEndOfDayISO(value: string): string {
   return date.toISOString();
 }
 
-function useDebouncedSearchParam(
-  key:
-    | "order_number"
-    | "customer_username"
-    | "customer_company_name"
-    | "shipping_state"
-    | "shipping_country",
-  initialValue?: string
-) {
-  const [input, setInput] = useState(initialValue ?? "");
-  const navigate = useNavigate({ from: Route.fullPath });
-
-  useEffect(() => {
-    setInput(initialValue ?? "");
-  }, [initialValue]);
-
-  useEffect(() => {
-    const timeout = window.setTimeout(() => {
-      if (input !== (initialValue ?? "")) {
-        navigate({
-          search: (current) => ({
-            ...current,
-            [key]: input || undefined,
-            page: 0,
-          }),
-          replace: true,
-        });
-      }
-    }, 300);
-
-    return () => window.clearTimeout(timeout);
-  }, [input, initialValue, key, navigate]);
-
-  return [input, setInput] as const;
-}
-
 export const Route = createFileRoute("/_layout/sales/")({
   validateSearch: salesSearchSchema,
   component: SalesOrdersPage,
 });
 
-function StatusMultiSelect({
-  values,
-  onChange,
-}: {
-  values: (keyof typeof SalesOrderStatus)[];
-  onChange: (values: (keyof typeof SalesOrderStatus)[]) => void;
-}) {
-  const label =
-    values.length === 0
-      ? statusFilterLabel.all
-      : values.map((value) => statusLabel[value]).join(", ");
-
-  return (
-    <Popover>
-      <PopoverTrigger
-        render={
-          <Button
-            variant="outline"
-            className="w-44 justify-between font-normal"
-          >
-            <span className="truncate">{label}</span>
-            <ChevronDown className="size-4 text-muted-foreground" />
-          </Button>
-        }
-      />
-      <PopoverContent className="w-56 p-2" align="start">
-        <div className="flex flex-col gap-1">
-          {Object.entries(SalesOrderStatus).map(([key, value]) => (
-            <label
-              key={value}
-              className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-accent"
-            >
-              <Checkbox
-                checked={values.includes(value)}
-                onCheckedChange={(checked) => {
-                  onChange(
-                    checked
-                      ? [...values, value]
-                      : values.filter((v) => v !== value)
-                  );
-                }}
-              />
-              {statusLabel[key as keyof typeof SalesOrderStatus]}
-            </label>
-          ))}
-        </div>
-      </PopoverContent>
-    </Popover>
-  );
-}
+const filterDefinitions: FilterDefinition[] = [
+  {
+    key: "order_number",
+    label: "Número de orden",
+    type: "text",
+    placeholder: "SO-000000001",
+  },
+  {
+    key: "status",
+    label: "Estatus",
+    type: "select",
+    options: Object.entries(SalesOrderStatus).map(([key, value]) => ({
+      value,
+      label: statusLabel[key as keyof typeof SalesOrderStatus],
+    })),
+    valueFormatter: (value) =>
+      value
+        .split(",")
+        .map(
+          (item) => statusLabel[item.trim() as keyof typeof SalesOrderStatus]
+        )
+        .join(", "),
+  },
+  {
+    key: "customer_username",
+    label: "Usuario del cliente",
+    type: "text",
+    placeholder: "Usuario",
+  },
+  {
+    key: "customer_company_name",
+    label: "Empresa del cliente",
+    type: "text",
+    placeholder: "Empresa",
+  },
+  {
+    key: "shipping_state",
+    label: "Estado de envío",
+    type: "state",
+  },
+  {
+    key: "shipping_country",
+    label: "País de envío",
+    type: "country",
+  },
+  {
+    key: "order_date_from",
+    label: "Fecha desde",
+    type: "date",
+    valueFormatter: (value) =>
+      format(parseISODate(value), "dd/MM/yyyy", { locale: es }),
+  },
+  {
+    key: "order_date_to",
+    label: "Fecha hasta",
+    type: "date",
+    valueFormatter: (value) =>
+      format(parseISODate(value), "dd/MM/yyyy", { locale: es }),
+  },
+  {
+    key: "grand_total_min",
+    label: "Total mínimo",
+    type: "number",
+    placeholder: "0",
+  },
+  {
+    key: "grand_total_max",
+    label: "Total máximo",
+    type: "number",
+    placeholder: "0",
+  },
+];
 
 function SalesOrdersPage() {
   const filters = Route.useSearch();
   const navigate = useNavigate({ from: Route.fullPath });
   const page = filters.page ?? 0;
 
-  const [orderNumberInput, setOrderNumberInput] = useDebouncedSearchParam(
-    "order_number",
-    filters.order_number
-  );
-  const [customerUsernameInput, setCustomerUsernameInput] =
-    useDebouncedSearchParam("customer_username", filters.customer_username);
-  const [customerCompanyInput, setCustomerCompanyInput] =
-    useDebouncedSearchParam(
-      "customer_company_name",
-      filters.customer_company_name
-    );
-  const [shippingStateInput, setShippingStateInput] = useDebouncedSearchParam(
-    "shipping_state",
-    filters.shipping_state
-  );
-  const [shippingCountryInput, setShippingCountryInput] =
-    useDebouncedSearchParam("shipping_country", filters.shipping_country);
-
-  const selectedStatuses = filters.status
-    ? (filters.status.split(",") as (keyof typeof SalesOrderStatus)[])
-    : [];
+  const filterValues: Partial<Record<string, string>> = {
+    order_number: filters.order_number,
+    status: filters.status,
+    customer_username: filters.customer_username,
+    customer_company_name: filters.customer_company_name,
+    shipping_state: filters.shipping_state,
+    shipping_country: filters.shipping_country,
+    order_date_from: filters.order_date_from,
+    order_date_to: filters.order_date_to,
+    grand_total_min: filters.grand_total_min?.toString(),
+    grand_total_max: filters.grand_total_max?.toString(),
+  };
 
   const {
     data: res,
@@ -272,57 +234,17 @@ function SalesOrdersPage() {
     });
   }
 
-  function handleStatusChange(values: (keyof typeof SalesOrderStatus)[]) {
+  function handleFilterChange(key: string, value: string | undefined) {
+    const parsed =
+      key === "grand_total_min" || key === "grand_total_max"
+        ? value === undefined || value === "" || Number(value) < 0
+          ? undefined
+          : Number(value)
+        : value;
     navigate({
       search: (current) => ({
         ...current,
-        status: values.length > 0 ? values.join(",") : undefined,
-        page: 0,
-      }),
-      replace: true,
-    });
-  }
-
-  function handleDateFromChange(date?: Date) {
-    navigate({
-      search: (current) => ({
-        ...current,
-        order_date_from: date ? toISODateString(date) : undefined,
-        page: 0,
-      }),
-      replace: true,
-    });
-  }
-
-  function handleDateToChange(date?: Date) {
-    navigate({
-      search: (current) => ({
-        ...current,
-        order_date_to: date ? toISODateString(date) : undefined,
-        page: 0,
-      }),
-      replace: true,
-    });
-  }
-
-  function handleGrandTotalMinChange(value: string) {
-    const number = value === "" ? undefined : Number(value);
-    navigate({
-      search: (current) => ({
-        ...current,
-        grand_total_min: number && number >= 0 ? number : undefined,
-        page: 0,
-      }),
-      replace: true,
-    });
-  }
-
-  function handleGrandTotalMaxChange(value: string) {
-    const number = value === "" ? undefined : Number(value);
-    navigate({
-      search: (current) => ({
-        ...current,
-        grand_total_max: number && number >= 0 ? number : undefined,
+        [key]: parsed || undefined,
         page: 0,
       }),
       replace: true,
@@ -335,18 +257,6 @@ function SalesOrdersPage() {
       replace: true,
     });
   }
-
-  const hasFilters =
-    filters.status !== undefined ||
-    filters.order_number !== undefined ||
-    filters.customer_username !== undefined ||
-    filters.customer_company_name !== undefined ||
-    filters.order_date_from !== undefined ||
-    filters.order_date_to !== undefined ||
-    filters.grand_total_min !== undefined ||
-    filters.grand_total_max !== undefined ||
-    filters.shipping_state !== undefined ||
-    filters.shipping_country !== undefined;
 
   const columns: EntityColumn<(typeof orders)[number]>[] = [
     {
@@ -421,202 +331,20 @@ function SalesOrdersPage() {
         </EntityCardTitle>
       }
       cardHeaderExtras={
-        <>
-          <div className="flex flex-wrap items-end gap-4">
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="order-number-search">Número de orden</Label>
-              <Input
-                id="order-number-search"
-                placeholder="SO-000000001"
-                value={orderNumberInput}
-                onChange={(e) => setOrderNumberInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    navigate({
-                      search: (current) => ({
-                        ...current,
-                        order_number: orderNumberInput || undefined,
-                        page: 0,
-                      }),
-                      replace: true,
-                    });
-                  }
-                }}
-                className="w-72"
-              />
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="status">Estatus</Label>
-              <StatusMultiSelect
-                values={selectedStatuses}
-                onChange={handleStatusChange}
-              />
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <span className="text-sm font-medium">&nbsp;</span>
-              <Button
-                className="h-8"
-                variant="outline"
-                size="sm"
-                onClick={handleClearFilters}
-                disabled={!hasFilters}
-              >
-                Limpiar
-              </Button>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap items-end gap-4">
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="customer-username">Usuario del cliente</Label>
-              <Input
-                id="customer-username"
-                placeholder="Usuario"
-                value={customerUsernameInput}
-                onChange={(e) => setCustomerUsernameInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    navigate({
-                      search: (current) => ({
-                        ...current,
-                        customer_username: customerUsernameInput || undefined,
-                        page: 0,
-                      }),
-                      replace: true,
-                    });
-                  }
-                }}
-                className="w-44"
-              />
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="customer-company">Empresa del cliente</Label>
-              <Input
-                id="customer-company"
-                placeholder="Empresa"
-                value={customerCompanyInput}
-                onChange={(e) => setCustomerCompanyInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    navigate({
-                      search: (current) => ({
-                        ...current,
-                        customer_company_name:
-                          customerCompanyInput || undefined,
-                        page: 0,
-                      }),
-                      replace: true,
-                    });
-                  }
-                }}
-                className="w-44"
-              />
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="shipping-state">Estado de envío</Label>
-              <Input
-                id="shipping-state"
-                placeholder="Estado"
-                value={shippingStateInput}
-                onChange={(e) => setShippingStateInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    navigate({
-                      search: (current) => ({
-                        ...current,
-                        shipping_state: shippingStateInput || undefined,
-                        page: 0,
-                      }),
-                      replace: true,
-                    });
-                  }
-                }}
-                className="w-44"
-              />
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="shipping-country">País de envío</Label>
-              <Input
-                id="shipping-country"
-                placeholder="País"
-                value={shippingCountryInput}
-                onChange={(e) => setShippingCountryInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    navigate({
-                      search: (current) => ({
-                        ...current,
-                        shipping_country: shippingCountryInput || undefined,
-                        page: 0,
-                      }),
-                      replace: true,
-                    });
-                  }
-                }}
-                className="w-44"
-              />
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <Label>Desde</Label>
-              <DatePicker
-                value={
-                  filters.order_date_from
-                    ? parseISODate(filters.order_date_from)
-                    : undefined
-                }
-                onChange={handleDateFromChange}
-                placeholder="Fecha inicial"
-                className="w-40"
-              />
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <Label>Hasta</Label>
-              <DatePicker
-                value={
-                  filters.order_date_to
-                    ? parseISODate(filters.order_date_to)
-                    : undefined
-                }
-                onChange={handleDateToChange}
-                placeholder="Fecha final"
-                className="w-40"
-              />
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="grand-total-min">Total mínimo</Label>
-              <Input
-                id="grand-total-min"
-                type="number"
-                min={0}
-                placeholder="0"
-                value={filters.grand_total_min ?? ""}
-                onChange={(e) => handleGrandTotalMinChange(e.target.value)}
-                className="w-36"
-              />
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="grand-total-max">Total máximo</Label>
-              <Input
-                id="grand-total-max"
-                type="number"
-                min={0}
-                placeholder="0"
-                value={filters.grand_total_max ?? ""}
-                onChange={(e) => handleGrandTotalMaxChange(e.target.value)}
-                className="w-36"
-              />
-            </div>
-          </div>
-        </>
+        <EntityFilterBar
+          filters={filterDefinitions}
+          values={filterValues}
+          pinned={[
+            "order_number",
+            "status",
+            "order_date_from",
+            "order_date_to",
+            "grand_total_min",
+            "grand_total_max",
+          ]}
+          onChange={handleFilterChange}
+          onClear={handleClearFilters}
+        />
       }
       columns={columns}
       rows={orders}
