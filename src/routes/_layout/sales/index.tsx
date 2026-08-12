@@ -2,7 +2,7 @@
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { MoreVertical, ShoppingCart } from "lucide-react";
+import { Eye, MoreVertical, ShoppingCart } from "lucide-react";
 import { z } from "zod";
 
 import {
@@ -310,7 +310,17 @@ function SalesOrdersPage() {
             }
           />
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => {}}>Ver</DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => {
+                navigate({
+                  to: "/sales/$orderId",
+                  params: { orderId: order.id },
+                });
+              }}
+            >
+              <Eye />
+              Ver
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       ),

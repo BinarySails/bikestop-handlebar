@@ -71,9 +71,7 @@ export function VariantCombobox({
       onValueChange={(variant: Variant | null) => {
         onChange(variant);
       }}
-      itemToStringLabel={(variant: Variant) =>
-        `${variant.display_name} (${variant.sku})`
-      }
+      itemToStringLabel={(variant: Variant) => `${variant.display_name}`}
       isItemEqualToValue={(a: Variant, b: Variant) => a.id === b.id}
       disabled={disabled || !productId}
     >
