@@ -73,18 +73,18 @@ export function ProductInventoryTable({
           <Table aria-label="Listado de inventario por variante">
             <TableHeader>
               <TableRow>
+                <TableHead>Almacén</TableHead>
                 <TableHead>SKU</TableHead>
                 <TableHead>Nombre</TableHead>
-                <TableHead>Almacén</TableHead>
                 <TableHead>Cantidad</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {items.map((item, index) => (
                 <TableRow key={`${item.sku}-${item.almacen}-${index}`}>
-                  <TableCell className="font-medium">{item.sku}</TableCell>
+                  <TableCell className="font-medium">{item.almacen}</TableCell>
+                  <TableCell>{item.sku}</TableCell>
                   <TableCell>{item.nombre}</TableCell>
-                  <TableCell>{item.almacen}</TableCell>
                   <TableCell>{item.cantidad}</TableCell>
                 </TableRow>
               ))}
