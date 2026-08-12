@@ -45,6 +45,7 @@ import type {
   CreateRoleResponse,
   CreateSalesOrderRequest,
   CreateStateRequest,
+  CreateTagRequest,
   CreateUserRequest,
   CreateVariantRequest,
   CreateWarehouseRequest,
@@ -54,6 +55,7 @@ import type {
   DeleteFileResponse,
   DeletePermissionResponse,
   DeleteRoleResponse,
+  DeleteTagResponse,
   ErrorResponse,
   FileId,
   GetCategoriesRequestParams,
@@ -74,6 +76,8 @@ import type {
   ListProductsResponse,
   ListRolesResponse,
   ListSalesOrdersRequestParams,
+  ListTagsRequestParams,
+  ListTagsResponse,
   ListUserRolesResponse,
   ListUsersRequestParams,
   ListUsersResponse,
@@ -82,6 +86,8 @@ import type {
   LocalityId,
   LoginRequest,
   LoginResponse,
+  OrderTagId,
+  OrderTagResponse,
   PaginatedBrand,
   PaginatedCustomerSummary,
   PaginatedSalesOrderSummaryView,
@@ -108,6 +114,8 @@ import type {
   UpdateProductRequest,
   UpdateRoleRequest,
   UpdateRoleResponse,
+  UpdateSalesOrderTagsRequest,
+  UpdateTagRequest,
   UpdateUserProfileRequest,
   UpdateUserRequest,
   UpdateVariantRequest,
@@ -4627,6 +4635,404 @@ export const useRemoveUserRoleHandler = <TError = Promise<void>>(
   }
 }
 
+export type listTagsRequestResponse200 = {
+  data: ListTagsResponse
+  status: 200
+}
+
+export type listTagsRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type listTagsRequestResponseSuccess = (listTagsRequestResponse200) & {
+  headers: Headers;
+};
+export type listTagsRequestResponseError = (listTagsRequestResponse500) & {
+  headers: Headers;
+};
+
+export type listTagsRequestResponse = (listTagsRequestResponseSuccess | listTagsRequestResponseError)
+
+export const getListTagsRequestUrl = (params?: ListTagsRequestParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `http://localhost:8080/api/v1/sale-order-tags?${stringifiedParams}` : `http://localhost:8080/api/v1/sale-order-tags`
+}
+
+export const listTagsRequest = async (params?: ListTagsRequestParams, options?: RequestInit): Promise<listTagsRequestResponse> => {
+
+  const res = await fetch(getListTagsRequestUrl(params),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'GET'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: listTagsRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as listTagsRequestResponse
+}
+
+
+
+
+export const getListTagsRequestKey = (params?: ListTagsRequestParams,) => [`http://localhost:8080/api/v1/sale-order-tags`, ...(params ? [params]: [])] as const;
+
+export type ListTagsRequestQueryResult = NonNullable<Awaited<ReturnType<typeof listTagsRequest>>>
+
+export const useListTagsRequest = <TError = Promise<ErrorResponse>>(
+  params?: ListTagsRequestParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof listTagsRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
+) => {
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getListTagsRequestKey(params) : null);
+  const swrFn = () => listTagsRequest(params, fetchOptions)
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type createTagRequestResponse201 = {
+  data: OrderTagResponse
+  status: 201
+}
+
+export type createTagRequestResponse400 = {
+  data: ErrorResponse
+  status: 400
+}
+
+export type createTagRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type createTagRequestResponseSuccess = (createTagRequestResponse201) & {
+  headers: Headers;
+};
+export type createTagRequestResponseError = (createTagRequestResponse400 | createTagRequestResponse500) & {
+  headers: Headers;
+};
+
+export type createTagRequestResponse = (createTagRequestResponseSuccess | createTagRequestResponseError)
+
+export const getCreateTagRequestUrl = () => {
+
+
+
+
+  return `http://localhost:8080/api/v1/sale-order-tags`
+}
+
+export const createTagRequest = async (createTagRequest: CreateTagRequest, options?: RequestInit): Promise<createTagRequestResponse> => {
+
+  const res = await fetch(getCreateTagRequestUrl(),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(createTagRequest)
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: createTagRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as createTagRequestResponse
+}
+
+
+
+
+export const getCreateTagRequestMutationFetcher = ( options?: RequestInit) => {
+  return (_: Key, { arg }: { arg: CreateTagRequest }) => {
+    return createTagRequest(arg, options);
+  }
+}
+export const getCreateTagRequestMutationKey = () => [`http://localhost:8080/api/v1/sale-order-tags`] as const;
+
+export type CreateTagRequestMutationResult = NonNullable<Awaited<ReturnType<typeof createTagRequest>>>
+
+export const useCreateTagRequest = <TError = Promise<ErrorResponse>>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof createTagRequest>>, TError, Key, CreateTagRequest, Awaited<ReturnType<typeof createTagRequest>>> & { swrKey?: string }, fetch?: RequestInit}
+) => {
+
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getCreateTagRequestMutationKey();
+  const swrFn = getCreateTagRequestMutationFetcher(fetchOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type getTagRequestResponse200 = {
+  data: OrderTagResponse
+  status: 200
+}
+
+export type getTagRequestResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type getTagRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type getTagRequestResponseSuccess = (getTagRequestResponse200) & {
+  headers: Headers;
+};
+export type getTagRequestResponseError = (getTagRequestResponse404 | getTagRequestResponse500) & {
+  headers: Headers;
+};
+
+export type getTagRequestResponse = (getTagRequestResponseSuccess | getTagRequestResponseError)
+
+export const getGetTagRequestUrl = (id: OrderTagId,) => {
+
+
+
+
+  return `http://localhost:8080/api/v1/sale-order-tags/${id}`
+}
+
+export const getTagRequest = async (id: OrderTagId, options?: RequestInit): Promise<getTagRequestResponse> => {
+
+  const res = await fetch(getGetTagRequestUrl(id),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'GET'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: getTagRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as getTagRequestResponse
+}
+
+
+
+
+export const getGetTagRequestKey = (id: OrderTagId,) => [`http://localhost:8080/api/v1/sale-order-tags/${id}`] as const;
+
+export type GetTagRequestQueryResult = NonNullable<Awaited<ReturnType<typeof getTagRequest>>>
+
+export const useGetTagRequest = <TError = Promise<ErrorResponse>>(
+  id: OrderTagId, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getTagRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
+) => {
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false && id !== null && id !== undefined
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetTagRequestKey(id) : null);
+  const swrFn = () => getTagRequest(id, fetchOptions)
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type deleteTagRequestResponse200 = {
+  data: DeleteTagResponse
+  status: 200
+}
+
+export type deleteTagRequestResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type deleteTagRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type deleteTagRequestResponseSuccess = (deleteTagRequestResponse200) & {
+  headers: Headers;
+};
+export type deleteTagRequestResponseError = (deleteTagRequestResponse404 | deleteTagRequestResponse500) & {
+  headers: Headers;
+};
+
+export type deleteTagRequestResponse = (deleteTagRequestResponseSuccess | deleteTagRequestResponseError)
+
+export const getDeleteTagRequestUrl = (id: OrderTagId,) => {
+
+
+
+
+  return `http://localhost:8080/api/v1/sale-order-tags/${id}`
+}
+
+export const deleteTagRequest = async (id: OrderTagId, options?: RequestInit): Promise<deleteTagRequestResponse> => {
+
+  const res = await fetch(getDeleteTagRequestUrl(id),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'DELETE'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: deleteTagRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as deleteTagRequestResponse
+}
+
+
+
+
+export const getDeleteTagRequestMutationFetcher = (id: OrderTagId, options?: RequestInit) => {
+  return (_: Key, __: { arg: Arguments }) => {
+    return deleteTagRequest(id, options);
+  }
+}
+export const getDeleteTagRequestMutationKey = (id: OrderTagId,) => [`http://localhost:8080/api/v1/sale-order-tags/${id}`] as const;
+
+export type DeleteTagRequestMutationResult = NonNullable<Awaited<ReturnType<typeof deleteTagRequest>>>
+
+export const useDeleteTagRequest = <TError = Promise<ErrorResponse>>(
+  id: OrderTagId, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof deleteTagRequest>>, TError, Key, Arguments, Awaited<ReturnType<typeof deleteTagRequest>>> & { swrKey?: string }, fetch?: RequestInit}
+) => {
+
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getDeleteTagRequestMutationKey(id);
+  const swrFn = getDeleteTagRequestMutationFetcher(id, fetchOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type updateTagRequestResponse200 = {
+  data: OrderTagResponse
+  status: 200
+}
+
+export type updateTagRequestResponse400 = {
+  data: ErrorResponse
+  status: 400
+}
+
+export type updateTagRequestResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type updateTagRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type updateTagRequestResponseSuccess = (updateTagRequestResponse200) & {
+  headers: Headers;
+};
+export type updateTagRequestResponseError = (updateTagRequestResponse400 | updateTagRequestResponse404 | updateTagRequestResponse500) & {
+  headers: Headers;
+};
+
+export type updateTagRequestResponse = (updateTagRequestResponseSuccess | updateTagRequestResponseError)
+
+export const getUpdateTagRequestUrl = (id: OrderTagId,) => {
+
+
+
+
+  return `http://localhost:8080/api/v1/sale-order-tags/${id}`
+}
+
+export const updateTagRequest = async (id: OrderTagId,
+    updateTagRequest: UpdateTagRequest, options?: RequestInit): Promise<updateTagRequestResponse> => {
+
+  const res = await fetch(getUpdateTagRequestUrl(id),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(updateTagRequest)
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: updateTagRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as updateTagRequestResponse
+}
+
+
+
+
+export const getUpdateTagRequestMutationFetcher = (id: OrderTagId, options?: RequestInit) => {
+  return (_: Key, { arg }: { arg: UpdateTagRequest }) => {
+    return updateTagRequest(id, arg, options);
+  }
+}
+export const getUpdateTagRequestMutationKey = (id: OrderTagId,) => [`http://localhost:8080/api/v1/sale-order-tags/${id}`] as const;
+
+export type UpdateTagRequestMutationResult = NonNullable<Awaited<ReturnType<typeof updateTagRequest>>>
+
+export const useUpdateTagRequest = <TError = Promise<ErrorResponse>>(
+  id: OrderTagId, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof updateTagRequest>>, TError, Key, UpdateTagRequest, Awaited<ReturnType<typeof updateTagRequest>>> & { swrKey?: string }, fetch?: RequestInit}
+) => {
+
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getUpdateTagRequestMutationKey(id);
+  const swrFn = getUpdateTagRequestMutationFetcher(id, fetchOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
 export type listSalesOrdersRequestResponse200 = {
   data: PaginatedSalesOrderSummaryView
   status: 200
@@ -5042,6 +5448,92 @@ export const useAddSalesOrderCommentRequest = <TError = Promise<ErrorResponse>>(
 
   const swrKey = swrOptions?.swrKey ?? getAddSalesOrderCommentRequestMutationKey(id);
   const swrFn = getAddSalesOrderCommentRequestMutationFetcher(id, fetchOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type updateSalesOrderTagsRequestResponse200 = {
+  data: SalesOrder
+  status: 200
+}
+
+export type updateSalesOrderTagsRequestResponse400 = {
+  data: ErrorResponse
+  status: 400
+}
+
+export type updateSalesOrderTagsRequestResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type updateSalesOrderTagsRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type updateSalesOrderTagsRequestResponseSuccess = (updateSalesOrderTagsRequestResponse200) & {
+  headers: Headers;
+};
+export type updateSalesOrderTagsRequestResponseError = (updateSalesOrderTagsRequestResponse400 | updateSalesOrderTagsRequestResponse404 | updateSalesOrderTagsRequestResponse500) & {
+  headers: Headers;
+};
+
+export type updateSalesOrderTagsRequestResponse = (updateSalesOrderTagsRequestResponseSuccess | updateSalesOrderTagsRequestResponseError)
+
+export const getUpdateSalesOrderTagsRequestUrl = (id: SalesOrderId,) => {
+
+
+
+
+  return `http://localhost:8080/api/v1/sales-orders/${id}/tags`
+}
+
+export const updateSalesOrderTagsRequest = async (id: SalesOrderId,
+    updateSalesOrderTagsRequest: UpdateSalesOrderTagsRequest, options?: RequestInit): Promise<updateSalesOrderTagsRequestResponse> => {
+
+  const res = await fetch(getUpdateSalesOrderTagsRequestUrl(id),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(updateSalesOrderTagsRequest)
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: updateSalesOrderTagsRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as updateSalesOrderTagsRequestResponse
+}
+
+
+
+
+export const getUpdateSalesOrderTagsRequestMutationFetcher = (id: SalesOrderId, options?: RequestInit) => {
+  return (_: Key, { arg }: { arg: UpdateSalesOrderTagsRequest }) => {
+    return updateSalesOrderTagsRequest(id, arg, options);
+  }
+}
+export const getUpdateSalesOrderTagsRequestMutationKey = (id: SalesOrderId,) => [`http://localhost:8080/api/v1/sales-orders/${id}/tags`] as const;
+
+export type UpdateSalesOrderTagsRequestMutationResult = NonNullable<Awaited<ReturnType<typeof updateSalesOrderTagsRequest>>>
+
+export const useUpdateSalesOrderTagsRequest = <TError = Promise<ErrorResponse>>(
+  id: SalesOrderId, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof updateSalesOrderTagsRequest>>, TError, Key, UpdateSalesOrderTagsRequest, Awaited<ReturnType<typeof updateSalesOrderTagsRequest>>> & { swrKey?: string }, fetch?: RequestInit}
+) => {
+
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getUpdateSalesOrderTagsRequestMutationKey(id);
+  const swrFn = getUpdateSalesOrderTagsRequestMutationFetcher(id, fetchOptions);
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
