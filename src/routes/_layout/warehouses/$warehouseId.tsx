@@ -4,7 +4,8 @@ import { useState } from "react";
 import { WarehouseIcon } from "lucide-react";
 import { toast } from "sonner";
 
-import { WarehouseDetailHeader } from "@/components/features/warehouses/warehouse-detail-header";
+import { EntityDetailHeader } from "@/components/features/entity/entity-detail-header";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -211,13 +212,21 @@ function WarehouseDetailView({
           selector={(state) => [state.isSubmitting, state.isDirty]}
         >
           {([isSubmitting, isDirty]) => (
-            <WarehouseDetailHeader
-              warehouse={warehouse}
+            <EntityDetailHeader
+              backTo="/warehouses"
+              backLabel="Volver a todos los almacenes"
+              title="Almacén"
+              badge={
+                <Badge variant="outline">
+                  {statusLabels[warehouse.status]}
+                </Badge>
+              }
               isDirty={isDirty}
               isSubmitting={isSubmitting}
               onSave={() => form.handleSubmit()}
               onDiscard={() => form.reset()}
-              onDeleteClick={() => setDeleteOpen(true)}
+              onDelete={() => setDeleteOpen(true)}
+              showDelete={warehouse.status === "active"}
             />
           )}
         </form.Subscribe>

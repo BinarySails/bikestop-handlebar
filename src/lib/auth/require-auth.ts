@@ -32,7 +32,8 @@ async function runValidation(): Promise<ValidationResult> {
   const { setAuth, clearAuth, expiresAt } = useAuthStore.getState();
 
   try {
-    const { data: user, status } = await meHandler();
+    const { data, status } = await meHandler();
+    const user = status === 200 ? data : null;
 
     if (user && status === 200) {
       setAuth(

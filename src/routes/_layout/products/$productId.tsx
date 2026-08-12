@@ -1,12 +1,12 @@
 import { useForm } from "@tanstack/react-form";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { Package } from "lucide-react";
+import { List, Package } from "lucide-react";
 import { toast } from "sonner";
 
-import { ProductDetailHeader } from "@/components/features/products/product-detail-header";
+import { EntityDetailHeader } from "@/components/features/entity/entity-detail-header";
 import { ProductInventoryTable } from "@/components/features/products/product-inventory-table";
-import { ProductVariantsSection } from "@/components/features/products/product-variants-section";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -33,8 +33,8 @@ import {
   useGetProductRequest,
   useGetCategoriesRequest,
   useListBrandsRequest,
-  useUpdateProductRequest,
   useListVariantsByProductRequest,
+  useUpdateProductRequest,
 } from "@/lib/api/api";
 import { useProductInventory } from "@/lib/api/use-product-inventory";
 import type {
@@ -112,16 +112,12 @@ function ProductDetailView({
   const { data: brandsRes, isLoading: brandsLoading } = useListBrandsRequest();
   const { data: categoriesRes, isLoading: categoriesLoading } =
     useGetCategoriesRequest();
-  const {
-    data: variantsRes,
-    error: variantsError,
-    isLoading: variantsLoading,
-    mutate: mutateVariants,
-  } = useListVariantsByProductRequest(productId, {
-    swr: {
-      revalidateOnFocus: false,
-    },
-  });
+  const { data: variantsRes, isLoading: variantsLoading } =
+    useListVariantsByProductRequest(productId, {
+      swr: {
+        revalidateOnFocus: false,
+      },
+    });
 
   const brands: Brand[] = brandsRes?.status === 200 ? brandsRes.data.data : [];
   const categories: Category[] =
@@ -134,7 +130,7 @@ function ProductDetailView({
     isLoading: inventoryLoading,
     error: inventoryError,
     mutate: mutateInventory,
-  } = useProductInventory(productId, variants);
+  } = useProductInventory(productId, variantsLoading ? undefined : variants);
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deletePending, setDeletePending] = useState(false);
@@ -230,14 +226,32 @@ function ProductDetailView({
           selector={(state) => [state.isSubmitting, state.isDirty]}
         >
           {([isSubmitting, isDirty]) => (
-            <ProductDetailHeader
-              product={product}
-              productId={productId}
+            <EntityDetailHeader
+              backTo="/products"
+              backLabel="Volver a todos los productos"
+              title="Producto"
+              badge={
+                <Badge variant="outline">{statusLabels[product.status]}</Badge>
+              }
+              extraActions={
+                <Button
+                  render={
+                    <Link
+                      to="/products/$productId/variants"
+                      params={{ productId }}
+                    />
+                  }
+                  variant="outline"
+                >
+                  <List className="size-4" />
+                  <span>Ver variantes</span>
+                </Button>
+              }
               isDirty={isDirty}
               isSubmitting={isSubmitting}
               onSave={() => form.handleSubmit()}
-              onDeleteClick={() => setDeleteOpen(true)}
-              onVariantCreated={mutateVariants}
+              onDelete={() => setDeleteOpen(true)}
+              showDelete={product.status !== "archive"}
             />
           )}
         </form.Subscribe>
@@ -389,18 +403,10 @@ function ProductDetailView({
         </section>
       </form>
 
-      <ProductVariantsSection
-        productId={productId}
-        variants={variants}
-        isLoading={variantsLoading}
-        error={variantsError}
-        onSuccess={mutateVariants}
-      />
-
       <section id="inventory" className="scroll-mt-4 space-y-6">
         <ProductInventoryTable
           items={inventoryItems}
-          loading={inventoryLoading}
+          loading={inventoryLoading || variantsLoading}
           error={inventoryError}
           onRetry={() => mutateInventory()}
         />

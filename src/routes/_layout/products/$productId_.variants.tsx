@@ -1,7 +1,7 @@
 /* oxlint-disable react/no-unstable-nested-components -- column cells are render callbacks, not components */
-import { useEffect, useState } from "react";
-import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
-import { MoreVertical, Package, RotateCcw, SearchIcon } from "lucide-react";
+import { useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Boxes, MoreVertical, RotateCcw, SearchIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { SiteHeader } from "@/components/features/layout/site-header";
@@ -10,7 +10,7 @@ import {
   EntityIndexPage,
   type EntityColumn,
 } from "@/components/features/entity/entity-index-page";
-import { CreateProductDialog } from "@/components/features/products/create-product-modal";
+import { CreateVariantDialog } from "@/components/features/products/create-variant-modal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,11 +32,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useListProductsRequest, useUpdateProductRequest } from "@/lib/api/api";
-import type { Product } from "@/lib/api/schemas";
+import {
+  useListVariantsByProductRequest,
+  useUpdateVariantRequest,
+} from "@/lib/api/api";
+import type { Variant } from "@/lib/api/schemas";
 
-export const Route = createFileRoute("/_layout/products/")({
-  component: ProductsListPage,
+export const Route = createFileRoute("/_layout/products/$productId_/variants")({
+  component: ProductVariantsPage,
 });
 
 const PAGE_SIZE = 10;
@@ -44,7 +47,7 @@ const PAGE_SIZE = 10;
 type ListStatusFilter = "all" | "enable" | "disable";
 
 const statusBadgeVariant: Record<
-  Product["status"],
+  Variant["status"],
   "default" | "secondary" | "destructive"
 > = {
   enable: "default",
@@ -52,7 +55,7 @@ const statusBadgeVariant: Record<
   archive: "destructive",
 };
 
-const statusLabel: Record<Product["status"], string> = {
+const statusLabel: Record<Variant["status"], string> = {
   enable: "Activo",
   disable: "Inactivo",
   archive: "Archivado",
@@ -64,49 +67,100 @@ const statusFilterLabel: Record<ListStatusFilter, string> = {
   disable: "Inactivo",
 };
 
-function ViewProductMenuItem({ productId }: { productId: string }) {
+function capitalizeFirst(value: string): string {
+  if (!value) return value;
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+function formatProperties(properties: Variant["properties"]): string {
+  if (properties.length === 0) return "—";
+  return properties
+    .filter((property) => property.status !== "archive")
+    .map(
+      (property) =>
+        `${capitalizeFirst(property.property_name)}: ${capitalizeFirst(property.property_value)}`
+    )
+    .join(", ");
+}
+
+function formatRegularPrice(prices: Variant["prices"]): string {
+  const regular = prices.find(
+    (price) => price.price_type === "regular" && price.status === "enable"
+  );
+  if (!regular) return "—";
+  return new Intl.NumberFormat("es-MX", {
+    style: "currency",
+    currency: regular.currency,
+  }).format(regular.amount / 100);
+}
+
+function ViewVariantMenuItem({
+  productId,
+  variantId,
+}: {
+  productId: string;
+  variantId: string;
+}) {
   const navigate = useNavigate();
 
   return (
     <DropdownMenuItem
       onClick={() =>
-        navigate({ to: "/products/$productId", params: { productId } })
+        navigate({
+          to: "/products/$productId/variants/$variantId",
+          params: { productId, variantId },
+        })
       }
     >
-      <span>Ver</span>
+      Ver
     </DropdownMenuItem>
   );
 }
 
-function ArchiveProductMenuItem({
-  product,
+function ArchiveVariantMenuItem({
+  productId,
+  variant,
   onSuccess,
 }: {
-  product: Product;
+  productId: string;
+  variant: Variant;
   onSuccess?: () => Promise<unknown>;
 }) {
-  const { trigger: updateProduct } = useUpdateProductRequest(product.id);
+  const { trigger: updateVariant } = useUpdateVariantRequest(
+    productId,
+    variant.id
+  );
   const [pending, setPending] = useState(false);
 
   async function handleArchive() {
     setPending(true);
     try {
-      const result = await updateProduct({
-        display_name: product.display_name,
-        brand_id: product.brand.id,
-        category_id: product.category.id,
-        description: product.description ?? null,
+      const result = await updateVariant({
+        sku: variant.sku,
+        display_name: variant.display_name,
+        image_url: variant.image_url,
         status: "archive",
+        properties: variant.properties.map((property) => ({
+          property_name: property.property_name,
+          property_value: property.property_value,
+          status: property.status,
+        })),
+        prices: variant.prices.map((price) => ({
+          price_type: price.price_type,
+          amount: price.amount,
+          currency: price.currency,
+          status: price.status,
+        })),
       });
 
       if (result.status === 200) {
-        toast.success(`Producto "${product.display_name}" archivado.`);
+        toast.success(`Variante "${variant.display_name}" archivada.`);
         await onSuccess?.();
       } else {
-        toast.error("No se pudo archivar el producto.");
+        toast.error("No se pudo archivar la variante.");
       }
     } catch {
-      toast.error("No se pudo archivar el producto.");
+      toast.error("No se pudo archivar la variante.");
     } finally {
       setPending(false);
     }
@@ -116,14 +170,15 @@ function ArchiveProductMenuItem({
     <DropdownMenuItem
       variant="destructive"
       onClick={handleArchive}
-      disabled={pending || product.status === "archive"}
+      disabled={pending || variant.status === "archive"}
     >
-      <span>Eliminar</span>
+      Eliminar
     </DropdownMenuItem>
   );
 }
 
-function ProductsListPage() {
+function ProductVariantsPage() {
+  const { productId } = Route.useParams();
   const [page, setPage] = useState(0);
   const [search, setSearch] = useState("");
   const [appliedSearch, setAppliedSearch] = useState("");
@@ -135,16 +190,33 @@ function ProductsListPage() {
     isLoading,
     isValidating,
     mutate,
-  } = useListProductsRequest({
-    page: page + 1,
-    limit: PAGE_SIZE,
-    status: status === "all" ? undefined : status,
-    search: appliedSearch || undefined,
+  } = useListVariantsByProductRequest(productId, {
+    swr: {
+      revalidateOnFocus: false,
+    },
   });
 
-  const products = res?.status === 200 ? res.data.data : [];
-  const total = res?.status === 200 ? res.data.total : 0;
+  const allVariants = res?.status === 200 ? res.data : [];
   const hasError = Boolean(error) || Boolean(res && res.status !== 200);
+
+  const term = appliedSearch.trim().toLowerCase();
+  const filteredVariants = allVariants.filter((variant) => {
+    if (status !== "all" && variant.status !== status) return false;
+    if (!term) return true;
+    const searchable = [
+      variant.display_name,
+      variant.sku,
+      formatProperties(variant.properties),
+    ]
+      .join(" ")
+      .toLowerCase();
+    return searchable.includes(term);
+  });
+
+  const pageVariants = filteredVariants.slice(
+    page * PAGE_SIZE,
+    (page + 1) * PAGE_SIZE
+  );
 
   function handleApplySearch() {
     setAppliedSearch(search);
@@ -158,44 +230,43 @@ function ProductsListPage() {
     setPage(0);
   }
 
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      if (search !== appliedSearch) {
-        setAppliedSearch(search);
-        setPage(0);
-      }
-    }, 300);
-
-    return () => clearTimeout(timeout);
-  }, [search, appliedSearch]);
-
-  const columns: EntityColumn<Product>[] = [
+  const columns: EntityColumn<Variant>[] = [
     {
       header: "Estatus",
-      cell: (product) => (
-        <Badge variant={statusBadgeVariant[product.status]}>
-          {statusLabel[product.status]}
+      cell: (variant) => (
+        <Badge variant={statusBadgeVariant[variant.status]}>
+          {statusLabel[variant.status]}
         </Badge>
       ),
     },
     {
+      header: "SKU",
+      cell: (variant) => <span className="font-medium">{variant.sku}</span>,
+    },
+    {
       header: "Nombre",
-      cell: (product) => (
-        <span className="font-medium">{product.display_name}</span>
+      cell: (variant) => <span>{variant.display_name}</span>,
+    },
+    {
+      header: "Propiedades",
+      cell: (variant) => (
+        <span className="text-muted-foreground">
+          {formatProperties(variant.properties)}
+        </span>
       ),
     },
     {
-      header: "Marca",
-      cell: (product) => <span>{product.brand.display_name}</span>,
-    },
-    {
-      header: "Categoría",
-      cell: (product) => <span>{product.category.display_name}</span>,
+      header: "Precio regular",
+      cell: (variant) => (
+        <span className="font-medium">
+          {formatRegularPrice(variant.prices)}
+        </span>
+      ),
     },
     {
       header: <span className="sr-only">Acciones</span>,
       className: "w-12",
-      cell: (product) => (
+      cell: (variant) => (
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
@@ -203,16 +274,20 @@ function ProductsListPage() {
                 variant="ghost"
                 size="icon"
                 className="size-8"
-                aria-label={`Acciones de ${product.display_name}`}
+                aria-label={`Acciones de ${variant.display_name}`}
               >
                 <MoreVertical className="size-4" />
               </Button>
             }
           />
           <DropdownMenuContent align="end">
-            <ViewProductMenuItem productId={product.id} />
+            <ViewVariantMenuItem productId={productId} variantId={variant.id} />
             <DropdownMenuSeparator />
-            <ArchiveProductMenuItem product={product} onSuccess={mutate} />
+            <ArchiveVariantMenuItem
+              productId={productId}
+              variant={variant}
+              onSuccess={mutate}
+            />
           </DropdownMenuContent>
         </DropdownMenu>
       ),
@@ -222,27 +297,17 @@ function ProductsListPage() {
   return (
     <>
       <SiteHeader
-        title="Productos"
-        description="Administra el catálogo de productos y sus variantes en BikeStop."
+        title="Variantes"
+        backTo={`/products/${productId}`}
+        backLabel="Volver al producto"
         actions={
-          <div className="flex items-center gap-2">
-            <Button
-              render={<Link to="/categories" />}
-              variant="outline"
-              size="sm"
-            >
-              Administrar Categorías
-            </Button>
-            <CreateProductDialog onSuccess={mutate} />
-          </div>
+          <CreateVariantDialog productId={productId} onSuccess={mutate} />
         }
       />
-      <EntityIndexPage<Product>
-        ariaLabel="Productos"
+      <EntityIndexPage<Variant>
+        ariaLabel="Variantes del producto"
         cardTitle={
-          <EntityCardTitle icon={Package}>
-            Catálogo de productos
-          </EntityCardTitle>
+          <EntityCardTitle icon={Boxes}>Catálogo de variantes</EntityCardTitle>
         }
         cardHeaderExtras={
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -259,8 +324,8 @@ function ProductsListPage() {
                     handleApplySearch();
                   }
                 }}
-                placeholder="Buscar por nombre, marca o categoría"
-                aria-label="Buscar por nombre, marca o categoría"
+                placeholder="Buscar por nombre, SKU o propiedad"
+                aria-label="Buscar por nombre, SKU o propiedad"
               />
             </InputGroup>
 
@@ -295,20 +360,20 @@ function ProductsListPage() {
           </div>
         }
         columns={columns}
-        rows={products}
-        rowKey={(product) => product.id}
+        rows={pageVariants}
+        rowKey={(variant) => variant.id}
         loading={isLoading}
         validating={isValidating && !!res}
         hasError={hasError}
-        errorMessage="Error al cargar los productos."
+        errorMessage="Error al cargar las variantes."
         onRetry={() => mutate()}
-        emptyMessage="No hay productos que coincidan con los filtros."
+        emptyMessage="No hay variantes que coincidan con los filtros."
         pagination={{
           mode: "page",
-          total,
+          total: filteredVariants.length,
           page,
           pageSize: PAGE_SIZE,
-          totalLabel: "productos",
+          totalLabel: "variantes",
           onPageChange: (nextPage) => setPage(nextPage),
         }}
       />
