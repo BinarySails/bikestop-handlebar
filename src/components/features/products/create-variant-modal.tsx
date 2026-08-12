@@ -4,6 +4,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { ImageUploadField } from "@/components/features/products/image-upload-field";
+import { EntityCreateButton } from "@/components/features/entity/entity-create-button";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -154,9 +155,9 @@ export function CreateVariantDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger>
-        <Button>Crear Variante</Button>
-      </DialogTrigger>
+      <DialogTrigger
+        render={<EntityCreateButton>Crear Variante</EntityCreateButton>}
+      />
 
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>

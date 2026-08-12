@@ -1,18 +1,18 @@
+/* oxlint-disable react/no-unstable-nested-components -- column cells are render callbacks, not components */
 import { useState } from "react";
-import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
-import {
-  ArrowLeft,
-  ChevronLeft,
-  ChevronRight,
-  MoreVertical,
-  Search,
-} from "lucide-react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Boxes, MoreVertical, RotateCcw, SearchIcon } from "lucide-react";
 import { toast } from "sonner";
 
+import { SiteHeader } from "@/components/features/layout/site-header";
+import { EntityCardTitle } from "@/components/features/entity/entity-card-title";
+import {
+  EntityIndexPage,
+  type EntityColumn,
+} from "@/components/features/entity/entity-index-page";
 import { CreateVariantDialog } from "@/components/features/products/create-variant-modal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,8 +20,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group";
 import {
   Select,
   SelectContent,
@@ -29,15 +32,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import {
   useListVariantsByProductRequest,
   useUpdateVariantRequest,
@@ -178,18 +172,8 @@ function ArchiveVariantMenuItem({
       onClick={handleArchive}
       disabled={pending || variant.status === "archive"}
     >
-      <span>Eliminar</span>
+      Eliminar
     </DropdownMenuItem>
-  );
-}
-
-function VariantsListSkeleton() {
-  return (
-    <div className="space-y-3">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <Skeleton key={i} className="h-12 w-full" />
-      ))}
-    </div>
   );
 }
 
@@ -204,6 +188,7 @@ function ProductVariantsPage() {
     data: res,
     error,
     isLoading,
+    isValidating,
     mutate,
   } = useListVariantsByProductRequest(productId, {
     swr: {
@@ -212,6 +197,7 @@ function ProductVariantsPage() {
   });
 
   const allVariants = res?.status === 200 ? res.data : [];
+  const hasError = Boolean(error) || Boolean(res && res.status !== 200);
 
   const term = appliedSearch.trim().toLowerCase();
   const filteredVariants = allVariants.filter((variant) => {
@@ -227,8 +213,6 @@ function ProductVariantsPage() {
     return searchable.includes(term);
   });
 
-  const total = filteredVariants.length;
-  const totalPages = Math.ceil(total / PAGE_SIZE) || 1;
   const pageVariants = filteredVariants.slice(
     page * PAGE_SIZE,
     (page + 1) * PAGE_SIZE
@@ -246,193 +230,153 @@ function ProductVariantsPage() {
     setPage(0);
   }
 
-  return (
-    <section
-      aria-label="Variantes del producto"
-      className="mx-auto flex w-full max-w-6xl flex-col gap-6 p-6"
-    >
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <Button
-            render={<Link to="/products/$productId" params={{ productId }} />}
-            variant="ghost"
-            size="icon"
-            aria-label="Volver al producto"
-            className="size-9"
-          >
-            <ArrowLeft className="size-4" />
-          </Button>
-          <h1 className="text-2xl font-semibold tracking-tight">Variantes</h1>
-        </div>
-        <CreateVariantDialog productId={productId} onSuccess={mutate} />
-      </div>
+  const columns: EntityColumn<Variant>[] = [
+    {
+      header: "Estatus",
+      cell: (variant) => (
+        <Badge variant={statusBadgeVariant[variant.status]}>
+          {statusLabel[variant.status]}
+        </Badge>
+      ),
+    },
+    {
+      header: "SKU",
+      cell: (variant) => <span className="font-medium">{variant.sku}</span>,
+    },
+    {
+      header: "Nombre",
+      cell: (variant) => <span>{variant.display_name}</span>,
+    },
+    {
+      header: "Propiedades",
+      cell: (variant) => (
+        <span className="text-muted-foreground">
+          {formatProperties(variant.properties)}
+        </span>
+      ),
+    },
+    {
+      header: "Precio regular",
+      cell: (variant) => (
+        <span className="font-medium">
+          {formatRegularPrice(variant.prices)}
+        </span>
+      ),
+    },
+    {
+      header: <span className="sr-only">Acciones</span>,
+      className: "w-12",
+      cell: (variant) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-8"
+                aria-label={`Acciones de ${variant.display_name}`}
+              >
+                <MoreVertical className="size-4" />
+              </Button>
+            }
+          />
+          <DropdownMenuContent align="end">
+            <ViewVariantMenuItem productId={productId} variantId={variant.id} />
+            <DropdownMenuSeparator />
+            <ArchiveVariantMenuItem
+              productId={productId}
+              variant={variant}
+              onSuccess={mutate}
+            />
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+    },
+  ];
 
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-wrap items-end gap-4">
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="search">Búsqueda</Label>
-            <div className="relative">
-              <Search className="absolute top-2.5 left-2.5 size-4 text-muted-foreground" />
-              <Input
-                id="search"
-                placeholder="Nombre, SKU o propiedad"
+  return (
+    <>
+      <SiteHeader
+        title="Variantes"
+        backTo={`/products/${productId}`}
+        backLabel="Volver al producto"
+        actions={
+          <CreateVariantDialog productId={productId} onSuccess={mutate} />
+        }
+      />
+      <EntityIndexPage<Variant>
+        ariaLabel="Variantes del producto"
+        cardTitle={
+          <EntityCardTitle icon={Boxes}>Catálogo de variantes</EntityCardTitle>
+        }
+        cardHeaderExtras={
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <InputGroup className="w-full max-w-xl">
+              <InputGroupAddon>
+                <SearchIcon />
+              </InputGroupAddon>
+              <InputGroupInput
+                type="search"
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
+                onChange={(event) => setSearch(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
                     handleApplySearch();
                   }
                 }}
-                className="w-72 pl-9"
+                placeholder="Buscar por nombre, SKU o propiedad"
+                aria-label="Buscar por nombre, SKU o propiedad"
               />
+            </InputGroup>
+
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-500">Estatus</span>
+              <Select
+                value={status}
+                onValueChange={(value) => {
+                  setStatus(value as ListStatusFilter);
+                  setPage(0);
+                }}
+              >
+                <SelectTrigger size="sm" className="min-w-36">
+                  <SelectValue>{statusFilterLabel[status]}</SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="enable">Activo</SelectItem>
+                  <SelectItem value="disable">Inactivo</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8"
+                onClick={handleClearFilters}
+              >
+                <RotateCcw />
+                Limpiar
+              </Button>
             </div>
           </div>
-
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="status">Estatus</Label>
-            <Select
-              value={status}
-              onValueChange={(value) => {
-                setStatus(value as ListStatusFilter);
-                setPage(0);
-              }}
-            >
-              <SelectTrigger id="status" className="w-44">
-                <SelectValue
-                  placeholder="Seleccionar"
-                  render={() => <span>{statusFilterLabel[status]}</span>}
-                />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="enable">Activo</SelectItem>
-                <SelectItem value="disable">Inactivo</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <span className="text-sm font-medium">&nbsp;</span>
-            <Button
-              className="h-8"
-              variant="outline"
-              size="sm"
-              onClick={handleClearFilters}
-            >
-              Limpiar
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      <Card>
-        <CardContent className="space-y-4">
-          {isLoading ? (
-            <VariantsListSkeleton />
-          ) : error ? (
-            <p className="text-sm text-muted-foreground">
-              Error al cargar las variantes.
-            </p>
-          ) : pageVariants.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              No hay variantes que coincidan con los filtros.
-            </p>
-          ) : (
-            <>
-              <p className="text-sm text-muted-foreground">Total: 0</p>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Estatus</TableHead>
-                    <TableHead>SKU</TableHead>
-                    <TableHead>Nombre</TableHead>
-                    <TableHead>Propiedades</TableHead>
-                    <TableHead>Precio regular</TableHead>
-                    <TableHead className="w-12" />
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {pageVariants.map((variant) => (
-                    <TableRow key={variant.id}>
-                      <TableCell>
-                        <Badge variant={statusBadgeVariant[variant.status]}>
-                          {statusLabel[variant.status]}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="font-medium">
-                        {variant.sku}
-                      </TableCell>
-                      <TableCell>{variant.display_name}</TableCell>
-                      <TableCell>
-                        {formatProperties(variant.properties)}
-                      </TableCell>
-                      <TableCell>
-                        {formatRegularPrice(variant.prices)}
-                      </TableCell>
-                      <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger
-                            render={
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                aria-label={`Acciones de ${variant.display_name}`}
-                                className="size-8"
-                              >
-                                <MoreVertical className="size-4" />
-                              </Button>
-                            }
-                          />
-                          <DropdownMenuContent align="end">
-                            <ViewVariantMenuItem
-                              productId={productId}
-                              variantId={variant.id}
-                            />
-                            <DropdownMenuSeparator />
-                            <ArchiveVariantMenuItem
-                              productId={productId}
-                              variant={variant}
-                              onSuccess={mutate}
-                            />
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-
-              <div className="mt-4 flex items-center justify-between">
-                <p className="text-sm text-muted-foreground">
-                  Página {page + 1} de {totalPages}
-                </p>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setPage((p) => Math.max(0, p - 1))}
-                    disabled={page === 0}
-                  >
-                    <ChevronLeft className="size-4" />
-                    Anterior
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() =>
-                      setPage((p) => Math.min(totalPages - 1, p + 1))
-                    }
-                    disabled={page >= totalPages - 1}
-                  >
-                    Siguiente
-                    <ChevronRight className="size-4" />
-                  </Button>
-                </div>
-              </div>
-            </>
-          )}
-        </CardContent>
-      </Card>
-    </section>
+        }
+        columns={columns}
+        rows={pageVariants}
+        rowKey={(variant) => variant.id}
+        loading={isLoading}
+        validating={isValidating && !!res}
+        hasError={hasError}
+        errorMessage="Error al cargar las variantes."
+        onRetry={() => mutate()}
+        emptyMessage="No hay variantes que coincidan con los filtros."
+        pagination={{
+          mode: "page",
+          total: filteredVariants.length,
+          page,
+          pageSize: PAGE_SIZE,
+          totalLabel: "variantes",
+          onPageChange: (nextPage) => setPage(nextPage),
+        }}
+      />
+    </>
   );
 }

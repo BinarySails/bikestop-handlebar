@@ -1,7 +1,29 @@
+/* oxlint-disable react/no-unstable-nested-components -- column cells are render callbacks, not components */
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
+import { Archive, Eye, MoreVertical, SearchIcon, Tags } from "lucide-react";
 import { toast } from "sonner";
 
+import { SiteHeader } from "@/components/features/layout/site-header";
+import { EntityCardTitle } from "@/components/features/entity/entity-card-title";
+import { EntityCreateButton } from "@/components/features/entity/entity-create-button";
+import {
+  EntityIndexPage,
+  type EntityColumn,
+} from "@/components/features/entity/entity-index-page";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group";
 import {
   createBrandRequest,
   deleteBrandRequest,
@@ -15,7 +37,8 @@ import {
   type BrandFormErrors,
   type BrandFormValues,
 } from "./brand-form-dialog";
-import { BrandsCatalogView } from "./brands-catalog-view";
+import { BrandImage } from "./brand-image";
+import { BrandStatusBadge } from "./brand-status-badge";
 
 export type BrandCatalogFilters = {
   page?: number;
@@ -117,37 +140,144 @@ export function BrandsCatalog({
     }
   }
 
-  const listError =
-    listQuery.error || (listQuery.data && listQuery.data.status !== 200)
-      ? "Revisa tu conexión e intenta nuevamente."
-      : null;
+  const hasError =
+    Boolean(listQuery.error) ||
+    (Boolean(listQuery.data) && listQuery.data!.status !== 200);
+
+  const columns: EntityColumn<Brand>[] = [
+    {
+      header: "Marca",
+      cell: (brand) => (
+        <div className="flex items-center gap-4">
+          <BrandImage
+            src={brand.image_url}
+            alt={brand.display_name}
+            className="size-14 rounded-xl bg-background shadow-sm"
+          />
+          <div className="flex min-w-0 items-center gap-3">
+            <p className="truncate text-base font-semibold tracking-tight">
+              {brand.display_name}
+            </p>
+            {archivedOnly && <BrandStatusBadge status="archive" />}
+          </div>
+        </div>
+      ),
+    },
+    {
+      header: <span className="sr-only">Acciones</span>,
+      className: "w-12",
+      cell: (brand) => {
+        const archived = brand.status === "archive";
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-8"
+                  aria-label={`Acciones de ${brand.display_name}`}
+                />
+              }
+            >
+              <MoreVertical className="size-4" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={() =>
+                  navigate({
+                    to: "/brands/$brandId/edit",
+                    params: { brandId: brand.id },
+                  })
+                }
+              >
+                <Eye /> Ver detalle
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                variant="destructive"
+                disabled={archived}
+                onClick={() => setArchiveBrand(brand)}
+              >
+                <Archive /> {archived ? "Marca archivada" : "Archivar"}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      },
+    },
+  ];
+
   return (
     <>
-      <BrandsCatalogView
-        brands={visibleBrands}
-        page={response?.page ?? page}
-        limit={response?.limit ?? limit}
-        total={response?.total ?? 0}
-        search={search}
-        archivedOnly={archivedOnly}
-        loading={listQuery.isLoading}
-        refreshing={listQuery.isValidating && Boolean(response)}
-        error={listError}
-        onSearchChange={setSearch}
-        onArchivedOnlyChange={setArchivedOnly}
-        onPageChange={(nextPage) =>
-          onFiltersChange({ ...filters, page: nextPage || undefined })
+      <SiteHeader
+        title="Marcas"
+        description="Gestiona las marcas de productos disponibles en BikeStop."
+        actions={
+          <EntityCreateButton
+            onClick={() => {
+              setCreateOpen(true);
+            }}
+          >
+            Crear marca
+          </EntityCreateButton>
         }
-        onRetry={() => listQuery.mutate()}
-        onCreate={() => setCreateOpen(true)}
-        onView={(brand) =>
-          navigate({
-            to: "/brands/$brandId/edit",
-            params: { brandId: brand.id },
-          })
-        }
-        onArchive={setArchiveBrand}
       />
+      <EntityIndexPage<Brand>
+        ariaLabel="Marcas"
+        cardTitle={
+          <EntityCardTitle icon={Tags}>Catálogo de marcas</EntityCardTitle>
+        }
+        cardHeaderExtras={
+          <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center">
+            <InputGroup className="w-full max-w-xl">
+              <InputGroupAddon>
+                <SearchIcon />
+              </InputGroupAddon>
+              <InputGroupInput
+                type="search"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Buscar por nombre"
+                aria-label="Buscar marcas"
+              />
+            </InputGroup>
+            <Button
+              type="button"
+              variant="outline"
+              className="sm:ml-auto"
+              aria-pressed={archivedOnly}
+              onClick={() => setArchivedOnly(!archivedOnly)}
+            >
+              <Archive />
+              {archivedOnly ? "Mostrar activas" : "Mostrar archivadas"}
+            </Button>
+          </div>
+        }
+        columns={columns}
+        rows={visibleBrands}
+        rowKey={(brand) => brand.id}
+        loading={listQuery.isLoading}
+        validating={listQuery.isValidating && Boolean(response)}
+        hasError={hasError}
+        errorMessage="No se pudieron cargar las marcas. Revisa tu conexión e intenta nuevamente."
+        onRetry={() => listQuery.mutate()}
+        emptyMessage={
+          search
+            ? "No encontramos marcas para esta búsqueda."
+            : "No hay marcas registradas."
+        }
+        pagination={{
+          mode: "page",
+          total: response?.total ?? 0,
+          page,
+          pageSize: limit,
+          totalLabel: "marcas",
+          onPageChange: (nextPage) =>
+            onFiltersChange({ ...filters, page: nextPage || undefined }),
+        }}
+      />
+
       <BrandFormDialog
         open={createOpen}
         onOpenChange={(open) => {

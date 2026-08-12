@@ -1,9 +1,9 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 
+import { EntityDetailHeader } from "@/components/features/entity/entity-detail-header";
 import { ImageUploadField } from "@/components/features/brands/image-upload-field";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -58,8 +58,9 @@ function BrandEditForm({
   const [pending, setPending] = useState(false);
   const [imageUploading, setImageUploading] = useState(false);
 
-  async function submit(event: FormEvent) {
-    event.preventDefault();
+  const isDirty = name !== brand.display_name || imageUrl !== brand.image_url;
+
+  async function saveChanges() {
     setError(undefined);
     if (name.trim().length < 3) {
       setError("El nombre debe tener al menos 3 caracteres.");
@@ -96,14 +97,30 @@ function BrandEditForm({
     }
   }
 
+  async function submit(event: FormEvent) {
+    event.preventDefault();
+    await saveChanges();
+  }
+
   return (
     <section className="mx-auto w-full max-w-3xl space-y-6 p-4 sm:p-6">
-      <Button variant="ghost" render={<Link to="/brands" />}>
-        <ArrowLeft /> Volver a marcas
-      </Button>
+      <EntityDetailHeader
+        backTo="/brands"
+        backLabel="Volver a marcas"
+        title="Editar marca"
+        subtitle={brand.display_name}
+        isDirty={isDirty}
+        isSubmitting={pending || imageUploading}
+        onSave={() => saveChanges()}
+        onDiscard={() => {
+          setName(brand.display_name);
+          setImageUrl(brand.image_url);
+          setError(undefined);
+        }}
+      />
       <Card>
         <CardHeader>
-          <CardTitle>Editar marca</CardTitle>
+          <CardTitle>Información de la marca</CardTitle>
         </CardHeader>
         <CardContent>
           <form className="space-y-5" onSubmit={submit}>
@@ -126,18 +143,6 @@ function BrandEditForm({
                 {error}
               </p>
             )}
-            <div className="flex justify-end gap-3">
-              <Button
-                type="button"
-                variant="outline"
-                render={<Link to="/brands" />}
-              >
-                Cancelar
-              </Button>
-              <Button type="submit" disabled={pending || imageUploading}>
-                {pending ? "Guardando..." : "Guardar cambios"}
-              </Button>
-            </div>
           </form>
         </CardContent>
       </Card>

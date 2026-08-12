@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft } from "lucide-react";
 
 import { CategoryFormDialog } from "@/components/features/categories/category-form-dialog";
+import { EntityDetailHeader } from "@/components/features/entity/entity-detail-header";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGetCategoriesRequest, useGetCategoryRequest } from "@/lib/api/api";
@@ -65,24 +65,13 @@ function CategoryEditPage() {
 
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-col gap-6 p-4 sm:p-6">
-      <div className="flex items-start gap-3">
-        <Button
-          variant="outline"
-          size="icon"
-          aria-label="Volver al detalle"
-          render={<Link to="/categories/$categoryId" params={{ categoryId }} />}
-        >
-          <ArrowLeft className="size-4" />
-        </Button>
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Editar categoría
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Modifica la información y la ubicación de {category.display_name}.
-          </p>
-        </div>
-      </div>
+      <EntityDetailHeader
+        backTo="/categories/$categoryId"
+        backParams={{ categoryId }}
+        backLabel="Volver al detalle"
+        title="Editar categoría"
+        subtitle={`Modifica la información y la ubicación de ${category.display_name}.`}
+      />
 
       <CategoryFormDialog
         open

@@ -1,11 +1,20 @@
-import { Fragment, useState } from "react";
-import { ChevronRight, Search } from "lucide-react";
+/* oxlint-disable react/no-unstable-nested-components -- column cells are render callbacks, not components */
+import { useState } from "react";
+import { ChevronRight, MapPin, RotateCcw, SearchIcon } from "lucide-react";
 
+import { SiteHeader } from "@/components/features/layout/site-header";
+import { EntityCardTitle } from "@/components/features/entity/entity-card-title";
+import {
+  EntityIndexPage,
+  type EntityColumn,
+} from "@/components/features/entity/entity-index-page";
 import { CreateStateLocalityDialog } from "./create-state-locality-modal";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -78,31 +87,62 @@ function LocalitiesTable({ stateId }: { stateId: string }) {
   );
 }
 
-type StateRowProps = {
-  state: State;
-  expanded: boolean;
-  onToggle: () => void;
-};
+export function AddressCatalog() {
+  const [expandedStateId, setExpandedStateId] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const { data, isLoading, mutate } = useListStatesRequest();
 
-function StateRow({ state, expanded, onToggle }: StateRowProps) {
-  return (
-    <Fragment>
-      <TableRow className="cursor-pointer" onClick={onToggle}>
-        <TableCell className="font-medium">
-          <span className="flex items-center gap-2">
-            <ChevronRight
-              className={`size-4 text-muted-foreground transition-transform ${
-                expanded ? "rotate-90" : ""
-              }`}
-              aria-hidden="true"
-            />
-            {state.display_name}
+  const states = data?.status === 200 ? (data.data ?? []) : [];
+  const hasError = Boolean(data && data.status !== 200);
+
+  const query = search.trim().toLowerCase();
+  const filteredStates = query
+    ? states.filter((state) => state.display_name.toLowerCase().includes(query))
+    : states;
+
+  function handleToggle(stateId: string) {
+    setExpandedStateId((current) => (current === stateId ? null : stateId));
+  }
+
+  function handleClearFilters() {
+    setSearch("");
+    setExpandedStateId(null);
+  }
+
+  const columns: EntityColumn<State>[] = [
+    {
+      header: "Estado",
+      cell: (state) => {
+        const expanded = expandedStateId === state.id;
+        return (
+          <span className="font-medium">
+            <span className="flex items-center gap-2">
+              <ChevronRight
+                className={`size-4 text-muted-foreground transition-transform ${
+                  expanded ? "rotate-90" : ""
+                }`}
+                aria-hidden="true"
+              />
+              {state.display_name}
+            </span>
           </span>
-        </TableCell>
-        <TableCell className="text-muted-foreground">
+        );
+      },
+    },
+    {
+      header: "Creación",
+      cell: (state) => (
+        <span className="text-muted-foreground">
           {dateFormatter.format(new Date(state.created_at))}
-        </TableCell>
-        <TableCell className="w-12">
+        </span>
+      ),
+    },
+    {
+      header: <span className="sr-only">Acciones</span>,
+      className: "w-12",
+      cell: (state) => {
+        const expanded = expandedStateId === state.id;
+        return (
           <Button
             type="button"
             variant="ghost"
@@ -116,7 +156,7 @@ function StateRow({ state, expanded, onToggle }: StateRowProps) {
             aria-expanded={expanded}
             onClick={(event) => {
               event.stopPropagation();
-              onToggle();
+              handleToggle(state.id);
             }}
           >
             <ChevronRight
@@ -126,134 +166,64 @@ function StateRow({ state, expanded, onToggle }: StateRowProps) {
               aria-hidden="true"
             />
           </Button>
-        </TableCell>
-      </TableRow>
-      {expanded && (
-        <TableRow>
-          <TableCell colSpan={3} className="bg-muted/40">
-            <LocalitiesTable stateId={state.id} />
-          </TableCell>
-        </TableRow>
-      )}
-    </Fragment>
-  );
-}
-
-export function AddressCatalog() {
-  const [expandedStateId, setExpandedStateId] = useState<string | null>(null);
-  const [search, setSearch] = useState("");
-  const { data, isLoading, mutate } = useListStatesRequest();
-
-  const states = data?.status === 200 ? (data.data ?? []) : [];
-  const error =
-    data && data.status !== 200
-      ? "No se pudieron cargar los estados. Revisa tu conexión e intenta nuevamente."
-      : null;
-
-  const query = search.trim().toLowerCase();
-  const filteredStates = query
-    ? states.filter((state) => state.display_name.toLowerCase().includes(query))
-    : states;
-
-  function handleToggle(stateId: string) {
-    setExpandedStateId((current) => (current === stateId ? null : stateId));
-  }
+        );
+      },
+    },
+  ];
 
   return (
-    <section
-      aria-label="Catálogo de ubicaciones"
-      className="mx-auto flex w-full max-w-6xl flex-col gap-6 p-6"
-    >
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Catálogo de ubicaciones
-          </h1>
-        </div>
-        <CreateStateLocalityDialog onSuccess={() => mutate()} />
-      </div>
-
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-wrap items-end gap-4">
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="state-search">Búsqueda</Label>
-            <div className="relative">
-              <Search className="absolute top-2.5 left-2.5 size-4 text-muted-foreground" />
-              <Input
-                id="state-search"
-                aria-label="Buscar estados"
-                placeholder="Buscar por nombre"
+    <>
+      <SiteHeader
+        title="Catálogo de ubicaciones"
+        description="Administra los estados y localidades del catálogo de ubicaciones en BikeStop."
+        actions={<CreateStateLocalityDialog onSuccess={() => mutate()} />}
+      />
+      <EntityIndexPage<State>
+        ariaLabel="Catálogo de ubicaciones"
+        cardTitle={
+          <EntityCardTitle icon={MapPin}>Estados y localidades</EntityCardTitle>
+        }
+        cardHeaderExtras={
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <InputGroup className="w-full max-w-xl">
+              <InputGroupAddon>
+                <SearchIcon />
+              </InputGroupAddon>
+              <InputGroupInput
+                type="search"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                className="w-72 pl-9"
+                placeholder="Buscar por nombre"
+                aria-label="Buscar estados"
               />
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <span className="text-sm font-medium">&nbsp;</span>
+            </InputGroup>
             <Button
-              className="h-8"
               variant="outline"
               size="sm"
-              onClick={() => {
-                setSearch("");
-                setExpandedStateId(null);
-              }}
+              className="h-8"
+              onClick={handleClearFilters}
             >
+              <RotateCcw />
               Limpiar
             </Button>
           </div>
-        </div>
-      </div>
-
-      <Card>
-        <CardContent className="space-y-4">
-          {isLoading ? (
-            <div className="space-y-3" aria-label="Cargando estados">
-              {Array.from({ length: 5 }).map((_, index) => (
-                <Skeleton key={index} className="h-12 w-full" />
-              ))}
-            </div>
-          ) : error ? (
-            <div role="alert" className="space-y-3 py-10 text-center">
-              <p className="font-medium">No se pudieron cargar los estados.</p>
-              <p className="text-sm text-muted-foreground">{error}</p>
-              <Button variant="outline" onClick={() => mutate()}>
-                Reintentar
-              </Button>
-            </div>
-          ) : filteredStates.length === 0 ? (
-            <p className="py-12 text-center text-sm text-muted-foreground">
-              {search
-                ? "No encontramos estados para esta búsqueda."
-                : "No hay estados registrados."}
-            </p>
-          ) : (
-            <Table aria-label="Listado de estados">
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Estado</TableHead>
-                  <TableHead>Creación</TableHead>
-                  <TableHead className="w-12">
-                    <span className="sr-only">Acciones</span>
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredStates.map((state) => (
-                  <StateRow
-                    key={state.id}
-                    state={state}
-                    expanded={expandedStateId === state.id}
-                    onToggle={() => handleToggle(state.id)}
-                  />
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
-    </section>
+        }
+        columns={columns}
+        rows={filteredStates}
+        rowKey={(state) => state.id}
+        onRowClick={(state) => handleToggle(state.id)}
+        expandedRowKey={expandedStateId}
+        expandedRowContent={(state) => <LocalitiesTable stateId={state.id} />}
+        loading={isLoading}
+        hasError={hasError}
+        errorMessage="No se pudieron cargar los estados. Revisa tu conexión e intenta nuevamente."
+        onRetry={() => mutate()}
+        emptyMessage={
+          search
+            ? "No encontramos estados para esta búsqueda."
+            : "No hay estados registrados."
+        }
+      />
+    </>
   );
 }
