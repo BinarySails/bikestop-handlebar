@@ -1,4 +1,5 @@
 /* oxlint-disable react/no-unstable-nested-components -- column cells are render callbacks, not components */
+import { useState } from "react";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -16,6 +17,8 @@ import {
   EntityIndexPage,
   type EntityColumn,
 } from "@/components/features/entity/entity-index-page";
+import { AssignOrderTagsDialog } from "@/components/features/sales/tags/assign-order-tags-dialog";
+import { OrderTagsSelect } from "@/components/features/sales/tags/order-tags-select";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,8 +27,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Label } from "@/components/ui/label";
 import { useListSalesOrdersRequest } from "@/lib/api/api";
-import { SalesOrderStatus } from "@/lib/api/schemas";
+import {
+  SalesOrderStatus,
+  type SalesOrderSummaryView,
+} from "@/lib/api/schemas";
 import { centsToPesos } from "@/lib/money";
 
 const PAGE_SIZE = 50;
@@ -33,6 +40,7 @@ const PAGE_SIZE = 50;
 const salesSearchSchema = z.object({
   page: z.coerce.number().int().nonnegative().optional().catch(0),
   status: z.string().trim().min(1).optional().catch(undefined),
+  tag_ids: z.string().trim().min(1).optional().catch(undefined),
   order_number: z.string().trim().min(1).optional().catch(undefined),
   customer_username: z.string().trim().min(1).optional().catch(undefined),
   customer_company_name: z.string().trim().min(1).optional().catch(undefined),
@@ -199,6 +207,12 @@ function SalesOrdersPage() {
     grand_total_max: filters.grand_total_max?.toString(),
   };
 
+  const selectedTagIds = filters.tag_ids ? filters.tag_ids.split(",") : [];
+
+  const [assignOrder, setAssignOrder] = useState<SalesOrderSummaryView | null>(
+    null
+  );
+
   const {
     data: res,
     error,
@@ -209,6 +223,7 @@ function SalesOrdersPage() {
     page,
     limit: PAGE_SIZE,
     status: filters.status,
+    tag_ids: filters.tag_ids,
     order_number: filters.order_number,
     customer_username: filters.customer_username,
     customer_company_name: filters.customer_company_name,
@@ -246,6 +261,17 @@ function SalesOrdersPage() {
       search: (current) => ({
         ...current,
         [key]: parsed || undefined,
+        page: 0,
+      }),
+      replace: true,
+    });
+  }
+
+  function handleTagIdsChange(values: string[]) {
+    navigate({
+      search: (current) => ({
+        ...current,
+        tag_ids: values.length > 0 ? values.join(",") : undefined,
         page: 0,
       }),
       replace: true,
@@ -293,6 +319,32 @@ function SalesOrdersPage() {
       ),
     },
     {
+      header: "Etiquetas",
+      cell: (order) =>
+        order.tags.length === 0 ? (
+          <span className="text-muted-foreground">-</span>
+        ) : (
+          <div className="flex flex-wrap gap-1">
+            {order.tags.map((tag) => (
+              <Badge
+                key={tag.id}
+                variant="outline"
+                className="gap-1 border-transparent pl-1.5"
+              >
+                <span
+                  aria-hidden
+                  className="size-2 rounded-full"
+                  style={{
+                    backgroundColor: tag.color ?? undefined,
+                  }}
+                />
+                {tag.display_name}
+              </Badge>
+            ))}
+          </div>
+        ),
+    },
+    {
       header: <span className="sr-only">Acciones</span>,
       className: "w-12",
       cell: (order) => (
@@ -310,7 +362,9 @@ function SalesOrdersPage() {
             }
           />
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => {}}>Ver</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setAssignOrder(order)}>
+              Editar etiqueta
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       ),
@@ -323,9 +377,17 @@ function SalesOrdersPage() {
         title="Órdenes de venta"
         description="Consulta todas tus ordenes de venta pedientes."
         actions={
-          <EntityCreateButton render={<Link to="/sales/new" />}>
-            Crear orden
-          </EntityCreateButton>
+          <>
+            <Button
+              render={<Link to="/sales/tags" />}
+              className="bg-gray-900 text-white hover:bg-gray-800"
+            >
+              Administrar etiquetas
+            </Button>
+            <EntityCreateButton render={<Link to="/sales/new" />}>
+              Crear orden
+            </EntityCreateButton>
+          </>
         }
       />
       <EntityIndexPage
@@ -336,20 +398,35 @@ function SalesOrdersPage() {
           </EntityCardTitle>
         }
         cardHeaderExtras={
-          <EntityFilterBar
-            filters={filterDefinitions}
-            values={filterValues}
-            pinned={[
-              "order_number",
-              "status",
-              "order_date_from",
-              "order_date_to",
-              "grand_total_min",
-              "grand_total_max",
-            ]}
-            onChange={handleFilterChange}
-            onClear={handleClearFilters}
-          />
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="tag-ids" className="text-xs">
+                Etiquetas
+              </Label>
+              <div className="w-56">
+                <OrderTagsSelect
+                  id="tag-ids"
+                  value={selectedTagIds}
+                  onChange={handleTagIdsChange}
+                  placeholder="Filtrar por etiqueta"
+                />
+              </div>
+            </div>
+            <EntityFilterBar
+              filters={filterDefinitions}
+              values={filterValues}
+              pinned={[
+                "order_number",
+                "status",
+                "order_date_from",
+                "order_date_to",
+                "grand_total_min",
+                "grand_total_max",
+              ]}
+              onChange={handleFilterChange}
+              onClear={handleClearFilters}
+            />
+          </div>
         }
         columns={columns}
         rows={orders}
@@ -368,6 +445,14 @@ function SalesOrdersPage() {
           totalLabel: "órdenes",
           onPageChange: handlePageChange,
         }}
+      />
+      <AssignOrderTagsDialog
+        order={assignOrder}
+        open={assignOrder !== null}
+        onOpenChange={(next) => {
+          if (!next) setAssignOrder(null);
+        }}
+        onSaved={() => mutate()}
       />
     </>
   );

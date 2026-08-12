@@ -1173,6 +1173,97 @@ export const RemoveUserRoleHandlerResponse = zod.object({
 })
 
 
+export const ListTagsRequestQueryParams = zod.object({
+  "status": zod.enum(['active', 'inactive']).optional()
+})
+
+export const ListTagsRequestResponse = zod.object({
+  "tags": zod.array(zod.object({
+  "color": zod.string().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "slug": zod.string(),
+  "status": zod.enum(['active', 'inactive'])
+}))
+})
+
+
+export const CreateTagRequestBody = zod.object({
+  "color": zod.string().nullish(),
+  "display_name": zod.string(),
+  "slug": zod.string()
+})
+
+export const CreateTagRequestResponse = zod.object({
+  "tag": zod.object({
+  "color": zod.string().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "slug": zod.string(),
+  "status": zod.enum(['active', 'inactive'])
+})
+})
+
+
+export const GetTagRequestParams = zod.object({
+  "id": zod.uuid().describe('Tag ID')
+})
+
+export const GetTagRequestResponse = zod.object({
+  "tag": zod.object({
+  "color": zod.string().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "slug": zod.string(),
+  "status": zod.enum(['active', 'inactive'])
+})
+})
+
+
+export const DeleteTagRequestParams = zod.object({
+  "id": zod.uuid().describe('Tag ID')
+})
+
+export const DeleteTagRequestResponse = zod.object({
+  "tag": zod.object({
+  "tag": zod.object({
+  "color": zod.string().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "slug": zod.string(),
+  "status": zod.enum(['active', 'inactive'])
+})
+})
+})
+
+
+export const UpdateTagRequestParams = zod.object({
+  "id": zod.uuid().describe('Tag ID')
+})
+
+export const UpdateTagRequestBody = zod.object({
+  "color": zod.string().nullish(),
+  "display_name": zod.string(),
+  "slug": zod.string(),
+  "status": zod.enum(['active', 'inactive'])
+})
+
+export const UpdateTagRequestResponse = zod.object({
+  "tag": zod.object({
+  "color": zod.string().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "slug": zod.string(),
+  "status": zod.enum(['active', 'inactive'])
+})
+})
+
+
 export const ListSalesOrdersRequestQueryParams = zod.object({
   "status": zod.string().optional(),
   "order_number": zod.string().optional(),
@@ -1184,6 +1275,7 @@ export const ListSalesOrdersRequestQueryParams = zod.object({
   "grand_total_max": zod.int().optional(),
   "shipping_state": zod.string().optional(),
   "shipping_country": zod.string().optional(),
+  "tag_ids": zod.string().optional(),
   "page": zod.int().optional(),
   "limit": zod.int().optional()
 })
@@ -1217,6 +1309,14 @@ export const ListSalesOrdersRequestResponse = zod.object({
 }),
   "status": zod.enum(['draft', 'quote', 'confirmed', 'partially_fulfilled', 'fulfilled', 'cancelled', 'closed']),
   "subtotal": zod.int(),
+  "tags": zod.array(zod.object({
+  "color": zod.string().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "slug": zod.string(),
+  "status": zod.enum(['active', 'inactive'])
+})),
   "tax_total": zod.int(),
   "updated_at": zod.iso.datetime({"offset":true})
 })),
@@ -1251,7 +1351,8 @@ export const CreateSalesOrderRequestBody = zod.object({
   "country": zod.string(),
   "postal_code": zod.string(),
   "state": zod.string()
-})
+}),
+  "tag_ids": zod.array(zod.uuid()).nullish()
 })
 
 export const CreateSalesOrderRequestResponse = zod.object({
@@ -1296,6 +1397,14 @@ export const CreateSalesOrderRequestResponse = zod.object({
 }),
   "status": zod.enum(['draft', 'quote', 'confirmed', 'partially_fulfilled', 'fulfilled', 'cancelled', 'closed']),
   "subtotal": zod.int(),
+  "tags": zod.array(zod.object({
+  "color": zod.string().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "slug": zod.string(),
+  "status": zod.enum(['active', 'inactive'])
+})),
   "tax_total": zod.int(),
   "updated_at": zod.iso.datetime({"offset":true})
 })
@@ -1347,6 +1456,14 @@ export const GetSaleOrderRequestResponse = zod.object({
 }),
   "status": zod.enum(['draft', 'quote', 'confirmed', 'partially_fulfilled', 'fulfilled', 'cancelled', 'closed']),
   "subtotal": zod.int(),
+  "tags": zod.array(zod.object({
+  "color": zod.string().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "slug": zod.string(),
+  "status": zod.enum(['active', 'inactive'])
+})),
   "tax_total": zod.int(),
   "updated_at": zod.iso.datetime({"offset":true})
 })
@@ -1402,6 +1519,77 @@ export const AddSalesOrderCommentRequestResponse = zod.object({
 }),
   "status": zod.enum(['draft', 'quote', 'confirmed', 'partially_fulfilled', 'fulfilled', 'cancelled', 'closed']),
   "subtotal": zod.int(),
+  "tags": zod.array(zod.object({
+  "color": zod.string().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "slug": zod.string(),
+  "status": zod.enum(['active', 'inactive'])
+})),
+  "tax_total": zod.int(),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+
+
+export const UpdateSalesOrderTagsRequestParams = zod.object({
+  "id": zod.uuid().describe('Sales order ID')
+})
+
+export const UpdateSalesOrderTagsRequestBody = zod.object({
+  "order_tag_ids": zod.array(zod.uuid())
+})
+
+export const UpdateSalesOrderTagsRequestResponse = zod.object({
+  "billing_address": zod.object({
+  "address": zod.string(),
+  "city": zod.string(),
+  "country": zod.string(),
+  "postal_code": zod.string(),
+  "state": zod.string()
+}),
+  "comments": zod.string().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "customer": zod.object({
+  "customer_id": zod.uuid(),
+  "name": zod.string()
+}),
+  "discount_total": zod.int(),
+  "grand_total": zod.int(),
+  "id": zod.uuid(),
+  "lines": zod.array(zod.object({
+  "description": zod.string(),
+  "discount_amount": zod.int(),
+  "discount_percent": zod.int().nullish(),
+  "id": zod.uuid(),
+  "line_number": zod.int(),
+  "line_total": zod.int(),
+  "product_id": zod.uuid(),
+  "quantity": zod.int(),
+  "tax_amount": zod.int(),
+  "tax_rate": zod.int(),
+  "unit_price": zod.int(),
+  "variant_id": zod.uuid()
+})),
+  "order_date": zod.iso.datetime({"offset":true}),
+  "order_number": zod.string(),
+  "shipping_address": zod.object({
+  "address": zod.string(),
+  "city": zod.string(),
+  "country": zod.string(),
+  "postal_code": zod.string(),
+  "state": zod.string()
+}),
+  "status": zod.enum(['draft', 'quote', 'confirmed', 'partially_fulfilled', 'fulfilled', 'cancelled', 'closed']),
+  "subtotal": zod.int(),
+  "tags": zod.array(zod.object({
+  "color": zod.string().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "slug": zod.string(),
+  "status": zod.enum(['active', 'inactive'])
+})),
   "tax_total": zod.int(),
   "updated_at": zod.iso.datetime({"offset":true})
 })

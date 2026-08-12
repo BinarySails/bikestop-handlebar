@@ -28,6 +28,7 @@ import { Route as LayoutProductsIndexRouteImport } from './routes/_layout/produc
 import { Route as LayoutProductsProductIdRouteImport } from './routes/_layout/products/$productId'
 import { Route as LayoutSalesIndexRouteImport } from './routes/_layout/sales/index'
 import { Route as LayoutSalesNewRouteImport } from './routes/_layout/sales/new'
+import { Route as LayoutSalesTagsRouteImport } from './routes/_layout/sales/tags'
 import { Route as LayoutUsersIndexRouteImport } from './routes/_layout/users/index'
 import { Route as LayoutUsersUserIdRouteImport } from './routes/_layout/users/$userId'
 import { Route as LayoutWarehousesIndexRouteImport } from './routes/_layout/warehouses/index'
@@ -132,6 +133,11 @@ const LayoutSalesNewRoute = LayoutSalesNewRouteImport.update({
   path: '/new',
   getParentRoute: () => LayoutSalesRouteRoute,
 } as any)
+const LayoutSalesTagsRoute = LayoutSalesTagsRouteImport.update({
+  id: '/tags',
+  path: '/tags',
+  getParentRoute: () => LayoutSalesRouteRoute,
+} as any)
 const LayoutUsersIndexRoute = LayoutUsersIndexRouteImport.update({
   id: '/users/',
   path: '/users/',
@@ -192,6 +198,7 @@ export interface FileRoutesByFullPath {
   '/categories/$categoryId': typeof LayoutCategoriesCategoryIdRoute
   '/products/$productId': typeof LayoutProductsProductIdRoute
   '/sales/new': typeof LayoutSalesNewRoute
+  '/sales/tags': typeof LayoutSalesTagsRoute
   '/users/$userId': typeof LayoutUsersUserIdRoute
   '/warehouses/$warehouseId': typeof LayoutWarehousesWarehouseIdRoute
   '/brands/': typeof LayoutBrandsIndexRoute
@@ -218,6 +225,7 @@ export interface FileRoutesByTo {
   '/categories/$categoryId': typeof LayoutCategoriesCategoryIdRoute
   '/products/$productId': typeof LayoutProductsProductIdRoute
   '/sales/new': typeof LayoutSalesNewRoute
+  '/sales/tags': typeof LayoutSalesTagsRoute
   '/users/$userId': typeof LayoutUsersUserIdRoute
   '/warehouses/$warehouseId': typeof LayoutWarehousesWarehouseIdRoute
   '/brands': typeof LayoutBrandsIndexRoute
@@ -248,6 +256,7 @@ export interface FileRoutesById {
   '/_layout/categories/$categoryId': typeof LayoutCategoriesCategoryIdRoute
   '/_layout/products/$productId': typeof LayoutProductsProductIdRoute
   '/_layout/sales/new': typeof LayoutSalesNewRoute
+  '/_layout/sales/tags': typeof LayoutSalesTagsRoute
   '/_layout/users/$userId': typeof LayoutUsersUserIdRoute
   '/_layout/warehouses/$warehouseId': typeof LayoutWarehousesWarehouseIdRoute
   '/_layout/brands/': typeof LayoutBrandsIndexRoute
@@ -278,6 +287,7 @@ export interface FileRouteTypes {
     | '/categories/$categoryId'
     | '/products/$productId'
     | '/sales/new'
+    | '/sales/tags'
     | '/users/$userId'
     | '/warehouses/$warehouseId'
     | '/brands/'
@@ -304,6 +314,7 @@ export interface FileRouteTypes {
     | '/categories/$categoryId'
     | '/products/$productId'
     | '/sales/new'
+    | '/sales/tags'
     | '/users/$userId'
     | '/warehouses/$warehouseId'
     | '/brands'
@@ -333,6 +344,7 @@ export interface FileRouteTypes {
     | '/_layout/categories/$categoryId'
     | '/_layout/products/$productId'
     | '/_layout/sales/new'
+    | '/_layout/sales/tags'
     | '/_layout/users/$userId'
     | '/_layout/warehouses/$warehouseId'
     | '/_layout/brands/'
@@ -488,6 +500,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutSalesNewRouteImport
       parentRoute: typeof LayoutSalesRouteRoute
     }
+    '/_layout/sales/tags': {
+      id: '/_layout/sales/tags'
+      path: '/tags'
+      fullPath: '/sales/tags'
+      preLoaderRoute: typeof LayoutSalesTagsRouteImport
+      parentRoute: typeof LayoutSalesRouteRoute
+    }
     '/_layout/users/': {
       id: '/_layout/users/'
       path: '/users'
@@ -549,11 +568,13 @@ declare module '@tanstack/react-router' {
 
 interface LayoutSalesRouteRouteChildren {
   LayoutSalesNewRoute: typeof LayoutSalesNewRoute
+  LayoutSalesTagsRoute: typeof LayoutSalesTagsRoute
   LayoutSalesIndexRoute: typeof LayoutSalesIndexRoute
 }
 
 const LayoutSalesRouteRouteChildren: LayoutSalesRouteRouteChildren = {
   LayoutSalesNewRoute: LayoutSalesNewRoute,
+  LayoutSalesTagsRoute: LayoutSalesTagsRoute,
   LayoutSalesIndexRoute: LayoutSalesIndexRoute,
 }
 

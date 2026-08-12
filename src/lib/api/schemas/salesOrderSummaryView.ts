@@ -8,10 +8,9 @@ import type { AddressSnapshot } from './addressSnapshot.ts';
 import type { CustomerSnapshot } from './customerSnapshot.ts';
 import type { OrderTag } from './orderTag.ts';
 import type { SalesOrderId } from './salesOrderId.ts';
-import type { SalesOrderLine } from './salesOrderLine.ts';
 import type { SalesOrderStatus } from './salesOrderStatus.ts';
 
-export interface SalesOrder {
+export interface SalesOrderSummaryView {
   billing_address: AddressSnapshot;
   /** @nullable */
   comments?: string | null;
@@ -20,7 +19,6 @@ export interface SalesOrder {
   discount_total: number;
   grand_total: number;
   id: SalesOrderId;
-  lines: SalesOrderLine[];
   order_date: string;
   order_number: string;
   shipping_address: AddressSnapshot;

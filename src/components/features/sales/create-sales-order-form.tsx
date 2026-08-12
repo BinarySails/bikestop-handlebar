@@ -5,6 +5,7 @@ import { toast } from "sonner";
 
 import { CustomerCombobox } from "@/components/features/sales/customer-combobox";
 import { ProductCombobox } from "@/components/features/sales/product-combobox";
+import { OrderTagsSelect } from "@/components/features/sales/tags/order-tags-select";
 import {
   VariantCombobox,
   findActiveRegularPrice,
@@ -20,6 +21,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useCreateSalesOrderRequest } from "@/lib/api/api";
 import {
+  type OrderTagId,
   type PaginatedCustomerSummaryDataItem,
   type Product,
   type Variant,
@@ -61,6 +63,7 @@ type SalesOrderFormValues = {
   shipping: AddressFormValues;
   order_date: Date;
   comments: string;
+  tag_ids: OrderTagId[];
   lines: LineFormValues[];
 };
 
@@ -163,6 +166,7 @@ const defaultValues: SalesOrderFormValues = {
   shipping: defaultAddress,
   order_date: new Date(),
   comments: "",
+  tag_ids: [],
   lines: [],
 };
 
@@ -212,6 +216,7 @@ export function CreateSalesOrderForm() {
         shipping_address: shippingAddress,
         order_date: value.order_date.toISOString(),
         comments: value.comments.trim() || null,
+        tag_ids: value.tag_ids.length > 0 ? value.tag_ids : null,
         lines: completeLines.map((line) => ({
           variant_id: line.variant.id,
           description: line.description.trim(),
@@ -512,6 +517,21 @@ export function CreateSalesOrderForm() {
                   onChange={(event) => field.handleChange(event.target.value)}
                   placeholder="Notas u observaciones de la orden"
                   rows={3}
+                />
+              </div>
+            )}
+          </form.Field>
+
+          <form.Field name="tag_ids">
+            {(field) => (
+              <div className="grid gap-1.5 sm:col-span-2">
+                <Label htmlFor="sales-order-tags">Etiquetas</Label>
+                <OrderTagsSelect
+                  id="sales-order-tags"
+                  value={field.state.value}
+                  onChange={field.handleChange}
+                  placeholder="Seleccionar etiquetas"
+                  activeOnly
                 />
               </div>
             )}
