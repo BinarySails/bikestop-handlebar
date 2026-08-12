@@ -48,24 +48,21 @@ export function VariantCombobox({
   );
 
   const all = res?.status === 200 ? res.data : EMPTY_VARIANTS;
-  const items = useMemo(
-    () =>
-      all.filter(
-        (variant) =>
-          variant.status === VariantStatus.enable &&
-          (variant.prices.length === 0 ||
-            variant.prices.some(
-              (price) => price.status === VariantStatus.enable
-            ))
-      ),
-    [all]
-  );
+  const items = useMemo(() => {
+    const active = all.filter(
+      (variant) =>
+        variant.status === VariantStatus.enable &&
+        (variant.prices.length === 0 ||
+          variant.prices.some((price) => price.status === VariantStatus.enable))
+    );
 
-  const selected = useMemo(() => {
-    if (!value || items.some((variant) => variant.id === value.id))
-      return value;
-    return null;
-  }, [items, value]);
+    if (!value || active.some((variant) => variant.id === value.id)) {
+      return active;
+    }
+    return [...active, value];
+  }, [all, value]);
+
+  const selected = value;
 
   return (
     <Combobox
@@ -74,9 +71,7 @@ export function VariantCombobox({
       onValueChange={(variant: Variant | null) => {
         onChange(variant);
       }}
-      itemToStringLabel={(variant: Variant) =>
-        `${variant.display_name} (${variant.sku})`
-      }
+      itemToStringLabel={(variant: Variant) => `${variant.display_name}`}
       isItemEqualToValue={(a: Variant, b: Variant) => a.id === b.id}
       disabled={disabled || !productId}
     >

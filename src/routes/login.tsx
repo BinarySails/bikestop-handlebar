@@ -63,7 +63,8 @@ export const Route = createFileRoute("/login")({
       let data: AuthUser | undefined = undefined;
 
       try {
-        const { data: user, status } = await meHandler();
+        const { data: response, status } = await meHandler();
+        const user = status === 200 ? response : null;
 
         if (user && status === 200) {
           data = user;

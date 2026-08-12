@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
 import { Plus, Trash2 } from "lucide-react";
@@ -17,12 +18,24 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { useCreateSalesOrderRequest } from "@/lib/api/api";
 import {
   type PaginatedCustomerSummaryDataItem,
+  type CreateSalesOrderRequest,
   type Product,
+  ProductStatus,
+  type SalesOrder,
   type Variant,
+  VariantStatus,
 } from "@/lib/api/schemas";
 import { DEFAULT_COUNTRY } from "@/components/features/locations/country-select";
 import { centsToPesosString, pesosToCents } from "@/lib/money";
@@ -166,12 +179,131 @@ const defaultValues: SalesOrderFormValues = {
   lines: [],
 };
 
-export function CreateSalesOrderForm() {
+function addressValues(
+  address: SalesOrder["billing_address"]
+): AddressFormValues {
+  return {
+    country: address.country,
+    state: address.state,
+    city: address.city,
+    postal_code: address.postal_code,
+    address: address.address,
+  };
+}
+
+function sameAddress(
+  first: SalesOrder["billing_address"],
+  second: SalesOrder["shipping_address"]
+) {
+  return (
+    first.country === second.country &&
+    first.state === second.state &&
+    first.city === second.city &&
+    first.postal_code === second.postal_code &&
+    first.address === second.address
+  );
+}
+
+function valuesFromOrder(order: SalesOrder): SalesOrderFormValues {
+  return {
+    customer: {
+      id: order.customer.customer_id,
+      company_name: order.customer.name,
+      email: null,
+      tax_id: "",
+      username: "",
+    },
+    billing: addressValues(order.billing_address),
+    shipping_same_as_billing: sameAddress(
+      order.billing_address,
+      order.shipping_address
+    ),
+    shipping: addressValues(order.shipping_address),
+    order_date: new Date(order.order_date),
+    comments: order.comments ?? "",
+    lines: order.lines.map((line) => ({
+      product: {
+        id: line.product_id,
+        display_name: line.description,
+        status: ProductStatus.enable,
+        brand: { display_name: "" },
+        category: { display_name: "" },
+      } as Product,
+      variant: {
+        id: line.variant_id,
+        product_id: line.product_id,
+        display_name: line.description,
+        sku: line.variant_id,
+        prices: [],
+        properties: [],
+        status: VariantStatus.enable,
+        image_url: "",
+        created_at: order.created_at,
+        updated_at: order.updated_at,
+      } as Variant,
+      description: line.description,
+      quantity: String(line.quantity),
+      unit_price: centsToPesosString(line.unit_price),
+      discount_percent:
+        line.discount_percent == null
+          ? ""
+          : String(line.discount_percent / 100),
+      tax_rate: String(line.tax_rate / 100),
+    })),
+  };
+}
+
+export function CreateSalesOrderForm({
+  order,
+  commentAuthor = "Usuario",
+  onAddComment,
+  onSaveDraft,
+}: {
+  order?: SalesOrder;
+  commentAuthor?: string;
+  onAddComment?: (comment: string) => Promise<void>;
+  onSaveDraft?: (payload: CreateSalesOrderRequest) => Promise<void>;
+} = {}) {
   const navigate = useNavigate();
   const { trigger } = useCreateSalesOrderRequest();
+  const isDetail = Boolean(order);
+  const editable =
+    !order || order.status === "draft" || order.status === "quote";
+  const isReadOnlyOrder = Boolean(order) && !editable;
+  const canAddComment =
+    Boolean(order) &&
+    [
+      "draft",
+      "quote",
+      "confirmed",
+      "partially_fulfilled",
+      "fulfilled",
+    ].includes(order?.status ?? "");
+  const [newComment, setNewComment] = useState("");
+  const [isAddingComment, setIsAddingComment] = useState(false);
+  const messages = (order?.comments ?? "")
+    .split(/\n+/)
+    .map((comment) => comment.trim())
+    .filter(Boolean);
+
+  async function addComment() {
+    const comment = newComment.trim();
+    if (!comment || !onAddComment) return;
+
+    setIsAddingComment(true);
+    try {
+      await onAddComment(comment);
+      setNewComment("");
+      toast.success("Comentario agregado");
+    } catch {
+      toast.error("No se pudo agregar el comentario");
+    } finally {
+      setIsAddingComment(false);
+    }
+  }
 
   const form = useForm({
-    defaultValues,
+    defaultValues: order ? valuesFromOrder(order) : defaultValues,
     onSubmit: async ({ value }) => {
       const completeLines = value.lines.filter(
         (line): line is LineFormValues & { variant: Variant } =>
@@ -228,6 +360,18 @@ export function CreateSalesOrderForm() {
         await CreateSalesOrderRequestBody.safeParseAsync(payload);
       if (!parseResult.success) {
         toast.error(parseResult.error.issues[0]?.message ?? "Datos inválidos.");
+        return;
+      }
+
+      if (order) {
+        if (order.status === "draft" && onSaveDraft) {
+          try {
+            await onSaveDraft(parseResult.data);
+            toast.success("Cambios guardados");
+          } catch {
+            toast.error("No se pudieron guardar los cambios");
+          }
+        }
         return;
       }
 
@@ -403,441 +547,582 @@ export function CreateSalesOrderForm() {
       }}
       className="space-y-6"
     >
-      <Card>
-        <CardHeader>
-          <CardTitle>Cliente</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form.Field
-            name="customer"
-            validators={{
-              onSubmit: ({ value }) => {
-                if (!value) return "Selecciona un cliente.";
-                return undefined;
-              },
-            }}
-          >
-            {(field) => (
-              <div className="grid gap-1.5">
-                <Label htmlFor={field.name}>Cliente</Label>
-                <CustomerCombobox
-                  id={field.name}
-                  value={field.state.value}
-                  onChange={(customer) => field.handleChange(customer)}
-                />
-                {field.state.meta.errors[0] && (
-                  <p className="text-xs text-destructive">
-                    {field.state.meta.errors[0]}
-                  </p>
-                )}
-              </div>
-            )}
-          </form.Field>
-        </CardContent>
-      </Card>
-
-      <div className="grid gap-6 lg:grid-cols-2">
+      <fieldset disabled={!editable} className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>Dirección de facturación</CardTitle>
+            <CardTitle>Cliente</CardTitle>
           </CardHeader>
-          <CardContent>{renderAddressFields("billing")}</CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Dirección de envío</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <form.Field name="shipping_same_as_billing">
+          <CardContent>
+            <form.Field
+              name="customer"
+              validators={{
+                onSubmit: ({ value }) => {
+                  if (!value) return "Selecciona un cliente.";
+                  return undefined;
+                },
+              }}
+            >
               {(field) => (
-                <Label
-                  htmlFor={field.name}
-                  className="flex cursor-pointer items-center gap-2 text-sm"
-                >
-                  <Checkbox
+                <div className="grid gap-1.5">
+                  <Label htmlFor={field.name}>Cliente</Label>
+                  <CustomerCombobox
                     id={field.name}
-                    checked={field.state.value}
-                    onCheckedChange={(checked) =>
-                      field.handleChange(checked === true)
-                    }
+                    value={field.state.value}
+                    onChange={(customer) => field.handleChange(customer)}
                   />
-                  Usar la dirección de facturación
-                </Label>
+                  {field.state.meta.errors[0] && (
+                    <p className="text-xs text-destructive">
+                      {field.state.meta.errors[0]}
+                    </p>
+                  )}
+                </div>
               )}
             </form.Field>
-
-            <form.Subscribe
-              selector={(state) => state.values.shipping_same_as_billing}
-            >
-              {(shippingSameAsBilling) =>
-                shippingSameAsBilling ? (
-                  <p className="text-sm text-muted-foreground">
-                    Se usará la misma dirección para el envío.
-                  </p>
-                ) : (
-                  renderAddressFields("shipping")
-                )
-              }
-            </form.Subscribe>
           </CardContent>
         </Card>
-      </div>
+
+        <div className="grid gap-6 lg:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Dirección de facturación</CardTitle>
+            </CardHeader>
+            <CardContent>{renderAddressFields("billing")}</CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Dirección de envío</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <form.Field name="shipping_same_as_billing">
+                {(field) => (
+                  <Label
+                    htmlFor={field.name}
+                    className="flex cursor-pointer items-center gap-2 text-sm"
+                  >
+                    <Checkbox
+                      id={field.name}
+                      checked={field.state.value}
+                      onCheckedChange={(checked) =>
+                        field.handleChange(checked === true)
+                      }
+                    />
+                    Usar la dirección de facturación
+                  </Label>
+                )}
+              </form.Field>
+
+              <form.Subscribe
+                selector={(state) => state.values.shipping_same_as_billing}
+              >
+                {(shippingSameAsBilling) =>
+                  shippingSameAsBilling ? (
+                    <p className="text-sm text-muted-foreground">
+                      Se usará la misma dirección para el envío.
+                    </p>
+                  ) : (
+                    renderAddressFields("shipping")
+                  )
+                }
+              </form.Subscribe>
+            </CardContent>
+          </Card>
+        </div>
+      </fieldset>
 
       <Card>
         <CardHeader>
           <CardTitle>Detalles de la orden</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
-          <form.Field name="order_date">
-            {(field) => (
-              <Label className="grid items-start gap-1.5 sm:col-span-2">
-                <span>Fecha de orden</span>
-                <DatePicker
-                  value={field.state.value}
-                  onChange={(date) => field.handleChange(date ?? new Date())}
-                  placeholder="Seleccionar fecha"
-                />
-              </Label>
-            )}
-          </form.Field>
+          <fieldset disabled={!editable} className="contents">
+            <form.Field name="order_date">
+              {(field) => (
+                <Label className="grid items-start gap-1.5 sm:col-span-2">
+                  <span>Fecha de orden</span>
+                  <DatePicker
+                    value={field.state.value}
+                    onChange={(date) => field.handleChange(date ?? new Date())}
+                    placeholder="Seleccionar fecha"
+                  />
+                </Label>
+              )}
+            </form.Field>
+          </fieldset>
 
-          <form.Field name="comments">
-            {(field) => (
-              <div className="grid gap-1.5 sm:col-span-2">
-                <Label htmlFor={field.name}>Comentarios</Label>
-                <Textarea
-                  id={field.name}
-                  value={field.state.value}
-                  onChange={(event) => field.handleChange(event.target.value)}
-                  placeholder="Notas u observaciones de la orden"
-                  rows={3}
-                />
+          {isDetail ? (
+            <div className="space-y-4 sm:col-span-2">
+              <Label>Comentarios</Label>
+              <div className="space-y-3 rounded-xl border bg-muted/20 p-4">
+                {messages.length ? (
+                  messages.map((message, index) => (
+                    <article
+                      key={`${index}-${message}`}
+                      className="max-w-[85%] rounded-2xl rounded-tl-sm bg-muted px-4 py-3"
+                    >
+                      <p className="mb-1 text-xs font-semibold text-muted-foreground">
+                        {commentAuthor}
+                      </p>
+                      <p className="text-sm whitespace-pre-wrap">{message}</p>
+                    </article>
+                  ))
+                ) : (
+                  <p className="py-4 text-center text-sm text-muted-foreground">
+                    No hay comentarios registrados.
+                  </p>
+                )}
               </div>
-            )}
-          </form.Field>
+
+              {canAddComment && (
+                <div className="space-y-3 border-t pt-4">
+                  <Label htmlFor="sales-order-comment">
+                    Agregar comentario
+                  </Label>
+                  <Textarea
+                    id="sales-order-comment"
+                    value={newComment}
+                    onChange={(event) => setNewComment(event.target.value)}
+                    placeholder="Escribe un comentario..."
+                    rows={3}
+                    disabled={isAddingComment}
+                  />
+                  <div className="flex justify-end">
+                    <Button
+                      type="button"
+                      disabled={isAddingComment || !newComment.trim()}
+                      onClick={() => void addComment()}
+                    >
+                      {isAddingComment ? "Agregando..." : "Agregar comentario"}
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <form.Field name="comments">
+              {(field) => (
+                <div className="grid gap-1.5 sm:col-span-2">
+                  <Label htmlFor={field.name}>Comentarios</Label>
+                  <Textarea
+                    id={field.name}
+                    value={field.state.value}
+                    onChange={(event) => field.handleChange(event.target.value)}
+                    placeholder="Notas u observaciones de la orden"
+                    rows={3}
+                  />
+                </div>
+              )}
+            </form.Field>
+          )}
         </CardContent>
       </Card>
 
       <Card>
-        <CardHeader className="flex-row items-center justify-between">
-          <CardTitle>Productos</CardTitle>
-          <form.Field
-            name="lines"
-            validators={{
-              onSubmit: ({ value }) => {
-                if (value.length === 0) {
-                  return "Agrega al menos una línea.";
-                }
-                return undefined;
-              },
-            }}
-          >
-            {(field) => (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() =>
-                  field.pushValue({
-                    product: null,
-                    variant: null,
-                    description: "",
-                    quantity: "1",
-                    unit_price: "",
-                    discount_percent: "",
-                    tax_rate: DEFAULT_TAX_PERCENT,
-                  })
-                }
-              >
-                <Plus className="size-4" />
-                Agregar línea
-              </Button>
-            )}
-          </form.Field>
+        <CardHeader>
+          <CardTitle>Lista de productos</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <form.Field name="lines">
-            {(field) => (
-              <>
-                {field.state.value.length === 0 && (
-                  <p className="text-sm text-muted-foreground">
-                    No hay líneas agregadas. Presiona "Agregar línea" para
-                    empezar.
-                  </p>
-                )}
+        <CardContent>
+          <form.Subscribe selector={(state) => state.values.lines}>
+            {(lines) => (
+              <div className="overflow-hidden rounded-lg border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Producto</TableHead>
+                      <TableHead className="w-28 text-center">
+                        Cantidad
+                      </TableHead>
+                      <TableHead className="w-40 text-right">
+                        Precio unitario
+                      </TableHead>
+                      <TableHead className="w-40 text-right">
+                        Subtotal
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {lines.length ? (
+                      lines.map((line, index) => {
+                        const totals = computeLineTotals(line);
+                        const unitPrice = Number(line.unit_price);
 
-                {field.state.value.map((_, index) => {
-                  const line = field.state.value[index];
-                  const totals = computeLineTotals(line);
-
-                  return (
-                    <div
-                      key={index}
-                      className="space-y-3 rounded-lg border p-4"
-                    >
-                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
-                        <form.Field name={`lines[${index}].product`}>
-                          {(subField) => (
-                            <div className="grid flex-1 gap-1.5">
-                              <Label htmlFor={subField.name}>Producto</Label>
-                              <ProductCombobox
-                                id={subField.name}
-                                value={subField.state.value}
-                                onChange={(product) => {
-                                  subField.handleChange(product);
-                                  form.setFieldValue(
-                                    `lines[${index}].variant`,
-                                    null
-                                  );
-                                }}
-                              />
-                            </div>
-                          )}
-                        </form.Field>
-
-                        <form.Field
-                          name={`lines[${index}].variant`}
-                          validators={{
-                            onSubmit: ({ value }) => {
-                              if (!value) return "Selecciona una variante.";
-                              return undefined;
-                            },
-                          }}
-                        >
-                          {(subField) => (
-                            <div className="grid flex-1 gap-1.5">
-                              <Label htmlFor={subField.name}>Variante</Label>
-                              <VariantCombobox
-                                id={subField.name}
-                                productId={line.product?.id ?? null}
-                                value={subField.state.value}
-                                onChange={(variant) => {
-                                  subField.handleChange(variant);
-                                  if (variant) {
-                                    form.setFieldValue(
-                                      `lines[${index}].description`,
-                                      variant.display_name
-                                    );
-                                    const price =
-                                      findActiveRegularPrice(variant);
-                                    if (price) {
-                                      form.setFieldValue(
-                                        `lines[${index}].unit_price`,
-                                        centsToPesosString(price.amount)
-                                      );
-                                    }
-                                  }
-                                }}
-                                disabled={!line.product}
-                              />
-                              {subField.state.meta.errors[0] && (
-                                <p className="text-xs text-destructive">
-                                  {subField.state.meta.errors[0]}
-                                </p>
-                              )}
-                            </div>
-                          )}
-                        </form.Field>
-
-                        <div className="flex items-end">
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="size-9 text-destructive"
-                            onClick={() => field.removeValue(index)}
-                            aria-label="Eliminar línea"
+                        return (
+                          <TableRow
+                            key={`${line.variant?.id ?? "line"}-${index}`}
                           >
-                            <Trash2 className="size-4" />
-                          </Button>
-                        </div>
-                      </div>
-
-                      <form.Field
-                        name={`lines[${index}].description`}
-                        validators={{
-                          onSubmit: ({ value }) =>
-                            validateRequired(value, "La descripción", 1),
-                        }}
-                      >
-                        {(subField) => (
-                          <div className="grid gap-1.5">
-                            <Label htmlFor={subField.name}>Descripción</Label>
-                            <Input
-                              id={subField.name}
-                              value={subField.state.value}
-                              onChange={(event) =>
-                                subField.handleChange(event.target.value)
-                              }
-                              onBlur={subField.handleBlur}
-                              placeholder="Descripción del producto"
-                              aria-invalid={
-                                subField.state.meta.errors.length > 0
-                              }
-                            />
-                            {subField.state.meta.errors[0] && (
-                              <p className="text-xs text-destructive">
-                                {subField.state.meta.errors[0]}
-                              </p>
-                            )}
-                          </div>
-                        )}
-                      </form.Field>
-
-                      <div className="grid grid-cols-2 gap-3 sm:flex sm:items-end sm:gap-3">
-                        <form.Field
-                          name={`lines[${index}].quantity`}
-                          validators={{
-                            onSubmit: ({ value }) => validateQuantity(value),
-                          }}
-                        >
-                          {(subField) => (
-                            <div className="grid flex-1 gap-1.5 sm:max-w-[6rem]">
-                              <Label htmlFor={subField.name}>Cantidad</Label>
-                              <Input
-                                id={subField.name}
-                                type="number"
-                                min={1}
-                                step={1}
-                                value={subField.state.value}
-                                onChange={(event) =>
-                                  subField.handleChange(event.target.value)
-                                }
-                                onBlur={subField.handleBlur}
-                                aria-invalid={
-                                  subField.state.meta.errors.length > 0
-                                }
-                              />
-                              {subField.state.meta.errors[0] && (
-                                <p className="text-xs text-destructive">
-                                  {subField.state.meta.errors[0]}
-                                </p>
+                            <TableCell className="font-medium">
+                              {line.product?.display_name ||
+                                line.description ||
+                                "Producto sin seleccionar"}
+                            </TableCell>
+                            <TableCell className="text-center tabular-nums">
+                              {line.quantity || "0"}
+                            </TableCell>
+                            <TableCell className="text-right tabular-nums">
+                              {currencyFormatter.format(
+                                Number.isFinite(unitPrice) ? unitPrice : 0
                               )}
-                            </div>
-                          )}
-                        </form.Field>
-
-                        <form.Field
-                          name={`lines[${index}].unit_price`}
-                          validators={{
-                            onSubmit: ({ value }) => validateUnitPrice(value),
-                          }}
+                            </TableCell>
+                            <TableCell className="text-right font-medium tabular-nums">
+                              {currencyFormatter.format(totals.gross / 100)}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })
+                    ) : (
+                      <TableRow>
+                        <TableCell
+                          colSpan={4}
+                          className="h-24 text-center text-muted-foreground"
                         >
-                          {(subField) => (
-                            <div className="grid flex-1 gap-1.5 sm:max-w-[8rem]">
-                              <Label htmlFor={subField.name}>
-                                Precio unit.
-                              </Label>
-                              <Input
-                                id={subField.name}
-                                type="number"
-                                min={0}
-                                step="0.01"
-                                value={subField.state.value}
-                                onChange={(event) =>
-                                  subField.handleChange(event.target.value)
-                                }
-                                onBlur={subField.handleBlur}
-                                aria-invalid={
-                                  subField.state.meta.errors.length > 0
-                                }
-                                className="[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                              />
-                              {subField.state.meta.errors[0] && (
-                                <p className="text-xs text-destructive">
-                                  {subField.state.meta.errors[0]}
-                                </p>
-                              )}
-                            </div>
-                          )}
-                        </form.Field>
-
-                        <form.Field
-                          name={`lines[${index}].discount_percent`}
-                          validators={{
-                            onSubmit: ({ value }) =>
-                              validatePercent(value, "El descuento"),
-                          }}
-                        >
-                          {(subField) => (
-                            <div className="grid flex-1 gap-1.5 sm:max-w-[6rem]">
-                              <Label htmlFor={subField.name}>Desc. %</Label>
-                              <Input
-                                id={subField.name}
-                                type="number"
-                                min={0}
-                                max={100}
-                                step="0.01"
-                                value={subField.state.value}
-                                onChange={(event) =>
-                                  subField.handleChange(event.target.value)
-                                }
-                                onBlur={subField.handleBlur}
-                                aria-invalid={
-                                  subField.state.meta.errors.length > 0
-                                }
-                              />
-                              {subField.state.meta.errors[0] && (
-                                <p className="text-xs text-destructive">
-                                  {subField.state.meta.errors[0]}
-                                </p>
-                              )}
-                            </div>
-                          )}
-                        </form.Field>
-
-                        <form.Field
-                          name={`lines[${index}].tax_rate`}
-                          validators={{
-                            onSubmit: ({ value }) =>
-                              validatePercent(value, "El impuesto"),
-                          }}
-                        >
-                          {(subField) => (
-                            <div className="grid flex-1 gap-1.5 sm:max-w-[6rem]">
-                              <Label htmlFor={subField.name}>IVA %</Label>
-                              <Input
-                                id={subField.name}
-                                type="number"
-                                min={0}
-                                max={100}
-                                step="0.01"
-                                value={subField.state.value}
-                                onChange={(event) =>
-                                  subField.handleChange(event.target.value)
-                                }
-                                onBlur={subField.handleBlur}
-                                aria-invalid={
-                                  subField.state.meta.errors.length > 0
-                                }
-                              />
-                              {subField.state.meta.errors[0] && (
-                                <p className="text-xs text-destructive">
-                                  {subField.state.meta.errors[0]}
-                                </p>
-                              )}
-                            </div>
-                          )}
-                        </form.Field>
-
-                        <div className="col-span-2 flex items-center justify-between gap-2 sm:ml-auto sm:flex-col sm:items-end sm:justify-end">
-                          <span className="text-xs text-muted-foreground">
-                            Total línea
-                          </span>
-                          <span className="text-sm font-medium">
-                            {currencyFormatter.format(totals.total / 100)}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </>
+                          No hay productos agregados.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
             )}
-          </form.Field>
+          </form.Subscribe>
         </CardContent>
       </Card>
+
+      {isReadOnlyOrder && order && (
+        <Button
+          type="button"
+          className="h-12 w-full font-semibold"
+          render={
+            <Link
+              to="/sales/$orderId/payments-invoices"
+              params={{ orderId: order.id }}
+            />
+          }
+        >
+          Pagos y facturas
+        </Button>
+      )}
+
+      <fieldset disabled={!editable} className="space-y-6">
+        <Card>
+          <CardHeader className="flex-row items-center justify-between">
+            <CardTitle>Productos</CardTitle>
+            <form.Field
+              name="lines"
+              validators={{
+                onSubmit: ({ value }) => {
+                  if (value.length === 0) {
+                    return "Agrega al menos una línea.";
+                  }
+                  return undefined;
+                },
+              }}
+            >
+              {(field) => (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    field.pushValue({
+                      product: null,
+                      variant: null,
+                      description: "",
+                      quantity: "1",
+                      unit_price: "",
+                      discount_percent: "",
+                      tax_rate: DEFAULT_TAX_PERCENT,
+                    })
+                  }
+                >
+                  <Plus className="size-4" />
+                  Agregar línea
+                </Button>
+              )}
+            </form.Field>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <form.Field name="lines">
+              {(field) => (
+                <>
+                  {field.state.value.length === 0 && (
+                    <p className="text-sm text-muted-foreground">
+                      No hay líneas agregadas. Presiona "Agregar línea" para
+                      empezar.
+                    </p>
+                  )}
+
+                  {field.state.value.map((_, index) => {
+                    const line = field.state.value[index];
+                    const totals = computeLineTotals(line);
+
+                    return (
+                      <div
+                        key={index}
+                        className="space-y-3 rounded-lg border p-4"
+                      >
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+                          <form.Field name={`lines[${index}].product`}>
+                            {(subField) => (
+                              <div className="grid flex-1 gap-1.5">
+                                <Label htmlFor={subField.name}>Producto</Label>
+                                <ProductCombobox
+                                  id={subField.name}
+                                  value={subField.state.value}
+                                  onChange={(product) => {
+                                    subField.handleChange(product);
+                                    form.setFieldValue(
+                                      `lines[${index}].variant`,
+                                      null
+                                    );
+                                  }}
+                                />
+                              </div>
+                            )}
+                          </form.Field>
+
+                          <form.Field
+                            name={`lines[${index}].variant`}
+                            validators={{
+                              onSubmit: ({ value }) => {
+                                if (!value) return "Selecciona una variante.";
+                                return undefined;
+                              },
+                            }}
+                          >
+                            {(subField) => (
+                              <div className="grid flex-1 gap-1.5">
+                                <Label htmlFor={subField.name}>Variante</Label>
+                                <VariantCombobox
+                                  id={subField.name}
+                                  productId={line.product?.id ?? null}
+                                  value={subField.state.value}
+                                  onChange={(variant) => {
+                                    subField.handleChange(variant);
+                                    if (variant) {
+                                      form.setFieldValue(
+                                        `lines[${index}].description`,
+                                        variant.display_name
+                                      );
+                                      const price =
+                                        findActiveRegularPrice(variant);
+                                      if (price) {
+                                        form.setFieldValue(
+                                          `lines[${index}].unit_price`,
+                                          centsToPesosString(price.amount)
+                                        );
+                                      }
+                                    }
+                                  }}
+                                  disabled={!line.product}
+                                />
+                                {subField.state.meta.errors[0] && (
+                                  <p className="text-xs text-destructive">
+                                    {subField.state.meta.errors[0]}
+                                  </p>
+                                )}
+                              </div>
+                            )}
+                          </form.Field>
+
+                          <div className="flex items-end">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="size-9 text-destructive"
+                              onClick={() => field.removeValue(index)}
+                              aria-label="Eliminar línea"
+                            >
+                              <Trash2 className="size-4" />
+                            </Button>
+                          </div>
+                        </div>
+
+                        <form.Field
+                          name={`lines[${index}].description`}
+                          validators={{
+                            onSubmit: ({ value }) =>
+                              validateRequired(value, "La descripción", 1),
+                          }}
+                        >
+                          {(subField) => (
+                            <div className="grid gap-1.5">
+                              <Label htmlFor={subField.name}>Descripción</Label>
+                              <Input
+                                id={subField.name}
+                                value={subField.state.value}
+                                onChange={(event) =>
+                                  subField.handleChange(event.target.value)
+                                }
+                                onBlur={subField.handleBlur}
+                                placeholder="Descripción del producto"
+                                aria-invalid={
+                                  subField.state.meta.errors.length > 0
+                                }
+                              />
+                              {subField.state.meta.errors[0] && (
+                                <p className="text-xs text-destructive">
+                                  {subField.state.meta.errors[0]}
+                                </p>
+                              )}
+                            </div>
+                          )}
+                        </form.Field>
+
+                        <div className="grid grid-cols-2 gap-3 sm:flex sm:items-end sm:gap-3">
+                          <form.Field
+                            name={`lines[${index}].quantity`}
+                            validators={{
+                              onSubmit: ({ value }) => validateQuantity(value),
+                            }}
+                          >
+                            {(subField) => (
+                              <div className="grid flex-1 gap-1.5 sm:max-w-[6rem]">
+                                <Label htmlFor={subField.name}>Cantidad</Label>
+                                <Input
+                                  id={subField.name}
+                                  type="number"
+                                  min={1}
+                                  step={1}
+                                  value={subField.state.value}
+                                  onChange={(event) =>
+                                    subField.handleChange(event.target.value)
+                                  }
+                                  onBlur={subField.handleBlur}
+                                  aria-invalid={
+                                    subField.state.meta.errors.length > 0
+                                  }
+                                />
+                                {subField.state.meta.errors[0] && (
+                                  <p className="text-xs text-destructive">
+                                    {subField.state.meta.errors[0]}
+                                  </p>
+                                )}
+                              </div>
+                            )}
+                          </form.Field>
+
+                          <form.Field
+                            name={`lines[${index}].unit_price`}
+                            validators={{
+                              onSubmit: ({ value }) => validateUnitPrice(value),
+                            }}
+                          >
+                            {(subField) => (
+                              <div className="grid flex-1 gap-1.5 sm:max-w-[8rem]">
+                                <Label htmlFor={subField.name}>
+                                  Precio unit.
+                                </Label>
+                                <Input
+                                  id={subField.name}
+                                  type="number"
+                                  min={0}
+                                  step="0.01"
+                                  value={subField.state.value}
+                                  onChange={(event) =>
+                                    subField.handleChange(event.target.value)
+                                  }
+                                  onBlur={subField.handleBlur}
+                                  aria-invalid={
+                                    subField.state.meta.errors.length > 0
+                                  }
+                                  className="[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                                />
+                                {subField.state.meta.errors[0] && (
+                                  <p className="text-xs text-destructive">
+                                    {subField.state.meta.errors[0]}
+                                  </p>
+                                )}
+                              </div>
+                            )}
+                          </form.Field>
+
+                          <form.Field
+                            name={`lines[${index}].discount_percent`}
+                            validators={{
+                              onSubmit: ({ value }) =>
+                                validatePercent(value, "El descuento"),
+                            }}
+                          >
+                            {(subField) => (
+                              <div className="grid flex-1 gap-1.5 sm:max-w-[6rem]">
+                                <Label htmlFor={subField.name}>Desc. %</Label>
+                                <Input
+                                  id={subField.name}
+                                  type="number"
+                                  min={0}
+                                  max={100}
+                                  step="0.01"
+                                  value={subField.state.value}
+                                  onChange={(event) =>
+                                    subField.handleChange(event.target.value)
+                                  }
+                                  onBlur={subField.handleBlur}
+                                  aria-invalid={
+                                    subField.state.meta.errors.length > 0
+                                  }
+                                />
+                                {subField.state.meta.errors[0] && (
+                                  <p className="text-xs text-destructive">
+                                    {subField.state.meta.errors[0]}
+                                  </p>
+                                )}
+                              </div>
+                            )}
+                          </form.Field>
+
+                          <form.Field
+                            name={`lines[${index}].tax_rate`}
+                            validators={{
+                              onSubmit: ({ value }) =>
+                                validatePercent(value, "El impuesto"),
+                            }}
+                          >
+                            {(subField) => (
+                              <div className="grid flex-1 gap-1.5 sm:max-w-[6rem]">
+                                <Label htmlFor={subField.name}>IVA %</Label>
+                                <Input
+                                  id={subField.name}
+                                  type="number"
+                                  min={0}
+                                  max={100}
+                                  step="0.01"
+                                  value={subField.state.value}
+                                  onChange={(event) =>
+                                    subField.handleChange(event.target.value)
+                                  }
+                                  onBlur={subField.handleBlur}
+                                  aria-invalid={
+                                    subField.state.meta.errors.length > 0
+                                  }
+                                />
+                                {subField.state.meta.errors[0] && (
+                                  <p className="text-xs text-destructive">
+                                    {subField.state.meta.errors[0]}
+                                  </p>
+                                )}
+                              </div>
+                            )}
+                          </form.Field>
+
+                          <div className="col-span-2 flex items-center justify-between gap-2 sm:ml-auto sm:flex-col sm:items-end sm:justify-end">
+                            <span className="text-xs text-muted-foreground">
+                              Total línea
+                            </span>
+                            <span className="text-sm font-medium">
+                              {currencyFormatter.format(totals.total / 100)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </>
+              )}
+            </form.Field>
+          </CardContent>
+        </Card>
+      </fieldset>
 
       <form.Subscribe selector={(state) => state.values.lines}>
         {(lines) => {
@@ -885,21 +1170,60 @@ export function CreateSalesOrderForm() {
                     variant="outline"
                     render={<Link to="/sales" />}
                   >
-                    Cancelar
+                    {isDetail ? "Regresar" : "Cancelar"}
                   </Button>
-                  <form.Subscribe selector={(state) => state.isSubmitting}>
-                    {(isSubmitting) => (
-                      <Button type="submit" disabled={isSubmitting}>
-                        {isSubmitting ? "Creando..." : "Crear orden"}
-                      </Button>
-                    )}
-                  </form.Subscribe>
+                  {!isDetail && (
+                    <form.Subscribe selector={(state) => state.isSubmitting}>
+                      {(isSubmitting) => (
+                        <Button type="submit" disabled={isSubmitting}>
+                          {isSubmitting ? "Creando..." : "Crear orden"}
+                        </Button>
+                      )}
+                    </form.Subscribe>
+                  )}
+                  {isDetail && editable && (
+                    <form.Subscribe
+                      selector={(state) => [state.isSubmitting, state.isDirty]}
+                    >
+                      {([isSubmitting, isDirty]) => (
+                        <Button
+                          type="button"
+                          disabled={isSubmitting}
+                          onClick={() => {
+                            if (!isDirty) {
+                              toast.info("No hay cambios por guardar");
+                              return;
+                            }
+                            void form.handleSubmit();
+                          }}
+                        >
+                          {isSubmitting ? "Guardando..." : "Guardar cambios"}
+                        </Button>
+                      )}
+                    </form.Subscribe>
+                  )}
                 </div>
               </CardContent>
             </Card>
           );
         }}
       </form.Subscribe>
+
+      {isReadOnlyOrder && (
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Button type="button" size="lg" className="h-12 font-semibold">
+            Despachar
+          </Button>
+          <Button
+            type="button"
+            variant="destructive"
+            size="lg"
+            className="h-12 font-semibold"
+          >
+            Cancelar pedido
+          </Button>
+        </div>
+      )}
     </form>
   );
 }

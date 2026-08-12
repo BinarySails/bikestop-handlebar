@@ -83,7 +83,7 @@ import type {
   LoginResponse,
   PaginatedBrand,
   PaginatedCustomerSummary,
-  PaginatedSalesOrderSummary,
+  PaginatedSalesOrderSummaryView,
   PermissionId,
   Product,
   ProductId,
@@ -4480,7 +4480,7 @@ export const useRemoveUserRoleHandler = <TError = Promise<void>>(
 }
 
 export type listSalesOrdersRequestResponse200 = {
-  data: PaginatedSalesOrderSummary
+  data: PaginatedSalesOrderSummaryView
   status: 200
 }
 

@@ -146,7 +146,7 @@ describe("BrandsCatalog", () => {
     fireEvent.click(
       screen.getAllByRole("button", { name: "Acciones de Specialized" })[0]
     );
-    fireEvent.click(await screen.findByText("Ver detalle"));
+    fireEvent.click(await screen.findByText("Ver"));
     expect(api.navigate).toHaveBeenCalledWith({
       to: "/brands/$brandId/edit",
       params: { brandId: brandFixtures[0].id },

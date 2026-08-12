@@ -191,7 +191,7 @@ export function BrandsCatalog({
                   })
                 }
               >
-                <Eye /> Ver detalle
+                <Eye /> Ver
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem

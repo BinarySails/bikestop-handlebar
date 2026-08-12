@@ -87,13 +87,13 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon" variant="inset">
-      <SidebarHeader>
+      <SidebarHeader className="group-data-[collapsible=icon]:hidden">
         <a
           href="/"
           className="flex items-center gap-2 overflow-hidden rounded-lg p-2 outline-none group-data-[collapsible=icon]:justify-center focus-visible:ring-3 focus-visible:ring-ring/50"
           aria-label="BikeStop, ir al inicio"
         >
-          <span className="text-lg font-semibold tracking-tight group-data-[collapsible=icon]:invisible">
+          <span className="text-lg font-semibold tracking-tight">
             Bike<span className="text-muted-foreground">Stop</span>
           </span>
         </a>

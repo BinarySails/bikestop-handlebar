@@ -6,7 +6,7 @@ import {
   ProfileSettingsCard,
   type ProfileField,
 } from "@/components/features/profile/profile-settings-card";
-import { useGetUserRequest, useUpdateUserProfileRequest } from "@/lib/api/api";
+import { useUpdateUserProfileRequest, useMeHandler } from "@/lib/api/api";
 import { useAuthStore } from "@/lib/auth/use-auth-store";
 import type { UpdateUserProfileRequest, UserResponse } from "@/lib/api/schemas";
 
@@ -17,7 +17,7 @@ export const Route = createFileRoute("/_layout/profile")({
 function ProfilePage() {
   const actor = useAuthStore((state) => state.actor);
   const userId = actor?.id ?? "";
-  const { data: res, error, isLoading } = useGetUserRequest(userId);
+  const { data: res, error, isLoading } = useMeHandler();
   const { trigger } = useUpdateUserProfileRequest(userId);
   const [user, setUser] = useState<UserResponse | null>(null);
 
