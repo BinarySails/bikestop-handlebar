@@ -290,6 +290,21 @@ export const GetDownloadUrlRequestResponse = zod.object({
 })
 
 
+export const ListInventoryRequestQueryParams = zod.object({
+  "variant_id": zod.uuid().optional(),
+  "warehouse_id": zod.uuid().optional()
+})
+
+export const ListInventoryRequestResponseItem = zod.object({
+  "total_quantity": zod.int(),
+  "variant_id": zod.uuid(),
+  "variant_name": zod.string(),
+  "warehouse_id": zod.uuid(),
+  "warehouse_name": zod.string()
+})
+export const ListInventoryRequestResponse = zod.array(ListInventoryRequestResponseItem)
+
+
 export const CreateInventoryTransactionRequestBody = zod.object({
   "destination_id": zod.uuid().nullish(),
   "destination_type": zod.union([zod.null(),zod.enum(['warehouse', 'customer', 'supplier', 'store'])]).optional(),

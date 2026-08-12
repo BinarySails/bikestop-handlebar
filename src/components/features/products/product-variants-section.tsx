@@ -31,10 +31,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  useListVariantsByProductRequest,
-  useUpdateVariantRequest,
-} from "@/lib/api/api";
+import { useUpdateVariantRequest } from "@/lib/api/api";
 import type { Variant } from "@/lib/api/schemas";
 
 const PAGE_SIZE = 10;
@@ -184,30 +181,23 @@ function VariantsListSkeleton() {
 
 type ProductVariantsSectionProps = {
   productId: string;
+  variants: Variant[];
+  isLoading: boolean;
+  error: unknown;
   onSuccess?: () => Promise<unknown>;
 };
 
 export function ProductVariantsSection({
   productId,
+  variants: allVariants,
+  isLoading,
+  error,
   onSuccess,
 }: ProductVariantsSectionProps) {
   const [page, setPage] = useState(0);
   const [search, setSearch] = useState("");
   const [appliedSearch, setAppliedSearch] = useState("");
   const [status, setStatus] = useState<ListStatusFilter>("all");
-
-  const {
-    data: res,
-    error,
-    isLoading,
-    mutate,
-  } = useListVariantsByProductRequest(productId, {
-    swr: {
-      revalidateOnFocus: false,
-    },
-  });
-
-  const allVariants = res?.status === 200 ? res.data : [];
 
   const term = appliedSearch.trim().toLowerCase();
   const filteredVariants = allVariants.filter((variant) => {
@@ -372,7 +362,7 @@ export function ProductVariantsSection({
                             <ArchiveVariantMenuItem
                               productId={productId}
                               variant={variant}
-                              onSuccess={onSuccess ?? mutate}
+                              onSuccess={onSuccess}
                             />
                           </DropdownMenuContent>
                         </DropdownMenu>
