@@ -5,7 +5,10 @@ import { Package, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { EntityDetailHeader } from "@/components/features/entity/entity-detail-header";
-import { ImageUploadField } from "@/components/features/products/image-upload-field";
+import {
+  VariantImageManager,
+  type VariantImageRow,
+} from "@/components/features/products/variant-image-manager";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,6 +31,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Textarea } from "@/components/ui/textarea";
 import { useGetVariantRequest, useUpdateVariantRequest } from "@/lib/api/api";
 import type { Variant, VariantStatus } from "@/lib/api/schemas";
 import { centsToPesosString, pesosToCents } from "@/lib/money";
@@ -39,7 +43,7 @@ const statusLabels: Record<VariantStatus, string> = {
   archive: "Archivado",
 };
 
-function validateUrl(value: string): string | undefined {
+function validateImageUrl(value: string): string | undefined {
   if (!value.trim()) return "La URL de la imagen es obligatoria.";
   try {
     const url = new URL(value);
@@ -48,6 +52,15 @@ function validateUrl(value: string): string | undefined {
     }
   } catch {
     return "Ingresa una URL válida.";
+  }
+  return undefined;
+}
+
+function validateImages(images: VariantImageRow[]): string | undefined {
+  if (images.length === 0) return "Debe haber al menos una imagen.";
+  for (const image of images) {
+    const error = validateImageUrl(image.imageUrl);
+    if (error) return error;
   }
   return undefined;
 }
@@ -128,7 +141,11 @@ function VariantDetailView({
     defaultValues: {
       sku: variant.sku,
       display_name: variant.display_name,
-      image_url: variant.image_url,
+      description: variant.description ?? "",
+      images: variant.images
+        .slice()
+        .sort((a, b) => a.image_index - b.image_index)
+        .map((image) => ({ imageUrl: image.image_url })),
       status: variant.status,
       properties: variant.properties.map((property) => ({
         property_name: property.property_name,
@@ -170,7 +187,11 @@ function VariantDetailView({
       const payload = {
         sku: value.sku.trim().toUpperCase(),
         display_name: value.display_name.trim(),
-        image_url: value.image_url.trim(),
+        description: value.description.trim() || null,
+        images: value.images.map((image, index) => ({
+          image_index: index + 1,
+          image_url: image.imageUrl.trim(),
+        })),
         status: value.status,
         properties: normalizedProperties,
         prices: normalizedPrices,
@@ -195,7 +216,10 @@ function VariantDetailView({
         form.reset({
           sku: payload.sku,
           display_name: payload.display_name,
-          image_url: payload.image_url,
+          description: payload.description ?? "",
+          images: payload.images.map((image) => ({
+            imageUrl: image.image_url,
+          })),
           status: payload.status,
           properties: normalizedProperties,
           prices: value.prices.map((price) => ({
@@ -218,7 +242,14 @@ function VariantDetailView({
       const result = await updateVariant({
         sku: variant.sku,
         display_name: variant.display_name,
-        image_url: variant.image_url,
+        description: variant.description,
+        images: variant.images
+          .slice()
+          .sort((a, b) => a.image_index - b.image_index)
+          .map((image, index) => ({
+            image_index: index + 1,
+            image_url: image.image_url,
+          })),
         status: "archive",
         properties: variant.properties.map((property) => ({
           property_name: property.property_name,
@@ -240,7 +271,7 @@ function VariantDetailView({
 
       toast.success("Variante archivada correctamente.");
       setDeleteOpen(false);
-      navigate({ to: "/products/$productId/variants", params: { productId } });
+      navigate({ to: "/products/$productId", params: { productId } });
     } catch {
       toast.error("No se pudo archivar la variante.");
     } finally {
@@ -263,9 +294,9 @@ function VariantDetailView({
         >
           {([isSubmitting, isDirty]) => (
             <EntityDetailHeader
-              backTo="/products/$productId/variants"
+              backTo="/products/$productId"
               backParams={{ productId }}
-              backLabel="Volver a las variantes"
+              backLabel="Volver al producto"
               title="Variante"
               badge={
                 <Badge variant="outline">{statusLabels[variant.status]}</Badge>
@@ -364,19 +395,33 @@ function VariantDetailView({
                 </form.Field>
               </div>
 
+              <form.Field name="description">
+                {(field) => (
+                  <div className="grid gap-2">
+                    <Label htmlFor={field.name}>Descripción</Label>
+                    <Textarea
+                      id={field.name}
+                      name={field.name}
+                      value={field.state.value}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      placeholder="Descripción de la variante"
+                      disabled={isArchived}
+                    />
+                  </div>
+                )}
+              </form.Field>
+
               <form.Field
-                name="image_url"
+                name="images"
                 validators={{
-                  onChange: ({ value }) => validateUrl(value),
-                  onSubmit: ({ value }) => validateUrl(value),
+                  onChange: ({ value }) => validateImages(value),
+                  onSubmit: ({ value }) => validateImages(value),
                 }}
               >
                 {(field) => (
-                  <ImageUploadField
-                    id={field.name}
-                    label="Imagen"
-                    value={field.state.value}
-                    onChange={(url) => field.handleChange(url)}
+                  <VariantImageManager
+                    images={field.state.value}
+                    onChange={(images) => field.handleChange(images)}
                     disabled={isArchived}
                   />
                 )}

@@ -1,10 +1,11 @@
 import { useForm } from "@tanstack/react-form";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { List, Package } from "lucide-react";
+import { Package } from "lucide-react";
 import { toast } from "sonner";
 
 import { EntityDetailHeader } from "@/components/features/entity/entity-detail-header";
+import { ProductVariantsSection } from "@/components/features/products/product-variants-section";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -214,20 +215,6 @@ function ProductDetailView({
               badge={
                 <Badge variant="outline">{statusLabels[product.status]}</Badge>
               }
-              extraActions={
-                <Button
-                  render={
-                    <Link
-                      to="/products/$productId/variants"
-                      params={{ productId }}
-                    />
-                  }
-                  variant="outline"
-                >
-                  <List className="size-4" />
-                  <span>Ver variantes</span>
-                </Button>
-              }
               isDirty={isDirty}
               isSubmitting={isSubmitting}
               onSave={() => form.handleSubmit()}
@@ -383,6 +370,8 @@ function ProductDetailView({
           </Card>
         </section>
       </form>
+
+      <ProductVariantsSection productId={productId} />
 
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <DialogContent className="sm:max-w-md">

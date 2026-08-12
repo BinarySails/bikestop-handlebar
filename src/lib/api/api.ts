@@ -4721,6 +4721,97 @@ export const useGetSaleOrderRequest = <TError = Promise<ErrorResponse>>(
   }
 }
 
+export type updateSalesOrderRequestResponse200 = {
+  data: SalesOrder
+  status: 200
+}
+
+export type updateSalesOrderRequestResponse400 = {
+  data: ErrorResponse
+  status: 400
+}
+
+export type updateSalesOrderRequestResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type updateSalesOrderRequestResponse409 = {
+  data: ErrorResponse
+  status: 409
+}
+
+export type updateSalesOrderRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type updateSalesOrderRequestResponseSuccess = (updateSalesOrderRequestResponse200) & {
+  headers: Headers;
+};
+export type updateSalesOrderRequestResponseError = (updateSalesOrderRequestResponse400 | updateSalesOrderRequestResponse404 | updateSalesOrderRequestResponse409 | updateSalesOrderRequestResponse500) & {
+  headers: Headers;
+};
+
+export type updateSalesOrderRequestResponse = (updateSalesOrderRequestResponseSuccess | updateSalesOrderRequestResponseError)
+
+export const getUpdateSalesOrderRequestUrl = (id: SalesOrderId,) => {
+
+
+
+
+  return `http://localhost:8080/api/v1/sales-orders/${id}`
+}
+
+export const updateSalesOrderRequest = async (id: SalesOrderId,
+    createSalesOrderRequest: CreateSalesOrderRequest, options?: RequestInit): Promise<updateSalesOrderRequestResponse> => {
+
+  const res = await fetch(getUpdateSalesOrderRequestUrl(id),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(createSalesOrderRequest)
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: updateSalesOrderRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as updateSalesOrderRequestResponse
+}
+
+
+
+
+export const getUpdateSalesOrderRequestMutationFetcher = (id: SalesOrderId, options?: RequestInit) => {
+  return (_: Key, { arg }: { arg: CreateSalesOrderRequest }) => {
+    return updateSalesOrderRequest(id, arg, options);
+  }
+}
+export const getUpdateSalesOrderRequestMutationKey = (id: SalesOrderId,) => [`http://localhost:8080/api/v1/sales-orders/${id}`] as const;
+
+export type UpdateSalesOrderRequestMutationResult = NonNullable<Awaited<ReturnType<typeof updateSalesOrderRequest>>>
+
+export const useUpdateSalesOrderRequest = <TError = Promise<ErrorResponse>>(
+  id: SalesOrderId, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof updateSalesOrderRequest>>, TError, Key, CreateSalesOrderRequest, Awaited<ReturnType<typeof updateSalesOrderRequest>>> & { swrKey?: string }, fetch?: RequestInit}
+) => {
+
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getUpdateSalesOrderRequestMutationKey(id);
+  const swrFn = getUpdateSalesOrderRequestMutationFetcher(id, fetchOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
 export type addSalesOrderCommentRequestResponse200 = {
   data: SalesOrder
   status: 200

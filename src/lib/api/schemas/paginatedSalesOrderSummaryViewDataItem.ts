@@ -8,12 +8,14 @@ import type { AddressSnapshot } from './addressSnapshot.ts';
 import type { CustomerSnapshot } from './customerSnapshot.ts';
 import type { SalesOrderId } from './salesOrderId.ts';
 import type { SalesOrderStatus } from './salesOrderStatus.ts';
+import type { UserId } from './userId.ts';
 
 export type PaginatedSalesOrderSummaryViewDataItem = {
   billing_address: AddressSnapshot;
   /** @nullable */
   comments?: string | null;
   created_at: string;
+  created_by?: null | UserId;
   customer: CustomerSnapshot;
   discount_total: number;
   grand_total: number;
