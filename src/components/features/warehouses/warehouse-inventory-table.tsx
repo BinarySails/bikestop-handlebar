@@ -17,6 +17,7 @@ import type { Product, WarehouseResponse } from "@/lib/api/schemas";
 export type WarehouseInventoryItem = {
   sku: string;
   nombre: string;
+  imagen: string;
   cantidad: number;
 };
 
@@ -95,7 +96,16 @@ export function WarehouseInventoryTable({
             <TableBody>
               {items.map((item, index) => (
                 <TableRow key={`${item.sku}-${index}`}>
-                  <TableCell className="font-medium">{item.nombre}</TableCell>
+                  <TableCell className="font-medium">
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={item.imagen}
+                        alt={item.nombre}
+                        className="size-10 rounded-md object-cover"
+                      />
+                      <span>{item.nombre}</span>
+                    </div>
+                  </TableCell>
                   <TableCell>{item.sku}</TableCell>
                   <TableCell>{item.cantidad}</TableCell>
                 </TableRow>

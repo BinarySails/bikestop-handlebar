@@ -52,6 +52,7 @@ export function useProductInventory(
           items.push({
             sku: variant.sku,
             nombre: inventoryItem.variant_name,
+            imagen: inventoryItem.variant_image_url,
             almacen: inventoryItem.warehouse_name,
             cantidad: inventoryItem.total_quantity,
           });

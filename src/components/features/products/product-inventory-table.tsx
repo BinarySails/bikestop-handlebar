@@ -17,6 +17,7 @@ import type { WarehouseResponse } from "@/lib/api/schemas";
 export type ProductInventoryItem = {
   sku: string;
   nombre: string;
+  imagen: string;
   almacen: string;
   cantidad: number;
 };
@@ -97,7 +98,16 @@ export function ProductInventoryTable({
                 <TableRow key={`${item.sku}-${item.almacen}-${index}`}>
                   <TableCell className="font-medium">{item.almacen}</TableCell>
                   <TableCell>{item.sku}</TableCell>
-                  <TableCell>{item.nombre}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={item.imagen}
+                        alt={item.nombre}
+                        className="size-10 rounded-md object-cover"
+                      />
+                      <span>{item.nombre}</span>
+                    </div>
+                  </TableCell>
                   <TableCell>{item.cantidad}</TableCell>
                 </TableRow>
               ))}

@@ -7,6 +7,7 @@ export type InventoryItem = {
   almacen: string;
   sku: string;
   nombre: string;
+  imagen: string;
   cantidad: number;
 };
 
@@ -33,6 +34,7 @@ export function useInventory(): UseInventoryResult {
         almacen: item.warehouse_name,
         sku: item.variant_sku,
         nombre: item.variant_name,
+        imagen: item.variant_image_url,
         cantidad: item.total_quantity,
       }));
     },

@@ -298,6 +298,7 @@ export const ListInventoryRequestQueryParams = zod.object({
 export const ListInventoryRequestResponseItem = zod.object({
   "total_quantity": zod.int(),
   "variant_id": zod.uuid(),
+  "variant_image_url": zod.string(),
   "variant_name": zod.string(),
   "variant_sku": zod.string(),
   "warehouse_id": zod.uuid(),

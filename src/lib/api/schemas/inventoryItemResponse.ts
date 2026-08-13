@@ -10,6 +10,7 @@ import type { WarehouseId } from './warehouseId.ts';
 export interface InventoryItemResponse {
   total_quantity: number;
   variant_id: VariantId;
+  variant_image_url: string;
   variant_name: string;
   variant_sku: string;
   warehouse_id: WarehouseId;

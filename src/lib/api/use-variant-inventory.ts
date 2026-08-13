@@ -5,6 +5,9 @@ import type { InventoryItemResponse } from "@/lib/api/schemas";
 
 export type VariantInventoryItem = {
   almacen: string;
+  sku: string;
+  nombre: string;
+  imagen: string;
   cantidad: number;
 };
 
@@ -37,6 +40,9 @@ export function useVariantInventory(
 
       return response.data.map((item: InventoryItemResponse) => ({
         almacen: item.warehouse_name,
+        sku: item.variant_sku,
+        nombre: item.variant_name,
+        imagen: item.variant_image_url,
         cantidad: item.total_quantity,
       }));
     },
