@@ -299,6 +299,7 @@ export const ListInventoryRequestResponseItem = zod.object({
   "total_quantity": zod.int(),
   "variant_id": zod.uuid(),
   "variant_name": zod.string(),
+  "variant_sku": zod.string(),
   "warehouse_id": zod.uuid(),
   "warehouse_name": zod.string()
 })
@@ -1569,6 +1570,37 @@ export const UpdateUserProfileRequestResponse = zod.object({
   "status": zod.enum(['active', 'inactive']),
   "username": zod.string()
 })
+
+
+export const ListVariantsRequestResponseItem = zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "image_url": zod.string(),
+  "prices": zod.array(zod.object({
+  "amount": zod.int(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "currency": zod.string(),
+  "id": zod.uuid(),
+  "price_type": zod.enum(['regular', 'sale', 'wholesale']),
+  "status": zod.enum(['enable', 'disable', 'archive']),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "variant_id": zod.uuid()
+})),
+  "product_id": zod.uuid(),
+  "properties": zod.array(zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "property_name": zod.string(),
+  "property_value": zod.string(),
+  "status": zod.enum(['enable', 'disable', 'archive']),
+  "variant_id": zod.uuid()
+})),
+  "sku": zod.string(),
+  "status": zod.enum(['enable', 'disable', 'archive']),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+export const ListVariantsRequestResponse = zod.array(ListVariantsRequestResponseItem)
 
 
 export const ListWarehousesRequestQueryParams = zod.object({

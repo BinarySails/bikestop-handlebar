@@ -12,19 +12,19 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { WarehouseResponse } from "@/lib/api/schemas";
+import type { Product, WarehouseResponse } from "@/lib/api/schemas";
 
-export type ProductInventoryItem = {
+export type WarehouseInventoryItem = {
   sku: string;
   nombre: string;
-  almacen: string;
   cantidad: number;
 };
 
-type ProductInventoryTableProps = {
-  productId: string;
+type WarehouseInventoryTableProps = {
+  warehouse: WarehouseResponse;
+  products: Product[];
   warehouses: WarehouseResponse[];
-  items: ProductInventoryItem[];
+  items: WarehouseInventoryItem[];
   loading?: boolean;
   error?: string | null;
   onRetry?: () => void;
@@ -41,15 +41,16 @@ function LoadingState() {
   );
 }
 
-export function ProductInventoryTable({
-  productId,
+export function WarehouseInventoryTable({
+  warehouse,
+  products,
   warehouses,
   items,
   loading,
   error,
   onRetry,
   onAddSuccess,
-}: ProductInventoryTableProps) {
+}: WarehouseInventoryTableProps) {
   if (loading) return <LoadingState />;
 
   if (error) {
@@ -69,10 +70,10 @@ export function ProductInventoryTable({
       <CardHeader className="flex flex-row items-center justify-between gap-4">
         <CardTitle className="flex items-center gap-2 text-base font-semibold">
           <Package className="size-4" />
-          Inventario
+          Inventario en {warehouse.name}
         </CardTitle>
         <CreateInventoryTransactionDialog
-          preselectedProductId={productId}
+          products={products}
           warehouses={warehouses}
           onSuccess={onAddSuccess}
         />
@@ -80,23 +81,21 @@ export function ProductInventoryTable({
       <CardContent>
         {items.length === 0 ? (
           <p className="py-12 text-center text-sm text-muted-foreground">
-            No hay inventario registrado.
+            No hay inventario registrado en este almacén.
           </p>
         ) : (
-          <Table aria-label="Listado de inventario por variante">
+          <Table aria-label="Listado de inventario por almacén">
             <TableHeader>
               <TableRow>
-                <TableHead>Almacén</TableHead>
                 <TableHead>SKU</TableHead>
-                <TableHead>Nombre</TableHead>
+                <TableHead>Nombre variante</TableHead>
                 <TableHead>Cantidad</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {items.map((item, index) => (
-                <TableRow key={`${item.sku}-${item.almacen}-${index}`}>
-                  <TableCell className="font-medium">{item.almacen}</TableCell>
-                  <TableCell>{item.sku}</TableCell>
+                <TableRow key={`${item.sku}-${index}`}>
+                  <TableCell className="font-medium">{item.sku}</TableCell>
                   <TableCell>{item.nombre}</TableCell>
                   <TableCell>{item.cantidad}</TableCell>
                 </TableRow>

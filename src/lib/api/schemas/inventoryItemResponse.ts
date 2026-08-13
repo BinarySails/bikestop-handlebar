@@ -11,6 +11,7 @@ export interface InventoryItemResponse {
   total_quantity: number;
   variant_id: VariantId;
   variant_name: string;
+  variant_sku: string;
   warehouse_id: WarehouseId;
   warehouse_name: string;
 }

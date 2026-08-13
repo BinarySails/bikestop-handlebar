@@ -34,6 +34,7 @@ import {
   useGetCategoriesRequest,
   useListBrandsRequest,
   useListVariantsByProductRequest,
+  useListWarehousesRequest,
   useUpdateProductRequest,
 } from "@/lib/api/api";
 import { useProductInventory } from "@/lib/api/use-product-inventory";
@@ -43,6 +44,7 @@ import type {
   Product,
   ProductStatus,
   Variant,
+  WarehouseResponse,
 } from "@/lib/api/schemas";
 
 const statusLabels: Record<ProductStatus, string> = {
@@ -118,12 +120,20 @@ function ProductDetailView({
         revalidateOnFocus: false,
       },
     });
+  const { data: warehousesRes, isLoading: warehousesLoading } =
+    useListWarehousesRequest(undefined, {
+      swr: {
+        revalidateOnFocus: false,
+      },
+    });
 
   const brands: Brand[] = brandsRes?.status === 200 ? brandsRes.data.data : [];
   const categories: Category[] =
     categoriesRes?.status === 200 ? categoriesRes.data.categories : [];
   const variants: Variant[] =
     variantsRes?.status === 200 ? variantsRes.data : [];
+  const warehouses: WarehouseResponse[] =
+    warehousesRes?.status === 200 ? warehousesRes.data : [];
 
   const {
     items: inventoryItems,
@@ -405,10 +415,13 @@ function ProductDetailView({
 
       <section id="inventory" className="scroll-mt-4 space-y-6">
         <ProductInventoryTable
+          productId={productId}
+          warehouses={warehouses}
           items={inventoryItems}
-          loading={inventoryLoading || variantsLoading}
+          loading={inventoryLoading || warehousesLoading}
           error={inventoryError}
           onRetry={() => mutateInventory()}
+          onAddSuccess={() => mutateInventory()}
         />
       </section>
 

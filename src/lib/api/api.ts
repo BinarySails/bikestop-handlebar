@@ -5305,6 +5305,76 @@ export const useUpdateUserProfileRequest = <TError = Promise<ErrorResponse>>(
   }
 }
 
+export type listVariantsRequestResponse200 = {
+  data: Variant[]
+  status: 200
+}
+
+export type listVariantsRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type listVariantsRequestResponseSuccess = (listVariantsRequestResponse200) & {
+  headers: Headers;
+};
+export type listVariantsRequestResponseError = (listVariantsRequestResponse500) & {
+  headers: Headers;
+};
+
+export type listVariantsRequestResponse = (listVariantsRequestResponseSuccess | listVariantsRequestResponseError)
+
+export const getListVariantsRequestUrl = () => {
+
+
+
+
+  return `http://localhost:8080/api/v1/variants`
+}
+
+export const listVariantsRequest = async ( options?: RequestInit): Promise<listVariantsRequestResponse> => {
+
+  const res = await fetch(getListVariantsRequestUrl(),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'GET'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: listVariantsRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as listVariantsRequestResponse
+}
+
+
+
+
+export const getListVariantsRequestKey = () => [`http://localhost:8080/api/v1/variants`] as const;
+
+export type ListVariantsRequestQueryResult = NonNullable<Awaited<ReturnType<typeof listVariantsRequest>>>
+
+export const useListVariantsRequest = <TError = Promise<ErrorResponse>>(
+   options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof listVariantsRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
+) => {
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getListVariantsRequestKey() : null);
+  const swrFn = () => listVariantsRequest(fetchOptions)
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
 export type listWarehousesRequestResponse200 = {
   data: WarehouseResponse[]
   status: 200

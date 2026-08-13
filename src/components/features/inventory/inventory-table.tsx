@@ -12,19 +12,19 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { WarehouseResponse } from "@/lib/api/schemas";
+import type { Product, WarehouseResponse } from "@/lib/api/schemas";
 
-export type ProductInventoryItem = {
+export type InventoryItem = {
+  almacen: string;
   sku: string;
   nombre: string;
-  almacen: string;
   cantidad: number;
 };
 
-type ProductInventoryTableProps = {
-  productId: string;
+type InventoryTableProps = {
+  products: Product[];
   warehouses: WarehouseResponse[];
-  items: ProductInventoryItem[];
+  items: InventoryItem[];
   loading?: boolean;
   error?: string | null;
   onRetry?: () => void;
@@ -41,15 +41,15 @@ function LoadingState() {
   );
 }
 
-export function ProductInventoryTable({
-  productId,
+export function InventoryTable({
+  products,
   warehouses,
   items,
   loading,
   error,
   onRetry,
   onAddSuccess,
-}: ProductInventoryTableProps) {
+}: InventoryTableProps) {
   if (loading) return <LoadingState />;
 
   if (error) {
@@ -72,7 +72,7 @@ export function ProductInventoryTable({
           Inventario
         </CardTitle>
         <CreateInventoryTransactionDialog
-          preselectedProductId={productId}
+          products={products}
           warehouses={warehouses}
           onSuccess={onAddSuccess}
         />
@@ -83,12 +83,12 @@ export function ProductInventoryTable({
             No hay inventario registrado.
           </p>
         ) : (
-          <Table aria-label="Listado de inventario por variante">
+          <Table aria-label="Listado de inventario">
             <TableHeader>
               <TableRow>
                 <TableHead>Almacén</TableHead>
                 <TableHead>SKU</TableHead>
-                <TableHead>Nombre</TableHead>
+                <TableHead>Nombre variante</TableHead>
                 <TableHead>Cantidad</TableHead>
               </TableRow>
             </TableHeader>
