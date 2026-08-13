@@ -78,6 +78,7 @@ export type EntityIndexPageProps<T> = {
   emptyMessage?: string;
   pagination?: EntityOffsetPagination | EntityPagePagination;
   footer?: ReactNode;
+  className?: string;
 };
 
 function LoadingRows({ columnCount }: { columnCount: number }) {
@@ -115,6 +116,7 @@ export function EntityIndexPage<T>({
   emptyMessage,
   pagination,
   footer,
+  className,
 }: EntityIndexPageProps<T>) {
   const columnCount = columns.length;
 
@@ -150,7 +152,7 @@ export function EntityIndexPage<T>({
   return (
     <section
       aria-label={ariaLabel}
-      className="mx-auto w-full max-w-7xl p-4 sm:p-6"
+      className={cn("mx-auto w-full max-w-7xl p-4 sm:p-6", className)}
     >
       <div className="flex w-full flex-col gap-6">
         <Card>

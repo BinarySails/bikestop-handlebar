@@ -4,15 +4,18 @@
  * ciclo
  * OpenAPI spec version: 0.1.0
  */
+import type { UpdateVariantImageRequest } from './updateVariantImageRequest.ts';
 import type { UpdateVariantPriceRequest } from './updateVariantPriceRequest.ts';
 import type { UpdateVariantPropertyRequest } from './updateVariantPropertyRequest.ts';
 import type { VariantStatus } from './variantStatus.ts';
 
 export interface UpdateVariantRequest {
   /** @nullable */
+  description?: string | null;
+  /** @nullable */
   display_name?: string | null;
   /** @nullable */
-  image_url?: string | null;
+  images?: UpdateVariantImageRequest[] | null;
   /** @nullable */
   prices?: UpdateVariantPriceRequest[] | null;
   /** @nullable */

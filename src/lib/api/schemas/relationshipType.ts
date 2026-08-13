@@ -10,4 +10,5 @@ export type RelationshipType = typeof RelationshipType[keyof typeof Relationship
 
 export const RelationshipType = {
   primary_image: 'primary_image',
+  image: 'image',
 } as const;
