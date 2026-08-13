@@ -87,16 +87,16 @@ export function WarehouseInventoryTable({
           <Table aria-label="Listado de inventario por almacén">
             <TableHeader>
               <TableRow>
-                <TableHead>SKU</TableHead>
                 <TableHead>Nombre variante</TableHead>
+                <TableHead>SKU</TableHead>
                 <TableHead>Cantidad</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {items.map((item, index) => (
                 <TableRow key={`${item.sku}-${index}`}>
-                  <TableCell className="font-medium">{item.sku}</TableCell>
-                  <TableCell>{item.nombre}</TableCell>
+                  <TableCell className="font-medium">{item.nombre}</TableCell>
+                  <TableCell>{item.sku}</TableCell>
                   <TableCell>{item.cantidad}</TableCell>
                 </TableRow>
               ))}
