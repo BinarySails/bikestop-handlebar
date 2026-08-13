@@ -27,6 +27,7 @@ import {
 import { useListSalesOrdersRequest } from "@/lib/api/api";
 import { SalesOrderStatus } from "@/lib/api/schemas";
 import { centsToPesos } from "@/lib/money";
+import { computeDueDate, formatDueDate } from "@/lib/dates";
 
 const PAGE_SIZE = 50;
 
@@ -279,6 +280,10 @@ function SalesOrdersPage() {
       cell: (order) => <span>{order.customer.name}</span>,
     },
     {
+      header: "Término de pago",
+      cell: (order) => <span>{order.payment_term.name}</span>,
+    },
+    {
       header: "Fecha de creación",
       cell: (order) => (
         <span>{dateFormatter.format(new Date(order.created_at))}</span>
@@ -291,6 +296,21 @@ function SalesOrdersPage() {
           {currencyFormatter.format(centsToPesos(order.grand_total))}
         </span>
       ),
+    },
+    {
+      header: "Vence",
+      className: "w-32",
+      cell: (order) => {
+        const dueDate = computeDueDate(
+          order.order_date,
+          order.payment_term.days_until_due ?? null
+        );
+        return (
+          <span className="text-sm">
+            {dueDate ? formatDueDate(dueDate) : "—"}
+          </span>
+        );
+      },
     },
     {
       header: <span className="sr-only">Acciones</span>,

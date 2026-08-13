@@ -62,6 +62,7 @@ import type {
   GetDownloadUrlRequestParams,
   GetDownloadUrlResponse,
   GetLocalityByIdResponse,
+  GetPaymentTermByIdResponse,
   GetStateByIdResponse,
   GetUserPermissionsResponse,
   InventoryTransactionResponse,
@@ -84,6 +85,8 @@ import type {
   PaginatedBrand,
   PaginatedCustomerSummary,
   PaginatedSalesOrderSummaryView,
+  PaymentTerm,
+  PaymentTermId,
   PermissionId,
   Product,
   ProductId,
@@ -1691,6 +1694,151 @@ export const useCreateLocalityRequest = <TError = Promise<ErrorResponse | void>>
   const swrFn = getCreateLocalityRequestMutationFetcher(stateId, fetchOptions);
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type listPaymentTermsRequestResponse200 = {
+  data: PaymentTerm[]
+  status: 200
+}
+
+export type listPaymentTermsRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type listPaymentTermsRequestResponseSuccess = (listPaymentTermsRequestResponse200) & {
+  headers: Headers;
+};
+export type listPaymentTermsRequestResponseError = (listPaymentTermsRequestResponse500) & {
+  headers: Headers;
+};
+
+export type listPaymentTermsRequestResponse = (listPaymentTermsRequestResponseSuccess | listPaymentTermsRequestResponseError)
+
+export const getListPaymentTermsRequestUrl = () => {
+
+
+
+
+  return `http://localhost:8080/api/v1/payment-terms`
+}
+
+export const listPaymentTermsRequest = async ( options?: RequestInit): Promise<listPaymentTermsRequestResponse> => {
+
+  const res = await fetch(getListPaymentTermsRequestUrl(),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'GET'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: listPaymentTermsRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as listPaymentTermsRequestResponse
+}
+
+
+
+
+export const getListPaymentTermsRequestKey = () => [`http://localhost:8080/api/v1/payment-terms`] as const;
+
+export type ListPaymentTermsRequestQueryResult = NonNullable<Awaited<ReturnType<typeof listPaymentTermsRequest>>>
+
+export const useListPaymentTermsRequest = <TError = Promise<ErrorResponse>>(
+   options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof listPaymentTermsRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
+) => {
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getListPaymentTermsRequestKey() : null);
+  const swrFn = () => listPaymentTermsRequest(fetchOptions)
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type getPaymentTermRequestResponse200 = {
+  data: GetPaymentTermByIdResponse
+  status: 200
+}
+
+export type getPaymentTermRequestResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type getPaymentTermRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type getPaymentTermRequestResponseSuccess = (getPaymentTermRequestResponse200) & {
+  headers: Headers;
+};
+export type getPaymentTermRequestResponseError = (getPaymentTermRequestResponse404 | getPaymentTermRequestResponse500) & {
+  headers: Headers;
+};
+
+export type getPaymentTermRequestResponse = (getPaymentTermRequestResponseSuccess | getPaymentTermRequestResponseError)
+
+export const getGetPaymentTermRequestUrl = (paymentTermId: PaymentTermId,) => {
+
+
+
+
+  return `http://localhost:8080/api/v1/payment-terms/${paymentTermId}`
+}
+
+export const getPaymentTermRequest = async (paymentTermId: PaymentTermId, options?: RequestInit): Promise<getPaymentTermRequestResponse> => {
+
+  const res = await fetch(getGetPaymentTermRequestUrl(paymentTermId),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'GET'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: getPaymentTermRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as getPaymentTermRequestResponse
+}
+
+
+
+
+export const getGetPaymentTermRequestKey = (paymentTermId: PaymentTermId,) => [`http://localhost:8080/api/v1/payment-terms/${paymentTermId}`] as const;
+
+export type GetPaymentTermRequestQueryResult = NonNullable<Awaited<ReturnType<typeof getPaymentTermRequest>>>
+
+export const useGetPaymentTermRequest = <TError = Promise<ErrorResponse>>(
+  paymentTermId: PaymentTermId, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getPaymentTermRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
+) => {
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false && paymentTermId !== null && paymentTermId !== undefined
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetPaymentTermRequestKey(paymentTermId) : null);
+  const swrFn = () => getPaymentTermRequest(paymentTermId, fetchOptions)
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,

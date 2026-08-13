@@ -11,7 +11,8 @@ import {
   useMeHandler,
 } from "@/lib/api/api";
 import { updateSalesOrderRequest } from "@/lib/api/update-sales-order";
-import type { SalesOrderStatus } from "@/lib/api/schemas";
+import type { SalesOrder, SalesOrderStatus } from "@/lib/api/schemas";
+import { computeDueDate, formatDueDate } from "@/lib/dates";
 
 const statusLabel: Record<SalesOrderStatus, string> = {
   draft: "Borrador",
@@ -101,6 +102,7 @@ function OrderDetailPage() {
               {statusLabel[order.status]}
             </Badge>
           </div>
+          <PaymentTermSummary order={order} />
         </div>
         {order.status === "quote" && (
           <div className="ml-auto flex flex-wrap gap-3">
@@ -135,5 +137,22 @@ function OrderDetailPage() {
         }}
       />
     </section>
+  );
+}
+
+function PaymentTermSummary({ order }: { order: SalesOrder }) {
+  const dueDate = computeDueDate(
+    order.order_date,
+    order.payment_term.days_until_due ?? null
+  );
+
+  return (
+    <p className="mt-1 text-sm text-muted-foreground">
+      Término de pago:{" "}
+      <span className="font-medium text-foreground">
+        {order.payment_term.name}
+      </span>
+      {dueDate ? <span> · Vence el {formatDueDate(dueDate)}</span> : null}
+    </p>
   );
 }

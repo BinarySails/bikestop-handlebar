@@ -392,6 +392,37 @@ export const CreateLocalityRequestResponse = zod.object({
 })
 
 
+export const ListPaymentTermsRequestResponseItem = zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "days_until_due": zod.int().nullish(),
+  "description": zod.string().nullish(),
+  "id": zod.uuid(),
+  "is_active": zod.boolean(),
+  "name": zod.string(),
+  "type": zod.enum(['net', 'due_on_receipt']),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+export const ListPaymentTermsRequestResponse = zod.array(ListPaymentTermsRequestResponseItem)
+
+
+export const GetPaymentTermRequestParams = zod.object({
+  "payment_term_id": zod.uuid().describe('Payment term ID')
+})
+
+export const GetPaymentTermRequestResponse = zod.object({
+  "payment_term": zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "days_until_due": zod.int().nullish(),
+  "description": zod.string().nullish(),
+  "id": zod.uuid(),
+  "is_active": zod.boolean(),
+  "name": zod.string(),
+  "type": zod.enum(['net', 'due_on_receipt']),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+})
+
+
 export const listProductsRequestQueryPageMin = 0;
 
 export const listProductsRequestQueryLimitMin = 0;
@@ -1259,6 +1290,16 @@ export const ListSalesOrdersRequestResponse = zod.object({
   "id": zod.uuid(),
   "order_date": zod.iso.datetime({"offset":true}),
   "order_number": zod.string(),
+  "payment_term": zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "days_until_due": zod.int().nullish(),
+  "description": zod.string().nullish(),
+  "id": zod.uuid(),
+  "is_active": zod.boolean(),
+  "name": zod.string(),
+  "type": zod.enum(['net', 'due_on_receipt']),
+  "updated_at": zod.iso.datetime({"offset":true})
+}),
   "shipping_address": zod.object({
   "address": zod.string(),
   "city": zod.string(),
@@ -1296,6 +1337,7 @@ export const CreateSalesOrderRequestBody = zod.object({
   "variant_id": zod.uuid()
 })),
   "order_date": zod.iso.datetime({"offset":true}),
+  "payment_term_id": zod.union([zod.null(),zod.uuid()]).optional(),
   "shipping_address": zod.object({
   "address": zod.string(),
   "city": zod.string(),
@@ -1339,6 +1381,16 @@ export const CreateSalesOrderRequestResponse = zod.object({
 })),
   "order_date": zod.iso.datetime({"offset":true}),
   "order_number": zod.string(),
+  "payment_term": zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "days_until_due": zod.int().nullish(),
+  "description": zod.string().nullish(),
+  "id": zod.uuid(),
+  "is_active": zod.boolean(),
+  "name": zod.string(),
+  "type": zod.enum(['net', 'due_on_receipt']),
+  "updated_at": zod.iso.datetime({"offset":true})
+}),
   "shipping_address": zod.object({
   "address": zod.string(),
   "city": zod.string(),
@@ -1391,6 +1443,16 @@ export const GetSaleOrderRequestResponse = zod.object({
 })),
   "order_date": zod.iso.datetime({"offset":true}),
   "order_number": zod.string(),
+  "payment_term": zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "days_until_due": zod.int().nullish(),
+  "description": zod.string().nullish(),
+  "id": zod.uuid(),
+  "is_active": zod.boolean(),
+  "name": zod.string(),
+  "type": zod.enum(['net', 'due_on_receipt']),
+  "updated_at": zod.iso.datetime({"offset":true})
+}),
   "shipping_address": zod.object({
   "address": zod.string(),
   "city": zod.string(),
@@ -1428,6 +1490,7 @@ export const UpdateSalesOrderRequestBody = zod.object({
   "variant_id": zod.uuid()
 })),
   "order_date": zod.iso.datetime({"offset":true}),
+  "payment_term_id": zod.union([zod.null(),zod.uuid()]).optional(),
   "shipping_address": zod.object({
   "address": zod.string(),
   "city": zod.string(),
@@ -1471,6 +1534,16 @@ export const UpdateSalesOrderRequestResponse = zod.object({
 })),
   "order_date": zod.iso.datetime({"offset":true}),
   "order_number": zod.string(),
+  "payment_term": zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "days_until_due": zod.int().nullish(),
+  "description": zod.string().nullish(),
+  "id": zod.uuid(),
+  "is_active": zod.boolean(),
+  "name": zod.string(),
+  "type": zod.enum(['net', 'due_on_receipt']),
+  "updated_at": zod.iso.datetime({"offset":true})
+}),
   "shipping_address": zod.object({
   "address": zod.string(),
   "city": zod.string(),
@@ -1527,6 +1600,16 @@ export const AddSalesOrderCommentRequestResponse = zod.object({
 })),
   "order_date": zod.iso.datetime({"offset":true}),
   "order_number": zod.string(),
+  "payment_term": zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "days_until_due": zod.int().nullish(),
+  "description": zod.string().nullish(),
+  "id": zod.uuid(),
+  "is_active": zod.boolean(),
+  "name": zod.string(),
+  "type": zod.enum(['net', 'due_on_receipt']),
+  "updated_at": zod.iso.datetime({"offset":true})
+}),
   "shipping_address": zod.object({
   "address": zod.string(),
   "city": zod.string(),

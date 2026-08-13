@@ -147,7 +147,7 @@ export function CreateVariantDialog({
       const parseResult =
         await CreateVariantRequestBody.safeParseAsync(payload);
       if (!parseResult.success) {
-        toast.error(parseResult.error.issues[0]?.message ?? "Datos inválidos.");
+        toast.error(parseResult.error.message ?? "Datos inválidos.");
         return;
       }
 

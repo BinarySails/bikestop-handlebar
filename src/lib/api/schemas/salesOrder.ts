@@ -6,6 +6,7 @@
  */
 import type { AddressSnapshot } from './addressSnapshot.ts';
 import type { CustomerSnapshot } from './customerSnapshot.ts';
+import type { PaymentTerm } from './paymentTerm.ts';
 import type { SalesOrderId } from './salesOrderId.ts';
 import type { SalesOrderLine } from './salesOrderLine.ts';
 import type { SalesOrderStatus } from './salesOrderStatus.ts';
@@ -24,6 +25,7 @@ export interface SalesOrder {
   lines: SalesOrderLine[];
   order_date: string;
   order_number: string;
+  payment_term: PaymentTerm;
   shipping_address: AddressSnapshot;
   status: SalesOrderStatus;
   subtotal: number;
