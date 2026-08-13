@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import { EntityDetailHeader } from "@/components/features/entity/entity-detail-header";
 import { ImageUploadField } from "@/components/features/products/image-upload-field";
+import { VariantInventoryTable } from "@/components/features/products/variant-inventory-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,8 +29,17 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useGetVariantRequest, useUpdateVariantRequest } from "@/lib/api/api";
-import type { Variant, VariantStatus } from "@/lib/api/schemas";
+import {
+  useGetVariantRequest,
+  useListWarehousesRequest,
+  useUpdateVariantRequest,
+} from "@/lib/api/api";
+import { useVariantInventory } from "@/lib/api/use-variant-inventory";
+import type {
+  Variant,
+  VariantStatus,
+  WarehouseResponse,
+} from "@/lib/api/schemas";
 import { centsToPesosString, pesosToCents } from "@/lib/money";
 import { UpdateVariantRequestBody } from "@/lib/api/zods";
 
@@ -118,6 +128,22 @@ function VariantDetailView({
     productId,
     variantId
   );
+  const { data: warehousesResponse, isLoading: warehousesLoading } =
+    useListWarehousesRequest(undefined, {
+      swr: {
+        revalidateOnFocus: false,
+      },
+    });
+
+  const warehouses: WarehouseResponse[] =
+    warehousesResponse?.status === 200 ? warehousesResponse.data : [];
+
+  const {
+    items: inventoryItems,
+    isLoading: inventoryLoading,
+    error: inventoryError,
+    mutate: mutateInventory,
+  } = useVariantInventory(variantId);
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deletePending, setDeletePending] = useState(false);
@@ -698,6 +724,18 @@ function VariantDetailView({
           </Card>
         </section>
       </form>
+
+      <section id="inventory" className="scroll-mt-4 space-y-6">
+        <VariantInventoryTable
+          variantId={variantId}
+          warehouses={warehouses}
+          items={inventoryItems}
+          loading={inventoryLoading || warehousesLoading}
+          error={inventoryError}
+          onRetry={() => mutateInventory()}
+          onAddSuccess={() => mutateInventory()}
+        />
+      </section>
 
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <DialogContent className="sm:max-w-md">

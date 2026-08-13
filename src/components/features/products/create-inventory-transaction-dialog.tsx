@@ -3,6 +3,9 @@ import { Plus } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { ProductCombobox } from "@/components/features/sales/product-combobox";
+import { VariantCombobox } from "@/components/features/sales/variant-combobox";
+import { WarehouseCombobox } from "@/components/features/warehouses/warehouse-combobox";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -16,13 +19,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   useCreateInventoryTransactionRequest,
   useListVariantsByProductRequest,
 } from "@/lib/api/api";
@@ -33,6 +29,7 @@ type CreateInventoryTransactionDialogProps = {
   warehouses: WarehouseResponse[];
   products?: Product[];
   preselectedProductId?: string;
+  preselectedVariantId?: string;
   onSuccess?: () => Promise<unknown> | void;
 };
 
@@ -49,18 +46,23 @@ export function CreateInventoryTransactionDialog({
   warehouses,
   products,
   preselectedProductId,
+  preselectedVariantId,
   onSuccess,
 }: CreateInventoryTransactionDialogProps) {
   const [open, setOpen] = useState(false);
   const { trigger, isMutating } = useCreateInventoryTransactionRequest();
 
   const showProductSelect =
-    !preselectedProductId && products && products.length > 0;
+    !preselectedProductId &&
+    !preselectedVariantId &&
+    products &&
+    products.length > 0;
+  const showVariantSelect = !preselectedVariantId;
 
   const form = useForm({
     defaultValues: {
       productId: preselectedProductId ?? "",
-      variantId: "",
+      variantId: preselectedVariantId ?? "",
       warehouseId: "",
       quantity: "",
     },
@@ -84,13 +86,14 @@ export function CreateInventoryTransactionDialog({
         return;
       }
 
-      if (!value.variantId) {
+      const variantId = preselectedVariantId || value.variantId;
+      if (!variantId) {
         toast.error("Selecciona una variante.");
         return;
       }
 
       const result = await trigger({
-        variant_id: value.variantId,
+        variant_id: variantId,
         warehouse_id: selectedWarehouse.id,
         quantity: Number(value.quantity),
         transaction_type: InventoryTransactionType.available,
@@ -128,7 +131,9 @@ export function CreateInventoryTransactionDialog({
         <DialogHeader>
           <DialogTitle>Agregar inventario</DialogTitle>
           <DialogDescription>
-            Selecciona el producto, variante, almacén y cantidad a registrar.
+            {preselectedVariantId
+              ? "Selecciona el almacén y cantidad a registrar."
+              : "Selecciona el producto, variante, almacén y cantidad a registrar."}
           </DialogDescription>
         </DialogHeader>
 
@@ -153,37 +158,18 @@ export function CreateInventoryTransactionDialog({
               {(field) => (
                 <div className="grid gap-2">
                   <Label htmlFor={field.name}>Producto</Label>
-                  <Select
-                    value={field.state.value}
-                    onValueChange={(value) => {
-                      field.handleChange(value ?? "");
+                  <ProductCombobox
+                    id={field.name}
+                    value={
+                      products?.find(
+                        (product) => product.id === field.state.value
+                      ) ?? null
+                    }
+                    onChange={(product) => {
+                      field.handleChange(product?.id ?? "");
                       form.setFieldValue("variantId", "");
                     }}
-                  >
-                    <SelectTrigger id={field.name} className="w-full">
-                      <SelectValue
-                        placeholder="Selecciona un producto"
-                        render={() => {
-                          const selected = products?.find(
-                            (product) => product.id === field.state.value
-                          );
-                          return (
-                            <span>
-                              {selected?.display_name ??
-                                "Selecciona un producto"}
-                            </span>
-                          );
-                        }}
-                      />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {products?.map((product) => (
-                        <SelectItem key={product.id} value={product.id}>
-                          {product.display_name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  />
                   {field.state.meta.errors?.[0] && (
                     <p className="text-sm text-destructive">
                       {field.state.meta.errors[0]}
@@ -194,78 +180,60 @@ export function CreateInventoryTransactionDialog({
             </form.Field>
           )}
 
-          <form.Subscribe selector={(state) => state.values.productId}>
-            {(selectedProductId) => {
-              const { data: variantsResponse, isLoading: isLoadingVariants } =
-                useListVariantsByProductRequest(selectedProductId, {
-                  swr: {
-                    revalidateOnFocus: false,
-                    enabled: !!selectedProductId,
-                  },
-                });
-
-              const variants =
-                variantsResponse?.status === 200 ? variantsResponse.data : [];
-
-              return (
-                <form.Field
-                  name="variantId"
-                  validators={{
-                    onSubmit: ({ value }) => {
-                      if (!value) return "La variante es obligatoria.";
-                      return undefined;
+          {showVariantSelect && (
+            <form.Subscribe selector={(state) => state.values.productId}>
+              {(selectedProductId) => {
+                const effectiveProductId =
+                  preselectedProductId ?? selectedProductId;
+                const { data: variantsResponse } =
+                  useListVariantsByProductRequest(effectiveProductId, {
+                    swr: {
+                      revalidateOnFocus: false,
+                      enabled: !!effectiveProductId,
                     },
-                  }}
-                >
-                  {(field) => (
-                    <div className="grid gap-2">
-                      <Label htmlFor={field.name}>Variante</Label>
-                      <Select
-                        value={field.state.value}
-                        onValueChange={(value) =>
-                          field.handleChange(value ?? "")
-                        }
-                        disabled={!selectedProductId || isLoadingVariants}
-                      >
-                        <SelectTrigger id={field.name} className="w-full">
-                          <SelectValue
-                            placeholder={
-                              isLoadingVariants
-                                ? "Cargando variantes..."
-                                : "Selecciona una variante"
-                            }
-                            render={() => {
-                              const selected = variants.find(
-                                (variant) => variant.id === field.state.value
-                              );
-                              return (
-                                <span>
-                                  {selected?.display_name ??
-                                    "Selecciona una variante"}
-                                </span>
-                              );
-                            }}
-                          />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {variants.map((variant) => (
-                            <SelectItem key={variant.id} value={variant.id}>
-                              {variant.display_name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {field.state.meta.errors?.[0] && (
-                        <p className="text-sm text-destructive">
-                          {field.state.meta.errors[0]}
-                        </p>
-                      )}
-                    </div>
-                  )}
-                </form.Field>
-              );
-            }}
-          </form.Subscribe>
+                  });
+
+                const variants =
+                  variantsResponse?.status === 200 ? variantsResponse.data : [];
+
+                return (
+                  <form.Field
+                    name="variantId"
+                    validators={{
+                      onSubmit: ({ value }) => {
+                        if (!value) return "La variante es obligatoria.";
+                        return undefined;
+                      },
+                    }}
+                  >
+                    {(field) => (
+                      <div className="grid gap-2">
+                        <Label htmlFor={field.name}>Variante</Label>
+                        <VariantCombobox
+                          id={field.name}
+                          productId={effectiveProductId ?? null}
+                          value={
+                            variants.find(
+                              (variant) => variant.id === field.state.value
+                            ) ?? null
+                          }
+                          onChange={(variant) => {
+                            field.handleChange(variant?.id ?? "");
+                          }}
+                          disabled={!effectiveProductId}
+                        />
+                        {field.state.meta.errors?.[0] && (
+                          <p className="text-sm text-destructive">
+                            {field.state.meta.errors[0]}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </form.Field>
+                );
+              }}
+            </form.Subscribe>
+          )}
 
           <form.Field
             name="warehouseId"
@@ -279,33 +247,17 @@ export function CreateInventoryTransactionDialog({
             {(field) => (
               <div className="grid gap-2">
                 <Label htmlFor={field.name}>Almacén</Label>
-                <Select
-                  value={field.state.value}
-                  onValueChange={(value) => field.handleChange(value ?? "")}
-                >
-                  <SelectTrigger id={field.name} className="w-full">
-                    <SelectValue
-                      placeholder="Selecciona un almacén"
-                      render={() => {
-                        const selected = warehouses.find(
-                          (warehouse) => warehouse.id === field.state.value
-                        );
-                        return (
-                          <span>
-                            {selected?.name ?? "Selecciona un almacén"}
-                          </span>
-                        );
-                      }}
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {warehouses.map((warehouse) => (
-                      <SelectItem key={warehouse.id} value={warehouse.id}>
-                        {warehouse.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <WarehouseCombobox
+                  id={field.name}
+                  value={
+                    warehouses.find(
+                      (warehouse) => warehouse.id === field.state.value
+                    ) ?? null
+                  }
+                  onChange={(warehouse) => {
+                    field.handleChange(warehouse?.id ?? "");
+                  }}
+                />
                 {field.state.meta.errors?.[0] && (
                   <p className="text-sm text-destructive">
                     {field.state.meta.errors[0]}
