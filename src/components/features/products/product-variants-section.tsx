@@ -1,10 +1,9 @@
 /* oxlint-disable react/no-unstable-nested-components -- column cells are render callbacks, not components */
 import { useState } from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { Boxes, MoreVertical, RotateCcw, SearchIcon } from "lucide-react";
 import { toast } from "sonner";
 
-import { SiteHeader } from "@/components/features/layout/site-header";
 import { EntityCardTitle } from "@/components/features/entity/entity-card-title";
 import {
   EntityIndexPage,
@@ -37,10 +36,6 @@ import {
   useUpdateVariantRequest,
 } from "@/lib/api/api";
 import type { Variant } from "@/lib/api/schemas";
-
-export const Route = createFileRoute("/_layout/products/$productId_/variants")({
-  component: ProductVariantsPage,
-});
 
 const PAGE_SIZE = 10;
 
@@ -138,7 +133,14 @@ function ArchiveVariantMenuItem({
       const result = await updateVariant({
         sku: variant.sku,
         display_name: variant.display_name,
-        image_url: variant.image_url,
+        description: variant.description,
+        images: (variant.images ?? [])
+          .slice()
+          .sort((a, b) => a.image_index - b.image_index)
+          .map((image, index) => ({
+            image_index: index + 1,
+            image_url: image.image_url,
+          })),
         status: "archive",
         properties: variant.properties.map((property) => ({
           property_name: property.property_name,
@@ -177,8 +179,7 @@ function ArchiveVariantMenuItem({
   );
 }
 
-function ProductVariantsPage() {
-  const { productId } = Route.useParams();
+export function ProductVariantsSection({ productId }: { productId: string }) {
   const [page, setPage] = useState(0);
   const [search, setSearch] = useState("");
   const [appliedSearch, setAppliedSearch] = useState("");
@@ -295,67 +296,63 @@ function ProductVariantsPage() {
   ];
 
   return (
-    <>
-      <SiteHeader
-        title="Variantes"
-        backTo={`/products/${productId}`}
-        backLabel="Volver al producto"
-        actions={
-          <CreateVariantDialog productId={productId} onSuccess={mutate} />
-        }
-      />
+    <section id="variants" className="scroll-mt-4 space-y-6">
       <EntityIndexPage<Variant>
+        className="max-w-none p-0"
         ariaLabel="Variantes del producto"
         cardTitle={
           <EntityCardTitle icon={Boxes}>Catálogo de variantes</EntityCardTitle>
         }
         cardHeaderExtras={
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <InputGroup className="w-full max-w-xl">
-              <InputGroupAddon>
-                <SearchIcon />
-              </InputGroupAddon>
-              <InputGroupInput
-                type="search"
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter") {
-                    handleApplySearch();
-                  }
-                }}
-                placeholder="Buscar por nombre, SKU o propiedad"
-                aria-label="Buscar por nombre, SKU o propiedad"
-              />
-            </InputGroup>
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <InputGroup className="w-full max-w-xl">
+                <InputGroupAddon>
+                  <SearchIcon />
+                </InputGroupAddon>
+                <InputGroupInput
+                  type="search"
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      handleApplySearch();
+                    }
+                  }}
+                  placeholder="Buscar por nombre, SKU o propiedad"
+                  aria-label="Buscar por nombre, SKU o propiedad"
+                />
+              </InputGroup>
 
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-500">Estatus</span>
-              <Select
-                value={status}
-                onValueChange={(value) => {
-                  setStatus(value as ListStatusFilter);
-                  setPage(0);
-                }}
-              >
-                <SelectTrigger size="sm" className="min-w-36">
-                  <SelectValue>{statusFilterLabel[status]}</SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="enable">Activo</SelectItem>
-                  <SelectItem value="disable">Inactivo</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-8"
-                onClick={handleClearFilters}
-              >
-                <RotateCcw />
-                Limpiar
-              </Button>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-500">Estatus</span>
+                <Select
+                  value={status}
+                  onValueChange={(value) => {
+                    setStatus(value as ListStatusFilter);
+                    setPage(0);
+                  }}
+                >
+                  <SelectTrigger size="sm" className="min-w-36">
+                    <SelectValue>{statusFilterLabel[status]}</SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="enable">Activo</SelectItem>
+                    <SelectItem value="disable">Inactivo</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8"
+                  onClick={handleClearFilters}
+                >
+                  <RotateCcw />
+                  Limpiar
+                </Button>
+                <CreateVariantDialog productId={productId} onSuccess={mutate} />
+              </div>
             </div>
           </div>
         }
@@ -377,6 +374,6 @@ function ProductVariantsPage() {
           onPageChange: (nextPage) => setPage(nextPage),
         }}
       />
-    </>
+    </section>
   );
 }
