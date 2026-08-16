@@ -185,13 +185,15 @@ export function CreateInventoryTransactionDialog({
               {(selectedProductId) => {
                 const effectiveProductId =
                   preselectedProductId ?? selectedProductId;
-                const { data: variantsResponse } =
-                  useListVariantsRequest(effectiveProductId, {
+                const { data: variantsResponse } = useListVariantsRequest(
+                  effectiveProductId,
+                  {
                     swr: {
                       revalidateOnFocus: false,
                       enabled: !!effectiveProductId,
                     },
-                  });
+                  }
+                );
 
                 const variants =
                   variantsResponse?.status === 200 ? variantsResponse.data : [];

@@ -31,10 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  useListVariantsRequest,
-  useUpdateVariantRequest,
-} from "@/lib/api/api";
+import { useListVariantsRequest, useUpdateVariantRequest } from "@/lib/api/api";
 import type { Variant } from "@/lib/api/schemas";
 
 const PAGE_SIZE = 10;

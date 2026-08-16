@@ -113,7 +113,10 @@ export function CatalogPage() {
   const { data: categoriesRes } = useGetCategoriesRequest();
   const { data: brandsRes } = useListBrandsRequest();
 
-  const products = productsRes?.status === 200 ? productsRes.data.data : [];
+  const products = useMemo(
+    () => (productsRes?.status === 200 ? productsRes.data.data : []),
+    [productsRes]
+  );
   const total = productsRes?.status === 200 ? productsRes.data.total : 0;
   const visibleProducts = useMemo(() => {
     const normalizedSearch = appliedSearch.trim().toLowerCase();
@@ -212,7 +215,10 @@ export function CatalogPage() {
             </p>
           </div>
 
-          <CatalogProductGrid products={visibleProducts} isLoading={isLoading} />
+          <CatalogProductGrid
+            products={visibleProducts}
+            isLoading={isLoading}
+          />
 
           {totalPages > 1 && (
             <Pagination>
