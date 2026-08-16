@@ -73,6 +73,56 @@ export const MeHandlerResponse = zod.object({
 })
 
 
+export const listCatalogProductsRequestQueryPageMin = 0;
+
+export const listCatalogProductsRequestQueryLimitMin = 0;
+
+
+
+export const ListCatalogProductsRequestQueryParams = zod.object({
+  "category_id": zod.uuid().optional(),
+  "brand_id": zod.uuid().optional(),
+  "search": zod.string().optional(),
+  "sort_by": zod.enum(['Name', 'Price', 'CreatedAt']).optional(),
+  "sort_order": zod.enum(['Asc', 'Desc']).optional(),
+  "availability": zod.enum(['All', 'Available', 'OutOfStock']).optional(),
+  "page": zod.int().min(listCatalogProductsRequestQueryPageMin).optional(),
+  "limit": zod.int().min(listCatalogProductsRequestQueryLimitMin).optional()
+})
+
+export const listCatalogProductsRequestResponseLimitMin = 0;
+
+export const listCatalogProductsRequestResponsePageMin = 0;
+
+
+
+export const ListCatalogProductsRequestResponse = zod.object({
+  "data": zod.array(zod.object({
+  "brand": zod.object({
+  "display_name": zod.string(),
+  "id": zod.uuid()
+}),
+  "category": zod.object({
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "slug": zod.string()
+}),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "default_price": zod.union([zod.null(),zod.object({
+  "amount": zod.int(),
+  "currency": zod.string()
+})]).optional(),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "is_available": zod.boolean(),
+  "main_image_url": zod.string().nullish()
+})),
+  "limit": zod.int().min(listCatalogProductsRequestResponseLimitMin),
+  "page": zod.int().min(listCatalogProductsRequestResponsePageMin),
+  "total": zod.int()
+})
+
+
 export const ListCustomersRequestQueryParams = zod.object({
   "search": zod.string().optional(),
   "page": zod.int().optional(),
