@@ -33,6 +33,7 @@ import {
   type Product,
   ProductStatus,
   type SalesOrder,
+  type SalesOrderLineId,
   type Variant,
   VariantStatus,
 } from "@/lib/api/schemas";
@@ -56,6 +57,7 @@ type AddressFormValues = {
 };
 
 type LineFormValues = {
+  id?: SalesOrderLineId;
   product: Product | null;
   variant: Variant | null;
   description: string;
@@ -220,6 +222,7 @@ function valuesFromOrder(order: SalesOrder): SalesOrderFormValues {
     order_date: new Date(order.order_date),
     comments: order.comments ?? "",
     lines: order.lines.map((line) => ({
+      id: line.id,
       product: {
         id: line.product_id,
         display_name: line.description,
@@ -258,6 +261,7 @@ export function CreateSalesOrderForm({
   onSaveOrder,
   onAdvance,
   onCancel,
+  onDispatchLine,
 }: {
   order?: SalesOrder;
   commentAuthor?: string;
@@ -265,6 +269,7 @@ export function CreateSalesOrderForm({
   onSaveOrder?: (payload: CreateSalesOrderRequest) => Promise<void>;
   onAdvance?: () => Promise<void>;
   onCancel?: () => Promise<void>;
+  onDispatchLine?: (lineId: SalesOrderLineId) => Promise<void>;
 } = {}) {
   const navigate = useNavigate();
   const { trigger } = useCreateSalesOrderRequest();
@@ -291,6 +296,14 @@ export function CreateSalesOrderForm({
     "advance" | "cancel" | "save-quote" | null
   >(null);
   const [isChangingStatus, setIsChangingStatus] = useState(false);
+  const [dispatchLineId, setDispatchLineId] = useState<SalesOrderLineId | null>(
+    null
+  );
+  const [dispatchingLineId, setDispatchingLineId] =
+    useState<SalesOrderLineId | null>(null);
+  const [dispatchedLineIds, setDispatchedLineIds] = useState(
+    () => new Set<SalesOrderLineId>()
+  );
   const messages = (order?.comments ?? "")
     .split(/\n+/)
     .map((comment) => comment.trim())
@@ -450,6 +463,24 @@ export function CreateSalesOrderForm({
       await form.handleSubmit();
     } finally {
       setIsChangingStatus(false);
+    }
+  }
+
+  async function dispatchLine() {
+    if (!dispatchLineId || !onDispatchLine) return;
+
+    setDispatchingLineId(dispatchLineId);
+    try {
+      await onDispatchLine(dispatchLineId);
+      setDispatchedLineIds((lineIds) => new Set(lineIds).add(dispatchLineId));
+      setDispatchLineId(null);
+      toast.success("Línea despachada correctamente");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "No se pudo despachar la línea"
+      );
+    } finally {
+      setDispatchingLineId(null);
     }
   }
 
@@ -721,6 +752,50 @@ export function CreateSalesOrderForm({
         </DialogContent>
       </Dialog>
 
+      <Dialog
+        open={dispatchLineId !== null}
+        onOpenChange={(open) => {
+          if (!open && dispatchingLineId === null) setDispatchLineId(null);
+        }}
+      >
+        <DialogContent showCloseButton={dispatchingLineId === null}>
+          <DialogHeader>
+            <DialogTitle>Despachar línea</DialogTitle>
+            <DialogDescription>
+              {(() => {
+                const line = order?.lines.find(
+                  (item) => item.id === dispatchLineId
+                );
+                if (!line) return "Se generará un envío para esta línea.";
+                return `Se generará un envío para ${line.description} (cantidad: ${line.quantity}).`;
+              })()}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose
+              render={
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={dispatchingLineId !== null}
+                />
+              }
+            >
+              Volver
+            </DialogClose>
+            <Button
+              type="button"
+              disabled={dispatchingLineId !== null}
+              onClick={() => void dispatchLine()}
+            >
+              {dispatchingLineId !== null
+                ? "Despachando..."
+                : "Despachar línea"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <fieldset disabled={!editable} className="space-y-6">
         <Card>
           <CardHeader>
@@ -891,43 +966,45 @@ export function CreateSalesOrderForm({
         </CardContent>
       </Card>
 
-      <fieldset disabled={!editable} className="space-y-6">
+      <div className="space-y-6">
         <Card>
           <CardHeader className="flex-row items-center justify-between">
             <CardTitle>Productos</CardTitle>
-            <form.Field
-              name="lines"
-              validators={{
-                onSubmit: ({ value }) => {
-                  if (value.length === 0) {
-                    return "Agrega al menos una línea.";
-                  }
-                  return undefined;
-                },
-              }}
-            >
-              {(field) => (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    field.pushValue({
-                      product: null,
-                      variant: null,
-                      description: "",
-                      quantity: "1",
-                      unit_price: "",
-                      discount_percent: "",
-                      tax_rate: DEFAULT_TAX_PERCENT,
-                    })
-                  }
-                >
-                  <Plus className="size-4" />
-                  Agregar línea
-                </Button>
-              )}
-            </form.Field>
+            {editable && (
+              <form.Field
+                name="lines"
+                validators={{
+                  onSubmit: ({ value }) => {
+                    if (value.length === 0) {
+                      return "Agrega al menos una línea.";
+                    }
+                    return undefined;
+                  },
+                }}
+              >
+                {(field) => (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      field.pushValue({
+                        product: null,
+                        variant: null,
+                        description: "",
+                        quantity: "1",
+                        unit_price: "",
+                        discount_percent: "",
+                        tax_rate: DEFAULT_TAX_PERCENT,
+                      })
+                    }
+                  >
+                    <Plus className="size-4" />
+                    Agregar línea
+                  </Button>
+                )}
+              </form.Field>
+            )}
           </CardHeader>
           <CardContent className="space-y-4">
             <form.Field name="lines">
@@ -957,6 +1034,7 @@ export function CreateSalesOrderForm({
                                 <ProductCombobox
                                   id={subField.name}
                                   value={subField.state.value}
+                                  disabled={!editable}
                                   onChange={(product) => {
                                     subField.handleChange(product);
                                     form.setFieldValue(
@@ -1002,7 +1080,7 @@ export function CreateSalesOrderForm({
                                       }
                                     }
                                   }}
-                                  disabled={!line.product}
+                                  disabled={!editable || !line.product}
                                 />
                                 {subField.state.meta.errors[0] && (
                                   <p className="text-xs text-destructive">
@@ -1028,16 +1106,30 @@ export function CreateSalesOrderForm({
                             </div>
                           )}
 
-                          {order?.status === "confirmed" && (
-                            <div className="flex flex-col items-end gap-1">
-                              <Button type="button" variant="outline" disabled>
-                                Despachar
-                              </Button>
-                              <span className="text-xs text-muted-foreground">
-                                Disponible próximamente
-                              </span>
-                            </div>
-                          )}
+                          {(order?.status === "confirmed" ||
+                            order?.status === "partially_fulfilled" ||
+                            order?.status === "fulfilled") &&
+                            line.id && (
+                              <div className="flex flex-col items-end gap-1">
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  disabled={
+                                    order.status === "fulfilled" ||
+                                    dispatchingLineId !== null ||
+                                    dispatchedLineIds.has(line.id)
+                                  }
+                                  onClick={() => setDispatchLineId(line.id!)}
+                                >
+                                  {dispatchingLineId === line.id
+                                    ? "Despachando..."
+                                    : order.status === "fulfilled" ||
+                                        dispatchedLineIds.has(line.id)
+                                      ? "Despachada"
+                                      : "Despachar"}
+                                </Button>
+                              </div>
+                            )}
                         </div>
 
                         <form.Field
@@ -1053,6 +1145,7 @@ export function CreateSalesOrderForm({
                               <Input
                                 id={subField.name}
                                 value={subField.state.value}
+                                disabled={!editable}
                                 onChange={(event) =>
                                   subField.handleChange(event.target.value)
                                 }
@@ -1087,6 +1180,7 @@ export function CreateSalesOrderForm({
                                   min={1}
                                   step={1}
                                   value={subField.state.value}
+                                  disabled={!editable}
                                   onChange={(event) =>
                                     subField.handleChange(event.target.value)
                                   }
@@ -1121,6 +1215,7 @@ export function CreateSalesOrderForm({
                                   min={0}
                                   step="0.01"
                                   value={subField.state.value}
+                                  disabled={!editable}
                                   onChange={(event) =>
                                     subField.handleChange(event.target.value)
                                   }
@@ -1156,6 +1251,7 @@ export function CreateSalesOrderForm({
                                   max={100}
                                   step="0.01"
                                   value={subField.state.value}
+                                  disabled={!editable}
                                   onChange={(event) =>
                                     subField.handleChange(event.target.value)
                                   }
@@ -1190,6 +1286,7 @@ export function CreateSalesOrderForm({
                                   max={100}
                                   step="0.01"
                                   value={subField.state.value}
+                                  disabled={!editable}
                                   onChange={(event) =>
                                     subField.handleChange(event.target.value)
                                   }
@@ -1224,7 +1321,7 @@ export function CreateSalesOrderForm({
             </form.Field>
           </CardContent>
         </Card>
-      </fieldset>
+      </div>
 
       {order?.status === "confirmed" && (
         <Card>

@@ -1588,6 +1588,74 @@ export const AddSalesOrderCommentRequestResponse = zod.object({
 })
 
 
+export const DispatchSalesOrderLineRequestParams = zod.object({
+  "id": zod.uuid().describe('Sales order ID'),
+  "line_id": zod.uuid().describe('Sales order line ID')
+})
+
+export const DispatchSalesOrderLineRequestResponse = zod.object({
+  "sales_order": zod.object({
+  "billing_address": zod.object({
+  "address": zod.string(),
+  "city": zod.string(),
+  "country": zod.string(),
+  "postal_code": zod.string(),
+  "state": zod.string()
+}),
+  "comments": zod.string().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "customer": zod.object({
+  "customer_id": zod.uuid(),
+  "name": zod.string()
+}),
+  "discount_total": zod.int(),
+  "grand_total": zod.int(),
+  "id": zod.uuid(),
+  "lines": zod.array(zod.object({
+  "description": zod.string(),
+  "discount_amount": zod.int(),
+  "discount_percent": zod.int().nullish(),
+  "id": zod.uuid(),
+  "line_number": zod.int(),
+  "line_total": zod.int(),
+  "product_id": zod.uuid(),
+  "quantity": zod.int(),
+  "tax_amount": zod.int(),
+  "tax_rate": zod.int(),
+  "unit_price": zod.int(),
+  "variant_id": zod.uuid()
+})),
+  "order_date": zod.iso.datetime({"offset":true}),
+  "order_number": zod.string(),
+  "shipping_address": zod.object({
+  "address": zod.string(),
+  "city": zod.string(),
+  "country": zod.string(),
+  "postal_code": zod.string(),
+  "state": zod.string()
+}),
+  "status": zod.enum(['draft', 'quote', 'confirmed', 'partially_fulfilled', 'fulfilled', 'cancelled', 'closed']),
+  "subtotal": zod.int(),
+  "tax_total": zod.int(),
+  "updated_at": zod.iso.datetime({"offset":true})
+}),
+  "shipment": zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "sales_order_id": zod.uuid(),
+  "status": zod.enum(['draft', 'ready', 'shipped', 'delivered', 'cancelled']),
+  "updated_at": zod.iso.datetime({"offset":true})
+}),
+  "shipment_line": zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "quantity": zod.int(),
+  "sales_order_line_id": zod.uuid(),
+  "shipment_id": zod.uuid()
+})
+})
+
+
 export const listUsersRequestQueryLimitMin = 0;
 
 export const listUsersRequestQueryOffsetMin = 0;

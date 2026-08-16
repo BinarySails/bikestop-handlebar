@@ -7,13 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   cancelSalesOrderRequest,
+  dispatchSalesOrderLineRequest,
   updateSalesOrderRequest,
   updateSalesOrderStatusRequest,
   useAddSalesOrderCommentRequest,
   useGetSaleOrderRequest,
   useMeHandler,
 } from "@/lib/api/api";
-import type { SalesOrderStatus } from "@/lib/api/schemas";
+import type { SalesOrderLineId, SalesOrderStatus } from "@/lib/api/schemas";
 
 const statusLabel: Record<SalesOrderStatus, string> = {
   draft: "Borrador",
@@ -152,6 +153,22 @@ function OrderDetailPage() {
             throw new Error("No se pudo cancelar la orden");
           }
           await mutate(updated, { revalidate: false });
+        }}
+        onDispatchLine={async (lineId: SalesOrderLineId) => {
+          const result = await dispatchSalesOrderLineRequest(order.id, lineId);
+          if (result.status !== 201) {
+            throw new Error(
+              result.data.message ?? "No se pudo despachar la línea"
+            );
+          }
+          await mutate(
+            {
+              status: 200,
+              data: result.data.sales_order,
+              headers: result.headers,
+            },
+            { revalidate: false }
+          );
         }}
       />
     </section>
