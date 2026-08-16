@@ -356,6 +356,7 @@ export function CreateSalesOrderForm({
         if (order.status === "draft" && onSaveDraft) {
           try {
             await onSaveDraft(parseResult.data);
+            form.reset(value);
             toast.success("Cambios guardados");
           } catch {
             toast.error("No se pudieron guardar los cambios");
@@ -540,6 +541,58 @@ export function CreateSalesOrderForm({
       }}
       className="space-y-6"
     >
+      <div className="flex flex-wrap justify-end gap-3">
+        {!isDetail && (
+          <form.Subscribe selector={(state) => state.isSubmitting}>
+            {(isSubmitting) => (
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "Creando..." : "Crear orden"}
+              </Button>
+            )}
+          </form.Subscribe>
+        )}
+
+        {isDetail && editable && (
+          <form.Subscribe
+            selector={(state) => [state.isSubmitting, state.isDirty]}
+          >
+            {([isSubmitting, isDirty]) => (
+              <Button
+                type="button"
+                disabled={isSubmitting || !isDirty}
+                onClick={() => void form.handleSubmit()}
+              >
+                {isSubmitting ? "Guardando..." : "Guardar cambios"}
+              </Button>
+            )}
+          </form.Subscribe>
+        )}
+
+        {isReadOnlyOrder && order && (
+          <Button
+            type="button"
+            variant="outline"
+            render={
+              <Link
+                to="/sales/$orderId/payments-invoices"
+                params={{ orderId: order.id }}
+              />
+            }
+          >
+            Pagos y facturas
+          </Button>
+        )}
+
+        {isReadOnlyOrder && (
+          <>
+            <Button type="button">Despachar</Button>
+            <Button type="button" variant="destructive">
+              Cancelar pedido
+            </Button>
+          </>
+        )}
+      </div>
+
       <fieldset disabled={!editable} className="space-y-6">
         <Card>
           <CardHeader>
@@ -709,21 +762,6 @@ export function CreateSalesOrderForm({
           )}
         </CardContent>
       </Card>
-
-      {isReadOnlyOrder && order && (
-        <Button
-          type="button"
-          className="h-12 w-full font-semibold"
-          render={
-            <Link
-              to="/sales/$orderId/payments-invoices"
-              params={{ orderId: order.id }}
-            />
-          }
-        >
-          Pagos y facturas
-        </Button>
-      )}
 
       <fieldset disabled={!editable} className="space-y-6">
         <Card>
@@ -1086,67 +1124,11 @@ export function CreateSalesOrderForm({
                     <span>{currencyFormatter.format(total / 100)}</span>
                   </div>
                 </div>
-
-                <div className="flex justify-end gap-3">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    render={<Link to="/sales" />}
-                  >
-                    {isDetail ? "Regresar" : "Cancelar"}
-                  </Button>
-                  {!isDetail && (
-                    <form.Subscribe selector={(state) => state.isSubmitting}>
-                      {(isSubmitting) => (
-                        <Button type="submit" disabled={isSubmitting}>
-                          {isSubmitting ? "Creando..." : "Crear orden"}
-                        </Button>
-                      )}
-                    </form.Subscribe>
-                  )}
-                  {isDetail && editable && (
-                    <form.Subscribe
-                      selector={(state) => [state.isSubmitting, state.isDirty]}
-                    >
-                      {([isSubmitting, isDirty]) => (
-                        <Button
-                          type="button"
-                          disabled={isSubmitting}
-                          onClick={() => {
-                            if (!isDirty) {
-                              toast.info("No hay cambios por guardar");
-                              return;
-                            }
-                            void form.handleSubmit();
-                          }}
-                        >
-                          {isSubmitting ? "Guardando..." : "Guardar cambios"}
-                        </Button>
-                      )}
-                    </form.Subscribe>
-                  )}
-                </div>
               </CardContent>
             </Card>
           );
         }}
       </form.Subscribe>
-
-      {isReadOnlyOrder && (
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Button type="button" size="lg" className="h-12 font-semibold">
-            Despachar
-          </Button>
-          <Button
-            type="button"
-            variant="destructive"
-            size="lg"
-            className="h-12 font-semibold"
-          >
-            Cancelar pedido
-          </Button>
-        </div>
-      )}
     </form>
   );
 }
