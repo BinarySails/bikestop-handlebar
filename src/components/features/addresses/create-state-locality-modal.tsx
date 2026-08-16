@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useForm } from "@tanstack/react-form";
 import { toast } from "sonner";
 
+import { EntityCreateButton } from "@/components/features/entity/entity-create-button";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -161,9 +162,11 @@ export function CreateStateLocalityDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger render={<Button />}>
-        Nuevo estado / localidad
-      </DialogTrigger>
+      <DialogTrigger
+        render={
+          <EntityCreateButton>Nuevo estado / localidad</EntityCreateButton>
+        }
+      />
 
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>

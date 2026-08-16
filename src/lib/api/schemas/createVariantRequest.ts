@@ -4,12 +4,15 @@
  * ciclo
  * OpenAPI spec version: 0.1.0
  */
+import type { CreateVariantImageRequest } from './createVariantImageRequest.ts';
 import type { CreateVariantPriceRequest } from './createVariantPriceRequest.ts';
 import type { CreateVariantPropertyRequest } from './createVariantPropertyRequest.ts';
 
 export interface CreateVariantRequest {
+  /** @nullable */
+  description?: string | null;
   display_name: string;
-  image_url: string;
+  images: CreateVariantImageRequest[];
   prices: CreateVariantPriceRequest[];
   properties: CreateVariantPropertyRequest[];
   sku: string;

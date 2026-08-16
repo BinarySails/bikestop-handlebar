@@ -1,13 +1,34 @@
-import { createFileRoute } from "@tanstack/react-router";
+/* oxlint-disable react/no-unstable-nested-components -- column cells are render callbacks, not components */
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { Search } from "lucide-react";
+import {
+  Eye,
+  MapPin,
+  MoreVertical,
+  SearchIcon,
+  WarehouseIcon,
+} from "lucide-react";
 
+import { SiteHeader } from "@/components/features/layout/site-header";
+import { EntityCardTitle } from "@/components/features/entity/entity-card-title";
+import {
+  EntityIndexPage,
+  type EntityColumn,
+} from "@/components/features/entity/entity-index-page";
 import { CreateWarehouseDialog } from "@/components/features/warehouses/create-warehouse-modal";
-import { WarehousesTable } from "@/components/features/warehouses/warehouses-table";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group";
 import {
   Select,
   SelectContent,
@@ -30,6 +51,16 @@ const statusFilterLabel: Record<StatusFilter, string> = {
   inactive: "Inactivo",
 };
 
+const statusBadgeVariant: Record<WarehouseStatus, "default" | "secondary"> = {
+  active: "default",
+  inactive: "secondary",
+};
+
+const statusLabel: Record<WarehouseStatus, string> = {
+  active: "Activo",
+  inactive: "Inactivo",
+};
+
 function matchesSearch(warehouse: WarehouseResponse, query: string) {
   return (
     warehouse.name.toLowerCase().includes(query) ||
@@ -42,96 +73,152 @@ function WarehousesIndexPage() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [search, setSearch] = useState("");
 
-  const { data, isLoading, mutate } = useListWarehousesRequest(
+  const { data, isLoading, isValidating, mutate } = useListWarehousesRequest(
     statusFilter === "all" ? undefined : { status: statusFilter }
   );
 
   const warehouses = data?.status === 200 ? (data.data ?? []) : [];
-  const error =
-    data && data.status !== 200
-      ? "No se pudieron cargar los almacenes. Revisa tu conexión e intenta nuevamente."
-      : null;
+  const hasError = Boolean(data && data.status !== 200);
 
   const query = search.trim().toLowerCase();
   const filteredWarehouses = query
     ? warehouses.filter((warehouse) => matchesSearch(warehouse, query))
     : warehouses;
 
-  return (
-    <section
-      aria-label="Almacenes"
-      className="mx-auto flex w-full max-w-6xl flex-col gap-6 p-6"
-    >
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Almacenes</h1>
-        </div>
-        <CreateWarehouseDialog onSuccess={() => mutate()} />
-      </div>
+  const columns: EntityColumn<WarehouseResponse>[] = [
+    {
+      header: "Estatus",
+      cell: (warehouse) => (
+        <Badge variant={statusBadgeVariant[warehouse.status]}>
+          {statusLabel[warehouse.status]}
+        </Badge>
+      ),
+    },
+    {
+      header: "Nombre",
+      cell: (warehouse) => (
+        <span className="font-medium">{warehouse.name}</span>
+      ),
+    },
+    {
+      header: "Código",
+      cell: (warehouse) => (
+        <span className="font-mono text-sm">{warehouse.code ?? "—"}</span>
+      ),
+    },
+    {
+      header: "Ciudad",
+      cell: (warehouse) => (
+        <span className="inline-flex items-center gap-1.5 text-muted-foreground">
+          <MapPin className="size-3.5" aria-hidden="true" />
+          {warehouse.address.city}
+        </span>
+      ),
+    },
+    {
+      header: <span className="sr-only">Acciones</span>,
+      className: "w-12",
+      cell: (warehouse) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-8"
+                aria-label={`Acciones de ${warehouse.name}`}
+              >
+                <MoreVertical className="size-4" />
+              </Button>
+            }
+          />
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem
+              render={
+                <Link
+                  to="/warehouses/$warehouseId"
+                  params={{ warehouseId: warehouse.id }}
+                />
+              }
+            >
+              <Eye /> Ver detalle
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+    },
+  ];
 
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-wrap items-end gap-4">
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="warehouse-search">Búsqueda</Label>
-            <div className="relative">
-              <Search className="absolute top-2.5 left-2.5 size-4 text-muted-foreground" />
-              <Input
-                id="warehouse-search"
-                placeholder="Nombre, ciudad o código"
+  return (
+    <>
+      <SiteHeader
+        title="Almacenes"
+        description="Administra los almacenes, sus ubicaciones y el inventario en BikeStop."
+        actions={<CreateWarehouseDialog onSuccess={() => mutate()} />}
+      />
+      <EntityIndexPage<WarehouseResponse>
+        ariaLabel="Almacenes"
+        cardTitle={
+          <EntityCardTitle icon={WarehouseIcon}>
+            Directorio de almacenes
+          </EntityCardTitle>
+        }
+        cardHeaderExtras={
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <InputGroup className="w-full max-w-xl">
+              <InputGroupAddon>
+                <SearchIcon />
+              </InputGroupAddon>
+              <InputGroupInput
+                type="search"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                className="w-72 pl-9"
+                placeholder="Buscar por nombre, ciudad o código"
+                aria-label="Buscar por nombre, ciudad o código"
               />
+            </InputGroup>
+
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-500">Estatus</span>
+              <Select
+                value={statusFilter}
+                onValueChange={(value) =>
+                  setStatusFilter(value as StatusFilter)
+                }
+              >
+                <SelectTrigger size="sm" className="min-w-36">
+                  <SelectValue>{statusFilterLabel[statusFilter]}</SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="active">Activo</SelectItem>
+                  <SelectItem value="inactive">Inactivo</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8"
+                onClick={() => {
+                  setSearch("");
+                  setStatusFilter("all");
+                }}
+              >
+                Limpiar
+              </Button>
             </div>
           </div>
-
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="warehouse-status">Estatus</Label>
-            <Select
-              value={statusFilter}
-              onValueChange={(value) => setStatusFilter(value as StatusFilter)}
-            >
-              <SelectTrigger id="warehouse-status" className="w-44">
-                <SelectValue
-                  placeholder="Seleccionar"
-                  render={() => <span>{statusFilterLabel[statusFilter]}</span>}
-                />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="active">Activo</SelectItem>
-                <SelectItem value="inactive">Inactivo</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <span className="text-sm font-medium">&nbsp;</span>
-            <Button
-              className="h-8"
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setSearch("");
-                setStatusFilter("all");
-              }}
-            >
-              Limpiar
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      <Card>
-        <CardContent className="space-y-4">
-          <WarehousesTable
-            warehouses={filteredWarehouses}
-            loading={isLoading}
-            error={error}
-            onRetry={() => mutate()}
-          />
-        </CardContent>
-      </Card>
-    </section>
+        }
+        columns={columns}
+        rows={filteredWarehouses}
+        rowKey={(warehouse) => warehouse.id}
+        loading={isLoading}
+        validating={isValidating && !!data}
+        hasError={hasError}
+        errorMessage="No se pudieron cargar los almacenes. Revisa tu conexión e intenta nuevamente."
+        onRetry={() => mutate()}
+        emptyMessage="No hay almacenes que coincidan con los filtros."
+      />
+    </>
   );
 }

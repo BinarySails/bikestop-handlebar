@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, Pencil, Tags } from "lucide-react";
+import { Pencil, Tags } from "lucide-react";
 
+import { EntityDetailHeader } from "@/components/features/entity/entity-detail-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -70,40 +71,28 @@ function CategoryDetailPage() {
 
   return (
     <main className="mx-auto flex w-full max-w-5xl flex-col gap-6 p-4 sm:p-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-start gap-3">
-          <Button
-            variant="outline"
-            size="icon"
-            aria-label="Volver a categorías"
-            render={<Link to="/categories" />}
+      <EntityDetailHeader
+        backTo="/categories"
+        backLabel="Volver a categorías"
+        title={category.display_name}
+        subtitle="Detalle de la categoría"
+        badge={
+          <Badge
+            variant={category.status === "active" ? "default" : "secondary"}
           >
-            <ArrowLeft className="size-4" />
+            {category.status === "active" ? "Activa" : "Inactiva"}
+          </Badge>
+        }
+        extraActions={
+          <Button
+            render={
+              <Link to="/categories/$categoryId/edit" params={{ categoryId }} />
+            }
+          >
+            <Pencil className="size-4" /> Editar categoría
           </Button>
-          <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-2xl font-semibold tracking-tight">
-                {category.display_name}
-              </h1>
-              <Badge
-                variant={category.status === "active" ? "default" : "secondary"}
-              >
-                {category.status === "active" ? "Activa" : "Inactiva"}
-              </Badge>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Detalle de la categoría
-            </p>
-          </div>
-        </div>
-        <Button
-          render={
-            <Link to="/categories/$categoryId/edit" params={{ categoryId }} />
-          }
-        >
-          <Pencil className="size-4" /> Editar categoría
-        </Button>
-      </div>
+        }
+      />
 
       <Card>
         <CardHeader>

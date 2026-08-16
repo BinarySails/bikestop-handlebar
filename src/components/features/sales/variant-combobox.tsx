@@ -8,7 +8,7 @@ import {
   ComboboxItem,
   ComboboxList,
 } from "@/components/ui/combobox";
-import { useListVariantsByProductRequest } from "@/lib/api/api";
+import { useListVariantsRequest } from "@/lib/api/api";
 import {
   VariantStatus,
   type Variant,
@@ -40,12 +40,9 @@ export function VariantCombobox({
   onChange: (variant: Variant | null) => void;
   disabled?: boolean;
 }) {
-  const { data: res, isLoading } = useListVariantsByProductRequest(
-    productId ?? "",
-    {
-      swr: { enabled: Boolean(productId) },
-    }
-  );
+  const { data: res, isLoading } = useListVariantsRequest(productId ?? "", {
+    swr: { enabled: Boolean(productId) },
+  });
 
   const all = res?.status === 200 ? res.data : EMPTY_VARIANTS;
   const items = useMemo(() => {
@@ -71,9 +68,7 @@ export function VariantCombobox({
       onValueChange={(variant: Variant | null) => {
         onChange(variant);
       }}
-      itemToStringLabel={(variant: Variant) =>
-        `${variant.display_name} (${variant.sku})`
-      }
+      itemToStringLabel={(variant: Variant) => `${variant.display_name}`}
       isItemEqualToValue={(a: Variant, b: Variant) => a.id === b.id}
       disabled={disabled || !productId}
     >
@@ -99,11 +94,22 @@ export function VariantCombobox({
             return (
               <ComboboxItem key={variant.id} value={variant}>
                 <div className="flex w-full items-center justify-between gap-4">
-                  <div className="flex flex-col">
-                    <span className="font-medium">{variant.display_name}</span>
-                    <span className="text-xs text-muted-foreground">
-                      SKU: {variant.sku}
-                    </span>
+                  <div className="flex items-center gap-3">
+                    {variant.images[0]?.image_url && (
+                      <img
+                        src={variant.images[0].image_url}
+                        alt={variant.display_name}
+                        className="size-10 rounded-md object-cover"
+                      />
+                    )}
+                    <div className="flex flex-col">
+                      <span className="font-medium">
+                        {variant.display_name}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        SKU: {variant.sku}
+                      </span>
+                    </div>
                   </div>
                   {price && (
                     <span className="text-sm font-medium">

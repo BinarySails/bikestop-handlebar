@@ -10,6 +10,8 @@ import {
   VariantCombobox,
   findActiveRegularPrice,
 } from "@/components/features/sales/variant-combobox";
+import { CountrySelect } from "@/components/features/locations/country-select";
+import { StateSelect } from "@/components/features/locations/state-select";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -36,8 +38,12 @@ import {
   type SalesOrderLineId,
   type Variant,
   VariantStatus,
+  type PaymentTerm,
 } from "@/lib/api/schemas";
+import { DEFAULT_COUNTRY } from "@/components/features/locations/country-select";
 import { centsToPesosString, pesosToCents } from "@/lib/money";
+import { computeDueDate, formatDueDate } from "@/lib/dates";
+import { PaymentTermSelect } from "@/components/features/sales/payment-term-select";
 import { CreateSalesOrderRequestBody } from "@/lib/api/zods";
 
 const MAX_PRICE_DECIMALS = 2;
@@ -73,6 +79,7 @@ type SalesOrderFormValues = {
   shipping_same_as_billing: boolean;
   shipping: AddressFormValues;
   order_date: Date;
+  payment_term: PaymentTerm | null;
   comments: string;
   lines: LineFormValues[];
 };
@@ -135,6 +142,38 @@ function validatePercent(value: string, label: string): string | undefined {
   return undefined;
 }
 
+function PaymentTermField({
+  fieldName,
+  value: selected,
+  onChange,
+  orderDate,
+}: {
+  fieldName: string;
+  value: PaymentTerm | null;
+  onChange: (next: PaymentTerm | null) => void;
+  orderDate: Date;
+}) {
+  const dueDate = selected
+    ? computeDueDate(orderDate.toISOString(), selected.days_until_due ?? null)
+    : null;
+
+  return (
+    <div className="grid gap-1.5 sm:col-span-2">
+      <Label htmlFor={fieldName}>Término de pago</Label>
+      <PaymentTermSelect id={fieldName} value={selected} onChange={onChange} />
+      {selected && dueDate ? (
+        <p className="text-xs text-muted-foreground">
+          Vence el {formatDueDate(dueDate)}
+        </p>
+      ) : selected?.type === "due_on_receipt" ? (
+        <p className="text-xs text-muted-foreground">
+          Vencimiento inmediato al recibir la factura.
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
 function computeLineTotals(line: LineFormValues) {
   const quantity = Number(line.quantity);
   const quantityInt = Number.isInteger(quantity) && quantity > 0 ? quantity : 0;
@@ -162,7 +201,7 @@ function computeLineTotals(line: LineFormValues) {
 }
 
 const defaultAddress: AddressFormValues = {
-  country: "México",
+  country: DEFAULT_COUNTRY,
   state: "",
   city: "",
   postal_code: "",
@@ -175,6 +214,7 @@ const defaultValues: SalesOrderFormValues = {
   shipping_same_as_billing: true,
   shipping: defaultAddress,
   order_date: new Date(),
+  payment_term: null,
   comments: "",
   lines: [],
 };
@@ -220,6 +260,7 @@ function valuesFromOrder(order: SalesOrder): SalesOrderFormValues {
     ),
     shipping: addressValues(order.shipping_address),
     order_date: new Date(order.order_date),
+    payment_term: order.payment_term ?? null,
     comments: order.comments ?? "",
     lines: order.lines.map((line) => ({
       id: line.id,
@@ -234,21 +275,19 @@ function valuesFromOrder(order: SalesOrder): SalesOrderFormValues {
         id: line.variant_id,
         product_id: line.product_id,
         display_name: line.description,
+        description: null,
         sku: line.variant_id,
         prices: [],
         properties: [],
         status: VariantStatus.enable,
-        image_url: "",
+        images: [],
         created_at: order.created_at,
         updated_at: order.updated_at,
       } as Variant,
       description: line.description,
       quantity: String(line.quantity),
       unit_price: centsToPesosString(line.unit_price),
-      discount_percent:
-        line.discount_percent == null
-          ? ""
-          : String(line.discount_percent / 100),
+      discount_percent: "",
       tax_rate: String(line.tax_rate / 100),
     })),
   };
@@ -394,6 +433,7 @@ export function CreateSalesOrderForm({
         billing_address: billingAddress,
         shipping_address: shippingAddress,
         order_date: value.order_date.toISOString(),
+        payment_term_id: value.payment_term?.id,
         comments: value.comments.trim() || null,
         lines: completeLines.map((line) => ({
           variant_id: line.variant.id,
@@ -499,12 +539,10 @@ export function CreateSalesOrderForm({
           {(field) => (
             <div className="grid gap-1.5">
               <Label htmlFor={field.name}>País</Label>
-              <Input
+              <CountrySelect
                 id={field.name}
                 value={field.state.value}
-                onChange={(event) => field.handleChange(event.target.value)}
-                onBlur={field.handleBlur}
-                placeholder="México"
+                onValueChange={(value) => field.handleChange(value ?? "")}
                 disabled={disabled}
                 aria-invalid={field.state.meta.errors.length > 0}
               />
@@ -526,12 +564,10 @@ export function CreateSalesOrderForm({
           {(field) => (
             <div className="grid gap-1.5">
               <Label htmlFor={field.name}>Estado</Label>
-              <Input
+              <StateSelect
                 id={field.name}
                 value={field.state.value}
-                onChange={(event) => field.handleChange(event.target.value)}
-                onBlur={field.handleBlur}
-                placeholder="Jalisco"
+                onValueChange={(value) => field.handleChange(value ?? "")}
                 disabled={disabled}
                 aria-invalid={field.state.meta.errors.length > 0}
               />
@@ -895,6 +931,19 @@ export function CreateSalesOrderForm({
                     placeholder="Seleccionar fecha"
                   />
                 </Label>
+              )}
+            </form.Field>
+          </fieldset>
+
+          <fieldset disabled={!editable} className="contents">
+            <form.Field name="payment_term">
+              {(field) => (
+                <PaymentTermField
+                  fieldName={field.name}
+                  value={field.state.value}
+                  onChange={(next) => field.handleChange(next)}
+                  orderDate={form.state.values.order_date}
+                />
               )}
             </form.Field>
           </fieldset>

@@ -26,19 +26,14 @@ function UsersPage() {
   const navigate = Route.useNavigate();
 
   return (
-    <section
-      aria-label="Usuarios"
-      className="mx-auto w-full max-w-7xl p-4 sm:p-6"
-    >
-      <UsersTableCard
-        params={search}
-        onParamsChange={(updates) =>
-          navigate({
-            search: (current) => ({ ...current, ...updates }),
-            replace: true,
-          })
-        }
-      />
-    </section>
+    <UsersTableCard
+      params={search}
+      onParamsChange={(updates) =>
+        navigate({
+          search: (current) => ({ ...current, ...updates }),
+          replace: true,
+        })
+      }
+    />
   );
 }

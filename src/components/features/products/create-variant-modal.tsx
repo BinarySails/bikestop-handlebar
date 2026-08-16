@@ -3,7 +3,11 @@ import { useForm } from "@tanstack/react-form";
 import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
-import { ImageUploadField } from "@/components/features/products/image-upload-field";
+import { EntityCreateButton } from "@/components/features/entity/entity-create-button";
+import {
+  VariantImageManager,
+  type VariantImageRow,
+} from "@/components/features/products/variant-image-manager";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -16,13 +20,14 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { useCreateVariantRequest } from "@/lib/api/api";
 import { pesosToCents } from "@/lib/money";
 import { CreateVariantRequestBody } from "@/lib/api/zods";
 
 const MAX_PRICE_DECIMALS = 2;
 
-function validateUrl(value: string): string | undefined {
+function validateImageUrl(value: string): string | undefined {
   if (!value.trim()) return "La URL de la imagen es obligatoria.";
   try {
     const url = new URL(value);
@@ -31,6 +36,15 @@ function validateUrl(value: string): string | undefined {
     }
   } catch {
     return "Ingresa una URL válida.";
+  }
+  return undefined;
+}
+
+function validateImages(images: VariantImageRow[]): string | undefined {
+  if (images.length === 0) return "Debe haber al menos una imagen.";
+  for (const image of images) {
+    const error = validateImageUrl(image.imageUrl);
+    if (error) return error;
   }
   return undefined;
 }
@@ -70,6 +84,10 @@ type PropertyRow = {
   propertyValue: string;
 };
 
+type ImageRow = {
+  imageUrl: string;
+};
+
 export function CreateVariantDialog({
   productId,
   onSuccess,
@@ -84,14 +102,15 @@ export function CreateVariantDialog({
     defaultValues: {
       sku: "",
       displayName: "",
-      imageUrl: "",
+      description: "",
+      images: [] as ImageRow[],
       properties: [] as PropertyRow[],
       price: "",
     },
     onSubmit: async ({ value }) => {
       const sku = value.sku.trim().toUpperCase();
       const displayName = value.displayName.trim();
-      const imageUrl = value.imageUrl.trim();
+      const description = value.description.trim() || null;
       const priceAmount = Number(value.price);
 
       const propertyNames = new Set<string>();
@@ -110,7 +129,11 @@ export function CreateVariantDialog({
       const payload = {
         sku,
         display_name: displayName,
-        image_url: imageUrl,
+        description,
+        images: value.images.map((image, index) => ({
+          image_index: index + 1,
+          image_url: image.imageUrl.trim(),
+        })),
         properties: normalizedProperties,
         prices: [
           {
@@ -124,7 +147,7 @@ export function CreateVariantDialog({
       const parseResult =
         await CreateVariantRequestBody.safeParseAsync(payload);
       if (!parseResult.success) {
-        toast.error(parseResult.error.issues[0]?.message ?? "Datos inválidos.");
+        toast.error(parseResult.error.message ?? "Datos inválidos.");
         return;
       }
 
@@ -154,9 +177,9 @@ export function CreateVariantDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger>
-        <Button>Crear Variante</Button>
-      </DialogTrigger>
+      <DialogTrigger
+        render={<EntityCreateButton>Crear Variante</EntityCreateButton>}
+      />
 
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
@@ -238,19 +261,32 @@ export function CreateVariantDialog({
             </form.Field>
           </div>
 
+          <form.Field name="description">
+            {(field) => (
+              <div className="grid gap-2">
+                <Label htmlFor={field.name}>Descripción</Label>
+                <Textarea
+                  id={field.name}
+                  name={field.name}
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  placeholder="Descripción de la variante"
+                />
+              </div>
+            )}
+          </form.Field>
+
           <form.Field
-            name="imageUrl"
+            name="images"
             validators={{
-              onChange: ({ value }) => validateUrl(value),
-              onSubmit: ({ value }) => validateUrl(value),
+              onChange: ({ value }) => validateImages(value),
+              onSubmit: ({ value }) => validateImages(value),
             }}
           >
             {(field) => (
-              <ImageUploadField
-                id={field.name}
-                label="Imagen"
-                value={field.state.value}
-                onChange={(url) => field.handleChange(url)}
+              <VariantImageManager
+                images={field.state.value}
+                onChange={(images) => field.handleChange(images)}
               />
             )}
           </form.Field>

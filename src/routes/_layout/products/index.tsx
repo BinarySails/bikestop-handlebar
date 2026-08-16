@@ -1,12 +1,18 @@
+/* oxlint-disable react/no-unstable-nested-components -- column cells are render callbacks, not components */
 import { useEffect, useState } from "react";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
-import { ChevronLeft, ChevronRight, MoreVertical, Search } from "lucide-react";
+import { MoreVertical, Package, RotateCcw, SearchIcon } from "lucide-react";
 import { toast } from "sonner";
 
+import { SiteHeader } from "@/components/features/layout/site-header";
+import { EntityCardTitle } from "@/components/features/entity/entity-card-title";
+import {
+  EntityIndexPage,
+  type EntityColumn,
+} from "@/components/features/entity/entity-index-page";
 import { CreateProductDialog } from "@/components/features/products/create-product-modal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,8 +20,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group";
 import {
   Select,
   SelectContent,
@@ -23,15 +32,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { useListProductsRequest, useUpdateProductRequest } from "@/lib/api/api";
 import type { Product } from "@/lib/api/schemas";
 
@@ -123,16 +123,6 @@ function ArchiveProductMenuItem({
   );
 }
 
-function ProductsListSkeleton() {
-  return (
-    <div className="space-y-3">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <Skeleton key={i} className="h-12 w-full" />
-      ))}
-    </div>
-  );
-}
-
 function ProductsListPage() {
   const [page, setPage] = useState(0);
   const [search, setSearch] = useState("");
@@ -143,6 +133,7 @@ function ProductsListPage() {
     data: res,
     error,
     isLoading,
+    isValidating,
     mutate,
   } = useListProductsRequest({
     page: page + 1,
@@ -153,7 +144,7 @@ function ProductsListPage() {
 
   const products = res?.status === 200 ? res.data.data : [];
   const total = res?.status === 200 ? res.data.total : 0;
-  const totalPages = Math.ceil(total / PAGE_SIZE) || 1;
+  const hasError = Boolean(error) || Boolean(res && res.status !== 200);
 
   function handleApplySearch() {
     setAppliedSearch(search);
@@ -178,181 +169,149 @@ function ProductsListPage() {
     return () => clearTimeout(timeout);
   }, [search, appliedSearch]);
 
+  const columns: EntityColumn<Product>[] = [
+    {
+      header: "Estatus",
+      cell: (product) => (
+        <Badge variant={statusBadgeVariant[product.status]}>
+          {statusLabel[product.status]}
+        </Badge>
+      ),
+    },
+    {
+      header: "Nombre",
+      cell: (product) => (
+        <span className="font-medium">{product.display_name}</span>
+      ),
+    },
+    {
+      header: "Marca",
+      cell: (product) => <span>{product.brand.display_name}</span>,
+    },
+    {
+      header: "Categoría",
+      cell: (product) => <span>{product.category.display_name}</span>,
+    },
+    {
+      header: <span className="sr-only">Acciones</span>,
+      className: "w-12",
+      cell: (product) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-8"
+                aria-label={`Acciones de ${product.display_name}`}
+              >
+                <MoreVertical className="size-4" />
+              </Button>
+            }
+          />
+          <DropdownMenuContent align="end">
+            <ViewProductMenuItem productId={product.id} />
+            <DropdownMenuSeparator />
+            <ArchiveProductMenuItem product={product} onSuccess={mutate} />
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+    },
+  ];
+
   return (
-    <section
-      aria-label="Productos"
-      className="mx-auto flex w-full max-w-6xl flex-col gap-6 p-6"
-    >
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Productos</h1>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            render={<Link to="/categories" />}
-            variant="outline"
-            size="sm"
-          >
-            Administrar Categorías
-          </Button>
-          <CreateProductDialog onSuccess={mutate} />
-        </div>
-      </div>
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-wrap items-end gap-4">
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="search">Búsqueda</Label>
-            <div className="relative">
-              <Search className="absolute top-2.5 left-2.5 size-4 text-muted-foreground" />
-              <Input
-                id="search"
-                placeholder="Nombre, marca o categoría"
+    <>
+      <SiteHeader
+        title="Productos"
+        description="Administra el catálogo de productos y sus variantes en BikeStop."
+        actions={
+          <div className="flex items-center gap-2">
+            <Button
+              render={<Link to="/categories" />}
+              variant="outline"
+              size="sm"
+            >
+              Administrar Categorías
+            </Button>
+            <CreateProductDialog onSuccess={mutate} />
+          </div>
+        }
+      />
+      <EntityIndexPage<Product>
+        ariaLabel="Productos"
+        cardTitle={
+          <EntityCardTitle icon={Package}>
+            Catálogo de productos
+          </EntityCardTitle>
+        }
+        cardHeaderExtras={
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <InputGroup className="w-full max-w-xl">
+              <InputGroupAddon>
+                <SearchIcon />
+              </InputGroupAddon>
+              <InputGroupInput
+                type="search"
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
+                onChange={(event) => setSearch(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
                     handleApplySearch();
                   }
                 }}
-                className="w-72 pl-9"
+                placeholder="Buscar por nombre, marca o categoría"
+                aria-label="Buscar por nombre, marca o categoría"
               />
+            </InputGroup>
+
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-500">Estatus</span>
+              <Select
+                value={status}
+                onValueChange={(value) => {
+                  setStatus(value as ListStatusFilter);
+                  setPage(0);
+                }}
+              >
+                <SelectTrigger size="sm" className="min-w-36">
+                  <SelectValue>{statusFilterLabel[status]}</SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="enable">Activo</SelectItem>
+                  <SelectItem value="disable">Inactivo</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8"
+                onClick={handleClearFilters}
+              >
+                <RotateCcw />
+                Limpiar
+              </Button>
             </div>
           </div>
-
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="status">Estatus</Label>
-            <Select
-              value={status}
-              onValueChange={(value) => {
-                setStatus(value as ListStatusFilter);
-                setPage(0);
-              }}
-            >
-              <SelectTrigger id="status" className="w-44">
-                <SelectValue
-                  placeholder="Seleccionar"
-                  render={() => <span>{statusFilterLabel[status]}</span>}
-                />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="enable">Activo</SelectItem>
-                <SelectItem value="disable">Inactivo</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <span className="text-sm font-medium">&nbsp;</span>
-            <Button
-              className="h-8"
-              variant="outline"
-              size="sm"
-              onClick={handleClearFilters}
-            >
-              Limpiar
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      <Card>
-        <CardContent className="space-y-4">
-          {isLoading ? (
-            <ProductsListSkeleton />
-          ) : error ? (
-            <p className="text-sm text-muted-foreground">
-              Error al cargar los productos.
-            </p>
-          ) : products.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              No hay productos que coincidan con los filtros.
-            </p>
-          ) : (
-            <>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Estatus</TableHead>
-                    <TableHead>Nombre</TableHead>
-                    <TableHead>Marca</TableHead>
-                    <TableHead>Categoría</TableHead>
-                    <TableHead className="w-12" />
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {products.map((product) => (
-                    <TableRow key={product.id}>
-                      <TableCell>
-                        <Badge variant={statusBadgeVariant[product.status]}>
-                          {statusLabel[product.status]}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="font-medium">
-                        {product.display_name}
-                      </TableCell>
-                      <TableCell>{product.brand.display_name}</TableCell>
-                      <TableCell>{product.category.display_name}</TableCell>
-                      <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger
-                            render={
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                aria-label={`Acciones de ${product.display_name}`}
-                                className="size-8"
-                              >
-                                <MoreVertical className="size-4" />
-                              </Button>
-                            }
-                          />
-                          <DropdownMenuContent align="end">
-                            <ViewProductMenuItem productId={product.id} />
-                            <DropdownMenuSeparator />
-                            <ArchiveProductMenuItem
-                              product={product}
-                              onSuccess={mutate}
-                            />
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-
-              <div className="mt-4 flex items-center justify-between">
-                <p className="text-sm text-muted-foreground">
-                  Página {page + 1} de {totalPages}
-                </p>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setPage((p) => Math.max(0, p - 1))}
-                    disabled={page === 0}
-                  >
-                    <ChevronLeft className="size-4" />
-                    Anterior
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() =>
-                      setPage((p) => Math.min(totalPages - 1, p + 1))
-                    }
-                    disabled={page >= totalPages - 1}
-                  >
-                    Siguiente
-                    <ChevronRight className="size-4" />
-                  </Button>
-                </div>
-              </div>
-            </>
-          )}
-        </CardContent>
-      </Card>
-    </section>
+        }
+        columns={columns}
+        rows={products}
+        rowKey={(product) => product.id}
+        loading={isLoading}
+        validating={isValidating && !!res}
+        hasError={hasError}
+        errorMessage="Error al cargar los productos."
+        onRetry={() => mutate()}
+        emptyMessage="No hay productos que coincidan con los filtros."
+        pagination={{
+          mode: "page",
+          total,
+          page,
+          pageSize: PAGE_SIZE,
+          totalLabel: "productos",
+          onPageChange: (nextPage) => setPage(nextPage),
+        }}
+      />
+    </>
   );
 }

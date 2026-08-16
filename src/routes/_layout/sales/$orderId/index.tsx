@@ -6,15 +6,22 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  cancelSalesOrderRequest,
-  dispatchSalesOrderLineRequest,
-  updateSalesOrderRequest,
-  updateSalesOrderStatusRequest,
   useAddSalesOrderCommentRequest,
   useGetSaleOrderRequest,
   useMeHandler,
 } from "@/lib/api/api";
-import type { SalesOrderLineId, SalesOrderStatus } from "@/lib/api/schemas";
+import {
+  cancelSalesOrderRequest,
+  dispatchSalesOrderLineRequest,
+  updateSalesOrderStatusRequest,
+} from "@/lib/api/sales-order-actions";
+import { updateSalesOrderRequest } from "@/lib/api/update-sales-order";
+import type {
+  SalesOrder,
+  SalesOrderLineId,
+  SalesOrderStatus,
+} from "@/lib/api/schemas";
+import { computeDueDate, formatDueDate } from "@/lib/dates";
 
 const statusLabel: Record<SalesOrderStatus, string> = {
   draft: "Borrador",
@@ -105,6 +112,7 @@ function OrderDetailPage() {
               {statusLabel[order.status]}
             </Badge>
           </div>
+          <PaymentTermSummary order={order} />
         </div>
       </div>
 
@@ -136,7 +144,7 @@ function OrderDetailPage() {
           }
 
           await mutate(
-            { status: 200, data: updated.data, headers: updated.headers },
+            { status: 200, data: updated.data, headers: new Headers() },
             { revalidate: false }
           );
         }}
@@ -172,5 +180,22 @@ function OrderDetailPage() {
         }}
       />
     </section>
+  );
+}
+
+function PaymentTermSummary({ order }: { order: SalesOrder }) {
+  const dueDate = computeDueDate(
+    order.order_date,
+    order.payment_term.days_until_due ?? null
+  );
+
+  return (
+    <p className="mt-1 text-sm text-muted-foreground">
+      Término de pago:{" "}
+      <span className="font-medium text-foreground">
+        {order.payment_term.name}
+      </span>
+      {dueDate ? <span> · Vence el {formatDueDate(dueDate)}</span> : null}
+    </p>
   );
 }

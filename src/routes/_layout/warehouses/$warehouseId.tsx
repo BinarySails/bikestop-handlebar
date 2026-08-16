@@ -4,7 +4,9 @@ import { useState } from "react";
 import { WarehouseIcon } from "lucide-react";
 import { toast } from "sonner";
 
-import { WarehouseDetailHeader } from "@/components/features/warehouses/warehouse-detail-header";
+import { EntityDetailHeader } from "@/components/features/entity/entity-detail-header";
+import { WarehouseInventoryTable } from "@/components/features/warehouses/warehouse-inventory-table";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -29,11 +31,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import {
   useGetWarehouseRequest,
+  useListProductsRequest,
   useListStatesRequest,
+  useListWarehousesRequest,
   useUpdateWarehouseRequest,
   useUpdateWarehouseStatusRequest,
 } from "@/lib/api/api";
-import type { WarehouseResponse } from "@/lib/api/schemas";
+import { useWarehouseInventory } from "@/lib/api/use-warehouse-inventory";
+import type { Product, WarehouseResponse } from "@/lib/api/schemas";
 import { UpdateWarehouseRequestBody } from "@/lib/api/zods";
 
 const DEFAULT_COUNTRY = "México";
@@ -104,9 +109,32 @@ function WarehouseDetailView({
     useUpdateWarehouseStatusRequest(warehouseId);
   const { data: statesResponse, isLoading: isLoadingStates } =
     useListStatesRequest();
+  const { data: productsResponse, isLoading: isLoadingProducts } =
+    useListProductsRequest(undefined, {
+      swr: {
+        revalidateOnFocus: false,
+      },
+    });
+  const { data: warehousesResponse, isLoading: isLoadingWarehouses } =
+    useListWarehousesRequest(undefined, {
+      swr: {
+        revalidateOnFocus: false,
+      },
+    });
 
   const states =
     statesResponse?.status === 200 ? (statesResponse.data ?? []) : [];
+  const products: Product[] =
+    productsResponse?.status === 200 ? productsResponse.data.data : [];
+  const warehouses: WarehouseResponse[] =
+    warehousesResponse?.status === 200 ? warehousesResponse.data : [];
+
+  const {
+    items: inventoryItems,
+    isLoading: inventoryLoading,
+    error: inventoryError,
+    mutate: mutateInventory,
+  } = useWarehouseInventory(warehouseId);
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deletePending, setDeletePending] = useState(false);
@@ -211,13 +239,21 @@ function WarehouseDetailView({
           selector={(state) => [state.isSubmitting, state.isDirty]}
         >
           {([isSubmitting, isDirty]) => (
-            <WarehouseDetailHeader
-              warehouse={warehouse}
+            <EntityDetailHeader
+              backTo="/warehouses"
+              backLabel="Volver a todos los almacenes"
+              title="Almacén"
+              badge={
+                <Badge variant="outline">
+                  {statusLabels[warehouse.status]}
+                </Badge>
+              }
               isDirty={isDirty}
               isSubmitting={isSubmitting}
               onSave={() => form.handleSubmit()}
               onDiscard={() => form.reset()}
-              onDeleteClick={() => setDeleteOpen(true)}
+              onDelete={() => setDeleteOpen(true)}
+              showDelete={warehouse.status === "active"}
             />
           )}
         </form.Subscribe>
@@ -626,6 +662,19 @@ function WarehouseDetailView({
           </Card>
         </section>
       </form>
+
+      <section id="inventory" className="scroll-mt-4 space-y-6">
+        <WarehouseInventoryTable
+          warehouse={warehouse}
+          products={products}
+          warehouses={warehouses}
+          items={inventoryItems}
+          loading={inventoryLoading || isLoadingProducts || isLoadingWarehouses}
+          error={inventoryError}
+          onRetry={() => mutateInventory()}
+          onAddSuccess={() => mutateInventory()}
+        />
+      </section>
 
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <DialogContent className="sm:max-w-md">

@@ -6,15 +6,18 @@
  */
 import type { ProductId } from './productId.ts';
 import type { VariantId } from './variantId.ts';
+import type { VariantImage } from './variantImage.ts';
 import type { VariantPrice } from './variantPrice.ts';
 import type { VariantProperty } from './variantProperty.ts';
 import type { VariantStatus } from './variantStatus.ts';
 
 export interface Variant {
   created_at: string;
+  /** @nullable */
+  description?: string | null;
   display_name: string;
   id: VariantId;
-  image_url: string;
+  images: VariantImage[];
   prices: VariantPrice[];
   product_id: ProductId;
   properties: VariantProperty[];
