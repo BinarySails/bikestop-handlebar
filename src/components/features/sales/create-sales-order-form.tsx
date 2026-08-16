@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
 import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -14,6 +14,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DatePicker } from "@/components/ui/date-picker";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -246,19 +255,27 @@ export function CreateSalesOrderForm({
   order,
   commentAuthor = "Usuario",
   onAddComment,
-  onSaveDraft,
+  onSaveOrder,
+  onAdvance,
+  onCancel,
 }: {
   order?: SalesOrder;
   commentAuthor?: string;
   onAddComment?: (comment: string) => Promise<void>;
-  onSaveDraft?: (payload: CreateSalesOrderRequest) => Promise<void>;
+  onSaveOrder?: (payload: CreateSalesOrderRequest) => Promise<void>;
+  onAdvance?: () => Promise<void>;
+  onCancel?: () => Promise<void>;
 } = {}) {
   const navigate = useNavigate();
   const { trigger } = useCreateSalesOrderRequest();
   const isDetail = Boolean(order);
   const editable =
     !order || order.status === "draft" || order.status === "quote";
-  const isReadOnlyOrder = Boolean(order) && !editable;
+  const canAdvance = order?.status === "draft" || order?.status === "quote";
+  const canCancel =
+    order?.status === "draft" ||
+    order?.status === "quote" ||
+    order?.status === "confirmed";
   const canAddComment =
     Boolean(order) &&
     [
@@ -270,6 +287,10 @@ export function CreateSalesOrderForm({
     ].includes(order?.status ?? "");
   const [newComment, setNewComment] = useState("");
   const [isAddingComment, setIsAddingComment] = useState(false);
+  const [confirmation, setConfirmation] = useState<
+    "advance" | "cancel" | "save-quote" | null
+  >(null);
+  const [isChangingStatus, setIsChangingStatus] = useState(false);
   const messages = (order?.comments ?? "")
     .split(/\n+/)
     .map((comment) => comment.trim())
@@ -288,6 +309,34 @@ export function CreateSalesOrderForm({
       toast.error("No se pudo agregar el comentario");
     } finally {
       setIsAddingComment(false);
+    }
+  }
+
+  async function changeStatus() {
+    if (!confirmation) return;
+
+    setIsChangingStatus(true);
+    try {
+      if (confirmation === "advance") {
+        await onAdvance?.();
+        toast.success(
+          order?.status === "draft"
+            ? "El borrador se convirtió en cotización"
+            : "La cotización fue confirmada"
+        );
+      } else {
+        await onCancel?.();
+        toast.success("La orden fue cancelada");
+      }
+      setConfirmation(null);
+    } catch {
+      toast.error(
+        confirmation === "advance"
+          ? "No se pudo cambiar el estado de la orden"
+          : "No se pudo cancelar la orden"
+      );
+    } finally {
+      setIsChangingStatus(false);
     }
   }
 
@@ -353,11 +402,19 @@ export function CreateSalesOrderForm({
       }
 
       if (order) {
-        if (order.status === "draft" && onSaveDraft) {
+        if (
+          (order.status === "draft" || order.status === "quote") &&
+          onSaveOrder
+        ) {
           try {
-            await onSaveDraft(parseResult.data);
+            await onSaveOrder(parseResult.data);
             form.reset(value);
-            toast.success("Cambios guardados");
+            setConfirmation(null);
+            toast.success(
+              order.status === "quote"
+                ? "Nueva cotización creada"
+                : "Cambios guardados"
+            );
           } catch {
             toast.error("No se pudieron guardar los cambios");
           }
@@ -386,6 +443,15 @@ export function CreateSalesOrderForm({
       }
     },
   });
+
+  async function saveQuote() {
+    setIsChangingStatus(true);
+    try {
+      await form.handleSubmit();
+    } finally {
+      setIsChangingStatus(false);
+    }
+  }
 
   function renderAddressFields(
     prefix: "billing" | "shipping",
@@ -560,7 +626,13 @@ export function CreateSalesOrderForm({
               <Button
                 type="button"
                 disabled={isSubmitting || !isDirty}
-                onClick={() => void form.handleSubmit()}
+                onClick={() => {
+                  if (order?.status === "quote") {
+                    setConfirmation("save-quote");
+                    return;
+                  }
+                  void form.handleSubmit();
+                }}
               >
                 {isSubmitting ? "Guardando..." : "Guardar cambios"}
               </Button>
@@ -568,30 +640,86 @@ export function CreateSalesOrderForm({
           </form.Subscribe>
         )}
 
-        {isReadOnlyOrder && order && (
+        {canAdvance && (
           <Button
             type="button"
-            variant="outline"
-            render={
-              <Link
-                to="/sales/$orderId/payments-invoices"
-                params={{ orderId: order.id }}
-              />
-            }
+            disabled={isChangingStatus}
+            onClick={() => setConfirmation("advance")}
           >
-            Pagos y facturas
+            {order?.status === "draft"
+              ? "Pasar a cotización"
+              : "Confirmar cotización"}
           </Button>
         )}
 
-        {isReadOnlyOrder && (
-          <>
-            <Button type="button">Despachar</Button>
-            <Button type="button" variant="destructive">
-              Cancelar pedido
-            </Button>
-          </>
+        {canCancel && (
+          <Button
+            type="button"
+            variant="destructive"
+            disabled={isChangingStatus}
+            onClick={() => setConfirmation("cancel")}
+          >
+            {order?.status === "quote" ? "Cancelar cotización" : "Cancelar"}
+          </Button>
         )}
       </div>
+
+      <Dialog
+        open={confirmation !== null}
+        onOpenChange={(open) => {
+          if (!open && !isChangingStatus) setConfirmation(null);
+        }}
+      >
+        <DialogContent showCloseButton={!isChangingStatus}>
+          <DialogHeader>
+            <DialogTitle>
+              {confirmation === "save-quote"
+                ? "Crear nueva cotización"
+                : "Confirmar cambio de estado"}
+            </DialogTitle>
+            <DialogDescription>
+              {confirmation === "save-quote"
+                ? "Al guardar los cambios se creará una nueva cotización y la cotización actual será cancelada."
+                : confirmation === "cancel"
+                  ? "¿Deseas cancelar esta orden? Esta acción no se puede deshacer."
+                  : order?.status === "draft"
+                    ? "¿Deseas convertir este borrador en cotización?"
+                    : "¿Deseas confirmar esta cotización?"}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose
+              render={
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={isChangingStatus}
+                />
+              }
+            >
+              Volver
+            </DialogClose>
+            <Button
+              type="button"
+              variant={confirmation === "cancel" ? "destructive" : "default"}
+              disabled={isChangingStatus}
+              onClick={() =>
+                void (confirmation === "save-quote"
+                  ? saveQuote()
+                  : changeStatus())
+              }
+            >
+              {isChangingStatus
+                ? "Procesando..."
+                : confirmation === "save-quote"
+                  ? "Crear nueva cotización"
+                  : confirmation === "cancel"
+                    ? "Cancelar orden"
+                    : "Continuar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <fieldset disabled={!editable} className="space-y-6">
         <Card>
@@ -885,18 +1013,31 @@ export function CreateSalesOrderForm({
                             )}
                           </form.Field>
 
-                          <div className="flex items-end">
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              className="size-9 text-destructive"
-                              onClick={() => field.removeValue(index)}
-                              aria-label="Eliminar línea"
-                            >
-                              <Trash2 className="size-4" />
-                            </Button>
-                          </div>
+                          {editable && (
+                            <div className="flex items-end">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="size-9 text-destructive"
+                                onClick={() => field.removeValue(index)}
+                                aria-label="Eliminar línea"
+                              >
+                                <Trash2 className="size-4" />
+                              </Button>
+                            </div>
+                          )}
+
+                          {order?.status === "confirmed" && (
+                            <div className="flex flex-col items-end gap-1">
+                              <Button type="button" variant="outline" disabled>
+                                Despachar
+                              </Button>
+                              <span className="text-xs text-muted-foreground">
+                                Disponible próximamente
+                              </span>
+                            </div>
+                          )}
                         </div>
 
                         <form.Field
@@ -1084,6 +1225,19 @@ export function CreateSalesOrderForm({
           </CardContent>
         </Card>
       </fieldset>
+
+      {order?.status === "confirmed" && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Pagos y facturas</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              Disponible próximamente.
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       <form.Subscribe selector={(state) => state.values.lines}>
         {(lines) => {

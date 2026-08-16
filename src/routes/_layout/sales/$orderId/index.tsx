@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ChevronLeft } from "lucide-react";
 
 import { CreateSalesOrderForm } from "@/components/features/sales/create-sales-order-form";
@@ -6,19 +6,21 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
+  cancelSalesOrderRequest,
+  updateSalesOrderRequest,
+  updateSalesOrderStatusRequest,
   useAddSalesOrderCommentRequest,
   useGetSaleOrderRequest,
   useMeHandler,
 } from "@/lib/api/api";
-import { updateSalesOrderRequest } from "@/lib/api/update-sales-order";
 import type { SalesOrderStatus } from "@/lib/api/schemas";
 
 const statusLabel: Record<SalesOrderStatus, string> = {
   draft: "Borrador",
   quote: "Cotización",
   confirmed: "Confirmada",
-  partially_fulfilled: "Parcialmente surtida",
-  fulfilled: "Surtida",
+  partially_fulfilled: "Parcialmente despachada",
+  fulfilled: "Completamente despachada",
   cancelled: "Cancelada",
   closed: "Cerrada",
 };
@@ -42,6 +44,7 @@ export const Route = createFileRoute("/_layout/sales/$orderId/")({
 
 function OrderDetailPage() {
   const { orderId } = Route.useParams();
+  const navigate = useNavigate();
   const { data: sessionResponse } = useMeHandler();
   const {
     data: response,
@@ -102,14 +105,6 @@ function OrderDetailPage() {
             </Badge>
           </div>
         </div>
-        {order.status === "quote" && (
-          <div className="ml-auto flex flex-wrap gap-3">
-            <Button type="button">Convertir en orden de compra</Button>
-            <Button type="button" variant="destructive">
-              Cancelar cotización
-            </Button>
-          </div>
-        )}
       </div>
 
       <CreateSalesOrderForm
@@ -122,16 +117,41 @@ function OrderDetailPage() {
           }
           await mutate(updated, { revalidate: false });
         }}
-        onSaveDraft={async (payload) => {
-          if (order.status !== "draft") return;
+        onSaveOrder={async (payload) => {
           const updated = await updateSalesOrderRequest(order.id, payload);
-          if (updated.status !== 200 || !("id" in updated.data)) {
+          if (
+            (updated.status !== 200 && updated.status !== 201) ||
+            !("id" in updated.data)
+          ) {
             throw new Error("No se pudo actualizar la orden");
           }
+
+          if (updated.status === 201 || updated.data.id !== order.id) {
+            await navigate({
+              to: "/sales/$orderId",
+              params: { orderId: updated.data.id },
+            });
+            return;
+          }
+
           await mutate(
-            { status: 200, data: updated.data, headers: new Headers() },
+            { status: 200, data: updated.data, headers: updated.headers },
             { revalidate: false }
           );
+        }}
+        onAdvance={async () => {
+          const updated = await updateSalesOrderStatusRequest(order.id);
+          if (updated.status !== 200) {
+            throw new Error("No se pudo cambiar el estado de la orden");
+          }
+          await mutate(updated, { revalidate: false });
+        }}
+        onCancel={async () => {
+          const updated = await cancelSalesOrderRequest(order.id);
+          if (updated.status !== 200) {
+            throw new Error("No se pudo cancelar la orden");
+          }
+          await mutate(updated, { revalidate: false });
         }}
       />
     </section>
