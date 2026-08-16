@@ -30,7 +30,6 @@ import {
   useListVariantsByProductRequest,
 } from "@/lib/api/api";
 import type { Product, WarehouseResponse } from "@/lib/api/schemas";
-import type { InventoryTransactionType } from "@/lib/api/schemas";
 
 type CreateInventoryTransactionDialogProps = {
   warehouses: WarehouseResponse[];
@@ -100,11 +99,16 @@ export function CreateInventoryTransactionDialog({
         return;
       }
 
+      const quantity =
+        value.transactionType === "subtraction"
+          ? -Number(value.quantity)
+          : Number(value.quantity);
+
       const result = await trigger({
         variant_id: variantId,
         warehouse_id: selectedWarehouse.id,
-        quantity: Number(value.quantity),
-        transaction_type: value.transactionType as InventoryTransactionType,
+        quantity,
+        transaction_type: value.transactionType,
       });
 
       if (result.status === 201) {
