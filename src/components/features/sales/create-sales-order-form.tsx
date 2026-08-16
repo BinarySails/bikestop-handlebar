@@ -16,14 +16,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { useCreateSalesOrderRequest } from "@/lib/api/api";
 import {
@@ -715,76 +707,6 @@ export function CreateSalesOrderForm({
               )}
             </form.Field>
           )}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Lista de productos</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form.Subscribe selector={(state) => state.values.lines}>
-            {(lines) => (
-              <div className="overflow-hidden rounded-lg border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Producto</TableHead>
-                      <TableHead className="w-28 text-center">
-                        Cantidad
-                      </TableHead>
-                      <TableHead className="w-40 text-right">
-                        Precio unitario
-                      </TableHead>
-                      <TableHead className="w-40 text-right">
-                        Subtotal
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {lines.length ? (
-                      lines.map((line, index) => {
-                        const totals = computeLineTotals(line);
-                        const unitPrice = Number(line.unit_price);
-
-                        return (
-                          <TableRow
-                            key={`${line.variant?.id ?? "line"}-${index}`}
-                          >
-                            <TableCell className="font-medium">
-                              {line.product?.display_name ||
-                                line.description ||
-                                "Producto sin seleccionar"}
-                            </TableCell>
-                            <TableCell className="text-center tabular-nums">
-                              {line.quantity || "0"}
-                            </TableCell>
-                            <TableCell className="text-right tabular-nums">
-                              {currencyFormatter.format(
-                                Number.isFinite(unitPrice) ? unitPrice : 0
-                              )}
-                            </TableCell>
-                            <TableCell className="text-right font-medium tabular-nums">
-                              {currencyFormatter.format(totals.gross / 100)}
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })
-                    ) : (
-                      <TableRow>
-                        <TableCell
-                          colSpan={4}
-                          className="h-24 text-center text-muted-foreground"
-                        >
-                          No hay productos agregados.
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </form.Subscribe>
         </CardContent>
       </Card>
 

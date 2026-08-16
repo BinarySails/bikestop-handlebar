@@ -1431,6 +1431,108 @@ export const UpdateSalesOrderRequestResponse = zod.object({
 })
 
 
+export const UpdateSalesOrderStatusRequestParams = zod.object({
+  "id": zod.uuid().describe('Sales order ID')
+})
+
+export const UpdateSalesOrderStatusRequestResponse = zod.object({
+  "billing_address": zod.object({
+  "address": zod.string(),
+  "city": zod.string(),
+  "country": zod.string(),
+  "postal_code": zod.string(),
+  "state": zod.string()
+}),
+  "comments": zod.string().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "customer": zod.object({
+  "customer_id": zod.uuid(),
+  "name": zod.string()
+}),
+  "discount_total": zod.int(),
+  "grand_total": zod.int(),
+  "id": zod.uuid(),
+  "lines": zod.array(zod.object({
+  "description": zod.string(),
+  "discount_amount": zod.int(),
+  "discount_percent": zod.int().nullish(),
+  "id": zod.uuid(),
+  "line_number": zod.int(),
+  "line_total": zod.int(),
+  "product_id": zod.uuid(),
+  "quantity": zod.int(),
+  "tax_amount": zod.int(),
+  "tax_rate": zod.int(),
+  "unit_price": zod.int(),
+  "variant_id": zod.uuid()
+})),
+  "order_date": zod.iso.datetime({"offset":true}),
+  "order_number": zod.string(),
+  "shipping_address": zod.object({
+  "address": zod.string(),
+  "city": zod.string(),
+  "country": zod.string(),
+  "postal_code": zod.string(),
+  "state": zod.string()
+}),
+  "status": zod.enum(['draft', 'quote', 'confirmed', 'partially_fulfilled', 'fulfilled', 'cancelled', 'closed']),
+  "subtotal": zod.int(),
+  "tax_total": zod.int(),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+
+
+export const CancelSalesOrderRequestParams = zod.object({
+  "id": zod.uuid().describe('Sales order ID')
+})
+
+export const CancelSalesOrderRequestResponse = zod.object({
+  "billing_address": zod.object({
+  "address": zod.string(),
+  "city": zod.string(),
+  "country": zod.string(),
+  "postal_code": zod.string(),
+  "state": zod.string()
+}),
+  "comments": zod.string().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "customer": zod.object({
+  "customer_id": zod.uuid(),
+  "name": zod.string()
+}),
+  "discount_total": zod.int(),
+  "grand_total": zod.int(),
+  "id": zod.uuid(),
+  "lines": zod.array(zod.object({
+  "description": zod.string(),
+  "discount_amount": zod.int(),
+  "discount_percent": zod.int().nullish(),
+  "id": zod.uuid(),
+  "line_number": zod.int(),
+  "line_total": zod.int(),
+  "product_id": zod.uuid(),
+  "quantity": zod.int(),
+  "tax_amount": zod.int(),
+  "tax_rate": zod.int(),
+  "unit_price": zod.int(),
+  "variant_id": zod.uuid()
+})),
+  "order_date": zod.iso.datetime({"offset":true}),
+  "order_number": zod.string(),
+  "shipping_address": zod.object({
+  "address": zod.string(),
+  "city": zod.string(),
+  "country": zod.string(),
+  "postal_code": zod.string(),
+  "state": zod.string()
+}),
+  "status": zod.enum(['draft', 'quote', 'confirmed', 'partially_fulfilled', 'fulfilled', 'cancelled', 'closed']),
+  "subtotal": zod.int(),
+  "tax_total": zod.int(),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+
+
 export const AddSalesOrderCommentRequestParams = zod.object({
   "id": zod.uuid().describe('Sales order ID')
 })
