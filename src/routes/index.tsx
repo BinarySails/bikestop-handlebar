@@ -1,25 +1,16 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
-import { useAuthStore } from "@/lib/auth/use-auth-store";
-import { validateSession } from "@/lib/auth/require-auth";
+import { createFileRoute } from "@tanstack/react-router";
+
+import { B2BLayout } from "@/components/features/layout/b2b-layout";
+import { CatalogPage } from "./_b2b/catalog/index";
 
 export const Route = createFileRoute("/")({
-  beforeLoad: async () => {
-    const { isInDev } = useAuthStore.getState();
-
-    if (isInDev) {
-      throw redirect({ to: "/dashboard" });
-    }
-
-    if (import.meta.env.SSR) {
-      return;
-    }
-
-    const { ok } = await validateSession();
-
-    if (ok) {
-      throw redirect({ to: "/dashboard" });
-    }
-
-    throw redirect({ to: "/login" });
-  },
+  component: HomePage,
 });
+
+function HomePage() {
+  return (
+    <B2BLayout>
+      <CatalogPage />
+    </B2BLayout>
+  );
+}

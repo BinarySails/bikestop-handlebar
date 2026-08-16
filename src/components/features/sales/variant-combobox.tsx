@@ -96,7 +96,7 @@ export function VariantCombobox({
                 <div className="flex w-full items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
                     <img
-                      src={variant.image_url}
+                      src={variant.images[0]?.image_url}
                       alt={variant.display_name}
                       className="size-10 rounded-md object-cover"
                     />

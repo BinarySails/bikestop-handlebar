@@ -70,6 +70,8 @@ import type {
   InventoryItemResponse,
   InventoryTransactionResponse,
   ListBrandsRequestParams,
+  ListCatalogProductsRequestParams,
+  ListCatalogProductsResponse,
   ListCustomersRequestParams,
   ListInventoryRequestParams,
   ListLocalitiesResponse,
@@ -350,6 +352,88 @@ export const useMeHandler = <TError = Promise<void>>(
   const isEnabled = swrOptions?.enabled !== false
   const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getMeHandlerKey() : null);
   const swrFn = () => meHandler(fetchOptions)
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type listCatalogProductsRequestResponse200 = {
+  data: ListCatalogProductsResponse
+  status: 200
+}
+
+export type listCatalogProductsRequestResponse400 = {
+  data: ErrorResponse
+  status: 400
+}
+
+export type listCatalogProductsRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type listCatalogProductsRequestResponseSuccess = (listCatalogProductsRequestResponse200) & {
+  headers: Headers;
+};
+export type listCatalogProductsRequestResponseError = (listCatalogProductsRequestResponse400 | listCatalogProductsRequestResponse500) & {
+  headers: Headers;
+};
+
+export type listCatalogProductsRequestResponse = (listCatalogProductsRequestResponseSuccess | listCatalogProductsRequestResponseError)
+
+export const getListCatalogProductsRequestUrl = (params?: ListCatalogProductsRequestParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `http://localhost:8080/api/v1/products/catalog?${stringifiedParams}` : `http://localhost:8080/api/v1/products/catalog`
+}
+
+export const listCatalogProductsRequest = async (params?: ListCatalogProductsRequestParams, options?: RequestInit): Promise<listCatalogProductsRequestResponse> => {
+
+  const res = await fetch(getListCatalogProductsRequestUrl(params),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'GET'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: listCatalogProductsRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as listCatalogProductsRequestResponse
+}
+
+
+
+
+export const getListCatalogProductsRequestKey = (params?: ListCatalogProductsRequestParams,) => [`http://localhost:8080/api/v1/products/catalog`, ...(params ? [params]: [])] as const;
+
+export type ListCatalogProductsRequestQueryResult = NonNullable<Awaited<ReturnType<typeof listCatalogProductsRequest>>>
+
+export const useListCatalogProductsRequest = <TError = Promise<ErrorResponse>>(
+  params?: ListCatalogProductsRequestParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof listCatalogProductsRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
+) => {
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getListCatalogProductsRequestKey(params) : null);
+  const swrFn = () => listCatalogProductsRequest(params, fetchOptions)
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 

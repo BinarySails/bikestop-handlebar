@@ -73,6 +73,91 @@ export const MeHandlerResponse = zod.object({
 })
 
 
+export const listCatalogProductsRequestQueryPageMin = 0;
+
+export const listCatalogProductsRequestQueryLimitMin = 0;
+
+
+
+export const ListCatalogProductsRequestQueryParams = zod.object({
+  "category_id": zod.uuid().optional(),
+  "brand_id": zod.uuid().optional(),
+  "search": zod.string().optional(),
+  "sort_by": zod.enum(['name', 'price', 'created_at']).optional(),
+  "sort_order": zod.enum(['asc', 'desc']).optional(),
+  "availability": zod.enum(['all', 'available', 'out_of_stock']).optional(),
+  "page": zod.int().min(listCatalogProductsRequestQueryPageMin).optional(),
+  "limit": zod.int().min(listCatalogProductsRequestQueryLimitMin).optional()
+})
+
+export const listCatalogProductsRequestResponseLimitMin = 0;
+
+export const listCatalogProductsRequestResponsePageMin = 0;
+
+
+
+export const ListCatalogProductsRequestResponse = zod.object({
+  "data": zod.array(zod.object({
+  "brand": zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "image_url": zod.string(),
+  "status": zod.enum(['enable', 'disable', 'archive'])
+}),
+  "category": zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "description": zod.string().nullish(),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "parent_id": zod.union([zod.null(),zod.uuid()]).optional(),
+  "slug": zod.string(),
+  "status": zod.enum(['active', 'inactive'])
+}),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "description": zod.string().nullish(),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "images": zod.array(zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "file_id": zod.union([zod.null(),zod.uuid()]).optional(),
+  "id": zod.uuid(),
+  "image_index": zod.int(),
+  "image_url": zod.string(),
+  "status": zod.enum(['enable', 'disable', 'archive']),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "variant_id": zod.uuid()
+})),
+  "prices": zod.array(zod.object({
+  "amount": zod.int(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "currency": zod.string(),
+  "id": zod.uuid(),
+  "price_type": zod.enum(['regular', 'sale', 'wholesale']),
+  "status": zod.enum(['enable', 'disable', 'archive']),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "variant_id": zod.uuid()
+})),
+  "product_id": zod.uuid(),
+  "properties": zod.array(zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "property_name": zod.string(),
+  "property_value": zod.string(),
+  "status": zod.enum(['enable', 'disable', 'archive']),
+  "variant_id": zod.uuid()
+})),
+  "sku": zod.string(),
+  "status": zod.enum(['enable', 'disable', 'archive']),
+  "stock_quantity": zod.int(),
+  "updated_at": zod.iso.datetime({"offset":true})
+})),
+  "limit": zod.int().min(listCatalogProductsRequestResponseLimitMin),
+  "page": zod.int().min(listCatalogProductsRequestResponsePageMin),
+  "total": zod.int()
+})
+
+
 export const ListCustomersRequestQueryParams = zod.object({
   "search": zod.string().optional(),
   "page": zod.int().optional(),
