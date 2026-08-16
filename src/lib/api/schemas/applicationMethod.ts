@@ -13,7 +13,7 @@ import type { PromotionRule } from './promotionRule.ts';
 export type ApplicationMethod = {
   Standard: {
   allocation?: null | Allocation;
-  id: ApplicationMethodId;
+  id?: ApplicationMethodId;
   /** @nullable */
   max_quantity?: number | null;
   target: ApplicationTarget;
@@ -25,7 +25,7 @@ export type ApplicationMethod = {
   apply_to_quantity: number;
   buy_rules: PromotionRule[];
   buy_rules_min_quantity: number;
-  id: ApplicationMethodId;
+  id?: ApplicationMethodId;
   target_rules: PromotionRule[];
   value: DiscountValue;
 };

@@ -8,7 +8,7 @@ import {
   ComboboxItem,
   ComboboxList,
 } from "@/components/ui/combobox";
-import { useListVariantsByProductRequest } from "@/lib/api/api";
+import { useListVariantsRequest } from "@/lib/api/api";
 import {
   VariantStatus,
   type Variant,
@@ -40,12 +40,9 @@ export function VariantCombobox({
   onChange: (variant: Variant | null) => void;
   disabled?: boolean;
 }) {
-  const { data: res, isLoading } = useListVariantsByProductRequest(
-    productId ?? "",
-    {
-      swr: { enabled: Boolean(productId) },
-    }
-  );
+  const { data: res, isLoading } = useListVariantsRequest(productId ?? "", {
+    swr: { enabled: Boolean(productId) },
+  });
 
   const all = res?.status === 200 ? res.data : EMPTY_VARIANTS;
   const items = useMemo(() => {

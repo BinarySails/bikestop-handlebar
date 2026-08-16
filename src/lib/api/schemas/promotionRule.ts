@@ -11,7 +11,7 @@ import type { RuleValue } from './ruleValue.ts';
 
 export interface PromotionRule {
   attribute: RuleAttribute;
-  id: PromotionRuleId;
+  id?: PromotionRuleId;
   operator: RuleOperator;
   values: RuleValue[];
 }
