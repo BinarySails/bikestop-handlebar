@@ -18,6 +18,7 @@ import type {
 
 import type {
   AddSalesOrderCommentRequest,
+  ApplyPromotionsRequest,
   AssignPermissionsRequest,
   AssignPermissionsResponse,
   AssignRolesToUserRequest,
@@ -41,6 +42,7 @@ import type {
   CreatePermissionRequest,
   CreatePermissionResponse,
   CreateProductRequest,
+  CreatePromotionRequest,
   CreateRoleRequest,
   CreateRoleResponse,
   CreateSalesOrderRequest,
@@ -92,6 +94,8 @@ import type {
   PermissionId,
   Product,
   ProductId,
+  Promotion,
+  PromotionId,
   RemovePermissionsRequest,
   RemovePermissionsResponse,
   RemoveUserRoleResponse,
@@ -3134,26 +3138,26 @@ export const useUpdateProductRequest = <TError = Promise<ErrorResponse>>(
   }
 }
 
-export type listVariantsByProductRequestResponse200 = {
+export type listVariantsRequestResponse200 = {
   data: Variant[]
   status: 200
 }
 
-export type listVariantsByProductRequestResponse500 = {
+export type listVariantsRequestResponse500 = {
   data: ErrorResponse
   status: 500
 }
 
-export type listVariantsByProductRequestResponseSuccess = (listVariantsByProductRequestResponse200) & {
+export type listVariantsRequestResponseSuccess = (listVariantsRequestResponse200) & {
   headers: Headers;
 };
-export type listVariantsByProductRequestResponseError = (listVariantsByProductRequestResponse500) & {
+export type listVariantsRequestResponseError = (listVariantsRequestResponse500) & {
   headers: Headers;
 };
 
-export type listVariantsByProductRequestResponse = (listVariantsByProductRequestResponseSuccess | listVariantsByProductRequestResponseError)
+export type listVariantsRequestResponse = (listVariantsRequestResponseSuccess | listVariantsRequestResponseError)
 
-export const getListVariantsByProductRequestUrl = (productId: ProductId,) => {
+export const getListVariantsRequestUrl = (productId: ProductId,) => {
 
 
 
@@ -3161,9 +3165,9 @@ export const getListVariantsByProductRequestUrl = (productId: ProductId,) => {
   return `http://localhost:8080/api/v1/products/${productId}/variants`
 }
 
-export const listVariantsByProductRequest = async (productId: ProductId, options?: RequestInit): Promise<listVariantsByProductRequestResponse> => {
+export const listVariantsRequest = async (productId: ProductId, options?: RequestInit): Promise<listVariantsRequestResponse> => {
 
-  const res = await fetch(getListVariantsByProductRequestUrl(productId),
+  const res = await fetch(getListVariantsRequestUrl(productId),
   {
       credentials: 'include',
     ...options,
@@ -3176,25 +3180,25 @@ export const listVariantsByProductRequest = async (productId: ProductId, options
 
   const body = [204, 205, 304].includes(res.status) ? null : await res.text();
 
-  const data: listVariantsByProductRequestResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as listVariantsByProductRequestResponse
+  const data: listVariantsRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as listVariantsRequestResponse
 }
 
 
 
 
-export const getListVariantsByProductRequestKey = (productId: ProductId,) => [`http://localhost:8080/api/v1/products/${productId}/variants`] as const;
+export const getListVariantsRequestKey = (productId: ProductId,) => [`http://localhost:8080/api/v1/products/${productId}/variants`] as const;
 
-export type ListVariantsByProductRequestQueryResult = NonNullable<Awaited<ReturnType<typeof listVariantsByProductRequest>>>
+export type ListVariantsRequestQueryResult = NonNullable<Awaited<ReturnType<typeof listVariantsRequest>>>
 
-export const useListVariantsByProductRequest = <TError = Promise<ErrorResponse>>(
-  productId: ProductId, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof listVariantsByProductRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
+export const useListVariantsRequest = <TError = Promise<ErrorResponse>>(
+  productId: ProductId, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof listVariantsRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
 ) => {
   const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
 
   const isEnabled = swrOptions?.enabled !== false && productId !== null && productId !== undefined
-  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getListVariantsByProductRequestKey(productId) : null);
-  const swrFn = () => listVariantsByProductRequest(productId, fetchOptions)
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getListVariantsRequestKey(productId) : null);
+  const swrFn = () => listVariantsRequest(productId, fetchOptions)
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
@@ -3453,6 +3457,236 @@ export const useUpdateVariantRequest = <TError = Promise<ErrorResponse>>(
   const swrFn = getUpdateVariantRequestMutationFetcher(productId,id, fetchOptions);
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type createPromotionRequestResponse201 = {
+  data: Promotion
+  status: 201
+}
+
+export type createPromotionRequestResponse400 = {
+  data: ErrorResponse
+  status: 400
+}
+
+export type createPromotionRequestResponse409 = {
+  data: ErrorResponse
+  status: 409
+}
+
+export type createPromotionRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type createPromotionRequestResponseSuccess = (createPromotionRequestResponse201) & {
+  headers: Headers;
+};
+export type createPromotionRequestResponseError = (createPromotionRequestResponse400 | createPromotionRequestResponse409 | createPromotionRequestResponse500) & {
+  headers: Headers;
+};
+
+export type createPromotionRequestResponse = (createPromotionRequestResponseSuccess | createPromotionRequestResponseError)
+
+export const getCreatePromotionRequestUrl = () => {
+
+
+
+
+  return `http://localhost:8080/api/v1/promotions`
+}
+
+export const createPromotionRequest = async (createPromotionRequest: CreatePromotionRequest, options?: RequestInit): Promise<createPromotionRequestResponse> => {
+
+  const res = await fetch(getCreatePromotionRequestUrl(),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(createPromotionRequest)
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: createPromotionRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as createPromotionRequestResponse
+}
+
+
+
+
+export const getCreatePromotionRequestMutationFetcher = ( options?: RequestInit) => {
+  return (_: Key, { arg }: { arg: CreatePromotionRequest }) => {
+    return createPromotionRequest(arg, options);
+  }
+}
+export const getCreatePromotionRequestMutationKey = () => [`http://localhost:8080/api/v1/promotions`] as const;
+
+export type CreatePromotionRequestMutationResult = NonNullable<Awaited<ReturnType<typeof createPromotionRequest>>>
+
+export const useCreatePromotionRequest = <TError = Promise<ErrorResponse>>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof createPromotionRequest>>, TError, Key, CreatePromotionRequest, Awaited<ReturnType<typeof createPromotionRequest>>> & { swrKey?: string }, fetch?: RequestInit}
+) => {
+
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getCreatePromotionRequestMutationKey();
+  const swrFn = getCreatePromotionRequestMutationFetcher(fetchOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type listActivePromotionsRequestResponse200 = {
+  data: Promotion[]
+  status: 200
+}
+
+export type listActivePromotionsRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type listActivePromotionsRequestResponseSuccess = (listActivePromotionsRequestResponse200) & {
+  headers: Headers;
+};
+export type listActivePromotionsRequestResponseError = (listActivePromotionsRequestResponse500) & {
+  headers: Headers;
+};
+
+export type listActivePromotionsRequestResponse = (listActivePromotionsRequestResponseSuccess | listActivePromotionsRequestResponseError)
+
+export const getListActivePromotionsRequestUrl = () => {
+
+
+
+
+  return `http://localhost:8080/api/v1/promotions/active`
+}
+
+export const listActivePromotionsRequest = async ( options?: RequestInit): Promise<listActivePromotionsRequestResponse> => {
+
+  const res = await fetch(getListActivePromotionsRequestUrl(),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'GET'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: listActivePromotionsRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as listActivePromotionsRequestResponse
+}
+
+
+
+
+export const getListActivePromotionsRequestKey = () => [`http://localhost:8080/api/v1/promotions/active`] as const;
+
+export type ListActivePromotionsRequestQueryResult = NonNullable<Awaited<ReturnType<typeof listActivePromotionsRequest>>>
+
+export const useListActivePromotionsRequest = <TError = Promise<ErrorResponse>>(
+   options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof listActivePromotionsRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
+) => {
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getListActivePromotionsRequestKey() : null);
+  const swrFn = () => listActivePromotionsRequest(fetchOptions)
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type getPromotionRequestResponse200 = {
+  data: Promotion
+  status: 200
+}
+
+export type getPromotionRequestResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type getPromotionRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type getPromotionRequestResponseSuccess = (getPromotionRequestResponse200) & {
+  headers: Headers;
+};
+export type getPromotionRequestResponseError = (getPromotionRequestResponse404 | getPromotionRequestResponse500) & {
+  headers: Headers;
+};
+
+export type getPromotionRequestResponse = (getPromotionRequestResponseSuccess | getPromotionRequestResponseError)
+
+export const getGetPromotionRequestUrl = (id: PromotionId,) => {
+
+
+
+
+  return `http://localhost:8080/api/v1/promotions/${id}`
+}
+
+export const getPromotionRequest = async (id: PromotionId, options?: RequestInit): Promise<getPromotionRequestResponse> => {
+
+  const res = await fetch(getGetPromotionRequestUrl(id),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'GET'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: getPromotionRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as getPromotionRequestResponse
+}
+
+
+
+
+export const getGetPromotionRequestKey = (id: PromotionId,) => [`http://localhost:8080/api/v1/promotions/${id}`] as const;
+
+export type GetPromotionRequestQueryResult = NonNullable<Awaited<ReturnType<typeof getPromotionRequest>>>
+
+export const useGetPromotionRequest = <TError = Promise<ErrorResponse>>(
+  id: PromotionId, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getPromotionRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
+) => {
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false && id !== null && id !== undefined
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetPromotionRequestKey(id) : null);
+  const swrFn = () => getPromotionRequest(id, fetchOptions)
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
@@ -5039,6 +5273,97 @@ export const useUpdateSalesOrderRequest = <TError = Promise<ErrorResponse>>(
   }
 }
 
+export type applyPromotionsRequestResponse200 = {
+  data: SalesOrder
+  status: 200
+}
+
+export type applyPromotionsRequestResponse400 = {
+  data: ErrorResponse
+  status: 400
+}
+
+export type applyPromotionsRequestResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type applyPromotionsRequestResponse409 = {
+  data: ErrorResponse
+  status: 409
+}
+
+export type applyPromotionsRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type applyPromotionsRequestResponseSuccess = (applyPromotionsRequestResponse200) & {
+  headers: Headers;
+};
+export type applyPromotionsRequestResponseError = (applyPromotionsRequestResponse400 | applyPromotionsRequestResponse404 | applyPromotionsRequestResponse409 | applyPromotionsRequestResponse500) & {
+  headers: Headers;
+};
+
+export type applyPromotionsRequestResponse = (applyPromotionsRequestResponseSuccess | applyPromotionsRequestResponseError)
+
+export const getApplyPromotionsRequestUrl = (id: SalesOrderId,) => {
+
+
+
+
+  return `http://localhost:8080/api/v1/sales-orders/${id}/apply-promotions`
+}
+
+export const applyPromotionsRequest = async (id: SalesOrderId,
+    applyPromotionsRequest: ApplyPromotionsRequest, options?: RequestInit): Promise<applyPromotionsRequestResponse> => {
+
+  const res = await fetch(getApplyPromotionsRequestUrl(id),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(applyPromotionsRequest)
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: applyPromotionsRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as applyPromotionsRequestResponse
+}
+
+
+
+
+export const getApplyPromotionsRequestMutationFetcher = (id: SalesOrderId, options?: RequestInit) => {
+  return (_: Key, { arg }: { arg: ApplyPromotionsRequest }) => {
+    return applyPromotionsRequest(id, arg, options);
+  }
+}
+export const getApplyPromotionsRequestMutationKey = (id: SalesOrderId,) => [`http://localhost:8080/api/v1/sales-orders/${id}/apply-promotions`] as const;
+
+export type ApplyPromotionsRequestMutationResult = NonNullable<Awaited<ReturnType<typeof applyPromotionsRequest>>>
+
+export const useApplyPromotionsRequest = <TError = Promise<ErrorResponse>>(
+  id: SalesOrderId, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof applyPromotionsRequest>>, TError, Key, ApplyPromotionsRequest, Awaited<ReturnType<typeof applyPromotionsRequest>>> & { swrKey?: string }, fetch?: RequestInit}
+) => {
+
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getApplyPromotionsRequestMutationKey(id);
+  const swrFn = getApplyPromotionsRequestMutationFetcher(id, fetchOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
 export type addSalesOrderCommentRequestResponse200 = {
   data: SalesOrder
   status: 200
@@ -5537,76 +5862,6 @@ export const useUpdateUserProfileRequest = <TError = Promise<ErrorResponse>>(
   const swrFn = getUpdateUserProfileRequestMutationFetcher(id, fetchOptions);
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions)
-
-  return {
-    swrKey,
-    ...query
-  }
-}
-
-export type listVariantsRequestResponse200 = {
-  data: Variant[]
-  status: 200
-}
-
-export type listVariantsRequestResponse500 = {
-  data: ErrorResponse
-  status: 500
-}
-
-export type listVariantsRequestResponseSuccess = (listVariantsRequestResponse200) & {
-  headers: Headers;
-};
-export type listVariantsRequestResponseError = (listVariantsRequestResponse500) & {
-  headers: Headers;
-};
-
-export type listVariantsRequestResponse = (listVariantsRequestResponseSuccess | listVariantsRequestResponseError)
-
-export const getListVariantsRequestUrl = () => {
-
-
-
-
-  return `http://localhost:8080/api/v1/variants`
-}
-
-export const listVariantsRequest = async ( options?: RequestInit): Promise<listVariantsRequestResponse> => {
-
-  const res = await fetch(getListVariantsRequestUrl(),
-  {
-      credentials: 'include',
-    ...options,
-    method: 'GET'
-
-
-  }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: listVariantsRequestResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as listVariantsRequestResponse
-}
-
-
-
-
-export const getListVariantsRequestKey = () => [`http://localhost:8080/api/v1/variants`] as const;
-
-export type ListVariantsRequestQueryResult = NonNullable<Awaited<ReturnType<typeof listVariantsRequest>>>
-
-export const useListVariantsRequest = <TError = Promise<ErrorResponse>>(
-   options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof listVariantsRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
-) => {
-  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
-
-  const isEnabled = swrOptions?.enabled !== false
-  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getListVariantsRequestKey() : null);
-  const swrFn = () => listVariantsRequest(fetchOptions)
-
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
