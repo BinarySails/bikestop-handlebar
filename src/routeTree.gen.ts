@@ -26,6 +26,7 @@ import { Route as LayoutCategoriesIndexRouteImport } from './routes/_layout/cate
 import { Route as LayoutCategoriesCategoryIdRouteImport } from './routes/_layout/categories/$categoryId'
 import { Route as LayoutProductsIndexRouteImport } from './routes/_layout/products/index'
 import { Route as LayoutProductsProductIdRouteImport } from './routes/_layout/products/$productId'
+import { Route as LayoutPromotionsIndexRouteImport } from './routes/_layout/promotions/index'
 import { Route as LayoutSalesIndexRouteImport } from './routes/_layout/sales/index'
 import { Route as LayoutSalesOrderIdRouteRouteImport } from './routes/_layout/sales/$orderId/route'
 import { Route as LayoutSalesNewRouteImport } from './routes/_layout/sales/new'
@@ -124,6 +125,11 @@ const LayoutProductsProductIdRoute = LayoutProductsProductIdRouteImport.update({
   path: '/products/$productId',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutPromotionsIndexRoute = LayoutPromotionsIndexRouteImport.update({
+  id: '/promotions/',
+  path: '/promotions/',
+  getParentRoute: () => LayoutRoute,
+} as any)
 const LayoutSalesIndexRoute = LayoutSalesIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -210,6 +216,7 @@ export interface FileRoutesByFullPath {
   '/brands/': typeof LayoutBrandsIndexRoute
   '/categories/': typeof LayoutCategoriesIndexRoute
   '/products/': typeof LayoutProductsIndexRoute
+  '/promotions/': typeof LayoutPromotionsIndexRoute
   '/sales/': typeof LayoutSalesIndexRoute
   '/users/': typeof LayoutUsersIndexRoute
   '/warehouses/': typeof LayoutWarehousesIndexRoute
@@ -237,6 +244,7 @@ export interface FileRoutesByTo {
   '/brands': typeof LayoutBrandsIndexRoute
   '/categories': typeof LayoutCategoriesIndexRoute
   '/products': typeof LayoutProductsIndexRoute
+  '/promotions': typeof LayoutPromotionsIndexRoute
   '/sales': typeof LayoutSalesIndexRoute
   '/users': typeof LayoutUsersIndexRoute
   '/warehouses': typeof LayoutWarehousesIndexRoute
@@ -269,6 +277,7 @@ export interface FileRoutesById {
   '/_layout/brands/': typeof LayoutBrandsIndexRoute
   '/_layout/categories/': typeof LayoutCategoriesIndexRoute
   '/_layout/products/': typeof LayoutProductsIndexRoute
+  '/_layout/promotions/': typeof LayoutPromotionsIndexRoute
   '/_layout/sales/': typeof LayoutSalesIndexRoute
   '/_layout/users/': typeof LayoutUsersIndexRoute
   '/_layout/warehouses/': typeof LayoutWarehousesIndexRoute
@@ -301,6 +310,7 @@ export interface FileRouteTypes {
     | '/brands/'
     | '/categories/'
     | '/products/'
+    | '/promotions/'
     | '/sales/'
     | '/users/'
     | '/warehouses/'
@@ -328,6 +338,7 @@ export interface FileRouteTypes {
     | '/brands'
     | '/categories'
     | '/products'
+    | '/promotions'
     | '/sales'
     | '/users'
     | '/warehouses'
@@ -359,6 +370,7 @@ export interface FileRouteTypes {
     | '/_layout/brands/'
     | '/_layout/categories/'
     | '/_layout/products/'
+    | '/_layout/promotions/'
     | '/_layout/sales/'
     | '/_layout/users/'
     | '/_layout/warehouses/'
@@ -494,6 +506,13 @@ declare module '@tanstack/react-router' {
       path: '/products/$productId'
       fullPath: '/products/$productId'
       preLoaderRoute: typeof LayoutProductsProductIdRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/promotions/': {
+      id: '/_layout/promotions/'
+      path: '/promotions'
+      fullPath: '/promotions/'
+      preLoaderRoute: typeof LayoutPromotionsIndexRouteImport
       parentRoute: typeof LayoutRoute
     }
     '/_layout/sales/': {
@@ -644,6 +663,7 @@ interface LayoutRouteChildren {
   LayoutBrandsIndexRoute: typeof LayoutBrandsIndexRoute
   LayoutCategoriesIndexRoute: typeof LayoutCategoriesIndexRoute
   LayoutProductsIndexRoute: typeof LayoutProductsIndexRoute
+  LayoutPromotionsIndexRoute: typeof LayoutPromotionsIndexRoute
   LayoutUsersIndexRoute: typeof LayoutUsersIndexRoute
   LayoutBrandsBrandIdEditRoute: typeof LayoutBrandsBrandIdEditRoute
   LayoutCategoriesCategoryIdEditRoute: typeof LayoutCategoriesCategoryIdEditRoute
@@ -666,6 +686,7 @@ const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutBrandsIndexRoute: LayoutBrandsIndexRoute,
   LayoutCategoriesIndexRoute: LayoutCategoriesIndexRoute,
   LayoutProductsIndexRoute: LayoutProductsIndexRoute,
+  LayoutPromotionsIndexRoute: LayoutPromotionsIndexRoute,
   LayoutUsersIndexRoute: LayoutUsersIndexRoute,
   LayoutBrandsBrandIdEditRoute: LayoutBrandsBrandIdEditRoute,
   LayoutCategoriesCategoryIdEditRoute: LayoutCategoriesCategoryIdEditRoute,

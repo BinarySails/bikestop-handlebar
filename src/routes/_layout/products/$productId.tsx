@@ -34,7 +34,7 @@ import {
   useGetProductRequest,
   useGetCategoriesRequest,
   useListBrandsRequest,
-  useListVariantsByProductRequest,
+  useListVariantsRequest,
   useListWarehousesRequest,
   useUpdateProductRequest,
 } from "@/lib/api/api";
@@ -116,7 +116,7 @@ function ProductDetailView({
   const { data: categoriesRes, isLoading: categoriesLoading } =
     useGetCategoriesRequest();
   const { data: variantsRes, isLoading: variantsLoading } =
-    useListVariantsByProductRequest(productId, {
+    useListVariantsRequest(productId, {
       swr: {
         revalidateOnFocus: false,
       },

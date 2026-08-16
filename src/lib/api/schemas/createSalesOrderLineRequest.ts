@@ -4,12 +4,12 @@
  * ciclo
  * OpenAPI spec version: 0.1.0
  */
+import type { SalesOrderLineId } from './salesOrderLineId.ts';
 import type { VariantId } from './variantId.ts';
 
 export interface CreateSalesOrderLineRequest {
   description: string;
-  /** @nullable */
-  discount_percent?: number | null;
+  line_id?: null | SalesOrderLineId;
   quantity: number;
   tax_rate: number;
   unit_price: number;

@@ -31,10 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  useListVariantsByProductRequest,
-  useUpdateVariantRequest,
-} from "@/lib/api/api";
+import { useListVariantsRequest, useUpdateVariantRequest } from "@/lib/api/api";
 import type { Variant } from "@/lib/api/schemas";
 
 const PAGE_SIZE = 10;
@@ -191,7 +188,7 @@ export function ProductVariantsSection({ productId }: { productId: string }) {
     isLoading,
     isValidating,
     mutate,
-  } = useListVariantsByProductRequest(productId, {
+  } = useListVariantsRequest(productId, {
     swr: {
       revalidateOnFocus: false,
     },
