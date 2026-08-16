@@ -134,7 +134,7 @@ function ArchiveVariantMenuItem({
         sku: variant.sku,
         display_name: variant.display_name,
         description: variant.description,
-        images: variant.images
+        images: (variant.images ?? [])
           .slice()
           .sort((a, b) => a.image_index - b.image_index)
           .map((image, index) => ({

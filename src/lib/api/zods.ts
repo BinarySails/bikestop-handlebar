@@ -340,6 +340,23 @@ export const GetDownloadUrlRequestResponse = zod.object({
 })
 
 
+export const ListInventoryRequestQueryParams = zod.object({
+  "variant_id": zod.uuid().optional(),
+  "warehouse_id": zod.uuid().optional()
+})
+
+export const ListInventoryRequestResponseItem = zod.object({
+  "total_quantity": zod.int(),
+  "variant_id": zod.uuid(),
+  "variant_image_url": zod.string(),
+  "variant_name": zod.string(),
+  "variant_sku": zod.string(),
+  "warehouse_id": zod.uuid(),
+  "warehouse_name": zod.string()
+})
+export const ListInventoryRequestResponse = zod.array(ListInventoryRequestResponseItem)
+
+
 export const CreateInventoryTransactionRequestBody = zod.object({
   "destination_id": zod.uuid().nullish(),
   "destination_type": zod.union([zod.null(),zod.enum(['warehouse', 'customer', 'supplier', 'store'])]).optional(),
@@ -1821,6 +1838,37 @@ export const UpdateUserProfileRequestResponse = zod.object({
   "status": zod.enum(['active', 'inactive']),
   "username": zod.string()
 })
+
+
+export const ListVariantsRequestResponseItem = zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "image_url": zod.string(),
+  "prices": zod.array(zod.object({
+  "amount": zod.int(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "currency": zod.string(),
+  "id": zod.uuid(),
+  "price_type": zod.enum(['regular', 'sale', 'wholesale']),
+  "status": zod.enum(['enable', 'disable', 'archive']),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "variant_id": zod.uuid()
+})),
+  "product_id": zod.uuid(),
+  "properties": zod.array(zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "property_name": zod.string(),
+  "property_value": zod.string(),
+  "status": zod.enum(['enable', 'disable', 'archive']),
+  "variant_id": zod.uuid()
+})),
+  "sku": zod.string(),
+  "status": zod.enum(['enable', 'disable', 'archive']),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+export const ListVariantsRequestResponse = zod.array(ListVariantsRequestResponseItem)
 
 
 export const ListWarehousesRequestQueryParams = zod.object({

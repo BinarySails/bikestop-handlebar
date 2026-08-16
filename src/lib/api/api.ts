@@ -65,11 +65,13 @@ import type {
   GetPaymentTermByIdResponse,
   GetStateByIdResponse,
   GetUserPermissionsResponse,
+  InventoryItemResponse,
   InventoryTransactionResponse,
   ListBrandsRequestParams,
   ListCatalogProductsRequestParams,
   ListCatalogProductsResponse,
   ListCustomersRequestParams,
+  ListInventoryRequestParams,
   ListLocalitiesResponse,
   ListPermissionsResponse,
   ListProductsRequestParams,
@@ -1230,6 +1232,83 @@ export const useGetDownloadUrlRequest = <TError = Promise<ErrorResponse | void>>
   const isEnabled = swrOptions?.enabled !== false && id !== null && id !== undefined
   const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetDownloadUrlRequestKey(id,params) : null);
   const swrFn = () => getDownloadUrlRequest(id,params, fetchOptions)
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type listInventoryRequestResponse200 = {
+  data: InventoryItemResponse[]
+  status: 200
+}
+
+export type listInventoryRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type listInventoryRequestResponseSuccess = (listInventoryRequestResponse200) & {
+  headers: Headers;
+};
+export type listInventoryRequestResponseError = (listInventoryRequestResponse500) & {
+  headers: Headers;
+};
+
+export type listInventoryRequestResponse = (listInventoryRequestResponseSuccess | listInventoryRequestResponseError)
+
+export const getListInventoryRequestUrl = (params?: ListInventoryRequestParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `http://localhost:8080/api/v1/inventory?${stringifiedParams}` : `http://localhost:8080/api/v1/inventory`
+}
+
+export const listInventoryRequest = async (params?: ListInventoryRequestParams, options?: RequestInit): Promise<listInventoryRequestResponse> => {
+
+  const res = await fetch(getListInventoryRequestUrl(params),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'GET'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: listInventoryRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as listInventoryRequestResponse
+}
+
+
+
+
+export const getListInventoryRequestKey = (params?: ListInventoryRequestParams,) => [`http://localhost:8080/api/v1/inventory`, ...(params ? [params]: [])] as const;
+
+export type ListInventoryRequestQueryResult = NonNullable<Awaited<ReturnType<typeof listInventoryRequest>>>
+
+export const useListInventoryRequest = <TError = Promise<ErrorResponse>>(
+  params?: ListInventoryRequestParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof listInventoryRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
+) => {
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getListInventoryRequestKey(params) : null);
+  const swrFn = () => listInventoryRequest(params, fetchOptions)
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
@@ -5542,6 +5621,76 @@ export const useUpdateUserProfileRequest = <TError = Promise<ErrorResponse>>(
   const swrFn = getUpdateUserProfileRequestMutationFetcher(id, fetchOptions);
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type listVariantsRequestResponse200 = {
+  data: Variant[]
+  status: 200
+}
+
+export type listVariantsRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type listVariantsRequestResponseSuccess = (listVariantsRequestResponse200) & {
+  headers: Headers;
+};
+export type listVariantsRequestResponseError = (listVariantsRequestResponse500) & {
+  headers: Headers;
+};
+
+export type listVariantsRequestResponse = (listVariantsRequestResponseSuccess | listVariantsRequestResponseError)
+
+export const getListVariantsRequestUrl = () => {
+
+
+
+
+  return `http://localhost:8080/api/v1/variants`
+}
+
+export const listVariantsRequest = async ( options?: RequestInit): Promise<listVariantsRequestResponse> => {
+
+  const res = await fetch(getListVariantsRequestUrl(),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'GET'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: listVariantsRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as listVariantsRequestResponse
+}
+
+
+
+
+export const getListVariantsRequestKey = () => [`http://localhost:8080/api/v1/variants`] as const;
+
+export type ListVariantsRequestQueryResult = NonNullable<Awaited<ReturnType<typeof listVariantsRequest>>>
+
+export const useListVariantsRequest = <TError = Promise<ErrorResponse>>(
+   options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof listVariantsRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
+) => {
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getListVariantsRequestKey() : null);
+  const swrFn = () => listVariantsRequest(fetchOptions)
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,

@@ -97,11 +97,20 @@ export function VariantCombobox({
             return (
               <ComboboxItem key={variant.id} value={variant}>
                 <div className="flex w-full items-center justify-between gap-4">
-                  <div className="flex flex-col">
-                    <span className="font-medium">{variant.display_name}</span>
-                    <span className="text-xs text-muted-foreground">
-                      SKU: {variant.sku}
-                    </span>
+                  <div className="flex items-center gap-3">
+                    <img
+                      src={variant.image_url}
+                      alt={variant.display_name}
+                      className="size-10 rounded-md object-cover"
+                    />
+                    <div className="flex flex-col">
+                      <span className="font-medium">
+                        {variant.display_name}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        SKU: {variant.sku}
+                      </span>
+                    </div>
                   </div>
                   {price && (
                     <span className="text-sm font-medium">
