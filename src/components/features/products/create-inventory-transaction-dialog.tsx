@@ -19,11 +19,18 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   useCreateInventoryTransactionRequest,
   useListVariantsByProductRequest,
 } from "@/lib/api/api";
 import type { Product, WarehouseResponse } from "@/lib/api/schemas";
-import { InventoryTransactionType } from "@/lib/api/schemas";
+import type { InventoryTransactionType } from "@/lib/api/schemas";
 
 type CreateInventoryTransactionDialogProps = {
   warehouses: WarehouseResponse[];
@@ -65,6 +72,7 @@ export function CreateInventoryTransactionDialog({
       variantId: preselectedVariantId ?? "",
       warehouseId: "",
       quantity: "",
+      transactionType: "addition" as "addition" | "subtraction",
     },
     onSubmit: async ({ value }) => {
       if (warehouses.length === 0) {
@@ -96,11 +104,15 @@ export function CreateInventoryTransactionDialog({
         variant_id: variantId,
         warehouse_id: selectedWarehouse.id,
         quantity: Number(value.quantity),
-        transaction_type: InventoryTransactionType.available,
+        transaction_type: value.transactionType as InventoryTransactionType,
       });
 
       if (result.status === 201) {
-        toast.success("Inventario agregado correctamente.");
+        toast.success(
+          value.transactionType === "addition"
+            ? "Producto agregado correctamente."
+            : "Producto restado correctamente."
+        );
         form.reset();
         setOpen(false);
         await onSuccess?.();
@@ -112,7 +124,7 @@ export function CreateInventoryTransactionDialog({
           "message" in result.data
             ? (result.data as { message?: string }).message
             : undefined;
-        toast.error(errorMessage ?? "Error al agregar inventario.");
+        toast.error(errorMessage ?? "Error al crear transacción.");
       }
     },
   });
@@ -123,13 +135,13 @@ export function CreateInventoryTransactionDialog({
         render={
           <Button size="sm">
             <Plus className="size-4" />
-            Agregar inventario
+            Crear transacción
           </Button>
         }
       />
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Agregar inventario</DialogTitle>
+          <DialogTitle>Crear transacción</DialogTitle>
           <DialogDescription>
             {preselectedVariantId
               ? "Selecciona el almacén y cantidad a registrar."
@@ -234,6 +246,32 @@ export function CreateInventoryTransactionDialog({
               }}
             </form.Subscribe>
           )}
+
+          <form.Field name="transactionType">
+            {(field) => (
+              <div className="grid gap-2">
+                <Label htmlFor={field.name}>Tipo de transacción</Label>
+                <Select
+                  value={field.state.value}
+                  onValueChange={(val) =>
+                    field.handleChange(val as "addition" | "subtraction")
+                  }
+                >
+                  <SelectTrigger id={field.name} className="w-full">
+                    <SelectValue>
+                      {field.state.value === "addition"
+                        ? "Agregar producto"
+                        : "Restar producto"}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="addition">Agregar producto</SelectItem>
+                    <SelectItem value="subtraction">Restar producto</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </form.Field>
 
           <form.Field
             name="warehouseId"
