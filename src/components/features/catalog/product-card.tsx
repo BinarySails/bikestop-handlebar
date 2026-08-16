@@ -9,12 +9,20 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product }: ProductCardProps) {
+  const mainImage = [...product.images].sort(
+    (a, b) => a.image_index - b.image_index
+  )[0];
+  const regularPrice = product.prices.find(
+    (price) => price.price_type === "regular"
+  );
+  const isAvailable = product.stock_quantity > 0;
+
   return (
-    <Card className="group overflow-hidden border transition-shadow hover:shadow-md">
+    <Card className="group cursor-pointer overflow-hidden border transition-shadow hover:shadow-md">
       <div className="relative aspect-square bg-muted">
-        {product.main_image_url ? (
+        {mainImage ? (
           <img
-            src={product.main_image_url}
+            src={mainImage.image_url}
             alt={product.display_name}
             className="size-full object-cover"
             loading="lazy"
@@ -33,17 +41,15 @@ export function ProductCard({ product }: ProductCardProps) {
         <h3 className="line-clamp-2 text-sm text-blue-600 group-hover:underline">
           {product.display_name}
         </h3>
-        {product.default_price ? (
+        {regularPrice ? (
           <p className="text-sm font-semibold">
             {new Intl.NumberFormat("es-MX", {
               style: "currency",
-              currency: product.default_price.currency,
-            }).format(centsToPesos(product.default_price.amount))}
+              currency: regularPrice.currency,
+            }).format(centsToPesos(regularPrice.amount))}
           </p>
         ) : null}
-        {!product.is_available && (
-          <p className="text-xs text-destructive">Agotado</p>
-        )}
+        {!isAvailable && <p className="text-xs text-destructive">Agotado</p>}
       </CardContent>
     </Card>
   );

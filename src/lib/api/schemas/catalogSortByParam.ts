@@ -9,7 +9,7 @@ export type CatalogSortByParam = typeof CatalogSortByParam[keyof typeof CatalogS
 
 
 export const CatalogSortByParam = {
-  Name: 'Name',
-  Price: 'Price',
-  CreatedAt: 'CreatedAt',
+  name: 'name',
+  price: 'price',
+  created_at: 'created_at',
 } as const;

@@ -20,7 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   useCreateInventoryTransactionRequest,
-  useListVariantsByProductRequest,
+  useListVariantsRequest,
 } from "@/lib/api/api";
 import type { Product, WarehouseResponse } from "@/lib/api/schemas";
 import { InventoryTransactionType } from "@/lib/api/schemas";
@@ -186,7 +186,7 @@ export function CreateInventoryTransactionDialog({
                 const effectiveProductId =
                   preselectedProductId ?? selectedProductId;
                 const { data: variantsResponse } =
-                  useListVariantsByProductRequest(effectiveProductId, {
+                  useListVariantsRequest(effectiveProductId, {
                     swr: {
                       revalidateOnFocus: false,
                       enabled: !!effectiveProductId,

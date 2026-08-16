@@ -4,19 +4,35 @@
  * ciclo
  * OpenAPI spec version: 0.1.0
  */
-import type { CatalogBrand } from './catalogBrand.ts';
-import type { CatalogCategory } from './catalogCategory.ts';
-import type { CatalogPrice } from './catalogPrice.ts';
+import type { Brand } from './brand.ts';
+import type { Category } from './category.ts';
 import type { ProductId } from './productId.ts';
+import type { VariantId } from './variantId.ts';
+import type { VariantImage } from './variantImage.ts';
+import type { VariantPrice } from './variantPrice.ts';
+import type { VariantProperty } from './variantProperty.ts';
+import type { VariantStatus } from './variantStatus.ts';
 
+/**
+ * One entry in the public storefront catalog: an enabled variant (SKU),
+ * with its brand/category and current stock level. Not a domain entity —
+ * it's `Variant` (the entity is sufficient on its own) plus the joined
+ * `Brand`/`Category` and a computed `stock_quantity`.
+ */
 export interface CatalogProduct {
-  brand: CatalogBrand;
-  category: CatalogCategory;
+  brand: Brand;
+  category: Category;
   created_at: string;
-  default_price?: null | CatalogPrice;
-  display_name: string;
-  id: ProductId;
-  is_available: boolean;
   /** @nullable */
-  main_image_url?: string | null;
+  description?: string | null;
+  display_name: string;
+  id: VariantId;
+  images: VariantImage[];
+  prices: VariantPrice[];
+  product_id: ProductId;
+  properties: VariantProperty[];
+  sku: string;
+  status: VariantStatus;
+  stock_quantity: number;
+  updated_at: string;
 }

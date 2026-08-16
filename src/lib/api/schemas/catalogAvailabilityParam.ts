@@ -9,7 +9,7 @@ export type CatalogAvailabilityParam = typeof CatalogAvailabilityParam[keyof typ
 
 
 export const CatalogAvailabilityParam = {
-  All: 'All',
-  Available: 'Available',
-  OutOfStock: 'OutOfStock',
+  all: 'all',
+  available: 'available',
+  out_of_stock: 'out_of_stock',
 } as const;

@@ -32,7 +32,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  useListVariantsByProductRequest,
+  useListVariantsRequest,
   useUpdateVariantRequest,
 } from "@/lib/api/api";
 import type { Variant } from "@/lib/api/schemas";
@@ -191,7 +191,7 @@ export function ProductVariantsSection({ productId }: { productId: string }) {
     isLoading,
     isValidating,
     mutate,
-  } = useListVariantsByProductRequest(productId, {
+  } = useListVariantsRequest(productId, {
     swr: {
       revalidateOnFocus: false,
     },

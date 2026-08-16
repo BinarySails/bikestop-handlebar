@@ -9,6 +9,6 @@ export type CatalogSortOrderParam = typeof CatalogSortOrderParam[keyof typeof Ca
 
 
 export const CatalogSortOrderParam = {
-  Asc: 'Asc',
-  Desc: 'Desc',
+  asc: 'asc',
+  desc: 'desc',
 } as const;

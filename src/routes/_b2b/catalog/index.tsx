@@ -36,23 +36,57 @@ type AvailabilityOption = "all" | "available" | "out_of_stock";
 
 const sortOptionToParams: Record<
   SortOption,
-  { sort_by: "Name" | "Price" | "CreatedAt"; sort_order: "Asc" | "Desc" }
+  { sort_by: "name" | "price" | "created_at"; sort_order: "asc" | "desc" }
 > = {
-  name_asc: { sort_by: "Name", sort_order: "Asc" },
-  name_desc: { sort_by: "Name", sort_order: "Desc" },
-  price_asc: { sort_by: "Price", sort_order: "Asc" },
-  price_desc: { sort_by: "Price", sort_order: "Desc" },
-  created_at_desc: { sort_by: "CreatedAt", sort_order: "Desc" },
+  name_asc: { sort_by: "name", sort_order: "asc" },
+  name_desc: { sort_by: "name", sort_order: "desc" },
+  price_asc: { sort_by: "price", sort_order: "asc" },
+  price_desc: { sort_by: "price", sort_order: "desc" },
+  created_at_desc: { sort_by: "created_at", sort_order: "desc" },
 };
 
 const availabilityOptionToParam: Record<
   AvailabilityOption,
-  "All" | "Available" | "OutOfStock" | undefined
+  "all" | "available" | "out_of_stock" | undefined
 > = {
   all: undefined,
-  available: "Available",
-  out_of_stock: "OutOfStock",
+  available: "available",
+  out_of_stock: "out_of_stock",
 };
+
+export function matchesCatalogProductSearch(
+  product: {
+    id?: string | null;
+    display_name?: string | null;
+    prices?: { price_type?: string | null; amount?: number | null }[] | null;
+    brand?: { display_name?: string | null } | null;
+    category?: { display_name?: string | null } | null;
+  },
+  query: string
+) {
+  const normalizedQuery = query.trim().toLowerCase();
+
+  if (!normalizedQuery) {
+    return true;
+  }
+
+  const priceAmount = product.prices?.find(
+    (price) => price.price_type === "regular"
+  )?.amount;
+  const priceValue =
+    typeof priceAmount === "number" ? String(priceAmount / 100) : "";
+
+  return [
+    product.id,
+    product.display_name,
+    product.brand?.display_name,
+    product.category?.display_name,
+    priceValue,
+    typeof priceAmount === "number" ? String(priceAmount) : "",
+  ]
+    .filter(Boolean)
+    .some((value) => value!.toLowerCase().includes(normalizedQuery));
+}
 
 export function CatalogPage() {
   const [page, setPage] = useState(0);
@@ -81,6 +115,17 @@ export function CatalogPage() {
 
   const products = productsRes?.status === 200 ? productsRes.data.data : [];
   const total = productsRes?.status === 200 ? productsRes.data.total : 0;
+  const visibleProducts = useMemo(() => {
+    const normalizedSearch = appliedSearch.trim().toLowerCase();
+
+    if (!normalizedSearch) {
+      return products;
+    }
+
+    return products.filter((product) =>
+      matchesCatalogProductSearch(product, normalizedSearch)
+    );
+  }, [appliedSearch, products]);
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
   const categories = useMemo(
@@ -133,7 +178,7 @@ export function CatalogPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+    <div className="px-4 py-4 sm:px-6">
       <div className="flex items-start gap-6">
         <CatalogSidebar
           categories={categories}
@@ -162,11 +207,12 @@ export function CatalogPage() {
               />
             </div>
             <p className="text-sm text-muted-foreground">
-              {total} producto{total !== 1 ? "s" : ""}
+              {visibleProducts.length} producto
+              {visibleProducts.length !== 1 ? "s" : ""}
             </p>
           </div>
 
-          <CatalogProductGrid products={products} isLoading={isLoading} />
+          <CatalogProductGrid products={visibleProducts} isLoading={isLoading} />
 
           {totalPages > 1 && (
             <Pagination>
