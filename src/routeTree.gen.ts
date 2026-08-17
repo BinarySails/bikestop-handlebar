@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as B2bRouteImport } from './routes/_b2b'
 import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LayoutCustomerRouteImport } from './routes/_layout/customer'
@@ -21,6 +22,7 @@ import { Route as LayoutProfileRouteImport } from './routes/_layout/profile'
 import { Route as LayoutRolesRouteImport } from './routes/_layout/roles'
 import { Route as LayoutSalesRouteRouteImport } from './routes/_layout/sales/route'
 import { Route as LayoutWarehousesRouteImport } from './routes/_layout/warehouses'
+import { Route as B2bCatalogIndexRouteImport } from './routes/_b2b/catalog/index'
 import { Route as LayoutBrandsIndexRouteImport } from './routes/_layout/brands/index'
 import { Route as LayoutCategoriesIndexRouteImport } from './routes/_layout/categories/index'
 import { Route as LayoutCategoriesCategoryIdRouteImport } from './routes/_layout/categories/$categoryId'
@@ -43,6 +45,10 @@ import { Route as LayoutProductsProductIdVariantsVariantIdRouteImport } from './
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const B2bRoute = B2bRouteImport.update({
+  id: '/_b2b',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LayoutRoute = LayoutRouteImport.update({
@@ -98,6 +104,11 @@ const LayoutWarehousesRoute = LayoutWarehousesRouteImport.update({
   id: '/warehouses',
   path: '/warehouses',
   getParentRoute: () => LayoutRoute,
+} as any)
+const B2bCatalogIndexRoute = B2bCatalogIndexRouteImport.update({
+  id: '/catalog/',
+  path: '/catalog/',
+  getParentRoute: () => B2bRoute,
 } as any)
 const LayoutBrandsIndexRoute = LayoutBrandsIndexRouteImport.update({
   id: '/brands/',
@@ -213,6 +224,7 @@ export interface FileRoutesByFullPath {
   '/sales/new': typeof LayoutSalesNewRoute
   '/users/$userId': typeof LayoutUsersUserIdRoute
   '/warehouses/$warehouseId': typeof LayoutWarehousesWarehouseIdRoute
+  '/catalog/': typeof B2bCatalogIndexRoute
   '/brands/': typeof LayoutBrandsIndexRoute
   '/categories/': typeof LayoutCategoriesIndexRoute
   '/products/': typeof LayoutProductsIndexRoute
@@ -241,6 +253,7 @@ export interface FileRoutesByTo {
   '/sales/new': typeof LayoutSalesNewRoute
   '/users/$userId': typeof LayoutUsersUserIdRoute
   '/warehouses/$warehouseId': typeof LayoutWarehousesWarehouseIdRoute
+  '/catalog': typeof B2bCatalogIndexRoute
   '/brands': typeof LayoutBrandsIndexRoute
   '/categories': typeof LayoutCategoriesIndexRoute
   '/products': typeof LayoutProductsIndexRoute
@@ -257,6 +270,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_b2b': typeof B2bRouteWithChildren
   '/_layout': typeof LayoutRouteWithChildren
   '/login': typeof LoginRoute
   '/_layout/sales': typeof LayoutSalesRouteRouteWithChildren
@@ -274,6 +288,7 @@ export interface FileRoutesById {
   '/_layout/sales/new': typeof LayoutSalesNewRoute
   '/_layout/users/$userId': typeof LayoutUsersUserIdRoute
   '/_layout/warehouses/$warehouseId': typeof LayoutWarehousesWarehouseIdRoute
+  '/_b2b/catalog/': typeof B2bCatalogIndexRoute
   '/_layout/brands/': typeof LayoutBrandsIndexRoute
   '/_layout/categories/': typeof LayoutCategoriesIndexRoute
   '/_layout/products/': typeof LayoutProductsIndexRoute
@@ -307,6 +322,7 @@ export interface FileRouteTypes {
     | '/sales/new'
     | '/users/$userId'
     | '/warehouses/$warehouseId'
+    | '/catalog/'
     | '/brands/'
     | '/categories/'
     | '/products/'
@@ -335,6 +351,7 @@ export interface FileRouteTypes {
     | '/sales/new'
     | '/users/$userId'
     | '/warehouses/$warehouseId'
+    | '/catalog'
     | '/brands'
     | '/categories'
     | '/products'
@@ -350,6 +367,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/_b2b'
     | '/_layout'
     | '/login'
     | '/_layout/sales'
@@ -367,6 +385,7 @@ export interface FileRouteTypes {
     | '/_layout/sales/new'
     | '/_layout/users/$userId'
     | '/_layout/warehouses/$warehouseId'
+    | '/_b2b/catalog/'
     | '/_layout/brands/'
     | '/_layout/categories/'
     | '/_layout/products/'
@@ -383,6 +402,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  B2bRoute: typeof B2bRouteWithChildren
   LayoutRoute: typeof LayoutRouteWithChildren
   LoginRoute: typeof LoginRoute
 }
@@ -394,6 +414,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_b2b': {
+      id: '/_b2b'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof B2bRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_layout': {
@@ -472,6 +499,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/warehouses'
       preLoaderRoute: typeof LayoutWarehousesRouteImport
       parentRoute: typeof LayoutRoute
+    }
+    '/_b2b/catalog/': {
+      id: '/_b2b/catalog/'
+      path: '/catalog'
+      fullPath: '/catalog/'
+      preLoaderRoute: typeof B2bCatalogIndexRouteImport
+      parentRoute: typeof B2bRoute
     }
     '/_layout/brands/': {
       id: '/_layout/brands/'
@@ -602,6 +636,16 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface B2bRouteChildren {
+  B2bCatalogIndexRoute: typeof B2bCatalogIndexRoute
+}
+
+const B2bRouteChildren: B2bRouteChildren = {
+  B2bCatalogIndexRoute: B2bCatalogIndexRoute,
+}
+
+const B2bRouteWithChildren = B2bRoute._addFileChildren(B2bRouteChildren)
+
 interface LayoutSalesOrderIdRouteRouteChildren {
   LayoutSalesOrderIdPaymentsInvoicesRoute: typeof LayoutSalesOrderIdPaymentsInvoicesRoute
   LayoutSalesOrderIdIndexRoute: typeof LayoutSalesOrderIdIndexRoute
@@ -699,6 +743,7 @@ const LayoutRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  B2bRoute: B2bRouteWithChildren,
   LayoutRoute: LayoutRouteWithChildren,
   LoginRoute: LoginRoute,
 }
