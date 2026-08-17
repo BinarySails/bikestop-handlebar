@@ -6,6 +6,7 @@
  */
 import type { AddressSnapshot } from './addressSnapshot.ts';
 import type { CustomerSnapshot } from './customerSnapshot.ts';
+import type { OrderTag } from './orderTag.ts';
 import type { PaymentTerm } from './paymentTerm.ts';
 import type { SalesOrderId } from './salesOrderId.ts';
 import type { SalesOrderLine } from './salesOrderLine.ts';
@@ -29,6 +30,7 @@ export interface SalesOrder {
   shipping_address: AddressSnapshot;
   status: SalesOrderStatus;
   subtotal: number;
+  tags: OrderTag[];
   tax_total: number;
   updated_at: string;
 }

@@ -23,11 +23,13 @@ export interface CatalogProduct {
   brand: Brand;
   category: Category;
   created_at: string;
+  default_price?: null | VariantPrice;
   /** @nullable */
   description?: string | null;
   display_name: string;
   id: VariantId;
   images: VariantImage[];
+  is_available: boolean;
   prices: VariantPrice[];
   product_id: ProductId;
   properties: VariantProperty[];

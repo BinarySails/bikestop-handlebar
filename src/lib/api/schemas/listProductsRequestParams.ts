@@ -8,6 +8,7 @@ import type { ProductStatus } from './productStatus.ts';
 
 export type ListProductsRequestParams = {
 status?: ProductStatus;
+is_archived?: boolean;
 search?: string;
 /**
  * @minimum 0

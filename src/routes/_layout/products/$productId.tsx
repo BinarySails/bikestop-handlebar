@@ -1,7 +1,7 @@
 import { useForm } from "@tanstack/react-form";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { Package } from "lucide-react";
+import { Package, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 
 import { EntityDetailHeader } from "@/components/features/entity/entity-detail-header";
@@ -116,7 +116,7 @@ function ProductDetailView({
   const { data: categoriesRes, isLoading: categoriesLoading } =
     useGetCategoriesRequest();
   const { data: variantsRes, isLoading: variantsLoading } =
-    useListVariantsRequest(productId, {
+    useListVariantsRequest(productId, undefined, {
       swr: {
         revalidateOnFocus: false,
       },
@@ -145,6 +145,7 @@ function ProductDetailView({
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deletePending, setDeletePending] = useState(false);
+  const [recoverPending, setRecoverPending] = useState(false);
 
   const isArchived = product.status === "archive";
 
@@ -223,6 +224,35 @@ function ProductDetailView({
     }
   }
 
+  async function handleRecover() {
+    setRecoverPending(true);
+    try {
+      const result = await updateProduct({
+        display_name: product.display_name,
+        brand_id: product.brand.id,
+        category_id: product.category.id,
+        description: product.description ?? null,
+        status: "enable",
+      });
+
+      if (result?.status !== 200) {
+        toast.error("No se pudo recuperar el producto.");
+        return;
+      }
+
+      toast.success("Producto recuperado correctamente.");
+      form.reset({
+        ...form.state.values,
+        status: "enable",
+      });
+      await mutateProduct();
+    } catch {
+      toast.error("No se pudo recuperar el producto.");
+    } finally {
+      setRecoverPending(false);
+    }
+  }
+
   return (
     <main className="flex flex-1 flex-col gap-6 p-6">
       <form
@@ -249,6 +279,21 @@ function ProductDetailView({
               onSave={() => form.handleSubmit()}
               onDelete={() => setDeleteOpen(true)}
               showDelete={product.status !== "archive"}
+              extraActions={
+                isArchived ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleRecover}
+                    disabled={recoverPending}
+                  >
+                    <RotateCcw className="size-4" />
+                    <span>
+                      {recoverPending ? "Recuperando..." : "Recuperar"}
+                    </span>
+                  </Button>
+                ) : undefined
+              }
             />
           )}
         </form.Subscribe>

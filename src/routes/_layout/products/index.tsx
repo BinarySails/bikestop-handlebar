@@ -1,7 +1,13 @@
 /* oxlint-disable react/no-unstable-nested-components -- column cells are render callbacks, not components */
 import { useEffect, useState } from "react";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
-import { MoreVertical, Package, RotateCcw, SearchIcon } from "lucide-react";
+import {
+  Archive,
+  MoreVertical,
+  Package,
+  RotateCcw,
+  SearchIcon,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { SiteHeader } from "@/components/features/layout/site-header";
@@ -128,6 +134,7 @@ function ProductsListPage() {
   const [search, setSearch] = useState("");
   const [appliedSearch, setAppliedSearch] = useState("");
   const [status, setStatus] = useState<ListStatusFilter>("all");
+  const [archivedOnly, setArchivedOnly] = useState(false);
 
   const {
     data: res,
@@ -138,7 +145,8 @@ function ProductsListPage() {
   } = useListProductsRequest({
     page: page + 1,
     limit: PAGE_SIZE,
-    status: status === "all" ? undefined : status,
+    is_archived: archivedOnly || undefined,
+    status: archivedOnly ? undefined : status === "all" ? undefined : status,
     search: appliedSearch || undefined,
   });
 
@@ -155,6 +163,7 @@ function ProductsListPage() {
     setSearch("");
     setAppliedSearch("");
     setStatus("all");
+    setArchivedOnly(false);
     setPage(0);
   }
 
@@ -265,23 +274,40 @@ function ProductsListPage() {
             </InputGroup>
 
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-500">Estatus</span>
-              <Select
-                value={status}
-                onValueChange={(value) => {
-                  setStatus(value as ListStatusFilter);
+              {!archivedOnly && (
+                <>
+                  <span className="text-sm text-gray-500">Estatus</span>
+                  <Select
+                    value={status}
+                    onValueChange={(value) => {
+                      setStatus(value as ListStatusFilter);
+                      setPage(0);
+                    }}
+                  >
+                    <SelectTrigger size="sm" className="min-w-36">
+                      <SelectValue>{statusFilterLabel[status]}</SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos</SelectItem>
+                      <SelectItem value="enable">Activo</SelectItem>
+                      <SelectItem value="disable">Inactivo</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8"
+                aria-pressed={archivedOnly}
+                onClick={() => {
+                  setArchivedOnly(!archivedOnly);
                   setPage(0);
                 }}
               >
-                <SelectTrigger size="sm" className="min-w-36">
-                  <SelectValue>{statusFilterLabel[status]}</SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="enable">Activo</SelectItem>
-                  <SelectItem value="disable">Inactivo</SelectItem>
-                </SelectContent>
-              </Select>
+                <Archive />
+                {archivedOnly ? "Mostrar activas" : "Mostrar archivadas"}
+              </Button>
               <Button
                 variant="outline"
                 size="sm"
