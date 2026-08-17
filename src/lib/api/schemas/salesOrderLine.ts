@@ -5,14 +5,14 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { ProductId } from './productId.ts';
+import type { SalesOrderLineAdjustment } from './salesOrderLineAdjustment.ts';
 import type { SalesOrderLineId } from './salesOrderLineId.ts';
 import type { VariantId } from './variantId.ts';
 
 export interface SalesOrderLine {
+  adjustments: SalesOrderLineAdjustment[];
   description: string;
   discount_amount: number;
-  /** @nullable */
-  discount_percent?: number | null;
   id: SalesOrderLineId;
   line_number: number;
   line_total: number;

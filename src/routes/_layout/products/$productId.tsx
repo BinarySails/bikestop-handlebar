@@ -5,6 +5,7 @@ import { Package } from "lucide-react";
 import { toast } from "sonner";
 
 import { EntityDetailHeader } from "@/components/features/entity/entity-detail-header";
+import { ProductInventoryTable } from "@/components/features/products/product-inventory-table";
 import { ProductVariantsSection } from "@/components/features/products/product-variants-section";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -33,13 +34,18 @@ import {
   useGetProductRequest,
   useGetCategoriesRequest,
   useListBrandsRequest,
+  useListVariantsRequest,
+  useListWarehousesRequest,
   useUpdateProductRequest,
 } from "@/lib/api/api";
+import { useProductInventory } from "@/lib/api/use-product-inventory";
 import type {
   Brand,
   Category,
   Product,
   ProductStatus,
+  Variant,
+  WarehouseResponse,
 } from "@/lib/api/schemas";
 
 const statusLabels: Record<ProductStatus, string> = {
@@ -109,10 +115,33 @@ function ProductDetailView({
   const { data: brandsRes, isLoading: brandsLoading } = useListBrandsRequest();
   const { data: categoriesRes, isLoading: categoriesLoading } =
     useGetCategoriesRequest();
+  const { data: variantsRes, isLoading: variantsLoading } =
+    useListVariantsRequest(productId, {
+      swr: {
+        revalidateOnFocus: false,
+      },
+    });
+  const { data: warehousesRes, isLoading: warehousesLoading } =
+    useListWarehousesRequest(undefined, {
+      swr: {
+        revalidateOnFocus: false,
+      },
+    });
 
   const brands: Brand[] = brandsRes?.status === 200 ? brandsRes.data.data : [];
   const categories: Category[] =
     categoriesRes?.status === 200 ? categoriesRes.data.categories : [];
+  const variants: Variant[] =
+    variantsRes?.status === 200 ? variantsRes.data : [];
+  const warehouses: WarehouseResponse[] =
+    warehousesRes?.status === 200 ? warehousesRes.data : [];
+
+  const {
+    items: inventoryItems,
+    isLoading: inventoryLoading,
+    error: inventoryError,
+    mutate: mutateInventory,
+  } = useProductInventory(productId, variantsLoading ? undefined : variants);
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deletePending, setDeletePending] = useState(false);
@@ -371,6 +400,17 @@ function ProductDetailView({
         </section>
       </form>
 
+      <section id="inventory" className="scroll-mt-4 space-y-6">
+        <ProductInventoryTable
+          productId={productId}
+          warehouses={warehouses}
+          items={inventoryItems}
+          loading={inventoryLoading || warehousesLoading}
+          error={inventoryError}
+          onRetry={() => mutateInventory()}
+          onAddSuccess={() => mutateInventory()}
+        />
+      </section>
       <ProductVariantsSection productId={productId} />
 
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>

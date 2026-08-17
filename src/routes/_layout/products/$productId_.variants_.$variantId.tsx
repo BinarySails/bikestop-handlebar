@@ -5,6 +5,7 @@ import { Package, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { EntityDetailHeader } from "@/components/features/entity/entity-detail-header";
+import { VariantInventoryTable } from "@/components/features/products/variant-inventory-table";
 import {
   VariantImageManager,
   type VariantImageRow,
@@ -31,9 +32,19 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  useGetVariantRequest,
+  useListWarehousesRequest,
+  useUpdateVariantRequest,
+} from "@/lib/api/api";
+import { useVariantInventory } from "@/lib/api/use-variant-inventory";
+import type {
+  Variant,
+  VariantStatus,
+  WarehouseResponse,
+} from "@/lib/api/schemas";
 import { Textarea } from "@/components/ui/textarea";
-import { useGetVariantRequest, useUpdateVariantRequest } from "@/lib/api/api";
-import type { Variant, VariantStatus } from "@/lib/api/schemas";
+
 import { centsToPesosString, pesosToCents } from "@/lib/money";
 import { UpdateVariantRequestBody } from "@/lib/api/zods";
 
@@ -131,6 +142,22 @@ function VariantDetailView({
     productId,
     variantId
   );
+  const { data: warehousesResponse, isLoading: warehousesLoading } =
+    useListWarehousesRequest(undefined, {
+      swr: {
+        revalidateOnFocus: false,
+      },
+    });
+
+  const warehouses: WarehouseResponse[] =
+    warehousesResponse?.status === 200 ? warehousesResponse.data : [];
+
+  const {
+    items: inventoryItems,
+    isLoading: inventoryLoading,
+    error: inventoryError,
+    mutate: mutateInventory,
+  } = useVariantInventory(variantId);
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deletePending, setDeletePending] = useState(false);
@@ -142,7 +169,7 @@ function VariantDetailView({
       sku: variant.sku,
       display_name: variant.display_name,
       description: variant.description ?? "",
-      images: variant.images
+      images: (variant.images ?? [])
         .slice()
         .sort((a, b) => a.image_index - b.image_index)
         .map((image) => ({ imageUrl: image.image_url })),
@@ -243,7 +270,7 @@ function VariantDetailView({
         sku: variant.sku,
         display_name: variant.display_name,
         description: variant.description,
-        images: variant.images
+        images: (variant.images ?? [])
           .slice()
           .sort((a, b) => a.image_index - b.image_index)
           .map((image, index) => ({
@@ -743,6 +770,18 @@ function VariantDetailView({
           </Card>
         </section>
       </form>
+
+      <section id="inventory" className="scroll-mt-4 space-y-6">
+        <VariantInventoryTable
+          variantId={variantId}
+          warehouses={warehouses}
+          items={inventoryItems}
+          loading={inventoryLoading || warehousesLoading}
+          error={inventoryError}
+          onRetry={() => mutateInventory()}
+          onAddSuccess={() => mutateInventory()}
+        />
+      </section>
 
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <DialogContent className="sm:max-w-md">
