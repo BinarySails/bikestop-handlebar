@@ -34,6 +34,7 @@ import {
   type Product,
   ProductStatus,
   type SalesOrder,
+  type SalesOrderLine,
   type Variant,
   VariantStatus,
   type PaymentTerm,
@@ -91,6 +92,12 @@ function percentToBasisPoints(value: string): number {
   const number = Number(trimmed);
   if (Number.isNaN(number) || number < 0) return 0;
   return Math.round(number * 100);
+}
+
+function discountPercentFromAmount(line: SalesOrderLine): string {
+  const gross = line.unit_price * line.quantity;
+  if (line.discount_amount <= 0 || gross <= 0) return "";
+  return String(((line.discount_amount / gross) * 100).toFixed(2));
 }
 
 function validateRequired(
@@ -283,10 +290,7 @@ function valuesFromOrder(order: SalesOrder): SalesOrderFormValues {
       description: line.description,
       quantity: String(line.quantity),
       unit_price: centsToPesosString(line.unit_price),
-      discount_percent:
-        line.discount_percent == null
-          ? ""
-          : String(line.discount_percent / 100),
+      discount_percent: discountPercentFromAmount(line),
       tax_rate: String(line.tax_rate / 100),
     })),
   };

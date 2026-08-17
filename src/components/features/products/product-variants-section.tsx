@@ -1,13 +1,7 @@
 /* oxlint-disable react/no-unstable-nested-components -- column cells are render callbacks, not components */
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import {
-  Archive,
-  Boxes,
-  MoreVertical,
-  RotateCcw,
-  SearchIcon,
-} from "lucide-react";
+import { Boxes, MoreVertical, RotateCcw, SearchIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { EntityCardTitle } from "@/components/features/entity/entity-card-title";
@@ -42,7 +36,7 @@ import type { Variant } from "@/lib/api/schemas";
 
 const PAGE_SIZE = 10;
 
-type ListStatusFilter = "all" | "enable" | "disable";
+type ListStatusFilter = "all" | "enable" | "disable" | "archive";
 
 const statusBadgeVariant: Record<
   Variant["status"],
@@ -63,6 +57,7 @@ const statusFilterLabel: Record<ListStatusFilter, string> = {
   all: "Todos",
   enable: "Activo",
   disable: "Inactivo",
+  archive: "Archivado",
 };
 
 function capitalizeFirst(value: string): string {
@@ -187,7 +182,6 @@ export function ProductVariantsSection({ productId }: { productId: string }) {
   const [search, setSearch] = useState("");
   const [appliedSearch, setAppliedSearch] = useState("");
   const [status, setStatus] = useState<ListStatusFilter>("all");
-  const [archivedOnly, setArchivedOnly] = useState(false);
 
   const {
     data: res,
@@ -198,7 +192,7 @@ export function ProductVariantsSection({ productId }: { productId: string }) {
   } = useListVariantsRequest(
     productId,
     {
-      is_archived: archivedOnly || undefined,
+      is_archived: status === "archive" ? true : false,
     },
     {
       swr: {
@@ -238,7 +232,6 @@ export function ProductVariantsSection({ productId }: { productId: string }) {
     setSearch("");
     setAppliedSearch("");
     setStatus("all");
-    setArchivedOnly(false);
     setPage(0);
   }
 
@@ -336,40 +329,24 @@ export function ProductVariantsSection({ productId }: { productId: string }) {
               </InputGroup>
 
               <div className="flex items-center gap-2">
-                {!archivedOnly && (
-                  <>
-                    <span className="text-sm text-gray-500">Estatus</span>
-                    <Select
-                      value={status}
-                      onValueChange={(value) => {
-                        setStatus(value as ListStatusFilter);
-                        setPage(0);
-                      }}
-                    >
-                      <SelectTrigger size="sm" className="min-w-36">
-                        <SelectValue>{statusFilterLabel[status]}</SelectValue>
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todos</SelectItem>
-                        <SelectItem value="enable">Activo</SelectItem>
-                        <SelectItem value="disable">Inactivo</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </>
-                )}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8"
-                  aria-pressed={archivedOnly}
-                  onClick={() => {
-                    setArchivedOnly(!archivedOnly);
+                <span className="text-sm text-gray-500">Estatus</span>
+                <Select
+                  value={status}
+                  onValueChange={(value) => {
+                    setStatus(value as ListStatusFilter);
                     setPage(0);
                   }}
                 >
-                  <Archive />
-                  {archivedOnly ? "Mostrar activas" : "Mostrar archivadas"}
-                </Button>
+                  <SelectTrigger size="sm" className="min-w-36">
+                    <SelectValue>{statusFilterLabel[status]}</SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="enable">Activo</SelectItem>
+                    <SelectItem value="disable">Inactivo</SelectItem>
+                    <SelectItem value="archive">Archivado</SelectItem>
+                  </SelectContent>
+                </Select>
                 <Button
                   variant="outline"
                   size="sm"

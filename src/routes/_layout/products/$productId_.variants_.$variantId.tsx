@@ -1,7 +1,7 @@
 import { useForm } from "@tanstack/react-form";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { Package, Plus, RotateCcw, Trash2 } from "lucide-react";
+import { Package, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { EntityDetailHeader } from "@/components/features/entity/entity-detail-header";
@@ -161,7 +161,6 @@ function VariantDetailView({
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deletePending, setDeletePending] = useState(false);
-  const [recoverPending, setRecoverPending] = useState(false);
 
   const isArchived = variant.status === "archive";
 
@@ -307,52 +306,6 @@ function VariantDetailView({
     }
   }
 
-  async function handleRecover() {
-    setRecoverPending(true);
-    try {
-      const result = await updateVariant({
-        sku: variant.sku,
-        display_name: variant.display_name,
-        description: variant.description,
-        images: (variant.images ?? [])
-          .slice()
-          .sort((a, b) => a.image_index - b.image_index)
-          .map((image, index) => ({
-            image_index: index + 1,
-            image_url: image.image_url,
-          })),
-        status: "enable",
-        properties: variant.properties.map((property) => ({
-          property_name: property.property_name,
-          property_value: property.property_value,
-          status: property.status,
-        })),
-        prices: variant.prices.map((price) => ({
-          price_type: price.price_type,
-          amount: price.amount,
-          currency: price.currency,
-          status: price.status,
-        })),
-      });
-
-      if (result?.status !== 200) {
-        toast.error("No se pudo recuperar la variante.");
-        return;
-      }
-
-      toast.success("Variante recuperada correctamente.");
-      form.reset({
-        ...form.state.values,
-        status: "enable",
-      });
-      await mutateVariant();
-    } catch {
-      toast.error("No se pudo recuperar la variante.");
-    } finally {
-      setRecoverPending(false);
-    }
-  }
-
   return (
     <main className="flex flex-1 flex-col gap-6 p-6">
       <form
@@ -380,21 +333,6 @@ function VariantDetailView({
               onSave={() => form.handleSubmit()}
               onDelete={() => setDeleteOpen(true)}
               showDelete={variant.status !== "archive"}
-              extraActions={
-                isArchived ? (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleRecover}
-                    disabled={recoverPending}
-                  >
-                    <RotateCcw className="size-4" />
-                    <span>
-                      {recoverPending ? "Recuperando..." : "Recuperar"}
-                    </span>
-                  </Button>
-                ) : undefined
-              }
             />
           )}
         </form.Subscribe>
@@ -525,7 +463,6 @@ function VariantDetailView({
                       onValueChange={(value) =>
                         field.handleChange(value as VariantStatus)
                       }
-                      disabled={isArchived}
                     >
                       <SelectTrigger id={field.name} className="w-full">
                         <SelectValue
@@ -543,6 +480,9 @@ function VariantDetailView({
                         </SelectItem>
                         <SelectItem value="disable">
                           {statusLabels.disable}
+                        </SelectItem>
+                        <SelectItem value="archive">
+                          {statusLabels.archive}
                         </SelectItem>
                       </SelectContent>
                     </Select>
