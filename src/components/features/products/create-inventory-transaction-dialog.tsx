@@ -187,6 +187,7 @@ export function CreateInventoryTransactionDialog({
                   preselectedProductId ?? selectedProductId;
                 const { data: variantsResponse } = useListVariantsRequest(
                   effectiveProductId,
+                  undefined,
                   {
                     swr: {
                       revalidateOnFocus: false,
