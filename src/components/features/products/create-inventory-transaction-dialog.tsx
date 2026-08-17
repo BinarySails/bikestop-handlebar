@@ -73,7 +73,8 @@ export function CreateInventoryTransactionDialog({
       quantity: "",
       transactionType: "correction_addition" as
         | "correction_addition"
-        | "correction_substraction",
+        | "correction_substraction"
+        | "available",
     },
     onSubmit: async ({ value }) => {
       if (warehouses.length === 0) {
@@ -111,11 +112,13 @@ export function CreateInventoryTransactionDialog({
       });
 
       if (result.status === 201) {
-        toast.success(
+        const successMessage =
           value.transactionType === "correction_addition"
-            ? "Producto agregado correctamente."
-            : "Producto restado correctamente."
-        );
+            ? "Corrección aplicada: stock agregado."
+            : value.transactionType === "correction_substraction"
+              ? "Corrección aplicada: stock restado."
+              : "Inventario nuevo ingresado.";
+        toast.success(successMessage);
         form.reset();
         setOpen(false);
         await onSuccess?.();
@@ -258,23 +261,31 @@ export function CreateInventoryTransactionDialog({
                   value={field.state.value}
                   onValueChange={(val) =>
                     field.handleChange(
-                      val as "correction_addition" | "correction_substraction"
+                      val as
+                        | "correction_addition"
+                        | "correction_substraction"
+                        | "available"
                     )
                   }
                 >
                   <SelectTrigger id={field.name} className="w-full">
                     <SelectValue>
                       {field.state.value === "correction_addition"
-                        ? "Agregar producto"
-                        : "Restar producto"}
+                        ? "Corrección: agregar stock"
+                        : field.state.value === "correction_substraction"
+                          ? "Corrección: restar stock"
+                          : "Ingreso de inventario nuevo"}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="correction_addition">
-                      Agregar producto
+                      Corrección: agregar stock
                     </SelectItem>
                     <SelectItem value="correction_substraction">
-                      Restar producto
+                      Corrección: restar stock
+                    </SelectItem>
+                    <SelectItem value="available">
+                      Ingreso de inventario nuevo
                     </SelectItem>
                   </SelectContent>
                 </Select>
