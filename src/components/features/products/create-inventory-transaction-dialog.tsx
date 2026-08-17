@@ -71,7 +71,9 @@ export function CreateInventoryTransactionDialog({
       variantId: preselectedVariantId ?? "",
       warehouseId: "",
       quantity: "",
-      transactionType: "correction_addition" as "correction_addition" | "correction_substraction",
+      transactionType: "correction_addition" as
+        | "correction_addition"
+        | "correction_substraction",
     },
     onSubmit: async ({ value }) => {
       if (warehouses.length === 0) {
@@ -255,7 +257,9 @@ export function CreateInventoryTransactionDialog({
                 <Select
                   value={field.state.value}
                   onValueChange={(val) =>
-                    field.handleChange(val as "correction_addition" | "correction_substraction")
+                    field.handleChange(
+                      val as "correction_addition" | "correction_substraction"
+                    )
                   }
                 >
                   <SelectTrigger id={field.name} className="w-full">
@@ -266,8 +270,12 @@ export function CreateInventoryTransactionDialog({
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="correction_addition">Agregar producto</SelectItem>
-                    <SelectItem value="correction_substraction">Restar producto</SelectItem>
+                    <SelectItem value="correction_addition">
+                      Agregar producto
+                    </SelectItem>
+                    <SelectItem value="correction_substraction">
+                      Restar producto
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
