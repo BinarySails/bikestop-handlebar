@@ -72,6 +72,8 @@ export * from './deletePermissionResponse.ts';
 export * from './deleteRoleResponse.ts';
 export * from './deleteTagResponse.ts';
 export * from './discountValue.ts';
+export * from './dispatchSalesOrderLineRequest.ts';
+export * from './dispatchSalesOrderLineResult.ts';
 export * from './entityType.ts';
 export * from './errorResponse.ts';
 export * from './file.ts';
