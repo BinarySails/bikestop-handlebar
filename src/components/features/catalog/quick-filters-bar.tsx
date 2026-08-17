@@ -18,7 +18,9 @@ export function QuickFiltersBar() {
           <SelectValue placeholder="Tipo de producto" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">Todos</SelectItem>
+          <SelectItem value="all" label="Todos">
+            Todos
+          </SelectItem>
         </SelectContent>
       </Select>
 
@@ -27,7 +29,9 @@ export function QuickFiltersBar() {
           <SelectValue placeholder="Conectividad" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">Todos</SelectItem>
+          <SelectItem value="all" label="Todos">
+            Todos
+          </SelectItem>
         </SelectContent>
       </Select>
 
@@ -36,7 +40,9 @@ export function QuickFiltersBar() {
           <SelectValue placeholder="Instalación" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">Todos</SelectItem>
+          <SelectItem value="all" label="Todos">
+            Todos
+          </SelectItem>
         </SelectContent>
       </Select>
     </div>
