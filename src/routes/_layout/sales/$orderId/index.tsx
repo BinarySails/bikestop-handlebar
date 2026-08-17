@@ -162,21 +162,16 @@ function OrderDetailPage() {
           }
           await mutate(updated, { revalidate: false });
         }}
-        onDispatchLine={async (lineId: SalesOrderLineId) => {
-          const result = await dispatchSalesOrderLineRequest(order.id, lineId);
+        onDispatchLine={async (lineId: SalesOrderLineId, quantity: number) => {
+          const result = await dispatchSalesOrderLineRequest(order.id, lineId, {
+            quantity,
+          });
           if (result.status !== 201) {
             throw new Error(
               result.data.message ?? "No se pudo despachar la línea"
             );
           }
-          await mutate(
-            {
-              status: 200,
-              data: result.data.sales_order,
-              headers: result.headers,
-            },
-            { revalidate: false }
-          );
+          await mutate();
         }}
       />
     </section>

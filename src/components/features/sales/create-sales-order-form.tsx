@@ -308,7 +308,10 @@ export function CreateSalesOrderForm({
   onSaveOrder?: (payload: CreateSalesOrderRequest) => Promise<void>;
   onAdvance?: () => Promise<void>;
   onCancel?: () => Promise<void>;
-  onDispatchLine?: (lineId: SalesOrderLineId) => Promise<void>;
+  onDispatchLine?: (
+    lineId: SalesOrderLineId,
+    quantity: number
+  ) => Promise<void>;
 } = {}) {
   const navigate = useNavigate();
   const { trigger } = useCreateSalesOrderRequest();
@@ -340,9 +343,11 @@ export function CreateSalesOrderForm({
   );
   const [dispatchingLineId, setDispatchingLineId] =
     useState<SalesOrderLineId | null>(null);
-  const [dispatchedLineIds, setDispatchedLineIds] = useState(
-    () => new Set<SalesOrderLineId>()
-  );
+  const [dispatchQuantity, setDispatchQuantity] = useState("");
+  const remainingQuantityForLine = (lineId: SalesOrderLineId) => {
+    const line = order?.lines.find((item) => item.id === lineId);
+    return line ? line.quantity - line.dispatched_quantity : 0;
+  };
   const messages = (order?.comments ?? "")
     .split(/\n+/)
     .map((comment) => comment.trim())
@@ -509,11 +514,25 @@ export function CreateSalesOrderForm({
   async function dispatchLine() {
     if (!dispatchLineId || !onDispatchLine) return;
 
+    const line = order?.lines.find((item) => item.id === dispatchLineId);
+    const quantity = Number(dispatchQuantity);
+    const remainingQuantity = line
+      ? line.quantity - line.dispatched_quantity
+      : 0;
+    if (
+      !Number.isInteger(quantity) ||
+      quantity < 1 ||
+      quantity > remainingQuantity
+    ) {
+      toast.error(`La cantidad debe estar entre 1 y ${remainingQuantity}`);
+      return;
+    }
+
     setDispatchingLineId(dispatchLineId);
     try {
-      await onDispatchLine(dispatchLineId);
-      setDispatchedLineIds((lineIds) => new Set(lineIds).add(dispatchLineId));
+      await onDispatchLine(dispatchLineId, quantity);
       setDispatchLineId(null);
+      setDispatchQuantity("");
       toast.success("Línea despachada correctamente");
     } catch (error) {
       toast.error(
@@ -791,7 +810,10 @@ export function CreateSalesOrderForm({
       <Dialog
         open={dispatchLineId !== null}
         onOpenChange={(open) => {
-          if (!open && dispatchingLineId === null) setDispatchLineId(null);
+          if (!open && dispatchingLineId === null) {
+            setDispatchLineId(null);
+            setDispatchQuantity("");
+          }
         }}
       >
         <DialogContent showCloseButton={dispatchingLineId === null}>
@@ -803,10 +825,37 @@ export function CreateSalesOrderForm({
                   (item) => item.id === dispatchLineId
                 );
                 if (!line) return "Se generará un envío para esta línea.";
-                return `Se generará un envío para ${line.description} (cantidad: ${line.quantity}).`;
+                const remaining = line.quantity - line.dispatched_quantity;
+                return `${line.description}: ${line.dispatched_quantity} de ${line.quantity} productos despachados; ${remaining} pendientes.`;
               })()}
             </DialogDescription>
           </DialogHeader>
+          {(() => {
+            const line = order?.lines.find(
+              (item) => item.id === dispatchLineId
+            );
+            const remaining = line
+              ? line.quantity - line.dispatched_quantity
+              : 0;
+            return (
+              <div className="grid gap-1.5">
+                <Label htmlFor="dispatch-quantity">Cantidad a despachar</Label>
+                <Input
+                  id="dispatch-quantity"
+                  type="number"
+                  min={1}
+                  max={remaining}
+                  step={1}
+                  value={dispatchQuantity}
+                  disabled={dispatchingLineId !== null}
+                  onChange={(event) => setDispatchQuantity(event.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Máximo disponible: {remaining}
+                </p>
+              </div>
+            );
+          })()}
           <DialogFooter>
             <DialogClose
               render={
@@ -1165,15 +1214,20 @@ export function CreateSalesOrderForm({
                                   variant="outline"
                                   disabled={
                                     order.status === "fulfilled" ||
-                                    dispatchingLineId !== null ||
-                                    dispatchedLineIds.has(line.id)
+                                    remainingQuantityForLine(line.id) === 0 ||
+                                    dispatchingLineId !== null
                                   }
-                                  onClick={() => setDispatchLineId(line.id!)}
+                                  onClick={() => {
+                                    setDispatchLineId(line.id!);
+                                    setDispatchQuantity(
+                                      String(remainingQuantityForLine(line.id!))
+                                    );
+                                  }}
                                 >
                                   {dispatchingLineId === line.id
                                     ? "Despachando..."
                                     : order.status === "fulfilled" ||
-                                        dispatchedLineIds.has(line.id)
+                                        remainingQuantityForLine(line.id) === 0
                                       ? "Despachada"
                                       : "Despachar"}
                                 </Button>

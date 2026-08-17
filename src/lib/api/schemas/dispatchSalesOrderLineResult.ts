@@ -4,12 +4,13 @@
  * ciclo
  * OpenAPI spec version: 0.1.0
  */
-import type { SalesOrder } from './salesOrder.ts';
-import type { Shipment } from './shipment.ts';
-import type { ShipmentLine } from './shipmentLine.ts';
+import type { SalesOrderLineId } from './salesOrderLineId.ts';
+import type { SalesOrderStatus } from './salesOrderStatus.ts';
 
 export interface DispatchSalesOrderLineResult {
-  sales_order: SalesOrder;
-  shipment: Shipment;
-  shipment_line: ShipmentLine;
+  dispatched_quantity: number;
+  fully_dispatched: boolean;
+  remaining_quantity: number;
+  sales_order_line_id: SalesOrderLineId;
+  sales_order_status: SalesOrderStatus;
 }

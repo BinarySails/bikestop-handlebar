@@ -13,6 +13,7 @@ export interface SalesOrderLine {
   adjustments: SalesOrderLineAdjustment[];
   description: string;
   discount_amount: number;
+  dispatched_quantity: number;
   id: SalesOrderLineId;
   line_number: number;
   line_total: number;

@@ -1,5 +1,6 @@
 import { getGetSaleOrderRequestUrl } from "@/lib/api/api";
 import type {
+  DispatchSalesOrderLineRequest,
   DispatchSalesOrderLineResult,
   ErrorResponse,
   SalesOrder,
@@ -13,7 +14,7 @@ type SalesOrderActionResponse =
 
 type DispatchSalesOrderLineResponse =
   | { data: DispatchSalesOrderLineResult; status: 201; headers: Headers }
-  | { data: ErrorResponse; status: 404 | 409 | 500; headers: Headers };
+  | { data: ErrorResponse; status: 400 | 404 | 409 | 500; headers: Headers };
 
 async function parseResponse(response: Response) {
   const body = await response.text();
@@ -52,11 +53,17 @@ export async function cancelSalesOrderRequest(
 
 export async function dispatchSalesOrderLineRequest(
   id: SalesOrderId,
-  lineId: SalesOrderLineId
+  lineId: SalesOrderLineId,
+  payload: DispatchSalesOrderLineRequest
 ): Promise<DispatchSalesOrderLineResponse> {
   const response = await fetch(
     `${getGetSaleOrderRequestUrl(id)}/lines/${lineId}/dispatch`,
-    { method: "POST", credentials: "include" }
+    {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    }
   );
 
   return {
