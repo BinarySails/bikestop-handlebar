@@ -9,8 +9,8 @@ export type InventoryTransactionType = typeof InventoryTransactionType[keyof typ
 
 
 export const InventoryTransactionType = {
-  addition: 'addition',
-  subtraction: 'subtraction',
+  correction_addition: 'correction_addition',
+  correction_substraction: 'correction_substraction',
   available: 'available',
   reserved: 'reserved',
   blocked: 'blocked',

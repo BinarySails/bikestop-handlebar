@@ -71,7 +71,7 @@ export function CreateInventoryTransactionDialog({
       variantId: preselectedVariantId ?? "",
       warehouseId: "",
       quantity: "",
-      transactionType: "addition" as "addition" | "subtraction",
+      transactionType: "correction_addition" as "correction_addition" | "correction_substraction",
     },
     onSubmit: async ({ value }) => {
       if (warehouses.length === 0) {
@@ -99,10 +99,7 @@ export function CreateInventoryTransactionDialog({
         return;
       }
 
-      const quantity =
-        value.transactionType === "subtraction"
-          ? -Number(value.quantity)
-          : Number(value.quantity);
+      const quantity = Number(value.quantity);
 
       const result = await trigger({
         variant_id: variantId,
@@ -113,7 +110,7 @@ export function CreateInventoryTransactionDialog({
 
       if (result.status === 201) {
         toast.success(
-          value.transactionType === "addition"
+          value.transactionType === "correction_addition"
             ? "Producto agregado correctamente."
             : "Producto restado correctamente."
         );
@@ -258,19 +255,19 @@ export function CreateInventoryTransactionDialog({
                 <Select
                   value={field.state.value}
                   onValueChange={(val) =>
-                    field.handleChange(val as "addition" | "subtraction")
+                    field.handleChange(val as "correction_addition" | "correction_substraction")
                   }
                 >
                   <SelectTrigger id={field.name} className="w-full">
                     <SelectValue>
-                      {field.state.value === "addition"
+                      {field.state.value === "correction_addition"
                         ? "Agregar producto"
                         : "Restar producto"}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="addition">Agregar producto</SelectItem>
-                    <SelectItem value="subtraction">Restar producto</SelectItem>
+                    <SelectItem value="correction_addition">Agregar producto</SelectItem>
+                    <SelectItem value="correction_substraction">Restar producto</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
