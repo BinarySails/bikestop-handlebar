@@ -7,6 +7,7 @@
 import type { AddressSnapshot } from './addressSnapshot.ts';
 import type { CreateSalesOrderLineRequest } from './createSalesOrderLineRequest.ts';
 import type { CustomerId } from './customerId.ts';
+import type { OrderTagId } from './orderTagId.ts';
 import type { PaymentTermId } from './paymentTermId.ts';
 
 export interface CreateSalesOrderRequest {
@@ -18,4 +19,6 @@ export interface CreateSalesOrderRequest {
   order_date: string;
   payment_term_id?: null | PaymentTermId;
   shipping_address: AddressSnapshot;
+  /** @nullable */
+  tag_ids?: OrderTagId[] | null;
 }

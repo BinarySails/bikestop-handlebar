@@ -16,6 +16,7 @@ grand_total_min?: number;
 grand_total_max?: number;
 shipping_state?: string;
 shipping_country?: string;
+tag_ids?: string;
 page?: number;
 limit?: number;
 };
