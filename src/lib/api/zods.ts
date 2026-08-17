@@ -398,7 +398,7 @@ export const CreateInventoryTransactionRequestBody = zod.object({
   "quantity": zod.int(),
   "source_id": zod.uuid().nullish(),
   "source_type": zod.union([zod.null(),zod.enum(['warehouse', 'customer', 'supplier', 'store'])]).optional(),
-  "transaction_type": zod.enum(['available', 'reserved', 'blocked', 'in_transit']),
+  "transaction_type": zod.enum(['correction_addition', 'correction_substraction', 'available', 'reserved', 'blocked', 'in_transit']),
   "variant_id": zod.uuid(),
   "warehouse_id": zod.uuid()
 })
@@ -412,7 +412,7 @@ export const CreateInventoryTransactionRequestResponse = zod.object({
   "quantity": zod.int(),
   "source_id": zod.uuid().nullish(),
   "source_type": zod.union([zod.null(),zod.enum(['warehouse', 'customer', 'supplier', 'store'])]).optional(),
-  "transaction_type": zod.enum(['available', 'reserved', 'blocked', 'in_transit']),
+  "transaction_type": zod.enum(['correction_addition', 'correction_substraction', 'available', 'reserved', 'blocked', 'in_transit']),
   "variant_id": zod.uuid(),
   "warehouse_id": zod.uuid()
 })

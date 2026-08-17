@@ -19,11 +19,17 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   useCreateInventoryTransactionRequest,
   useListVariantsRequest,
 } from "@/lib/api/api";
 import type { Product, WarehouseResponse } from "@/lib/api/schemas";
-import { InventoryTransactionType } from "@/lib/api/schemas";
 
 type CreateInventoryTransactionDialogProps = {
   warehouses: WarehouseResponse[];
@@ -65,6 +71,10 @@ export function CreateInventoryTransactionDialog({
       variantId: preselectedVariantId ?? "",
       warehouseId: "",
       quantity: "",
+      transactionType: "correction_addition" as
+        | "correction_addition"
+        | "correction_substraction"
+        | "available",
     },
     onSubmit: async ({ value }) => {
       if (warehouses.length === 0) {
@@ -92,15 +102,23 @@ export function CreateInventoryTransactionDialog({
         return;
       }
 
+      const quantity = Number(value.quantity);
+
       const result = await trigger({
         variant_id: variantId,
         warehouse_id: selectedWarehouse.id,
-        quantity: Number(value.quantity),
-        transaction_type: InventoryTransactionType.available,
+        quantity,
+        transaction_type: value.transactionType,
       });
 
       if (result.status === 201) {
-        toast.success("Inventario agregado correctamente.");
+        const successMessage =
+          value.transactionType === "correction_addition"
+            ? "Corrección aplicada: stock agregado."
+            : value.transactionType === "correction_substraction"
+              ? "Corrección aplicada: stock restado."
+              : "Inventario nuevo ingresado.";
+        toast.success(successMessage);
         form.reset();
         setOpen(false);
         await onSuccess?.();
@@ -112,7 +130,7 @@ export function CreateInventoryTransactionDialog({
           "message" in result.data
             ? (result.data as { message?: string }).message
             : undefined;
-        toast.error(errorMessage ?? "Error al agregar inventario.");
+        toast.error(errorMessage ?? "Error al crear transacción.");
       }
     },
   });
@@ -123,13 +141,13 @@ export function CreateInventoryTransactionDialog({
         render={
           <Button size="sm">
             <Plus className="size-4" />
-            Agregar inventario
+            Crear transacción
           </Button>
         }
       />
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Agregar inventario</DialogTitle>
+          <DialogTitle>Crear transacción</DialogTitle>
           <DialogDescription>
             {preselectedVariantId
               ? "Selecciona el almacén y cantidad a registrar."
@@ -236,6 +254,46 @@ export function CreateInventoryTransactionDialog({
               }}
             </form.Subscribe>
           )}
+
+          <form.Field name="transactionType">
+            {(field) => (
+              <div className="grid gap-2">
+                <Label htmlFor={field.name}>Tipo de transacción</Label>
+                <Select
+                  value={field.state.value}
+                  onValueChange={(val) =>
+                    field.handleChange(
+                      val as
+                        | "correction_addition"
+                        | "correction_substraction"
+                        | "available"
+                    )
+                  }
+                >
+                  <SelectTrigger id={field.name} className="w-full">
+                    <SelectValue>
+                      {field.state.value === "correction_addition"
+                        ? "Corrección: agregar stock"
+                        : field.state.value === "correction_substraction"
+                          ? "Corrección: restar stock"
+                          : "Ingreso de inventario nuevo"}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="correction_addition">
+                      Corrección: agregar stock
+                    </SelectItem>
+                    <SelectItem value="correction_substraction">
+                      Corrección: restar stock
+                    </SelectItem>
+                    <SelectItem value="available">
+                      Ingreso de inventario nuevo
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </form.Field>
 
           <form.Field
             name="warehouseId"
