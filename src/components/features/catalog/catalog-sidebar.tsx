@@ -27,6 +27,20 @@ interface CatalogSidebarProps {
   onBrandToggle: (brandId: string) => void;
 }
 
+const sortByLabel: Record<string, string> = {
+  name_asc: "Nombre: A-Z",
+  name_desc: "Nombre: Z-A",
+  price_asc: "Precio: menor a mayor",
+  price_desc: "Precio: mayor a menor",
+  created_at_desc: "Más nuevos",
+};
+
+const availabilityLabel: Record<string, string> = {
+  all: "Todas",
+  available: "En existencia",
+  out_of_stock: "Agotado",
+};
+
 function FilterSection({
   title,
   children,
@@ -53,7 +67,7 @@ function SidebarContent(props: CatalogSidebarProps) {
           onValueChange={(value) => props.onSortByChange(value ?? "name_asc")}
         >
           <SelectTrigger>
-            <SelectValue />
+            <SelectValue>{sortByLabel[props.sortBy]}</SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="name_asc" label="Nombre: A-Z">
@@ -83,7 +97,7 @@ function SidebarContent(props: CatalogSidebarProps) {
           onValueChange={(value) => props.onAvailabilityChange(value ?? "all")}
         >
           <SelectTrigger>
-            <SelectValue />
+            <SelectValue>{availabilityLabel[props.availability]}</SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all" label="Todas">
