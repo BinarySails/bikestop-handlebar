@@ -1,12 +1,19 @@
+import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { ShoppingCart } from "lucide-react";
 
+import { CartDrawer } from "@/components/features/catalog/cart-drawer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useGetCart } from "@/lib/cart/use-cart";
 
 export function CatalogHeader() {
   const navigate = useNavigate();
-  const cartItemCount = 0;
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const { data: cartRes } = useGetCart();
+
+  const cartItemCount =
+    cartRes?.status === 200 ? cartRes.data.item_count : 0;
 
   return (
     <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur">
@@ -27,6 +34,7 @@ export function CatalogHeader() {
           <Button
             size="sm"
             className="relative bg-amber-500 text-black hover:bg-amber-600"
+            onClick={() => setDrawerOpen(true)}
           >
             <ShoppingCart className="size-4" />
             <span className="ml-2 hidden sm:inline">Carrito</span>
@@ -41,6 +49,8 @@ export function CatalogHeader() {
           </Button>
         </div>
       </div>
+
+      <CartDrawer open={drawerOpen} onOpenChange={setDrawerOpen} />
     </header>
   );
 }

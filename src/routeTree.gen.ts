@@ -22,6 +22,7 @@ import { Route as LayoutProfileRouteImport } from './routes/_layout/profile'
 import { Route as LayoutRolesRouteImport } from './routes/_layout/roles'
 import { Route as LayoutSalesRouteRouteImport } from './routes/_layout/sales/route'
 import { Route as LayoutWarehousesRouteImport } from './routes/_layout/warehouses'
+import { Route as B2bCartIndexRouteImport } from './routes/_b2b/cart/index'
 import { Route as B2bCatalogIndexRouteImport } from './routes/_b2b/catalog/index'
 import { Route as LayoutBrandsIndexRouteImport } from './routes/_layout/brands/index'
 import { Route as LayoutCategoriesIndexRouteImport } from './routes/_layout/categories/index'
@@ -105,6 +106,11 @@ const LayoutWarehousesRoute = LayoutWarehousesRouteImport.update({
   id: '/warehouses',
   path: '/warehouses',
   getParentRoute: () => LayoutRoute,
+} as any)
+const B2bCartIndexRoute = B2bCartIndexRouteImport.update({
+  id: '/cart/',
+  path: '/cart/',
+  getParentRoute: () => B2bRoute,
 } as any)
 const B2bCatalogIndexRoute = B2bCatalogIndexRouteImport.update({
   id: '/catalog/',
@@ -231,6 +237,7 @@ export interface FileRoutesByFullPath {
   '/sales/tags': typeof LayoutSalesTagsRoute
   '/users/$userId': typeof LayoutUsersUserIdRoute
   '/warehouses/$warehouseId': typeof LayoutWarehousesWarehouseIdRoute
+  '/cart/': typeof B2bCartIndexRoute
   '/catalog/': typeof B2bCatalogIndexRoute
   '/brands/': typeof LayoutBrandsIndexRoute
   '/categories/': typeof LayoutCategoriesIndexRoute
@@ -261,6 +268,7 @@ export interface FileRoutesByTo {
   '/sales/tags': typeof LayoutSalesTagsRoute
   '/users/$userId': typeof LayoutUsersUserIdRoute
   '/warehouses/$warehouseId': typeof LayoutWarehousesWarehouseIdRoute
+  '/cart': typeof B2bCartIndexRoute
   '/catalog': typeof B2bCatalogIndexRoute
   '/brands': typeof LayoutBrandsIndexRoute
   '/categories': typeof LayoutCategoriesIndexRoute
@@ -297,6 +305,7 @@ export interface FileRoutesById {
   '/_layout/sales/tags': typeof LayoutSalesTagsRoute
   '/_layout/users/$userId': typeof LayoutUsersUserIdRoute
   '/_layout/warehouses/$warehouseId': typeof LayoutWarehousesWarehouseIdRoute
+  '/_b2b/cart/': typeof B2bCartIndexRoute
   '/_b2b/catalog/': typeof B2bCatalogIndexRoute
   '/_layout/brands/': typeof LayoutBrandsIndexRoute
   '/_layout/categories/': typeof LayoutCategoriesIndexRoute
@@ -332,6 +341,7 @@ export interface FileRouteTypes {
     | '/sales/tags'
     | '/users/$userId'
     | '/warehouses/$warehouseId'
+    | '/cart/'
     | '/catalog/'
     | '/brands/'
     | '/categories/'
@@ -362,6 +372,7 @@ export interface FileRouteTypes {
     | '/sales/tags'
     | '/users/$userId'
     | '/warehouses/$warehouseId'
+    | '/cart'
     | '/catalog'
     | '/brands'
     | '/categories'
@@ -397,6 +408,7 @@ export interface FileRouteTypes {
     | '/_layout/sales/tags'
     | '/_layout/users/$userId'
     | '/_layout/warehouses/$warehouseId'
+    | '/_b2b/cart/'
     | '/_b2b/catalog/'
     | '/_layout/brands/'
     | '/_layout/categories/'
@@ -511,6 +523,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/warehouses'
       preLoaderRoute: typeof LayoutWarehousesRouteImport
       parentRoute: typeof LayoutRoute
+    }
+    '/_b2b/cart/': {
+      id: '/_b2b/cart/'
+      path: '/cart'
+      fullPath: '/cart/'
+      preLoaderRoute: typeof B2bCartIndexRouteImport
+      parentRoute: typeof B2bRoute
     }
     '/_b2b/catalog/': {
       id: '/_b2b/catalog/'
@@ -656,10 +675,12 @@ declare module '@tanstack/react-router' {
 }
 
 interface B2bRouteChildren {
+  B2bCartIndexRoute: typeof B2bCartIndexRoute
   B2bCatalogIndexRoute: typeof B2bCatalogIndexRoute
 }
 
 const B2bRouteChildren: B2bRouteChildren = {
+  B2bCartIndexRoute: B2bCartIndexRoute,
   B2bCatalogIndexRoute: B2bCatalogIndexRoute,
 }
 
