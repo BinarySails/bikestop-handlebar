@@ -28,6 +28,7 @@ import type {
   AuthUser,
   Brand,
   BrandId,
+  CatalogProduct,
   Category,
   CategoryId,
   ChangeRoleStatusRequest,
@@ -446,6 +447,81 @@ export const useListCatalogProductsRequest = <TError = Promise<ErrorResponse>>(
   const isEnabled = swrOptions?.enabled !== false
   const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getListCatalogProductsRequestKey(params) : null);
   const swrFn = () => listCatalogProductsRequest(params, fetchOptions)
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type getCatalogProductRequestResponse200 = {
+  data: CatalogProduct
+  status: 200
+}
+
+export type getCatalogProductRequestResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type getCatalogProductRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type getCatalogProductRequestResponseSuccess = (getCatalogProductRequestResponse200) & {
+  headers: Headers;
+};
+export type getCatalogProductRequestResponseError = (getCatalogProductRequestResponse404 | getCatalogProductRequestResponse500) & {
+  headers: Headers;
+};
+
+export type getCatalogProductRequestResponse = (getCatalogProductRequestResponseSuccess | getCatalogProductRequestResponseError)
+
+export const getGetCatalogProductRequestUrl = (id: VariantId,) => {
+
+
+
+
+  return `http://localhost:8080/api/v1/catalog/products/${id}`
+}
+
+export const getCatalogProductRequest = async (id: VariantId, options?: RequestInit): Promise<getCatalogProductRequestResponse> => {
+
+  const res = await fetch(getGetCatalogProductRequestUrl(id),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'GET'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: getCatalogProductRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as getCatalogProductRequestResponse
+}
+
+
+
+
+export const getGetCatalogProductRequestKey = (id: VariantId,) => [`http://localhost:8080/api/v1/catalog/products/${id}`] as const;
+
+export type GetCatalogProductRequestQueryResult = NonNullable<Awaited<ReturnType<typeof getCatalogProductRequest>>>
+
+export const useGetCatalogProductRequest = <TError = Promise<ErrorResponse>>(
+  id: VariantId, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getCatalogProductRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
+) => {
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false && id !== null && id !== undefined
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetCatalogProductRequestKey(id) : null);
+  const swrFn = () => getCatalogProductRequest(id, fetchOptions)
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
