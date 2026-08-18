@@ -824,7 +824,7 @@ export function CreateSalesOrderForm({
                 const line = order?.lines.find(
                   (item) => item.id === dispatchLineId
                 );
-                if (!line) return "Se generará un envío para esta línea.";
+                if (!line) return "Se registrará el despacho de esta línea.";
                 const remaining = line.quantity - line.dispatched_quantity;
                 return `${line.description}: ${line.dispatched_quantity} de ${line.quantity} productos despachados; ${remaining} pendientes.`;
               })()}
