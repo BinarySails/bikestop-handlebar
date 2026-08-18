@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
 import { Search } from "lucide-react";
 
 import { CatalogProductGrid } from "@/components/features/catalog/catalog-product-grid";
@@ -18,10 +17,6 @@ import {
   useListBrandsRequest,
   useListCatalogProductsRequest,
 } from "@/lib/api/api";
-
-export const Route = createFileRoute("/_b2b/catalog/")({
-  component: CatalogPage,
-});
 
 const PAGE_SIZE = 20;
 

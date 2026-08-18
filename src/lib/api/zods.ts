@@ -169,6 +169,78 @@ export const ListCatalogProductsRequestResponse = zod.object({
 })
 
 
+export const GetCatalogProductRequestParams = zod.object({
+  "id": zod.uuid().describe('Variant ID')
+})
+
+export const GetCatalogProductRequestResponse = zod.object({
+  "brand": zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "image_url": zod.string(),
+  "status": zod.enum(['enable', 'disable', 'archive'])
+}),
+  "category": zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "description": zod.string().nullish(),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "parent_id": zod.union([zod.null(),zod.uuid()]).optional(),
+  "slug": zod.string(),
+  "status": zod.enum(['active', 'inactive'])
+}),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "default_price": zod.union([zod.null(),zod.object({
+  "amount": zod.int(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "currency": zod.string(),
+  "id": zod.uuid(),
+  "price_type": zod.enum(['regular', 'sale', 'wholesale']),
+  "status": zod.enum(['enable', 'disable', 'archive']),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "variant_id": zod.uuid()
+})]).optional(),
+  "description": zod.string().nullish(),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "images": zod.array(zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "file_id": zod.union([zod.null(),zod.uuid()]).optional(),
+  "id": zod.uuid(),
+  "image_index": zod.int(),
+  "image_url": zod.string(),
+  "status": zod.enum(['enable', 'disable', 'archive']),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "variant_id": zod.uuid()
+})),
+  "is_available": zod.boolean(),
+  "prices": zod.array(zod.object({
+  "amount": zod.int(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "currency": zod.string(),
+  "id": zod.uuid(),
+  "price_type": zod.enum(['regular', 'sale', 'wholesale']),
+  "status": zod.enum(['enable', 'disable', 'archive']),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "variant_id": zod.uuid()
+})),
+  "product_id": zod.uuid(),
+  "properties": zod.array(zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "property_name": zod.string(),
+  "property_value": zod.string(),
+  "status": zod.enum(['enable', 'disable', 'archive']),
+  "variant_id": zod.uuid()
+})),
+  "sku": zod.string(),
+  "status": zod.enum(['enable', 'disable', 'archive']),
+  "stock_quantity": zod.int(),
+  "updated_at": zod.iso.datetime({"offset":true})
+}).describe('One entry in the public storefront catalog: an enabled variant (SKU),\nwith its brand\/category and current stock level. Not a domain entity —\nit\'s `Variant` (the entity is sufficient on its own) plus the joined\n`Brand`\/`Category` and a computed `stock_quantity`.')
+
+
 export const ListCustomersRequestQueryParams = zod.object({
   "search": zod.string().optional(),
   "page": zod.int().optional(),
