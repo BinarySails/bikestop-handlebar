@@ -22,6 +22,15 @@ vi.mock("@/lib/api/api", () => {
   return {
     createLocalityRequest: createLocalityRequestMock,
     useCreateStateRequest: () => ({ trigger: createStateTriggerMock }),
+    useListStatesRequest: () => ({
+      data: {
+        status: 200,
+        data: [
+          { id: "existing-state-id", display_name: "Jalisco", created_at: "" },
+        ],
+      },
+      isLoading: false,
+    }),
   };
 });
 
@@ -48,6 +57,7 @@ function openForm() {
   fireEvent.click(
     screen.getByRole("button", { name: "Nuevo estado / localidad" })
   );
+  fireEvent.click(screen.getByRole("button", { name: "Crear estado nuevo" }));
   return screen.getAllByLabelText("Nombre *");
 }
 
@@ -129,6 +139,58 @@ describe("CreateStateLocalityDialog", () => {
     expect(notifications.success).toHaveBeenCalledWith(
       "El estado y la localidad se crearon correctamente"
     );
+  });
+
+  it("creates a Locality directly in an existing State", async () => {
+    const onSuccess = vi.fn<(stateId: string) => void>();
+    api.createLocality.mockResolvedValue({
+      data: {
+        id: "locality-id",
+        state_id: "existing-state-id",
+        display_name: "Guadalajara",
+        created_at: "",
+      },
+      status: 201,
+    });
+
+    render(<CreateStateLocalityDialog onSuccess={onSuccess} />);
+    fireEvent.click(
+      screen.getByRole("button", { name: "Nuevo estado / localidad" })
+    );
+    const stateInput = screen.getByLabelText("Estado *");
+    fireEvent.focus(stateInput);
+    fireEvent.keyDown(stateInput, { key: "ArrowDown" });
+    fireEvent.keyDown(stateInput, { key: "Enter" });
+    fireEvent.change(screen.getByLabelText("Nombre *"), {
+      target: { value: "Guadalajara" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Crear localidad" }));
+
+    await waitFor(() => {
+      expect(api.createLocality).toHaveBeenCalledWith("existing-state-id", {
+        display_name: "Guadalajara",
+      });
+    });
+    expect(api.createState).not.toHaveBeenCalled();
+    expect(onSuccess).toHaveBeenCalledWith("existing-state-id");
+    expect(notifications.success).toHaveBeenCalledWith(
+      "La localidad se creó correctamente"
+    );
+  });
+
+  it("requires selecting an existing State", async () => {
+    render(<CreateStateLocalityDialog />);
+    fireEvent.click(
+      screen.getByRole("button", { name: "Nuevo estado / localidad" })
+    );
+    fireEvent.change(screen.getByLabelText("Nombre *"), {
+      target: { value: "Guadalajara" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Crear localidad" }));
+
+    expect(await screen.findByText("Selecciona un estado")).toBeTruthy();
+    expect(api.createState).not.toHaveBeenCalled();
+    expect(api.createLocality).not.toHaveBeenCalled();
   });
 
   it("continues with the existing State returned by an idempotent response", async () => {

@@ -1,6 +1,7 @@
 /* oxlint-disable react/no-unstable-nested-components -- column cells are render callbacks, not components */
 import { useState } from "react";
 import { ChevronRight, MapPin, RotateCcw, SearchIcon } from "lucide-react";
+import { useSWRConfig } from "swr";
 
 import { SiteHeader } from "@/components/features/layout/site-header";
 import { EntityCardTitle } from "@/components/features/entity/entity-card-title";
@@ -24,7 +25,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useListLocalitiesRequest, useListStatesRequest } from "@/lib/api/api";
+import {
+  getListLocalitiesRequestKey,
+  useListLocalitiesRequest,
+  useListStatesRequest,
+} from "@/lib/api/api";
 import type { State } from "@/lib/api/schemas";
 
 const dateFormatter = new Intl.DateTimeFormat("es-MX", { dateStyle: "medium" });
@@ -88,6 +93,7 @@ function LocalitiesTable({ stateId }: { stateId: string }) {
 }
 
 export function AddressCatalog() {
+  const { mutate: mutateCache } = useSWRConfig();
   const [expandedStateId, setExpandedStateId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const { data, isLoading, mutate } = useListStatesRequest();
@@ -176,7 +182,16 @@ export function AddressCatalog() {
       <SiteHeader
         title="Catálogo de ubicaciones"
         description="Administra los estados y localidades del catálogo de ubicaciones en BikeStop."
-        actions={<CreateStateLocalityDialog onSuccess={() => mutate()} />}
+        actions={
+          <CreateStateLocalityDialog
+            onSuccess={(stateId) => {
+              void Promise.all([
+                mutate(),
+                mutateCache(getListLocalitiesRequestKey(stateId)),
+              ]);
+            }}
+          />
+        }
       />
       <EntityIndexPage<State>
         ariaLabel="Catálogo de ubicaciones"
