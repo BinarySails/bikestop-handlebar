@@ -463,7 +463,6 @@ function VariantDetailView({
                       onValueChange={(value) =>
                         field.handleChange(value as VariantStatus)
                       }
-                      disabled={isArchived}
                     >
                       <SelectTrigger id={field.name} className="w-full">
                         <SelectValue
@@ -481,6 +480,9 @@ function VariantDetailView({
                         </SelectItem>
                         <SelectItem value="disable">
                           {statusLabels.disable}
+                        </SelectItem>
+                        <SelectItem value="archive">
+                          {statusLabels.archive}
                         </SelectItem>
                       </SelectContent>
                     </Select>

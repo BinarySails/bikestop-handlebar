@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as B2bRouteImport } from './routes/_b2b'
 import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as B2bProductIdRouteImport } from './routes/_b2b/$productId'
 import { Route as LayoutCustomerRouteImport } from './routes/_layout/customer'
 import { Route as LayoutDashboardRouteImport } from './routes/_layout/dashboard'
 import { Route as LayoutInventoryRouteImport } from './routes/_layout/inventory'
@@ -22,7 +23,6 @@ import { Route as LayoutProfileRouteImport } from './routes/_layout/profile'
 import { Route as LayoutRolesRouteImport } from './routes/_layout/roles'
 import { Route as LayoutSalesRouteRouteImport } from './routes/_layout/sales/route'
 import { Route as LayoutWarehousesRouteImport } from './routes/_layout/warehouses'
-import { Route as B2bCatalogIndexRouteImport } from './routes/_b2b/catalog/index'
 import { Route as LayoutBrandsIndexRouteImport } from './routes/_layout/brands/index'
 import { Route as LayoutCategoriesIndexRouteImport } from './routes/_layout/categories/index'
 import { Route as LayoutCategoriesCategoryIdRouteImport } from './routes/_layout/categories/$categoryId'
@@ -32,6 +32,7 @@ import { Route as LayoutPromotionsIndexRouteImport } from './routes/_layout/prom
 import { Route as LayoutSalesIndexRouteImport } from './routes/_layout/sales/index'
 import { Route as LayoutSalesOrderIdRouteRouteImport } from './routes/_layout/sales/$orderId/route'
 import { Route as LayoutSalesNewRouteImport } from './routes/_layout/sales/new'
+import { Route as LayoutSalesTagsRouteImport } from './routes/_layout/sales/tags'
 import { Route as LayoutUsersIndexRouteImport } from './routes/_layout/users/index'
 import { Route as LayoutUsersUserIdRouteImport } from './routes/_layout/users/$userId'
 import { Route as LayoutWarehousesIndexRouteImport } from './routes/_layout/warehouses/index'
@@ -59,6 +60,11 @@ const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
   getParentRoute: () => rootRouteImport,
+} as any)
+const B2bProductIdRoute = B2bProductIdRouteImport.update({
+  id: '/$productId',
+  path: '/$productId',
+  getParentRoute: () => B2bRoute,
 } as any)
 const LayoutCustomerRoute = LayoutCustomerRouteImport.update({
   id: '/customer',
@@ -105,11 +111,6 @@ const LayoutWarehousesRoute = LayoutWarehousesRouteImport.update({
   path: '/warehouses',
   getParentRoute: () => LayoutRoute,
 } as any)
-const B2bCatalogIndexRoute = B2bCatalogIndexRouteImport.update({
-  id: '/catalog/',
-  path: '/catalog/',
-  getParentRoute: () => B2bRoute,
-} as any)
 const LayoutBrandsIndexRoute = LayoutBrandsIndexRouteImport.update({
   id: '/brands/',
   path: '/brands/',
@@ -154,6 +155,11 @@ const LayoutSalesOrderIdRouteRoute = LayoutSalesOrderIdRouteRouteImport.update({
 const LayoutSalesNewRoute = LayoutSalesNewRouteImport.update({
   id: '/new',
   path: '/new',
+  getParentRoute: () => LayoutSalesRouteRoute,
+} as any)
+const LayoutSalesTagsRoute = LayoutSalesTagsRouteImport.update({
+  id: '/tags',
+  path: '/tags',
   getParentRoute: () => LayoutSalesRouteRoute,
 } as any)
 const LayoutUsersIndexRoute = LayoutUsersIndexRouteImport.update({
@@ -210,6 +216,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/sales': typeof LayoutSalesRouteRouteWithChildren
+  '/$productId': typeof B2bProductIdRoute
   '/customer': typeof LayoutCustomerRoute
   '/dashboard': typeof LayoutDashboardRoute
   '/inventory': typeof LayoutInventoryRoute
@@ -222,9 +229,9 @@ export interface FileRoutesByFullPath {
   '/categories/$categoryId': typeof LayoutCategoriesCategoryIdRoute
   '/products/$productId': typeof LayoutProductsProductIdRoute
   '/sales/new': typeof LayoutSalesNewRoute
+  '/sales/tags': typeof LayoutSalesTagsRoute
   '/users/$userId': typeof LayoutUsersUserIdRoute
   '/warehouses/$warehouseId': typeof LayoutWarehousesWarehouseIdRoute
-  '/catalog/': typeof B2bCatalogIndexRoute
   '/brands/': typeof LayoutBrandsIndexRoute
   '/categories/': typeof LayoutCategoriesIndexRoute
   '/products/': typeof LayoutProductsIndexRoute
@@ -241,6 +248,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/$productId': typeof B2bProductIdRoute
   '/customer': typeof LayoutCustomerRoute
   '/dashboard': typeof LayoutDashboardRoute
   '/inventory': typeof LayoutInventoryRoute
@@ -251,9 +259,9 @@ export interface FileRoutesByTo {
   '/categories/$categoryId': typeof LayoutCategoriesCategoryIdRoute
   '/products/$productId': typeof LayoutProductsProductIdRoute
   '/sales/new': typeof LayoutSalesNewRoute
+  '/sales/tags': typeof LayoutSalesTagsRoute
   '/users/$userId': typeof LayoutUsersUserIdRoute
   '/warehouses/$warehouseId': typeof LayoutWarehousesWarehouseIdRoute
-  '/catalog': typeof B2bCatalogIndexRoute
   '/brands': typeof LayoutBrandsIndexRoute
   '/categories': typeof LayoutCategoriesIndexRoute
   '/products': typeof LayoutProductsIndexRoute
@@ -274,6 +282,7 @@ export interface FileRoutesById {
   '/_layout': typeof LayoutRouteWithChildren
   '/login': typeof LoginRoute
   '/_layout/sales': typeof LayoutSalesRouteRouteWithChildren
+  '/_b2b/$productId': typeof B2bProductIdRoute
   '/_layout/customer': typeof LayoutCustomerRoute
   '/_layout/dashboard': typeof LayoutDashboardRoute
   '/_layout/inventory': typeof LayoutInventoryRoute
@@ -286,9 +295,9 @@ export interface FileRoutesById {
   '/_layout/categories/$categoryId': typeof LayoutCategoriesCategoryIdRoute
   '/_layout/products/$productId': typeof LayoutProductsProductIdRoute
   '/_layout/sales/new': typeof LayoutSalesNewRoute
+  '/_layout/sales/tags': typeof LayoutSalesTagsRoute
   '/_layout/users/$userId': typeof LayoutUsersUserIdRoute
   '/_layout/warehouses/$warehouseId': typeof LayoutWarehousesWarehouseIdRoute
-  '/_b2b/catalog/': typeof B2bCatalogIndexRoute
   '/_layout/brands/': typeof LayoutBrandsIndexRoute
   '/_layout/categories/': typeof LayoutCategoriesIndexRoute
   '/_layout/products/': typeof LayoutProductsIndexRoute
@@ -308,6 +317,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/sales'
+    | '/$productId'
     | '/customer'
     | '/dashboard'
     | '/inventory'
@@ -320,9 +330,9 @@ export interface FileRouteTypes {
     | '/categories/$categoryId'
     | '/products/$productId'
     | '/sales/new'
+    | '/sales/tags'
     | '/users/$userId'
     | '/warehouses/$warehouseId'
-    | '/catalog/'
     | '/brands/'
     | '/categories/'
     | '/products/'
@@ -339,6 +349,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/login'
+    | '/$productId'
     | '/customer'
     | '/dashboard'
     | '/inventory'
@@ -349,9 +360,9 @@ export interface FileRouteTypes {
     | '/categories/$categoryId'
     | '/products/$productId'
     | '/sales/new'
+    | '/sales/tags'
     | '/users/$userId'
     | '/warehouses/$warehouseId'
-    | '/catalog'
     | '/brands'
     | '/categories'
     | '/products'
@@ -371,6 +382,7 @@ export interface FileRouteTypes {
     | '/_layout'
     | '/login'
     | '/_layout/sales'
+    | '/_b2b/$productId'
     | '/_layout/customer'
     | '/_layout/dashboard'
     | '/_layout/inventory'
@@ -383,9 +395,9 @@ export interface FileRouteTypes {
     | '/_layout/categories/$categoryId'
     | '/_layout/products/$productId'
     | '/_layout/sales/new'
+    | '/_layout/sales/tags'
     | '/_layout/users/$userId'
     | '/_layout/warehouses/$warehouseId'
-    | '/_b2b/catalog/'
     | '/_layout/brands/'
     | '/_layout/categories/'
     | '/_layout/products/'
@@ -436,6 +448,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_b2b/$productId': {
+      id: '/_b2b/$productId'
+      path: '/$productId'
+      fullPath: '/$productId'
+      preLoaderRoute: typeof B2bProductIdRouteImport
+      parentRoute: typeof B2bRoute
     }
     '/_layout/customer': {
       id: '/_layout/customer'
@@ -500,13 +519,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutWarehousesRouteImport
       parentRoute: typeof LayoutRoute
     }
-    '/_b2b/catalog/': {
-      id: '/_b2b/catalog/'
-      path: '/catalog'
-      fullPath: '/catalog/'
-      preLoaderRoute: typeof B2bCatalogIndexRouteImport
-      parentRoute: typeof B2bRoute
-    }
     '/_layout/brands/': {
       id: '/_layout/brands/'
       path: '/brands'
@@ -568,6 +580,13 @@ declare module '@tanstack/react-router' {
       path: '/new'
       fullPath: '/sales/new'
       preLoaderRoute: typeof LayoutSalesNewRouteImport
+      parentRoute: typeof LayoutSalesRouteRoute
+    }
+    '/_layout/sales/tags': {
+      id: '/_layout/sales/tags'
+      path: '/tags'
+      fullPath: '/sales/tags'
+      preLoaderRoute: typeof LayoutSalesTagsRouteImport
       parentRoute: typeof LayoutSalesRouteRoute
     }
     '/_layout/users/': {
@@ -637,11 +656,11 @@ declare module '@tanstack/react-router' {
 }
 
 interface B2bRouteChildren {
-  B2bCatalogIndexRoute: typeof B2bCatalogIndexRoute
+  B2bProductIdRoute: typeof B2bProductIdRoute
 }
 
 const B2bRouteChildren: B2bRouteChildren = {
-  B2bCatalogIndexRoute: B2bCatalogIndexRoute,
+  B2bProductIdRoute: B2bProductIdRoute,
 }
 
 const B2bRouteWithChildren = B2bRoute._addFileChildren(B2bRouteChildren)
@@ -666,12 +685,14 @@ const LayoutSalesOrderIdRouteRouteWithChildren =
 interface LayoutSalesRouteRouteChildren {
   LayoutSalesOrderIdRouteRoute: typeof LayoutSalesOrderIdRouteRouteWithChildren
   LayoutSalesNewRoute: typeof LayoutSalesNewRoute
+  LayoutSalesTagsRoute: typeof LayoutSalesTagsRoute
   LayoutSalesIndexRoute: typeof LayoutSalesIndexRoute
 }
 
 const LayoutSalesRouteRouteChildren: LayoutSalesRouteRouteChildren = {
   LayoutSalesOrderIdRouteRoute: LayoutSalesOrderIdRouteRouteWithChildren,
   LayoutSalesNewRoute: LayoutSalesNewRoute,
+  LayoutSalesTagsRoute: LayoutSalesTagsRoute,
   LayoutSalesIndexRoute: LayoutSalesIndexRoute,
 }
 

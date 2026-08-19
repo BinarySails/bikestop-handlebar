@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import { CustomerCombobox } from "@/components/features/sales/customer-combobox";
 import { ProductCombobox } from "@/components/features/sales/product-combobox";
+import { OrderTagsSelect } from "@/components/features/sales/tags/order-tags-select";
 import {
   VariantCombobox,
   findActiveRegularPrice,
@@ -30,12 +31,14 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useCreateSalesOrderRequest } from "@/lib/api/api";
 import {
+  type OrderTagId,
   type PaginatedCustomerSummaryDataItem,
   type CreateSalesOrderRequest,
   type Product,
   ProductStatus,
   type SalesOrder,
   type SalesOrderLineId,
+  type SalesOrderLine,
   type Variant,
   VariantStatus,
   type PaymentTerm,
@@ -81,6 +84,7 @@ type SalesOrderFormValues = {
   order_date: Date;
   payment_term: PaymentTerm | null;
   comments: string;
+  tag_ids: OrderTagId[];
   lines: LineFormValues[];
 };
 
@@ -94,6 +98,12 @@ function percentToBasisPoints(value: string): number {
   const number = Number(trimmed);
   if (Number.isNaN(number) || number < 0) return 0;
   return Math.round(number * 100);
+}
+
+function discountPercentFromAmount(line: SalesOrderLine): string {
+  const gross = line.unit_price * line.quantity;
+  if (line.discount_amount <= 0 || gross <= 0) return "";
+  return String(((line.discount_amount / gross) * 100).toFixed(2));
 }
 
 function validateRequired(
@@ -216,6 +226,7 @@ const defaultValues: SalesOrderFormValues = {
   order_date: new Date(),
   payment_term: null,
   comments: "",
+  tag_ids: [],
   lines: [],
 };
 
@@ -262,6 +273,7 @@ function valuesFromOrder(order: SalesOrder): SalesOrderFormValues {
     order_date: new Date(order.order_date),
     payment_term: order.payment_term ?? null,
     comments: order.comments ?? "",
+    tag_ids: order.tags.map((tag) => tag.id),
     lines: order.lines.map((line) => ({
       id: line.id,
       product: {
@@ -287,7 +299,7 @@ function valuesFromOrder(order: SalesOrder): SalesOrderFormValues {
       description: line.description,
       quantity: String(line.quantity),
       unit_price: centsToPesosString(line.unit_price),
-      discount_percent: "",
+      discount_percent: discountPercentFromAmount(line),
       tax_rate: String(line.tax_rate / 100),
     })),
   };
@@ -440,6 +452,7 @@ export function CreateSalesOrderForm({
         order_date: value.order_date.toISOString(),
         payment_term_id: value.payment_term?.id,
         comments: value.comments.trim() || null,
+        tag_ids: value.tag_ids.length > 0 ? value.tag_ids : null,
         lines: completeLines.map((line) => ({
           variant_id: line.variant.id,
           description: line.description.trim(),
@@ -1061,6 +1074,21 @@ export function CreateSalesOrderForm({
               )}
             </form.Field>
           )}
+
+          <form.Field name="tag_ids">
+            {(field) => (
+              <div className="grid gap-1.5 sm:col-span-2">
+                <Label htmlFor="sales-order-tags">Etiquetas</Label>
+                <OrderTagsSelect
+                  id="sales-order-tags"
+                  value={field.state.value}
+                  onChange={field.handleChange}
+                  placeholder="Seleccionar etiquetas"
+                  activeOnly
+                />
+              </div>
+            )}
+          </form.Field>
         </CardContent>
       </Card>
 

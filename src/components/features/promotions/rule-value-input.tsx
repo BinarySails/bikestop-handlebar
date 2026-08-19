@@ -320,9 +320,13 @@ function VariantValueInput({
   const [product, setProduct] = useState<Product | null>(null);
   const multi = isMultiValueOperator(operator);
 
-  const { data: res, isLoading } = useListVariantsRequest(product?.id ?? "", {
-    swr: { enabled: Boolean(product) },
-  });
+  const { data: res, isLoading } = useListVariantsRequest(
+    product?.id ?? "",
+    undefined,
+    {
+      swr: { enabled: Boolean(product) },
+    }
+  );
   const all = res?.status === 200 ? res.data : [];
   const variants = all.filter(
     (variant) =>

@@ -116,7 +116,7 @@ function ProductDetailView({
   const { data: categoriesRes, isLoading: categoriesLoading } =
     useGetCategoriesRequest();
   const { data: variantsRes, isLoading: variantsLoading } =
-    useListVariantsRequest(productId, {
+    useListVariantsRequest(productId, undefined, {
       swr: {
         revalidateOnFocus: false,
       },
@@ -371,7 +371,6 @@ function ProductDetailView({
                       onValueChange={(value) =>
                         field.handleChange(value as ProductStatus)
                       }
-                      disabled={isArchived}
                     >
                       <SelectTrigger id={field.name} className="w-full">
                         <SelectValue
@@ -389,6 +388,9 @@ function ProductDetailView({
                         </SelectItem>
                         <SelectItem value="disable">
                           {statusLabels.disable}
+                        </SelectItem>
+                        <SelectItem value="archive">
+                          {statusLabels.archive}
                         </SelectItem>
                       </SelectContent>
                     </Select>
