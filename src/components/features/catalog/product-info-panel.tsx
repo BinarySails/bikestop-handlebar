@@ -1,10 +1,13 @@
 import { useState } from "react";
 import { Minus, Plus, ShoppingCart } from "lucide-react";
+import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import type { CatalogProduct } from "@/lib/api/schemas";
+import { useAddToCart } from "@/lib/cart/use-cart";
+import { useCartDrawerStore } from "@/lib/cart/use-cart-drawer-store";
 import { centsToPesos } from "@/lib/money";
 
 interface ProductInfoPanelProps {
@@ -13,6 +16,8 @@ interface ProductInfoPanelProps {
 
 export function ProductInfoPanel({ product }: ProductInfoPanelProps) {
   const [quantity, setQuantity] = useState(1);
+  const { trigger: addToCart, isMutating: isAdding } = useAddToCart();
+  const setDrawerOpen = useCartDrawerStore((s) => s.setOpen);
   const regularPrice =
     product.default_price ??
     product.prices.find((price) => price.price_type === "regular");
@@ -24,6 +29,16 @@ export function ProductInfoPanel({ product }: ProductInfoPanelProps) {
 
   function increment() {
     setQuantity((prev) => Math.min(product.stock_quantity, prev + 1));
+  }
+
+  async function handleAddToCart() {
+    try {
+      await addToCart({ product, quantity });
+      setQuantity(1);
+      setDrawerOpen(true);
+    } catch {
+      toast.error("Error al agregar al carrito");
+    }
   }
 
   return (
@@ -103,10 +118,11 @@ export function ProductInfoPanel({ product }: ProductInfoPanelProps) {
 
         <Button
           className="flex-1 bg-amber-500 text-black hover:bg-amber-600"
-          disabled={!isAvailable}
+          disabled={!isAvailable || isAdding}
+          onClick={handleAddToCart}
         >
           <ShoppingCart />
-          Agregar al Carrito
+          {isAdding ? "Agregando..." : "Agregar al Carrito"}
         </Button>
       </div>
 

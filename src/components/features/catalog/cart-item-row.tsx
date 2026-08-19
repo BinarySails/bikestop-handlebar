@@ -2,6 +2,8 @@ import { useState } from "react";
 import { ImageOff, Loader2, Minus, Plus, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import type { CartItem } from "@/lib/cart/use-cart";
 import { useDeleteCartItem, useUpdateCartItem } from "@/lib/cart/use-cart";
 import { centsToPesos } from "@/lib/money";
@@ -26,10 +28,7 @@ export function CartItemRow({ item }: CartItemRowProps) {
   const { trigger: updateItem, isMutating: isUpdating } = useUpdateCartItem();
   const { trigger: deleteItem, isMutating: isDeleting } = useDeleteCartItem();
 
-  const mainImage = [...(item.images ?? [])].sort(
-    (a, b) => a.image_index - b.image_index
-  )[0];
-
+  const mainImage = (item.images ?? [])[0];
   const isMutating = isUpdating || isDeleting;
 
   async function handleQuantityChange(newQty: number) {
@@ -51,41 +50,47 @@ export function CartItemRow({ item }: CartItemRowProps) {
   }
 
   return (
-    <div className="flex gap-4">
-      <div className="relative size-20 shrink-0 overflow-hidden rounded-lg bg-muted sm:size-24">
-        {mainImage ? (
-          <img
-            src={mainImage.image_url}
-            alt={item.display_name}
-            className="size-full object-cover"
-            loading="lazy"
-          />
-        ) : (
-          <div className="flex size-full flex-col items-center justify-center gap-1 text-muted-foreground">
-            <ImageOff className="size-5" />
+    <Card>
+      <CardContent>
+        <div className="flex gap-4">
+          <div className="relative size-24 shrink-0 overflow-hidden rounded-lg bg-muted">
+            {mainImage ? (
+              <img
+                src={mainImage.image_url}
+                alt={item.display_name}
+                className="size-full object-cover"
+                loading="lazy"
+              />
+            ) : (
+              <div className="flex size-full items-center justify-center text-muted-foreground">
+                <ImageOff className="size-6" />
+              </div>
+            )}
           </div>
-        )}
-      </div>
 
-      <div className="flex min-w-0 flex-1 flex-col justify-between">
-        <div className="space-y-0.5">
-          <h3 className="truncate text-sm font-medium">{item.display_name}</h3>
-          {item.properties.length > 0 && (
-            <p className="text-xs text-muted-foreground">
-              {formatProperties(item.properties)}
+          <div className="flex min-w-0 flex-1 flex-col gap-1">
+            <h3 className="truncate text-sm font-semibold">
+              {item.display_name}
+            </h3>
+            {item.properties.length > 0 && (
+              <p className="text-xs text-muted-foreground">
+                {formatProperties(item.properties)}
+              </p>
+            )}
+            <p className="text-xs text-muted-foreground">SKU: {item.sku}</p>
+            <p className="text-sm font-medium">
+              Precio unitario: {formatPrice(item.unit_price, item.currency)}
             </p>
-          )}
-          <p className="text-xs text-muted-foreground">
-            SKU: {item.sku}
-          </p>
+          </div>
         </div>
+      </CardContent>
 
-        <div className="flex items-center justify-between gap-2 pt-1">
-          <p className="text-sm font-semibold">
-            {formatPrice(item.unit_price, item.currency)}
-          </p>
+      <Separator />
 
-          <div className="flex items-center gap-1">
+      <CardFooter className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground">Cantidad:</span>
+          <div className="flex items-center rounded-lg border">
             <Button
               variant="ghost"
               size="icon-xs"
@@ -94,7 +99,7 @@ export function CartItemRow({ item }: CartItemRowProps) {
             >
               <Minus className="size-3" />
             </Button>
-            <span className="w-6 text-center text-sm tabular-nums">
+            <span className="w-8 text-center text-sm tabular-nums">
               {optimisticQty}
             </span>
             <Button
@@ -108,26 +113,25 @@ export function CartItemRow({ item }: CartItemRowProps) {
           </div>
         </div>
 
-        <div className="flex items-center justify-between pt-1">
-          <p className="text-xs text-muted-foreground">
+        <div className="flex items-center gap-4">
+          <p className="text-sm font-bold">
             Total: {formatPrice(item.line_total, item.currency)}
           </p>
           <Button
             variant="ghost"
-            size="sm"
+            size="icon-sm"
             onClick={handleRemove}
             disabled={isMutating}
             className="text-destructive hover:text-destructive"
           >
             {isDeleting ? (
-              <Loader2 className="size-3 animate-spin" />
+              <Loader2 className="size-4 animate-spin" />
             ) : (
-              <Trash2 className="size-3" />
+              <Trash2 className="size-4" />
             )}
-            <span className="hidden sm:inline">Eliminar</span>
           </Button>
         </div>
-      </div>
-    </div>
+      </CardFooter>
+    </Card>
   );
 }
