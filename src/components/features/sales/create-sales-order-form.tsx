@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
 import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -17,16 +17,17 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DatePicker } from "@/components/ui/date-picker";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { useCreateSalesOrderRequest } from "@/lib/api/api";
 import {
@@ -36,6 +37,7 @@ import {
   type Product,
   ProductStatus,
   type SalesOrder,
+  type SalesOrderLineId,
   type SalesOrderLine,
   type Variant,
   VariantStatus,
@@ -64,6 +66,7 @@ type AddressFormValues = {
 };
 
 type LineFormValues = {
+  id?: SalesOrderLineId;
   product: Product | null;
   variant: Variant | null;
   description: string;
@@ -272,6 +275,7 @@ function valuesFromOrder(order: SalesOrder): SalesOrderFormValues {
     comments: order.comments ?? "",
     tag_ids: order.tags.map((tag) => tag.id),
     lines: order.lines.map((line) => ({
+      id: line.id,
       product: {
         id: line.product_id,
         display_name: line.description,
@@ -305,19 +309,32 @@ export function CreateSalesOrderForm({
   order,
   commentAuthor = "Usuario",
   onAddComment,
-  onSaveDraft,
+  onSaveOrder,
+  onAdvance,
+  onCancel,
+  onDispatchLine,
 }: {
   order?: SalesOrder;
   commentAuthor?: string;
   onAddComment?: (comment: string) => Promise<void>;
-  onSaveDraft?: (payload: CreateSalesOrderRequest) => Promise<void>;
+  onSaveOrder?: (payload: CreateSalesOrderRequest) => Promise<void>;
+  onAdvance?: () => Promise<void>;
+  onCancel?: () => Promise<void>;
+  onDispatchLine?: (
+    lineId: SalesOrderLineId,
+    quantity: number
+  ) => Promise<void>;
 } = {}) {
   const navigate = useNavigate();
   const { trigger } = useCreateSalesOrderRequest();
   const isDetail = Boolean(order);
   const editable =
     !order || order.status === "draft" || order.status === "quote";
-  const isReadOnlyOrder = Boolean(order) && !editable;
+  const canAdvance = order?.status === "draft" || order?.status === "quote";
+  const canCancel =
+    order?.status === "draft" ||
+    order?.status === "quote" ||
+    order?.status === "confirmed";
   const canAddComment =
     Boolean(order) &&
     [
@@ -329,6 +346,20 @@ export function CreateSalesOrderForm({
     ].includes(order?.status ?? "");
   const [newComment, setNewComment] = useState("");
   const [isAddingComment, setIsAddingComment] = useState(false);
+  const [confirmation, setConfirmation] = useState<
+    "advance" | "cancel" | "save-quote" | null
+  >(null);
+  const [isChangingStatus, setIsChangingStatus] = useState(false);
+  const [dispatchLineId, setDispatchLineId] = useState<SalesOrderLineId | null>(
+    null
+  );
+  const [dispatchingLineId, setDispatchingLineId] =
+    useState<SalesOrderLineId | null>(null);
+  const [dispatchQuantity, setDispatchQuantity] = useState("");
+  const remainingQuantityForLine = (lineId: SalesOrderLineId) => {
+    const line = order?.lines.find((item) => item.id === lineId);
+    return line ? line.quantity - line.dispatched_quantity : 0;
+  };
   const messages = (order?.comments ?? "")
     .split(/\n+/)
     .map((comment) => comment.trim())
@@ -347,6 +378,34 @@ export function CreateSalesOrderForm({
       toast.error("No se pudo agregar el comentario");
     } finally {
       setIsAddingComment(false);
+    }
+  }
+
+  async function changeStatus() {
+    if (!confirmation) return;
+
+    setIsChangingStatus(true);
+    try {
+      if (confirmation === "advance") {
+        await onAdvance?.();
+        toast.success(
+          order?.status === "draft"
+            ? "El borrador se convirtió en cotización"
+            : "La cotización fue confirmada"
+        );
+      } else {
+        await onCancel?.();
+        toast.success("La orden fue cancelada");
+      }
+      setConfirmation(null);
+    } catch {
+      toast.error(
+        confirmation === "advance"
+          ? "No se pudo cambiar el estado de la orden"
+          : "No se pudo cancelar la orden"
+      );
+    } finally {
+      setIsChangingStatus(false);
     }
   }
 
@@ -414,10 +473,19 @@ export function CreateSalesOrderForm({
       }
 
       if (order) {
-        if (order.status === "draft" && onSaveDraft) {
+        if (
+          (order.status === "draft" || order.status === "quote") &&
+          onSaveOrder
+        ) {
           try {
-            await onSaveDraft(parseResult.data);
-            toast.success("Cambios guardados");
+            await onSaveOrder(parseResult.data);
+            form.reset(value);
+            setConfirmation(null);
+            toast.success(
+              order.status === "quote"
+                ? "Nueva cotización creada"
+                : "Cambios guardados"
+            );
           } catch {
             toast.error("No se pudieron guardar los cambios");
           }
@@ -446,6 +514,47 @@ export function CreateSalesOrderForm({
       }
     },
   });
+
+  async function saveQuote() {
+    setIsChangingStatus(true);
+    try {
+      await form.handleSubmit();
+    } finally {
+      setIsChangingStatus(false);
+    }
+  }
+
+  async function dispatchLine() {
+    if (!dispatchLineId || !onDispatchLine) return;
+
+    const line = order?.lines.find((item) => item.id === dispatchLineId);
+    const quantity = Number(dispatchQuantity);
+    const remainingQuantity = line
+      ? line.quantity - line.dispatched_quantity
+      : 0;
+    if (
+      !Number.isInteger(quantity) ||
+      quantity < 1 ||
+      quantity > remainingQuantity
+    ) {
+      toast.error(`La cantidad debe estar entre 1 y ${remainingQuantity}`);
+      return;
+    }
+
+    setDispatchingLineId(dispatchLineId);
+    try {
+      await onDispatchLine(dispatchLineId, quantity);
+      setDispatchLineId(null);
+      setDispatchQuantity("");
+      toast.success("Línea despachada correctamente");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "No se pudo despachar la línea"
+      );
+    } finally {
+      setDispatchingLineId(null);
+    }
+  }
 
   function renderAddressFields(
     prefix: "billing" | "shipping",
@@ -597,6 +706,194 @@ export function CreateSalesOrderForm({
       }}
       className="space-y-6"
     >
+      <div className="flex flex-wrap justify-end gap-3">
+        {!isDetail && (
+          <form.Subscribe selector={(state) => state.isSubmitting}>
+            {(isSubmitting) => (
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "Creando..." : "Crear orden"}
+              </Button>
+            )}
+          </form.Subscribe>
+        )}
+
+        {isDetail && editable && (
+          <form.Subscribe
+            selector={(state) => [state.isSubmitting, state.isDirty]}
+          >
+            {([isSubmitting, isDirty]) => (
+              <Button
+                type="button"
+                disabled={isSubmitting || !isDirty}
+                onClick={() => {
+                  if (order?.status === "quote") {
+                    setConfirmation("save-quote");
+                    return;
+                  }
+                  void form.handleSubmit();
+                }}
+              >
+                {isSubmitting ? "Guardando..." : "Guardar cambios"}
+              </Button>
+            )}
+          </form.Subscribe>
+        )}
+
+        {canAdvance && (
+          <Button
+            type="button"
+            disabled={isChangingStatus}
+            onClick={() => setConfirmation("advance")}
+          >
+            {order?.status === "draft"
+              ? "Pasar a cotización"
+              : "Confirmar cotización"}
+          </Button>
+        )}
+
+        {canCancel && (
+          <Button
+            type="button"
+            variant="destructive"
+            disabled={isChangingStatus}
+            onClick={() => setConfirmation("cancel")}
+          >
+            {order?.status === "quote" ? "Cancelar cotización" : "Cancelar"}
+          </Button>
+        )}
+      </div>
+
+      <Dialog
+        open={confirmation !== null}
+        onOpenChange={(open) => {
+          if (!open && !isChangingStatus) setConfirmation(null);
+        }}
+      >
+        <DialogContent showCloseButton={!isChangingStatus}>
+          <DialogHeader>
+            <DialogTitle>
+              {confirmation === "save-quote"
+                ? "Crear nueva cotización"
+                : "Confirmar cambio de estado"}
+            </DialogTitle>
+            <DialogDescription>
+              {confirmation === "save-quote"
+                ? "Al guardar los cambios se creará una nueva cotización y la cotización actual será cancelada."
+                : confirmation === "cancel"
+                  ? "¿Deseas cancelar esta orden? Esta acción no se puede deshacer."
+                  : order?.status === "draft"
+                    ? "¿Deseas convertir este borrador en cotización?"
+                    : "¿Deseas confirmar esta cotización?"}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose
+              render={
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={isChangingStatus}
+                />
+              }
+            >
+              Volver
+            </DialogClose>
+            <Button
+              type="button"
+              variant={confirmation === "cancel" ? "destructive" : "default"}
+              disabled={isChangingStatus}
+              onClick={() =>
+                void (confirmation === "save-quote"
+                  ? saveQuote()
+                  : changeStatus())
+              }
+            >
+              {isChangingStatus
+                ? "Procesando..."
+                : confirmation === "save-quote"
+                  ? "Crear nueva cotización"
+                  : confirmation === "cancel"
+                    ? "Cancelar orden"
+                    : "Continuar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={dispatchLineId !== null}
+        onOpenChange={(open) => {
+          if (!open && dispatchingLineId === null) {
+            setDispatchLineId(null);
+            setDispatchQuantity("");
+          }
+        }}
+      >
+        <DialogContent showCloseButton={dispatchingLineId === null}>
+          <DialogHeader>
+            <DialogTitle>Despachar línea</DialogTitle>
+            <DialogDescription>
+              {(() => {
+                const line = order?.lines.find(
+                  (item) => item.id === dispatchLineId
+                );
+                if (!line) return "Se registrará el despacho de esta línea.";
+                const remaining = line.quantity - line.dispatched_quantity;
+                return `${line.description}: ${line.dispatched_quantity} de ${line.quantity} productos despachados; ${remaining} pendientes.`;
+              })()}
+            </DialogDescription>
+          </DialogHeader>
+          {(() => {
+            const line = order?.lines.find(
+              (item) => item.id === dispatchLineId
+            );
+            const remaining = line
+              ? line.quantity - line.dispatched_quantity
+              : 0;
+            return (
+              <div className="grid gap-1.5">
+                <Label htmlFor="dispatch-quantity">Cantidad a despachar</Label>
+                <Input
+                  id="dispatch-quantity"
+                  type="number"
+                  min={1}
+                  max={remaining}
+                  step={1}
+                  value={dispatchQuantity}
+                  disabled={dispatchingLineId !== null}
+                  onChange={(event) => setDispatchQuantity(event.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Máximo disponible: {remaining}
+                </p>
+              </div>
+            );
+          })()}
+          <DialogFooter>
+            <DialogClose
+              render={
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={dispatchingLineId !== null}
+                />
+              }
+            >
+              Volver
+            </DialogClose>
+            <Button
+              type="button"
+              disabled={dispatchingLineId !== null}
+              onClick={() => void dispatchLine()}
+            >
+              {dispatchingLineId !== null
+                ? "Despachando..."
+                : "Despachar línea"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <fieldset disabled={!editable} className="space-y-6">
         <Card>
           <CardHeader>
@@ -795,128 +1092,45 @@ export function CreateSalesOrderForm({
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Lista de productos</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form.Subscribe selector={(state) => state.values.lines}>
-            {(lines) => (
-              <div className="overflow-hidden rounded-lg border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Producto</TableHead>
-                      <TableHead className="w-28 text-center">
-                        Cantidad
-                      </TableHead>
-                      <TableHead className="w-40 text-right">
-                        Precio unitario
-                      </TableHead>
-                      <TableHead className="w-40 text-right">
-                        Subtotal
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {lines.length ? (
-                      lines.map((line, index) => {
-                        const totals = computeLineTotals(line);
-                        const unitPrice = Number(line.unit_price);
-
-                        return (
-                          <TableRow
-                            key={`${line.variant?.id ?? "line"}-${index}`}
-                          >
-                            <TableCell className="font-medium">
-                              {line.product?.display_name ||
-                                line.description ||
-                                "Producto sin seleccionar"}
-                            </TableCell>
-                            <TableCell className="text-center tabular-nums">
-                              {line.quantity || "0"}
-                            </TableCell>
-                            <TableCell className="text-right tabular-nums">
-                              {currencyFormatter.format(
-                                Number.isFinite(unitPrice) ? unitPrice : 0
-                              )}
-                            </TableCell>
-                            <TableCell className="text-right font-medium tabular-nums">
-                              {currencyFormatter.format(totals.gross / 100)}
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })
-                    ) : (
-                      <TableRow>
-                        <TableCell
-                          colSpan={4}
-                          className="h-24 text-center text-muted-foreground"
-                        >
-                          No hay productos agregados.
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </form.Subscribe>
-        </CardContent>
-      </Card>
-
-      {isReadOnlyOrder && order && (
-        <Button
-          type="button"
-          className="h-12 w-full font-semibold"
-          render={
-            <Link
-              to="/sales/$orderId/payments-invoices"
-              params={{ orderId: order.id }}
-            />
-          }
-        >
-          Pagos y facturas
-        </Button>
-      )}
-
-      <fieldset disabled={!editable} className="space-y-6">
+      <div className="space-y-6">
         <Card>
           <CardHeader className="flex-row items-center justify-between">
             <CardTitle>Productos</CardTitle>
-            <form.Field
-              name="lines"
-              validators={{
-                onSubmit: ({ value }) => {
-                  if (value.length === 0) {
-                    return "Agrega al menos una línea.";
-                  }
-                  return undefined;
-                },
-              }}
-            >
-              {(field) => (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    field.pushValue({
-                      product: null,
-                      variant: null,
-                      description: "",
-                      quantity: "1",
-                      unit_price: "",
-                      discount_percent: "",
-                      tax_rate: DEFAULT_TAX_PERCENT,
-                    })
-                  }
-                >
-                  <Plus className="size-4" />
-                  Agregar línea
-                </Button>
-              )}
-            </form.Field>
+            {editable && (
+              <form.Field
+                name="lines"
+                validators={{
+                  onSubmit: ({ value }) => {
+                    if (value.length === 0) {
+                      return "Agrega al menos una línea.";
+                    }
+                    return undefined;
+                  },
+                }}
+              >
+                {(field) => (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      field.pushValue({
+                        product: null,
+                        variant: null,
+                        description: "",
+                        quantity: "1",
+                        unit_price: "",
+                        discount_percent: "",
+                        tax_rate: DEFAULT_TAX_PERCENT,
+                      })
+                    }
+                  >
+                    <Plus className="size-4" />
+                    Agregar línea
+                  </Button>
+                )}
+              </form.Field>
+            )}
           </CardHeader>
           <CardContent className="space-y-4">
             <form.Field name="lines">
@@ -946,6 +1160,7 @@ export function CreateSalesOrderForm({
                                 <ProductCombobox
                                   id={subField.name}
                                   value={subField.state.value}
+                                  disabled={!editable}
                                   onChange={(product) => {
                                     subField.handleChange(product);
                                     form.setFieldValue(
@@ -991,7 +1206,7 @@ export function CreateSalesOrderForm({
                                       }
                                     }
                                   }}
-                                  disabled={!line.product}
+                                  disabled={!editable || !line.product}
                                 />
                                 {subField.state.meta.errors[0] && (
                                   <p className="text-xs text-destructive">
@@ -1002,18 +1217,50 @@ export function CreateSalesOrderForm({
                             )}
                           </form.Field>
 
-                          <div className="flex items-end">
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              className="size-9 text-destructive"
-                              onClick={() => field.removeValue(index)}
-                              aria-label="Eliminar línea"
-                            >
-                              <Trash2 className="size-4" />
-                            </Button>
-                          </div>
+                          {editable && (
+                            <div className="flex items-end">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="size-9 text-destructive"
+                                onClick={() => field.removeValue(index)}
+                                aria-label="Eliminar línea"
+                              >
+                                <Trash2 className="size-4" />
+                              </Button>
+                            </div>
+                          )}
+
+                          {(order?.status === "confirmed" ||
+                            order?.status === "partially_fulfilled" ||
+                            order?.status === "fulfilled") &&
+                            line.id && (
+                              <div className="flex flex-col items-end gap-1">
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  disabled={
+                                    order.status === "fulfilled" ||
+                                    remainingQuantityForLine(line.id) === 0 ||
+                                    dispatchingLineId !== null
+                                  }
+                                  onClick={() => {
+                                    setDispatchLineId(line.id!);
+                                    setDispatchQuantity(
+                                      String(remainingQuantityForLine(line.id!))
+                                    );
+                                  }}
+                                >
+                                  {dispatchingLineId === line.id
+                                    ? "Despachando..."
+                                    : order.status === "fulfilled" ||
+                                        remainingQuantityForLine(line.id) === 0
+                                      ? "Despachada"
+                                      : "Despachar"}
+                                </Button>
+                              </div>
+                            )}
                         </div>
 
                         <form.Field
@@ -1029,6 +1276,7 @@ export function CreateSalesOrderForm({
                               <Input
                                 id={subField.name}
                                 value={subField.state.value}
+                                disabled={!editable}
                                 onChange={(event) =>
                                   subField.handleChange(event.target.value)
                                 }
@@ -1063,6 +1311,7 @@ export function CreateSalesOrderForm({
                                   min={1}
                                   step={1}
                                   value={subField.state.value}
+                                  disabled={!editable}
                                   onChange={(event) =>
                                     subField.handleChange(event.target.value)
                                   }
@@ -1097,6 +1346,7 @@ export function CreateSalesOrderForm({
                                   min={0}
                                   step="0.01"
                                   value={subField.state.value}
+                                  disabled={!editable}
                                   onChange={(event) =>
                                     subField.handleChange(event.target.value)
                                   }
@@ -1132,6 +1382,7 @@ export function CreateSalesOrderForm({
                                   max={100}
                                   step="0.01"
                                   value={subField.state.value}
+                                  disabled={!editable}
                                   onChange={(event) =>
                                     subField.handleChange(event.target.value)
                                   }
@@ -1166,6 +1417,7 @@ export function CreateSalesOrderForm({
                                   max={100}
                                   step="0.01"
                                   value={subField.state.value}
+                                  disabled={!editable}
                                   onChange={(event) =>
                                     subField.handleChange(event.target.value)
                                   }
@@ -1200,7 +1452,20 @@ export function CreateSalesOrderForm({
             </form.Field>
           </CardContent>
         </Card>
-      </fieldset>
+      </div>
+
+      {order?.status === "confirmed" && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Pagos y facturas</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              Disponible próximamente.
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       <form.Subscribe selector={(state) => state.values.lines}>
         {(lines) => {
@@ -1241,67 +1506,11 @@ export function CreateSalesOrderForm({
                     <span>{currencyFormatter.format(total / 100)}</span>
                   </div>
                 </div>
-
-                <div className="flex justify-end gap-3">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    render={<Link to="/sales" />}
-                  >
-                    {isDetail ? "Regresar" : "Cancelar"}
-                  </Button>
-                  {!isDetail && (
-                    <form.Subscribe selector={(state) => state.isSubmitting}>
-                      {(isSubmitting) => (
-                        <Button type="submit" disabled={isSubmitting}>
-                          {isSubmitting ? "Creando..." : "Crear orden"}
-                        </Button>
-                      )}
-                    </form.Subscribe>
-                  )}
-                  {isDetail && editable && (
-                    <form.Subscribe
-                      selector={(state) => [state.isSubmitting, state.isDirty]}
-                    >
-                      {([isSubmitting, isDirty]) => (
-                        <Button
-                          type="button"
-                          disabled={isSubmitting}
-                          onClick={() => {
-                            if (!isDirty) {
-                              toast.info("No hay cambios por guardar");
-                              return;
-                            }
-                            void form.handleSubmit();
-                          }}
-                        >
-                          {isSubmitting ? "Guardando..." : "Guardar cambios"}
-                        </Button>
-                      )}
-                    </form.Subscribe>
-                  )}
-                </div>
               </CardContent>
             </Card>
           );
         }}
       </form.Subscribe>
-
-      {isReadOnlyOrder && (
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Button type="button" size="lg" className="h-12 font-semibold">
-            Despachar
-          </Button>
-          <Button
-            type="button"
-            variant="destructive"
-            size="lg"
-            className="h-12 font-semibold"
-          >
-            Cancelar pedido
-          </Button>
-        </div>
-      )}
     </form>
   );
 }

@@ -18,10 +18,12 @@ export function ProductCombobox({
   id,
   value,
   onChange,
+  disabled,
 }: {
   id?: string;
   value: Product | null;
   onChange: (product: Product | null) => void;
+  disabled?: boolean;
 }) {
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebouncedValue(search.trim());
@@ -46,6 +48,7 @@ export function ProductCombobox({
 
   return (
     <Combobox
+      disabled={disabled}
       items={items}
       value={value}
       onValueChange={(product: Product | null) => {
