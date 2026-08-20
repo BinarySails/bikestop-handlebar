@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { useNavigate, createFileRoute } from "@tanstack/react-router";
 import { Loader2, ShoppingCart } from "lucide-react";
 
 import { CartItemRow } from "@/components/features/catalog/cart-item-row";
 import { CartSummary } from "@/components/features/catalog/cart-summary";
+import { CheckoutDialog } from "@/components/features/catalog/checkout-form";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -37,11 +39,12 @@ function CartPage() {
   const navigate = useNavigate();
   const { data: cartRes, isLoading } = useGetCart();
   const { trigger: clearCart, isMutating: isClearing } = useClearCart();
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
 
   const cart = cartRes?.status === 200 ? cartRes.data : null;
 
-  function handleCheckout(promoCodes: string[]) {
-    console.log("Checkout with promo codes:", promoCodes);
+  function handleCheckout(_promoCodes: string[]) {
+    setIsCheckoutOpen(true);
   }
 
   async function handleClearCart() {
@@ -93,6 +96,8 @@ function CartPage() {
           </div>
         )}
       </div>
+
+      <CheckoutDialog open={isCheckoutOpen} onOpenChange={setIsCheckoutOpen} />
     </div>
   );
 }

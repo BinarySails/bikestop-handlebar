@@ -4,11 +4,9 @@
  * ciclo
  * OpenAPI spec version: 0.1.0
  */
-import type { CartId } from './cartId.ts';
 import type { VariantId } from './variantId.ts';
 
 export interface AddToCartRequest {
-  cart_id: CartId;
   quantity: number;
   variant_id: VariantId;
 }

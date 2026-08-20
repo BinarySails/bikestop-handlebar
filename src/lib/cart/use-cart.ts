@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import useSwr, { useSWRConfig } from "swr";
 
 import {
   addToCartHandler,
+  checkoutCartHandler,
   clearCartHandler,
   getCartHandler,
   getGetCartHandlerKey,
@@ -13,9 +14,9 @@ import {
 import type {
   CartItemResponse,
   CatalogProduct,
+  CheckoutCartRequest,
   GetCartResponse,
 } from "@/lib/api/schemas";
-import { getOrCreateCartId } from "@/lib/cart/use-cart-id";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -25,20 +26,6 @@ export type CartItem = CartItemResponse;
 export type Cart = GetCartResponse;
 
 // ---------------------------------------------------------------------------
-// Cart id (client side, persisted in localStorage)
-// ---------------------------------------------------------------------------
-
-export function useCartId(): string | null {
-  const [cartId, setCartId] = useState<string | null>(null);
-
-  useEffect(() => {
-    setCartId(getOrCreateCartId());
-  }, []);
-
-  return cartId;
-}
-
-// ---------------------------------------------------------------------------
 // Hooks (backend cart)
 // ---------------------------------------------------------------------------
 
@@ -46,12 +33,11 @@ export function useGetCart(): {
   data: getCartHandlerResponse | undefined;
   isLoading: boolean;
 } {
-  const cartId = useCartId();
-  const swrKey = cartId ? getGetCartHandlerKey({ cart_id: cartId }) : null;
+  const swrKey = getGetCartHandlerKey();
 
   const { data, isLoading } = useSwr<getCartHandlerResponse>(
     swrKey,
-    () => getCartHandler({ cart_id: cartId as string }),
+    () => getCartHandler(),
     { revalidateOnFocus: false }
   );
 
@@ -59,14 +45,18 @@ export function useGetCart(): {
 }
 
 export function useCartMutate() {
-  const cartId = useCartId();
   const { mutate } = useSWRConfig();
 
-  return useCallback(() => {
-    if (cartId) {
-      void mutate(getGetCartHandlerKey({ cart_id: cartId }));
-    }
-  }, [cartId, mutate]);
+  return useCallback(
+    (next?: getCartHandlerResponse) => {
+      if (next) {
+        void mutate(getGetCartHandlerKey(), next, { revalidate: false });
+      } else {
+        void mutate(getGetCartHandlerKey());
+      }
+    },
+    [mutate]
+  );
 }
 
 export function useUpdateCartItem() {
@@ -129,15 +119,9 @@ export function useAddToCart() {
       product: CatalogProduct;
       quantity: number;
     }) => {
-      const cartId = getOrCreateCartId();
-      if (!cartId) {
-        throw new Error("Carrito no disponible.");
-      }
-
       setIsMutating(true);
       try {
         const res = await addToCartHandler({
-          cart_id: cartId,
           variant_id: product.id,
           quantity,
         });
@@ -161,22 +145,44 @@ export function useClearCart() {
   const cartMutate = useCartMutate();
 
   const trigger = useCallback(async () => {
-    const cartId = getOrCreateCartId();
-
     setIsMutating(true);
     try {
-      if (cartId) {
-        const res = await clearCartHandler({ cart_id: cartId });
-        if (res.status !== 204) {
-          throw new Error("Error al vaciar el carrito.");
-        }
+      const res = await clearCartHandler();
+      if (res.status !== 204) {
+        throw new Error("Error al vaciar el carrito.");
       }
       cartMutate();
-      return { status: 204 as const };
+      return res;
     } finally {
       setIsMutating(false);
     }
   }, [cartMutate]);
+
+  return { trigger, isMutating };
+}
+
+export function useCheckoutCart() {
+  const [isMutating, setIsMutating] = useState(false);
+  const cartMutate = useCartMutate();
+
+  const trigger = useCallback(
+    async (payload: CheckoutCartRequest) => {
+      setIsMutating(true);
+      try {
+        const res = await checkoutCartHandler(payload);
+        if (res.status === 201) {
+          cartMutate({
+            status: 404,
+            data: undefined,
+          } as getCartHandlerResponse);
+        }
+        return res;
+      } finally {
+        setIsMutating(false);
+      }
+    },
+    [cartMutate]
+  );
 
   return { trigger, isMutating };
 }

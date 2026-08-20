@@ -73,10 +73,6 @@ export const MeHandlerResponse = zod.object({
 })
 
 
-export const GetCartHandlerQueryParams = zod.object({
-  "cart_id": zod.uuid().describe('Cart ID')
-})
-
 export const GetCartHandlerResponse = zod.object({
   "currency": zod.string(),
   "grand_total": zod.int(),
@@ -126,66 +122,8 @@ export const GetCartHandlerResponse = zod.object({
 })
 
 
-export const ClearCartHandlerQueryParams = zod.object({
-  "cart_id": zod.uuid().describe('Cart ID')
-})
-
 export const ClearCartHandlerResponse = zod.void()
 
-
-export const AddToCartHandlerBody = zod.object({
-  "cart_id": zod.uuid(),
-  "quantity": zod.int(),
-  "variant_id": zod.uuid()
-})
-
-export const AddToCartHandlerResponse = zod.object({
-  "cart_id": zod.uuid(),
-  "item": zod.object({
-  "cart_id": zod.uuid(),
-  "created_at": zod.iso.datetime({"offset":true}),
-  "currency": zod.string(),
-  "id": zod.uuid(),
-  "quantity": zod.int(),
-  "unit_price": zod.int(),
-  "updated_at": zod.iso.datetime({"offset":true}),
-  "variant_id": zod.uuid()
-})
-})
-
-
-export const RemoveCartItemHandlerParams = zod.object({
-  "item_id": zod.uuid().describe('Cart item ID')
-})
-
-export const RemoveCartItemHandlerResponse = zod.void()
-
-
-export const UpdateCartItemHandlerParams = zod.object({
-  "item_id": zod.uuid().describe('Cart item ID')
-})
-
-export const UpdateCartItemHandlerBody = zod.object({
-  "quantity": zod.int()
-})
-
-export const UpdateCartItemHandlerResponse = zod.object({
-  "item": zod.union([zod.null(),zod.object({
-  "cart_id": zod.uuid(),
-  "created_at": zod.iso.datetime({"offset":true}),
-  "currency": zod.string(),
-  "id": zod.uuid(),
-  "quantity": zod.int(),
-  "unit_price": zod.int(),
-  "updated_at": zod.iso.datetime({"offset":true}),
-  "variant_id": zod.uuid()
-})]).optional()
-})
-
-
-export const CheckoutCartHandlerParams = zod.object({
-  "cart_id": zod.uuid().describe('Cart ID')
-})
 
 export const CheckoutCartHandlerBody = zod.object({
   "billing_address": zod.object({
@@ -287,6 +225,55 @@ export const CheckoutCartHandlerResponse = zod.object({
 })),
   "tax_total": zod.int(),
   "updated_at": zod.iso.datetime({"offset":true})
+})
+
+
+export const AddToCartHandlerBody = zod.object({
+  "quantity": zod.int(),
+  "variant_id": zod.uuid()
+})
+
+export const AddToCartHandlerResponse = zod.object({
+  "cart_id": zod.uuid(),
+  "item": zod.object({
+  "cart_id": zod.uuid(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "currency": zod.string(),
+  "id": zod.uuid(),
+  "quantity": zod.int(),
+  "unit_price": zod.int(),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "variant_id": zod.uuid()
+})
+})
+
+
+export const RemoveCartItemHandlerParams = zod.object({
+  "item_id": zod.uuid().describe('Cart item ID')
+})
+
+export const RemoveCartItemHandlerResponse = zod.void()
+
+
+export const UpdateCartItemHandlerParams = zod.object({
+  "item_id": zod.uuid().describe('Cart item ID')
+})
+
+export const UpdateCartItemHandlerBody = zod.object({
+  "quantity": zod.int()
+})
+
+export const UpdateCartItemHandlerResponse = zod.object({
+  "item": zod.union([zod.null(),zod.object({
+  "cart_id": zod.uuid(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "currency": zod.string(),
+  "id": zod.uuid(),
+  "quantity": zod.int(),
+  "unit_price": zod.int(),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "variant_id": zod.uuid()
+})]).optional()
 })
 
 
