@@ -32,7 +32,10 @@ export function CartItemRow({ item }: CartItemRowProps) {
   const isMutating = isUpdating || isDeleting;
 
   async function handleQuantityChange(newQty: number) {
-    if (newQty < 1) return;
+    if (newQty < 1) {
+      await handleRemove();
+      return;
+    }
     setOptimisticQty(newQty);
     try {
       await updateItem({ itemId: item.id, quantity: newQty });
@@ -95,7 +98,7 @@ export function CartItemRow({ item }: CartItemRowProps) {
               variant="ghost"
               size="icon-xs"
               onClick={() => handleQuantityChange(optimisticQty - 1)}
-              disabled={optimisticQty <= 1 || isMutating}
+              disabled={isMutating}
             >
               <Minus className="size-3" />
             </Button>

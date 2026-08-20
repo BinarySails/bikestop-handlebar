@@ -8,7 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import type { CatalogProduct } from "@/lib/api/schemas";
 import { useAddToCart } from "@/lib/cart/use-cart";
 import { useCartDrawerStore } from "@/lib/cart/use-cart-drawer-store";
-import { centsToPesos } from "@/lib/money";
+import { centsToPesos, resolvePrice } from "@/lib/money";
 
 interface ProductInfoPanelProps {
   product: CatalogProduct;
@@ -18,9 +18,7 @@ export function ProductInfoPanel({ product }: ProductInfoPanelProps) {
   const [quantity, setQuantity] = useState(1);
   const { trigger: addToCart, isMutating: isAdding } = useAddToCart();
   const setDrawerOpen = useCartDrawerStore((s) => s.setOpen);
-  const regularPrice =
-    product.default_price ??
-    product.prices.find((price) => price.price_type === "regular");
+  const regularPrice = resolvePrice(product.default_price, product.prices);
   const isAvailable = product.stock_quantity > 0;
 
   function decrement() {

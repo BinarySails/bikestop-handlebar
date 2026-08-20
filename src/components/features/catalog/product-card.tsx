@@ -3,7 +3,7 @@ import { ImageOff } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import type { CatalogProduct } from "@/lib/api/schemas";
-import { centsToPesos } from "@/lib/money";
+import { centsToPesos, resolvePrice } from "@/lib/money";
 
 interface ProductCardProps {
   product: CatalogProduct;
@@ -13,9 +13,7 @@ export function ProductCard({ product }: ProductCardProps) {
   const mainImage = [...product.images].sort(
     (a, b) => a.image_index - b.image_index
   )[0];
-  const regularPrice = product.prices.find(
-    (price) => price.price_type === "regular"
-  );
+  const regularPrice = resolvePrice(product.default_price, product.prices);
   const isAvailable = product.stock_quantity > 0;
 
   return (

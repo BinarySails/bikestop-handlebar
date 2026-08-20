@@ -139,6 +139,20 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
                   </span>
                 </div>
 
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">
+                    IVA ({cart.tax_rate / 100}%)
+                  </span>
+                  <span className="font-semibold">
+                    {formatPrice(cart.tax_total, cart.currency)}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between text-sm font-semibold">
+                  <span>Total</span>
+                  <span>{formatPrice(cart.grand_total, cart.currency)}</span>
+                </div>
+
                 <Button
                   className="w-full bg-amber-500 text-black hover:bg-amber-600"
                   onClick={() => {

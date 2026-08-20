@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 import type { CatalogProduct } from "@/lib/api/schemas";
+import { resolvePrice } from "@/lib/money";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -27,6 +28,9 @@ export type LocalCart = {
   item_count: number;
   items: LocalCartItem[];
   subtotal: number;
+  tax_rate: number;
+  tax_total: number;
+  grand_total: number;
 };
 
 // ---------------------------------------------------------------------------
@@ -44,12 +48,18 @@ interface LocalCartState {
 function computeCart(items: LocalCartItem[]): LocalCart {
   const subtotal = items.reduce((sum, i) => sum + i.line_total, 0);
   const item_count = items.reduce((sum, i) => sum + i.quantity, 0);
+  const tax_rate = 1600;
+  const tax_total = Math.floor((subtotal * tax_rate) / 10_000);
+  const grand_total = subtotal + tax_total;
   return {
     id: "local-cart",
     currency: "MXN",
     item_count,
     items,
     subtotal,
+    tax_rate,
+    tax_total,
+    grand_total,
   };
 }
 
@@ -62,9 +72,7 @@ export const useLocalCartStore = create<LocalCartState>()(
         const { items } = get();
         const existing = items.find((i) => i.variant_id === product.id);
 
-        const price =
-          product.default_price ??
-          product.prices.find((p) => p.price_type === "regular");
+        const price = resolvePrice(product.default_price, product.prices);
         const unitPrice = price?.amount ?? 0;
         const currency = price?.currency ?? "MXN";
 
@@ -107,7 +115,10 @@ export const useLocalCartStore = create<LocalCartState>()(
       },
 
       updateItemQuantity(itemId: string, quantity: number) {
-        if (quantity < 1) return;
+        if (quantity < 1) {
+          set({ items: get().items.filter((i) => i.id !== itemId) });
+          return;
+        }
         set({
           items: get().items.map((i) =>
             i.id === itemId

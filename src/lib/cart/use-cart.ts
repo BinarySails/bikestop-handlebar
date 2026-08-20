@@ -63,6 +63,9 @@ export type Cart = {
   item_count: number;
   items: CartItem[];
   subtotal: number;
+  tax_rate: number;
+  tax_total: number;
+  grand_total: number;
 };
 
 export type AddToCartResponse = {

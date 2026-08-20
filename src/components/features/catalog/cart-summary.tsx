@@ -47,6 +47,13 @@ export function CartSummary({ cart, onCheckout }: CartSummaryProps) {
           <span>{formatPrice(cart.subtotal, cart.currency)}</span>
         </div>
 
+        <div className="flex justify-between">
+          <span className="text-muted-foreground">
+            IVA ({cart.tax_rate / 100}%)
+          </span>
+          <span>{formatPrice(cart.tax_total, cart.currency)}</span>
+        </div>
+
         {appliedPromos.length > 0 && (
           <div className="space-y-1">
             {appliedPromos.map((code) => (
@@ -96,7 +103,7 @@ export function CartSummary({ cart, onCheckout }: CartSummaryProps) {
 
       <div className="flex justify-between text-sm font-semibold">
         <span>Total</span>
-        <span>{formatPrice(cart.subtotal, cart.currency)}</span>
+        <span>{formatPrice(cart.grand_total, cart.currency)}</span>
       </div>
 
       <Button
@@ -104,11 +111,11 @@ export function CartSummary({ cart, onCheckout }: CartSummaryProps) {
         onClick={() => onCheckout?.(appliedPromos)}
         disabled={cart.item_count === 0}
       >
-        Proceder al pago
+        Continuar
       </Button>
 
       <p className="text-center text-xs text-muted-foreground">
-        Impuestos calculados en el siguiente paso
+        Incluye IVA ({cart.tax_rate / 100}%)
       </p>
     </div>
   );
