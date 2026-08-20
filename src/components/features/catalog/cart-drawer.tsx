@@ -13,61 +13,12 @@ import {
 } from "@/components/ui/sheet";
 import { useGetCart } from "@/lib/cart/use-cart";
 import { centsToPesos } from "@/lib/money";
-import type { CartItem } from "@/lib/cart/use-cart";
 
 function formatPrice(amount: number, currency: string) {
   return new Intl.NumberFormat("es-MX", {
     style: "currency",
     currency,
   }).format(centsToPesos(amount));
-}
-
-function toCartItem(item: {
-  id: string;
-  variant_id: string;
-  quantity: number;
-  unit_price: number;
-  currency: string;
-  display_name: string;
-  sku: string;
-  prices: { amount: number; currency: string; price_type: string }[];
-  properties: { property_name: string; property_value: string }[];
-  images: { image_url: string }[];
-  line_total: number;
-}): CartItem {
-  return {
-    ...item,
-    cart_id: "local-cart",
-    prices: item.prices.map((p) => ({
-      id: "",
-      variant_id: item.variant_id,
-      amount: p.amount,
-      currency: p.currency,
-      price_type: p.price_type,
-      status: "active",
-      created_at: "",
-      updated_at: "",
-    })),
-    properties: item.properties.map((p) => ({
-      id: "",
-      variant_id: item.variant_id,
-      property_name: p.property_name,
-      property_value: p.property_value,
-      status: "active",
-      created_at: "",
-      updated_at: "",
-    })),
-    images: item.images.map((img) => ({
-      id: "",
-      variant_id: item.variant_id,
-      file_id: "",
-      image_url: img.image_url,
-      image_index: 0,
-      status: "active",
-      created_at: "",
-      updated_at: "",
-    })),
-  };
 }
 
 interface CartDrawerProps {
@@ -123,7 +74,7 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
             <>
               <div className="flex-1 space-y-4 overflow-y-auto py-4">
                 {cart.items.map((item) => (
-                  <CartItemRow key={item.id} item={toCartItem(item)} />
+                  <CartItemRow key={item.id} item={item} />
                 ))}
               </div>
 

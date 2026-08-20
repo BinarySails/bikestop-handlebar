@@ -7,59 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useGetCart, useClearCart, type CartItem } from "@/lib/cart/use-cart";
+import { useGetCart, useClearCart } from "@/lib/cart/use-cart";
 
 export const Route = createFileRoute("/_b2b/cart/")({
   component: CartPage,
 });
-
-function toCartItem(item: {
-  id: string;
-  variant_id: string;
-  quantity: number;
-  unit_price: number;
-  currency: string;
-  display_name: string;
-  sku: string;
-  prices: { amount: number; currency: string; price_type: string }[];
-  properties: { property_name: string; property_value: string }[];
-  images: { image_url: string }[];
-  line_total: number;
-}): CartItem {
-  return {
-    ...item,
-    cart_id: "local-cart",
-    prices: item.prices.map((p) => ({
-      id: "",
-      variant_id: item.variant_id,
-      amount: p.amount,
-      currency: p.currency,
-      price_type: p.price_type,
-      status: "active",
-      created_at: "",
-      updated_at: "",
-    })),
-    properties: item.properties.map((p) => ({
-      id: "",
-      variant_id: item.variant_id,
-      property_name: p.property_name,
-      property_value: p.property_value,
-      status: "active",
-      created_at: "",
-      updated_at: "",
-    })),
-    images: item.images.map((img) => ({
-      id: "",
-      variant_id: item.variant_id,
-      file_id: "",
-      image_url: img.image_url,
-      image_index: 0,
-      status: "active",
-      created_at: "",
-      updated_at: "",
-    })),
-  };
-}
 
 function CartSkeleton() {
   return (
@@ -131,7 +83,7 @@ function CartPage() {
           <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
             <div className="space-y-4">
               {cart.items.map((item) => (
-                <CartItemRow key={item.id} item={toCartItem(item)} />
+                <CartItemRow key={item.id} item={item} />
               ))}
             </div>
 

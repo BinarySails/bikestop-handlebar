@@ -1,119 +1,93 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import useSwr, { useSWRConfig } from "swr";
 
-import type { CatalogProduct } from "@/lib/api/schemas";
 import {
-  useLocalCart,
-  useLocalCartStore,
-} from "@/lib/cart/use-local-cart-store";
+  addToCartHandler,
+  clearCartHandler,
+  getCartHandler,
+  getGetCartHandlerKey,
+  removeCartItemHandler,
+  updateCartItemHandler,
+  type getCartHandlerResponse,
+} from "@/lib/api/api";
+import type {
+  CartItemResponse,
+  CatalogProduct,
+  GetCartResponse,
+} from "@/lib/api/schemas";
+import { getOrCreateCartId } from "@/lib/cart/use-cart-id";
 
 // ---------------------------------------------------------------------------
-// Types (kept for compatibility)
+// Types
 // ---------------------------------------------------------------------------
 
-export type CartItemPrice = {
-  id: string;
-  variant_id: string;
-  amount: number;
-  currency: string;
-  price_type: string;
-  status: string;
-  created_at: string;
-  updated_at: string;
-};
-
-export type CartItemImage = {
-  id: string;
-  variant_id: string;
-  file_id: string;
-  image_url: string;
-  image_index: number;
-  status: string;
-  created_at: string;
-  updated_at: string;
-};
-
-export type CartItemProperty = {
-  id: string;
-  variant_id: string;
-  property_name: string;
-  property_value: string;
-  status: string;
-  created_at: string;
-  updated_at: string;
-};
-
-export type CartItem = {
-  id: string;
-  variant_id: string;
-  cart_id: string;
-  quantity: number;
-  unit_price: number;
-  currency: string;
-  display_name: string;
-  sku: string;
-  prices: CartItemPrice[];
-  properties: CartItemProperty[];
-  images: CartItemImage[];
-  line_total: number;
-};
-
-export type Cart = {
-  id: string;
-  currency: string;
-  item_count: number;
-  items: CartItem[];
-  subtotal: number;
-  tax_rate: number;
-  tax_total: number;
-  grand_total: number;
-};
-
-export type AddToCartResponse = {
-  cart_id: string;
-  item: CartItem;
-};
-
-export type CartResponse =
-  | { data: Cart; status: 200; headers: Headers }
-  | { data: void; status: 404; headers: Headers };
+export type CartItem = CartItemResponse;
+export type Cart = GetCartResponse;
 
 // ---------------------------------------------------------------------------
-// Hooks (local cart, no backend)
+// Cart id (client side, persisted in localStorage)
+// ---------------------------------------------------------------------------
+
+export function useCartId(): string | null {
+  const [cartId, setCartId] = useState<string | null>(null);
+
+  useEffect(() => {
+    setCartId(getOrCreateCartId());
+  }, []);
+
+  return cartId;
+}
+
+// ---------------------------------------------------------------------------
+// Hooks (backend cart)
 // ---------------------------------------------------------------------------
 
 export function useGetCart(): {
-  data: CartResponse | undefined;
+  data: getCartHandlerResponse | undefined;
   isLoading: boolean;
 } {
-  const cart = useLocalCart();
+  const cartId = useCartId();
+  const swrKey = cartId ? getGetCartHandlerKey({ cart_id: cartId }) : null;
 
-  const response: CartResponse =
-    cart.item_count > 0
-      ? { data: cart as Cart, status: 200, headers: new Headers() }
-      : { data: undefined, status: 404, headers: new Headers() };
+  const { data, isLoading } = useSwr<getCartHandlerResponse>(
+    swrKey,
+    () => getCartHandler({ cart_id: cartId as string }),
+    { revalidateOnFocus: false }
+  );
 
-  return { data: response, isLoading: false };
+  return { data, isLoading };
 }
 
 export function useCartMutate() {
-  return useCallback(() => {}, []);
+  const cartId = useCartId();
+  const { mutate } = useSWRConfig();
+
+  return useCallback(() => {
+    if (cartId) {
+      void mutate(getGetCartHandlerKey({ cart_id: cartId }));
+    }
+  }, [cartId, mutate]);
 }
 
 export function useUpdateCartItem() {
   const [isMutating, setIsMutating] = useState(false);
-  const updateItemQuantity = useLocalCartStore((s) => s.updateItemQuantity);
+  const cartMutate = useCartMutate();
 
   const trigger = useCallback(
     async ({ itemId, quantity }: { itemId: string; quantity: number }) => {
       setIsMutating(true);
       try {
-        updateItemQuantity(itemId, quantity);
-        return { status: 200 };
+        const res = await updateCartItemHandler(itemId, { quantity });
+        if (res.status !== 200) {
+          throw new Error("Error al actualizar el carrito.");
+        }
+        cartMutate();
+        return res;
       } finally {
         setIsMutating(false);
       }
     },
-    [updateItemQuantity]
+    [cartMutate]
   );
 
   return { trigger, isMutating };
@@ -121,19 +95,23 @@ export function useUpdateCartItem() {
 
 export function useDeleteCartItem() {
   const [isMutating, setIsMutating] = useState(false);
-  const removeItem = useLocalCartStore((s) => s.removeItem);
+  const cartMutate = useCartMutate();
 
   const trigger = useCallback(
     async ({ itemId }: { itemId: string }) => {
       setIsMutating(true);
       try {
-        removeItem(itemId);
-        return { status: 200 };
+        const res = await removeCartItemHandler(itemId);
+        if (res.status !== 204) {
+          throw new Error("Error al eliminar del carrito.");
+        }
+        cartMutate();
+        return res;
       } finally {
         setIsMutating(false);
       }
     },
-    [removeItem]
+    [cartMutate]
   );
 
   return { trigger, isMutating };
@@ -141,7 +119,7 @@ export function useDeleteCartItem() {
 
 export function useAddToCart() {
   const [isMutating, setIsMutating] = useState(false);
-  const addItem = useLocalCartStore((s) => s.addItem);
+  const cartMutate = useCartMutate();
 
   const trigger = useCallback(
     async ({
@@ -151,15 +129,28 @@ export function useAddToCart() {
       product: CatalogProduct;
       quantity: number;
     }) => {
+      const cartId = getOrCreateCartId();
+      if (!cartId) {
+        throw new Error("Carrito no disponible.");
+      }
+
       setIsMutating(true);
       try {
-        addItem(product, quantity);
-        return { status: 200, data: { cart_id: "local-cart", item: null } };
+        const res = await addToCartHandler({
+          cart_id: cartId,
+          variant_id: product.id,
+          quantity,
+        });
+        if (res.status !== 201) {
+          throw new Error("Error al agregar al carrito.");
+        }
+        cartMutate();
+        return res;
       } finally {
         setIsMutating(false);
       }
     },
-    [addItem]
+    [cartMutate]
   );
 
   return { trigger, isMutating };
@@ -167,17 +158,25 @@ export function useAddToCart() {
 
 export function useClearCart() {
   const [isMutating, setIsMutating] = useState(false);
-  const clearCart = useLocalCartStore((s) => s.clearCart);
+  const cartMutate = useCartMutate();
 
   const trigger = useCallback(async () => {
+    const cartId = getOrCreateCartId();
+
     setIsMutating(true);
     try {
-      clearCart();
-      return { status: 200 };
+      if (cartId) {
+        const res = await clearCartHandler({ cart_id: cartId });
+        if (res.status !== 204) {
+          throw new Error("Error al vaciar el carrito.");
+        }
+      }
+      cartMutate();
+      return { status: 204 as const };
     } finally {
       setIsMutating(false);
     }
-  }, [clearCart]);
+  }, [cartMutate]);
 
   return { trigger, isMutating };
 }
