@@ -5618,6 +5618,11 @@ export type createSalesOrderRequestResponse404 = {
   status: 404
 }
 
+export type createSalesOrderRequestResponse409 = {
+  data: ErrorResponse
+  status: 409
+}
+
 export type createSalesOrderRequestResponse500 = {
   data: ErrorResponse
   status: 500
@@ -5626,7 +5631,7 @@ export type createSalesOrderRequestResponse500 = {
 export type createSalesOrderRequestResponseSuccess = (createSalesOrderRequestResponse201) & {
   headers: Headers;
 };
-export type createSalesOrderRequestResponseError = (createSalesOrderRequestResponse400 | createSalesOrderRequestResponse404 | createSalesOrderRequestResponse500) & {
+export type createSalesOrderRequestResponseError = (createSalesOrderRequestResponse400 | createSalesOrderRequestResponse404 | createSalesOrderRequestResponse409 | createSalesOrderRequestResponse500) & {
   headers: Headers;
 };
 

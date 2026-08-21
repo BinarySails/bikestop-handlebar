@@ -7,6 +7,7 @@
 import type { ProductId } from './productId.ts';
 import type { SalesOrderLineAdjustment } from './salesOrderLineAdjustment.ts';
 import type { SalesOrderLineId } from './salesOrderLineId.ts';
+import type { SalesOrderLineWarehouseAllocation } from './salesOrderLineWarehouseAllocation.ts';
 import type { VariantId } from './variantId.ts';
 
 export interface SalesOrderLine {
@@ -23,4 +24,5 @@ export interface SalesOrderLine {
   tax_rate: number;
   unit_price: number;
   variant_id: VariantId;
+  warehouse_allocations: SalesOrderLineWarehouseAllocation[];
 }

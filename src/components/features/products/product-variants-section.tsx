@@ -192,7 +192,7 @@ export function ProductVariantsSection({ productId }: { productId: string }) {
   } = useListVariantsRequest(
     productId,
     {
-      is_archived: status === "archive" ? true : false,
+      is_archived: status === "archive",
     },
     {
       swr: {

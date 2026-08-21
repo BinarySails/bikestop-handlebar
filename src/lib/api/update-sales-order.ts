@@ -1,6 +1,7 @@
 import { getGetSaleOrderRequestUrl } from "@/lib/api/api";
 import type {
   CreateSalesOrderRequest,
+  ErrorResponse,
   SalesOrder,
   SalesOrderId,
 } from "@/lib/api/schemas";
@@ -20,6 +21,6 @@ export async function updateSalesOrderRequest(
 
   return {
     status: response.status,
-    data: data as SalesOrder | { message?: string },
+    data: data as SalesOrder | ErrorResponse,
   };
 }
