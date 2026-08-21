@@ -8,6 +8,8 @@ import type { VariantId } from './variantId.ts';
 import type { WarehouseId } from './warehouseId.ts';
 
 export interface InventoryItemResponse {
+  available_quantity: number;
+  reserved_quantity: number;
   total_quantity: number;
   variant_id: VariantId;
   variant_image_url: string;

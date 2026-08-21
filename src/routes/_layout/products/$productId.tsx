@@ -116,7 +116,7 @@ function ProductDetailView({
   const { data: categoriesRes, isLoading: categoriesLoading } =
     useGetCategoriesRequest();
   const { data: variantsRes, isLoading: variantsLoading } =
-    useListVariantsRequest(productId, {
+    useListVariantsRequest(productId, undefined, {
       swr: {
         revalidateOnFocus: false,
       },

@@ -6,11 +6,15 @@
  */
 import type { SalesOrderLineId } from './salesOrderLineId.ts';
 import type { SalesOrderStatus } from './salesOrderStatus.ts';
+import type { WarehouseId } from './warehouseId.ts';
 
 export interface DispatchSalesOrderLineResult {
-  dispatched_quantity: number;
+  allocation_dispatched_quantity: number;
+  allocation_remaining_quantity: number;
   fully_dispatched: boolean;
-  remaining_quantity: number;
+  line_dispatched_quantity: number;
+  line_remaining_quantity: number;
   sales_order_line_id: SalesOrderLineId;
   sales_order_status: SalesOrderStatus;
+  warehouse_id: WarehouseId;
 }

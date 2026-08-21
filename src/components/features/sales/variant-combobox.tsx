@@ -40,9 +40,11 @@ export function VariantCombobox({
   onChange: (variant: Variant | null) => void;
   disabled?: boolean;
 }) {
-  const { data: res, isLoading } = useListVariantsRequest(productId ?? "", {
-    swr: { enabled: Boolean(productId) },
-  });
+  const { data: res, isLoading } = useListVariantsRequest(
+    productId ?? "",
+    undefined,
+    { swr: { enabled: Boolean(productId) } }
+  );
 
   const all = res?.status === 200 ? res.data : EMPTY_VARIANTS;
   const items = useMemo(() => {

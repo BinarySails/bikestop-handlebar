@@ -392,6 +392,8 @@ export const ListInventoryRequestQueryParams = zod.object({
 })
 
 export const ListInventoryRequestResponseItem = zod.object({
+  "available_quantity": zod.int(),
+  "reserved_quantity": zod.int(),
   "total_quantity": zod.int(),
   "variant_id": zod.uuid(),
   "variant_image_url": zod.string(),
@@ -409,7 +411,7 @@ export const CreateInventoryTransactionRequestBody = zod.object({
   "quantity": zod.int(),
   "source_id": zod.uuid().nullish(),
   "source_type": zod.union([zod.null(),zod.enum(['warehouse', 'customer', 'supplier', 'store'])]).optional(),
-  "transaction_type": zod.enum(['available', 'reserved', 'blocked', 'in_transit']),
+  "transaction_type": zod.enum(['available', 'reserved', 'blocked', 'in_transit', 'correction_addition', 'correction_substraction', 'sale', 'sale_cancellation']),
   "variant_id": zod.uuid(),
   "warehouse_id": zod.uuid()
 })
@@ -423,7 +425,7 @@ export const CreateInventoryTransactionRequestResponse = zod.object({
   "quantity": zod.int(),
   "source_id": zod.uuid().nullish(),
   "source_type": zod.union([zod.null(),zod.enum(['warehouse', 'customer', 'supplier', 'store'])]).optional(),
-  "transaction_type": zod.enum(['available', 'reserved', 'blocked', 'in_transit']),
+  "transaction_type": zod.enum(['available', 'reserved', 'blocked', 'in_transit', 'correction_addition', 'correction_substraction', 'sale', 'sale_cancellation']),
   "variant_id": zod.uuid(),
   "warehouse_id": zod.uuid()
 })
@@ -2004,7 +2006,11 @@ export const CreateSalesOrderRequestBody = zod.object({
   "quantity": zod.int(),
   "tax_rate": zod.int(),
   "unit_price": zod.int(),
-  "variant_id": zod.uuid()
+  "variant_id": zod.uuid(),
+  "warehouse_allocations": zod.array(zod.object({
+  "quantity": zod.int(),
+  "warehouse_id": zod.uuid()
+}))
 })),
   "order_date": zod.iso.datetime({"offset":true}),
   "payment_term_id": zod.union([zod.null(),zod.uuid()]).optional(),
@@ -2063,7 +2069,12 @@ export const CreateSalesOrderRequestResponse = zod.object({
   "tax_amount": zod.int(),
   "tax_rate": zod.int(),
   "unit_price": zod.int(),
-  "variant_id": zod.uuid()
+  "variant_id": zod.uuid(),
+  "warehouse_allocations": zod.array(zod.object({
+  "dispatched_quantity": zod.int(),
+  "quantity": zod.int(),
+  "warehouse_id": zod.uuid()
+}))
 })),
   "order_date": zod.iso.datetime({"offset":true}),
   "order_number": zod.string(),
@@ -2148,7 +2159,12 @@ export const GetSaleOrderRequestResponse = zod.object({
   "tax_amount": zod.int(),
   "tax_rate": zod.int(),
   "unit_price": zod.int(),
-  "variant_id": zod.uuid()
+  "variant_id": zod.uuid(),
+  "warehouse_allocations": zod.array(zod.object({
+  "dispatched_quantity": zod.int(),
+  "quantity": zod.int(),
+  "warehouse_id": zod.uuid()
+}))
 })),
   "order_date": zod.iso.datetime({"offset":true}),
   "order_number": zod.string(),
@@ -2204,7 +2220,11 @@ export const UpdateSalesOrderRequestBody = zod.object({
   "quantity": zod.int(),
   "tax_rate": zod.int(),
   "unit_price": zod.int(),
-  "variant_id": zod.uuid()
+  "variant_id": zod.uuid(),
+  "warehouse_allocations": zod.array(zod.object({
+  "quantity": zod.int(),
+  "warehouse_id": zod.uuid()
+}))
 })),
   "order_date": zod.iso.datetime({"offset":true}),
   "payment_term_id": zod.union([zod.null(),zod.uuid()]).optional(),
@@ -2263,7 +2283,12 @@ export const UpdateSalesOrderRequestResponse = zod.object({
   "tax_amount": zod.int(),
   "tax_rate": zod.int(),
   "unit_price": zod.int(),
-  "variant_id": zod.uuid()
+  "variant_id": zod.uuid(),
+  "warehouse_allocations": zod.array(zod.object({
+  "dispatched_quantity": zod.int(),
+  "quantity": zod.int(),
+  "warehouse_id": zod.uuid()
+}))
 })),
   "order_date": zod.iso.datetime({"offset":true}),
   "order_number": zod.string(),
@@ -2348,7 +2373,12 @@ export const UpdateSalesOrderStatusRequestResponse = zod.object({
   "tax_amount": zod.int(),
   "tax_rate": zod.int(),
   "unit_price": zod.int(),
-  "variant_id": zod.uuid()
+  "variant_id": zod.uuid(),
+  "warehouse_allocations": zod.array(zod.object({
+  "dispatched_quantity": zod.int(),
+  "quantity": zod.int(),
+  "warehouse_id": zod.uuid()
+}))
 })),
   "order_date": zod.iso.datetime({"offset":true}),
   "order_number": zod.string(),
@@ -2437,7 +2467,12 @@ export const ApplyPromotionsRequestResponse = zod.object({
   "tax_amount": zod.int(),
   "tax_rate": zod.int(),
   "unit_price": zod.int(),
-  "variant_id": zod.uuid()
+  "variant_id": zod.uuid(),
+  "warehouse_allocations": zod.array(zod.object({
+  "dispatched_quantity": zod.int(),
+  "quantity": zod.int(),
+  "warehouse_id": zod.uuid()
+}))
 })),
   "order_date": zod.iso.datetime({"offset":true}),
   "order_number": zod.string(),
@@ -2522,7 +2557,12 @@ export const CancelSalesOrderRequestResponse = zod.object({
   "tax_amount": zod.int(),
   "tax_rate": zod.int(),
   "unit_price": zod.int(),
-  "variant_id": zod.uuid()
+  "variant_id": zod.uuid(),
+  "warehouse_allocations": zod.array(zod.object({
+  "dispatched_quantity": zod.int(),
+  "quantity": zod.int(),
+  "warehouse_id": zod.uuid()
+}))
 })),
   "order_date": zod.iso.datetime({"offset":true}),
   "order_number": zod.string(),
@@ -2611,7 +2651,12 @@ export const AddSalesOrderCommentRequestResponse = zod.object({
   "tax_amount": zod.int(),
   "tax_rate": zod.int(),
   "unit_price": zod.int(),
-  "variant_id": zod.uuid()
+  "variant_id": zod.uuid(),
+  "warehouse_allocations": zod.array(zod.object({
+  "dispatched_quantity": zod.int(),
+  "quantity": zod.int(),
+  "warehouse_id": zod.uuid()
+}))
 })),
   "order_date": zod.iso.datetime({"offset":true}),
   "order_number": zod.string(),
@@ -2653,15 +2698,19 @@ export const DispatchSalesOrderLineRequestParams = zod.object({
 })
 
 export const DispatchSalesOrderLineRequestBody = zod.object({
-  "quantity": zod.int()
+  "quantity": zod.int(),
+  "warehouse_id": zod.uuid()
 })
 
 export const DispatchSalesOrderLineRequestResponse = zod.object({
-  "dispatched_quantity": zod.int(),
+  "allocation_dispatched_quantity": zod.int(),
+  "allocation_remaining_quantity": zod.int(),
   "fully_dispatched": zod.boolean(),
-  "remaining_quantity": zod.int(),
+  "line_dispatched_quantity": zod.int(),
+  "line_remaining_quantity": zod.int(),
   "sales_order_line_id": zod.uuid(),
-  "sales_order_status": zod.enum(['draft', 'quote', 'confirmed', 'partially_fulfilled', 'fulfilled', 'cancelled', 'closed'])
+  "sales_order_status": zod.enum(['draft', 'quote', 'confirmed', 'partially_fulfilled', 'fulfilled', 'cancelled', 'closed']),
+  "warehouse_id": zod.uuid()
 })
 
 
@@ -2718,7 +2767,12 @@ export const UpdateSalesOrderTagsRequestResponse = zod.object({
   "tax_amount": zod.int(),
   "tax_rate": zod.int(),
   "unit_price": zod.int(),
-  "variant_id": zod.uuid()
+  "variant_id": zod.uuid(),
+  "warehouse_allocations": zod.array(zod.object({
+  "dispatched_quantity": zod.int(),
+  "quantity": zod.int(),
+  "warehouse_id": zod.uuid()
+}))
 })),
   "order_date": zod.iso.datetime({"offset":true}),
   "order_number": zod.string(),

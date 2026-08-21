@@ -4,6 +4,7 @@
  * ciclo
  * OpenAPI spec version: 0.1.0
  */
+import type { CreateSalesOrderLineWarehouseAllocationRequest } from './createSalesOrderLineWarehouseAllocationRequest.ts';
 import type { SalesOrderLineId } from './salesOrderLineId.ts';
 import type { VariantId } from './variantId.ts';
 
@@ -14,4 +15,5 @@ export interface CreateSalesOrderLineRequest {
   tax_rate: number;
   unit_price: number;
   variant_id: VariantId;
+  warehouse_allocations: CreateSalesOrderLineWarehouseAllocationRequest[];
 }

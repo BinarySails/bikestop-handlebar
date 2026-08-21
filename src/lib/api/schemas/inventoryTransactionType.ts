@@ -13,4 +13,8 @@ export const InventoryTransactionType = {
   reserved: 'reserved',
   blocked: 'blocked',
   in_transit: 'in_transit',
+  correction_addition: 'correction_addition',
+  correction_substraction: 'correction_substraction',
+  sale: 'sale',
+  sale_cancellation: 'sale_cancellation',
 } as const;

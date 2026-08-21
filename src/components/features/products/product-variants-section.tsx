@@ -188,7 +188,7 @@ export function ProductVariantsSection({ productId }: { productId: string }) {
     isLoading,
     isValidating,
     mutate,
-  } = useListVariantsRequest(productId, {
+  } = useListVariantsRequest(productId, undefined, {
     swr: {
       revalidateOnFocus: false,
     },
