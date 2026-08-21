@@ -323,7 +323,9 @@ function VariantValueInput({
   const { data: res, isLoading } = useListVariantsRequest(
     product?.id ?? "",
     undefined,
-    { swr: { enabled: Boolean(product) } }
+    {
+      swr: { enabled: Boolean(product) },
+    }
   );
   const all = res?.status === 200 ? res.data : [];
   const variants = all.filter(

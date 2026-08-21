@@ -43,7 +43,9 @@ export function VariantCombobox({
   const { data: res, isLoading } = useListVariantsRequest(
     productId ?? "",
     undefined,
-    { swr: { enabled: Boolean(productId) } }
+    {
+      swr: { enabled: Boolean(productId) },
+    }
   );
 
   const all = res?.status === 200 ? res.data : EMPTY_VARIANTS;

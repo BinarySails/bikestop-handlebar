@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import { CustomerCombobox } from "@/components/features/sales/customer-combobox";
 import { ProductCombobox } from "@/components/features/sales/product-combobox";
+import { OrderTagsSelect } from "@/components/features/sales/tags/order-tags-select";
 import {
   VariantCombobox,
   findActiveRegularPrice,
@@ -40,6 +41,7 @@ import {
   useListInventoryRequest,
 } from "@/lib/api/api";
 import {
+  type OrderTagId,
   type PaginatedCustomerSummaryDataItem,
   type CreateSalesOrderRequest,
   type Product,
@@ -99,6 +101,7 @@ type SalesOrderFormValues = {
   order_date: Date;
   payment_term: PaymentTerm | null;
   comments: string;
+  tag_ids: OrderTagId[];
   lines: LineFormValues[];
 };
 
@@ -286,6 +289,7 @@ const defaultValues: SalesOrderFormValues = {
   order_date: new Date(),
   payment_term: null,
   comments: "",
+  tag_ids: [],
   lines: [],
 };
 
@@ -332,6 +336,7 @@ function valuesFromOrder(order: SalesOrder): SalesOrderFormValues {
     order_date: new Date(order.order_date),
     payment_term: order.payment_term ?? null,
     comments: order.comments ?? "",
+    tag_ids: order.tags.map((tag) => tag.id),
     lines: order.lines.map((line) => ({
       id: line.id,
       product: {
@@ -551,6 +556,7 @@ export function CreateSalesOrderForm({
         order_date: value.order_date.toISOString(),
         payment_term_id: value.payment_term?.id,
         comments: value.comments.trim() || null,
+        tag_ids: value.tag_ids.length > 0 ? value.tag_ids : null,
         lines: completeLines.map((line) => ({
           line_id: line.id ?? null,
           variant_id: line.variant.id,
@@ -1451,6 +1457,21 @@ export function CreateSalesOrderForm({
               )}
             </form.Field>
           )}
+
+          <form.Field name="tag_ids">
+            {(field) => (
+              <div className="grid gap-1.5 sm:col-span-2">
+                <Label htmlFor="sales-order-tags">Etiquetas</Label>
+                <OrderTagsSelect
+                  id="sales-order-tags"
+                  value={field.state.value}
+                  onChange={field.handleChange}
+                  placeholder="Seleccionar etiquetas"
+                  activeOnly
+                />
+              </div>
+            )}
+          </form.Field>
         </CardContent>
       </Card>
 

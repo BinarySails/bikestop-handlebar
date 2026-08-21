@@ -41,7 +41,7 @@ export const Route = createFileRoute("/_layout/products/")({
 
 const PAGE_SIZE = 10;
 
-type ListStatusFilter = "all" | "enable" | "disable";
+type ListStatusFilter = "all" | "enable" | "disable" | "archive";
 
 const statusBadgeVariant: Record<
   Product["status"],
@@ -62,6 +62,7 @@ const statusFilterLabel: Record<ListStatusFilter, string> = {
   all: "Todos",
   enable: "Activo",
   disable: "Inactivo",
+  archive: "Archivado",
 };
 
 function ViewProductMenuItem({ productId }: { productId: string }) {
@@ -138,7 +139,9 @@ function ProductsListPage() {
   } = useListProductsRequest({
     page: page + 1,
     limit: PAGE_SIZE,
-    status: status === "all" ? undefined : status,
+    is_archived: status === "archive" ? true : false,
+    status:
+      status === "all" ? undefined : status === "archive" ? undefined : status,
     search: appliedSearch || undefined,
   });
 
@@ -280,6 +283,7 @@ function ProductsListPage() {
                   <SelectItem value="all">Todos</SelectItem>
                   <SelectItem value="enable">Activo</SelectItem>
                   <SelectItem value="disable">Inactivo</SelectItem>
+                  <SelectItem value="archive">Archivado</SelectItem>
                 </SelectContent>
               </Select>
               <Button

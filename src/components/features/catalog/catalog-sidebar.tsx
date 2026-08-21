@@ -27,6 +27,20 @@ interface CatalogSidebarProps {
   onBrandToggle: (brandId: string) => void;
 }
 
+const sortByLabel: Record<string, string> = {
+  name_asc: "Nombre: A-Z",
+  name_desc: "Nombre: Z-A",
+  price_asc: "Precio: menor a mayor",
+  price_desc: "Precio: mayor a menor",
+  created_at_desc: "Más nuevos",
+};
+
+const availabilityLabel: Record<string, string> = {
+  all: "Todas",
+  available: "En existencia",
+  out_of_stock: "Agotado",
+};
+
 function FilterSection({
   title,
   children,
@@ -53,14 +67,24 @@ function SidebarContent(props: CatalogSidebarProps) {
           onValueChange={(value) => props.onSortByChange(value ?? "name_asc")}
         >
           <SelectTrigger>
-            <SelectValue />
+            <SelectValue>{sortByLabel[props.sortBy]}</SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="name_asc">Nombre: A-Z</SelectItem>
-            <SelectItem value="name_desc">Nombre: Z-A</SelectItem>
-            <SelectItem value="price_asc">Precio: menor a mayor</SelectItem>
-            <SelectItem value="price_desc">Precio: mayor a menor</SelectItem>
-            <SelectItem value="created_at_desc">Más nuevos</SelectItem>
+            <SelectItem value="name_asc" label="Nombre: A-Z">
+              Nombre: A-Z
+            </SelectItem>
+            <SelectItem value="name_desc" label="Nombre: Z-A">
+              Nombre: Z-A
+            </SelectItem>
+            <SelectItem value="price_asc" label="Precio: menor a mayor">
+              Precio: menor a mayor
+            </SelectItem>
+            <SelectItem value="price_desc" label="Precio: mayor a menor">
+              Precio: mayor a menor
+            </SelectItem>
+            <SelectItem value="created_at_desc" label="Más nuevos">
+              Más nuevos
+            </SelectItem>
           </SelectContent>
         </Select>
       </FilterSection>
@@ -73,12 +97,18 @@ function SidebarContent(props: CatalogSidebarProps) {
           onValueChange={(value) => props.onAvailabilityChange(value ?? "all")}
         >
           <SelectTrigger>
-            <SelectValue />
+            <SelectValue>{availabilityLabel[props.availability]}</SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todas</SelectItem>
-            <SelectItem value="available">En existencia</SelectItem>
-            <SelectItem value="out_of_stock">Agotado</SelectItem>
+            <SelectItem value="all" label="Todas">
+              Todas
+            </SelectItem>
+            <SelectItem value="available" label="En existencia">
+              En existencia
+            </SelectItem>
+            <SelectItem value="out_of_stock" label="Agotado">
+              Agotado
+            </SelectItem>
           </SelectContent>
         </Select>
       </FilterSection>

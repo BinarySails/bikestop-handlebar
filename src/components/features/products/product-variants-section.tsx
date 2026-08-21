@@ -36,7 +36,7 @@ import type { Variant } from "@/lib/api/schemas";
 
 const PAGE_SIZE = 10;
 
-type ListStatusFilter = "all" | "enable" | "disable";
+type ListStatusFilter = "all" | "enable" | "disable" | "archive";
 
 const statusBadgeVariant: Record<
   Variant["status"],
@@ -57,6 +57,7 @@ const statusFilterLabel: Record<ListStatusFilter, string> = {
   all: "Todos",
   enable: "Activo",
   disable: "Inactivo",
+  archive: "Archivado",
 };
 
 function capitalizeFirst(value: string): string {
@@ -188,11 +189,17 @@ export function ProductVariantsSection({ productId }: { productId: string }) {
     isLoading,
     isValidating,
     mutate,
-  } = useListVariantsRequest(productId, undefined, {
-    swr: {
-      revalidateOnFocus: false,
+  } = useListVariantsRequest(
+    productId,
+    {
+      is_archived: status === "archive",
     },
-  });
+    {
+      swr: {
+        revalidateOnFocus: false,
+      },
+    }
+  );
 
   const allVariants = res?.status === 200 ? res.data : [];
   const hasError = Boolean(error) || Boolean(res && res.status !== 200);
@@ -337,6 +344,7 @@ export function ProductVariantsSection({ productId }: { productId: string }) {
                     <SelectItem value="all">Todos</SelectItem>
                     <SelectItem value="enable">Activo</SelectItem>
                     <SelectItem value="disable">Inactivo</SelectItem>
+                    <SelectItem value="archive">Archivado</SelectItem>
                   </SelectContent>
                 </Select>
                 <Button
