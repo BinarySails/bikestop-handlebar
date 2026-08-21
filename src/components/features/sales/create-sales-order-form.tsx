@@ -1206,7 +1206,14 @@ export function CreateSalesOrderForm({
                     disabled={dispatchingLineId !== null}
                   >
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Seleccionar almacén" />
+                      <SelectValue placeholder="Seleccionar almacén">
+                        {dispatchWarehouseId ? (
+                          <WarehouseName
+                            variantId={line?.variant_id}
+                            warehouseId={dispatchWarehouseId}
+                          />
+                        ) : null}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       {line?.warehouse_allocations.map((allocation) => {
