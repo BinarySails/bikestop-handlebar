@@ -322,6 +322,169 @@ export const UpdateCustomerRequestResponse = zod.object({
 })
 
 
+export const ListCustomerAddressesRequestParams = zod.object({
+  "user_id": zod.uuid().describe('User ID')
+})
+
+export const ListCustomerAddressesRequestResponseItem = zod.object({
+  "address_created_at": zod.iso.datetime({"offset":true}),
+  "address_id": zod.uuid(),
+  "city": zod.string(),
+  "contact_name": zod.string(),
+  "country": zod.string(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "customer_id": zod.uuid(),
+  "id": zod.uuid(),
+  "is_default_billing": zod.boolean(),
+  "is_default_shipping": zod.boolean(),
+  "phone": zod.string(),
+  "postal_code": zod.string(),
+  "state": zod.string(),
+  "status": zod.enum(['enable', 'disable', 'archive']),
+  "street_address": zod.string(),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+export const ListCustomerAddressesRequestResponse = zod.array(ListCustomerAddressesRequestResponseItem)
+
+
+export const CreateCustomerAddressRequestParams = zod.object({
+  "user_id": zod.uuid().describe('User ID')
+})
+
+export const CreateCustomerAddressRequestBody = zod.object({
+  "address": zod.string(),
+  "city": zod.string(),
+  "contact_name": zod.string(),
+  "country": zod.string(),
+  "phone": zod.string(),
+  "postal_code": zod.string(),
+  "state": zod.string()
+})
+
+export const CreateCustomerAddressRequestResponse = zod.object({
+  "address_created_at": zod.iso.datetime({"offset":true}),
+  "address_id": zod.uuid(),
+  "city": zod.string(),
+  "contact_name": zod.string(),
+  "country": zod.string(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "customer_id": zod.uuid(),
+  "id": zod.uuid(),
+  "is_default_billing": zod.boolean(),
+  "is_default_shipping": zod.boolean(),
+  "phone": zod.string(),
+  "postal_code": zod.string(),
+  "state": zod.string(),
+  "status": zod.enum(['enable', 'disable', 'archive']),
+  "street_address": zod.string(),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+
+
+export const DeleteCustomerAddressRequestParams = zod.object({
+  "user_id": zod.uuid().describe('User ID'),
+  "address_id": zod.uuid().describe('Customer address ID')
+})
+
+export const DeleteCustomerAddressRequestResponse = zod.object({
+  "address_id": zod.uuid(),
+  "contact_name": zod.string(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "customer_id": zod.uuid(),
+  "id": zod.uuid(),
+  "is_default_billing": zod.boolean(),
+  "is_default_shipping": zod.boolean(),
+  "phone": zod.string(),
+  "status": zod.enum(['enable', 'disable', 'archive']),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+
+
+export const UpdateCustomerAddressRequestParams = zod.object({
+  "user_id": zod.uuid().describe('User ID'),
+  "address_id": zod.uuid().describe('Customer address ID')
+})
+
+export const UpdateCustomerAddressRequestBody = zod.object({
+  "address": zod.string(),
+  "city": zod.string(),
+  "contact_name": zod.string(),
+  "country": zod.string(),
+  "phone": zod.string(),
+  "postal_code": zod.string(),
+  "state": zod.string()
+})
+
+export const UpdateCustomerAddressRequestResponse = zod.object({
+  "address_created_at": zod.iso.datetime({"offset":true}),
+  "address_id": zod.uuid(),
+  "city": zod.string(),
+  "contact_name": zod.string(),
+  "country": zod.string(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "customer_id": zod.uuid(),
+  "id": zod.uuid(),
+  "is_default_billing": zod.boolean(),
+  "is_default_shipping": zod.boolean(),
+  "phone": zod.string(),
+  "postal_code": zod.string(),
+  "state": zod.string(),
+  "status": zod.enum(['enable', 'disable', 'archive']),
+  "street_address": zod.string(),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+
+
+export const SetDefaultBillingAddressRequestParams = zod.object({
+  "user_id": zod.uuid().describe('User ID'),
+  "address_id": zod.uuid().describe('Customer address ID')
+})
+
+export const SetDefaultBillingAddressRequestResponse = zod.object({
+  "address_created_at": zod.iso.datetime({"offset":true}),
+  "address_id": zod.uuid(),
+  "city": zod.string(),
+  "contact_name": zod.string(),
+  "country": zod.string(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "customer_id": zod.uuid(),
+  "id": zod.uuid(),
+  "is_default_billing": zod.boolean(),
+  "is_default_shipping": zod.boolean(),
+  "phone": zod.string(),
+  "postal_code": zod.string(),
+  "state": zod.string(),
+  "status": zod.enum(['enable', 'disable', 'archive']),
+  "street_address": zod.string(),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+
+
+export const SetDefaultShippingAddressRequestParams = zod.object({
+  "user_id": zod.uuid().describe('User ID'),
+  "address_id": zod.uuid().describe('Customer address ID')
+})
+
+export const SetDefaultShippingAddressRequestResponse = zod.object({
+  "address_created_at": zod.iso.datetime({"offset":true}),
+  "address_id": zod.uuid(),
+  "city": zod.string(),
+  "contact_name": zod.string(),
+  "country": zod.string(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "customer_id": zod.uuid(),
+  "id": zod.uuid(),
+  "is_default_billing": zod.boolean(),
+  "is_default_shipping": zod.boolean(),
+  "phone": zod.string(),
+  "postal_code": zod.string(),
+  "state": zod.string(),
+  "status": zod.enum(['enable', 'disable', 'archive']),
+  "street_address": zod.string(),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+
+
 export const UpdateCustomerStatusRequestParams = zod.object({
   "user_id": zod.uuid().describe('User ID')
 })
