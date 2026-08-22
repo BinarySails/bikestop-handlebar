@@ -27,10 +27,7 @@ import {
   useListStatesRequest,
   useUpdateCustomerAddressRequest,
 } from "@/lib/api/api";
-import type {
-  CustomerAddressWithAddressRow,
-  State,
-} from "@/lib/api/schemas";
+import type { CustomerAddressWithAddressRow, State } from "@/lib/api/schemas";
 
 const DEFAULT_COUNTRY = "México";
 const EMPTY_STATES: State[] = [];
@@ -52,7 +49,8 @@ function getErrorMessage(data: unknown, fallback: string) {
   if (!data || typeof data !== "object") return fallback;
 
   const error = data as { message?: unknown };
-  if (typeof error.message !== "string" || !error.message.trim()) return fallback;
+  if (typeof error.message !== "string" || !error.message.trim())
+    return fallback;
 
   const translations: Record<string, string> = {
     "customer not found": "No se encontró tu perfil de cliente",
@@ -95,7 +93,9 @@ export function CustomerAddressFormDialog({
   const { data: statesResponse, isLoading: isLoadingStates } =
     useListStatesRequest();
   const states =
-    statesResponse?.status === 200 ? (statesResponse.data ?? EMPTY_STATES) : EMPTY_STATES;
+    statesResponse?.status === 200
+      ? (statesResponse.data ?? EMPTY_STATES)
+      : EMPTY_STATES;
   const statesReady = statesResponse?.status === 200;
 
   return (

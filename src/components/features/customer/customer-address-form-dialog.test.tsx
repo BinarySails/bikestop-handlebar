@@ -105,9 +105,7 @@ describe("CustomerAddressFormDialog", () => {
     expect(
       await screen.findByText("El nombre de contacto es obligatorio")
     ).toBeTruthy();
-    expect(
-      screen.getByText("El teléfono es obligatorio")
-    ).toBeTruthy();
+    expect(screen.getByText("El teléfono es obligatorio")).toBeTruthy();
     expect(createTriggerMock).not.toHaveBeenCalled();
   });
 

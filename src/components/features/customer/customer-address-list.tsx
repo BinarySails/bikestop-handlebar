@@ -25,7 +25,8 @@ function getErrorMessage(data: unknown, fallback: string) {
   if (!data || typeof data !== "object") return fallback;
 
   const error = data as { message?: unknown };
-  if (typeof error.message !== "string" || !error.message.trim()) return fallback;
+  if (typeof error.message !== "string" || !error.message.trim())
+    return fallback;
 
   const translations: Record<string, string> = {
     "address not found": "No se encontró la dirección",
@@ -104,7 +105,9 @@ function CustomerAddressCard({
         onChanged();
         return;
       }
-      toast.error(getErrorMessage(result.data, "No se pudo eliminar la dirección"));
+      toast.error(
+        getErrorMessage(result.data, "No se pudo eliminar la dirección")
+      );
     } finally {
       setPending(false);
     }

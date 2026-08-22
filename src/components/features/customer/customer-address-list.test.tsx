@@ -142,7 +142,9 @@ describe("CustomerAddressList", () => {
       screen.getByRole("button", { name: "Envío predeterminado" })
     );
 
-    await waitFor(() => expect(setDefaultShippingTriggerMock).toHaveBeenCalled());
+    await waitFor(() =>
+      expect(setDefaultShippingTriggerMock).toHaveBeenCalled()
+    );
     expect(onChanged).toHaveBeenCalled();
     expect(notifications.success).toHaveBeenCalledWith(
       "Dirección marcada como envío predeterminado"
@@ -174,7 +176,11 @@ describe("CustomerAddressList", () => {
       data: { type: "error", message: "address not found" },
     });
     render(
-      <CustomerAddressList userId="user-1" addresses={[address()]} onChanged={vi.fn()} />
+      <CustomerAddressList
+        userId="user-1"
+        addresses={[address()]}
+        onChanged={vi.fn()}
+      />
     );
 
     fireEvent.click(screen.getByRole("button", { name: "Eliminar dirección" }));
