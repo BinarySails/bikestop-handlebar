@@ -5,18 +5,10 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { AddressSnapshot } from './addressSnapshot.ts';
-import type { CustomerId } from './customerId.ts';
-import type { OrderTagId } from './orderTagId.ts';
-import type { PaymentTermId } from './paymentTermId.ts';
 
 export interface CheckoutCartRequest {
   billing_address: AddressSnapshot;
   /** @nullable */
   comments?: string | null;
-  customer_id: CustomerId;
-  order_date: string;
-  payment_term_id?: null | PaymentTermId;
   shipping_address: AddressSnapshot;
-  /** @nullable */
-  tag_ids?: OrderTagId[] | null;
 }

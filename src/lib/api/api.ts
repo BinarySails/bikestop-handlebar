@@ -386,6 +386,11 @@ export type getCartHandlerResponse200 = {
   status: 200
 }
 
+export type getCartHandlerResponse401 = {
+  data: ErrorResponse
+  status: 401
+}
+
 export type getCartHandlerResponse404 = {
   data: void
   status: 404
@@ -399,7 +404,7 @@ export type getCartHandlerResponse500 = {
 export type getCartHandlerResponseSuccess = (getCartHandlerResponse200) & {
   headers: Headers;
 };
-export type getCartHandlerResponseError = (getCartHandlerResponse404 | getCartHandlerResponse500) & {
+export type getCartHandlerResponseError = (getCartHandlerResponse401 | getCartHandlerResponse404 | getCartHandlerResponse500) & {
   headers: Headers;
 };
 
@@ -439,7 +444,7 @@ export const getGetCartHandlerKey = () => [`http://localhost:8080/api/v1/cart`] 
 
 export type GetCartHandlerQueryResult = NonNullable<Awaited<ReturnType<typeof getCartHandler>>>
 
-export const useGetCartHandler = <TError = Promise<void | ErrorResponse>>(
+export const useGetCartHandler = <TError = Promise<ErrorResponse | void>>(
    options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getCartHandler>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
 ) => {
   const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
@@ -461,6 +466,11 @@ export type clearCartHandlerResponse204 = {
   status: 204
 }
 
+export type clearCartHandlerResponse401 = {
+  data: ErrorResponse
+  status: 401
+}
+
 export type clearCartHandlerResponse404 = {
   data: void
   status: 404
@@ -474,7 +484,7 @@ export type clearCartHandlerResponse500 = {
 export type clearCartHandlerResponseSuccess = (clearCartHandlerResponse204) & {
   headers: Headers;
 };
-export type clearCartHandlerResponseError = (clearCartHandlerResponse404 | clearCartHandlerResponse500) & {
+export type clearCartHandlerResponseError = (clearCartHandlerResponse401 | clearCartHandlerResponse404 | clearCartHandlerResponse500) & {
   headers: Headers;
 };
 
@@ -519,7 +529,7 @@ export const getClearCartHandlerMutationKey = () => [`http://localhost:8080/api/
 
 export type ClearCartHandlerMutationResult = NonNullable<Awaited<ReturnType<typeof clearCartHandler>>>
 
-export const useClearCartHandler = <TError = Promise<void | ErrorResponse>>(
+export const useClearCartHandler = <TError = Promise<ErrorResponse | void>>(
    options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof clearCartHandler>>, TError, Key, Arguments, Awaited<ReturnType<typeof clearCartHandler>>> & { swrKey?: string }, fetch?: RequestInit}
 ) => {
 
@@ -546,6 +556,11 @@ export type checkoutCartHandlerResponse400 = {
   status: 400
 }
 
+export type checkoutCartHandlerResponse401 = {
+  data: ErrorResponse
+  status: 401
+}
+
 export type checkoutCartHandlerResponse404 = {
   data: ErrorResponse
   status: 404
@@ -559,7 +574,7 @@ export type checkoutCartHandlerResponse500 = {
 export type checkoutCartHandlerResponseSuccess = (checkoutCartHandlerResponse201) & {
   headers: Headers;
 };
-export type checkoutCartHandlerResponseError = (checkoutCartHandlerResponse400 | checkoutCartHandlerResponse404 | checkoutCartHandlerResponse500) & {
+export type checkoutCartHandlerResponseError = (checkoutCartHandlerResponse400 | checkoutCartHandlerResponse401 | checkoutCartHandlerResponse404 | checkoutCartHandlerResponse500) & {
   headers: Headers;
 };
 
@@ -631,6 +646,11 @@ export type addToCartHandlerResponse400 = {
   status: 400
 }
 
+export type addToCartHandlerResponse401 = {
+  data: ErrorResponse
+  status: 401
+}
+
 export type addToCartHandlerResponse404 = {
   data: ErrorResponse
   status: 404
@@ -644,7 +664,7 @@ export type addToCartHandlerResponse500 = {
 export type addToCartHandlerResponseSuccess = (addToCartHandlerResponse201) & {
   headers: Headers;
 };
-export type addToCartHandlerResponseError = (addToCartHandlerResponse400 | addToCartHandlerResponse404 | addToCartHandlerResponse500) & {
+export type addToCartHandlerResponseError = (addToCartHandlerResponse400 | addToCartHandlerResponse401 | addToCartHandlerResponse404 | addToCartHandlerResponse500) & {
   headers: Headers;
 };
 
@@ -711,6 +731,11 @@ export type removeCartItemHandlerResponse204 = {
   status: 204
 }
 
+export type removeCartItemHandlerResponse401 = {
+  data: ErrorResponse
+  status: 401
+}
+
 export type removeCartItemHandlerResponse404 = {
   data: void
   status: 404
@@ -724,7 +749,7 @@ export type removeCartItemHandlerResponse500 = {
 export type removeCartItemHandlerResponseSuccess = (removeCartItemHandlerResponse204) & {
   headers: Headers;
 };
-export type removeCartItemHandlerResponseError = (removeCartItemHandlerResponse404 | removeCartItemHandlerResponse500) & {
+export type removeCartItemHandlerResponseError = (removeCartItemHandlerResponse401 | removeCartItemHandlerResponse404 | removeCartItemHandlerResponse500) & {
   headers: Headers;
 };
 
@@ -769,7 +794,7 @@ export const getRemoveCartItemHandlerMutationKey = (itemId: CartItemId,) => [`ht
 
 export type RemoveCartItemHandlerMutationResult = NonNullable<Awaited<ReturnType<typeof removeCartItemHandler>>>
 
-export const useRemoveCartItemHandler = <TError = Promise<void | ErrorResponse>>(
+export const useRemoveCartItemHandler = <TError = Promise<ErrorResponse | void>>(
   itemId: CartItemId, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof removeCartItemHandler>>, TError, Key, Arguments, Awaited<ReturnType<typeof removeCartItemHandler>>> & { swrKey?: string }, fetch?: RequestInit}
 ) => {
 
@@ -796,6 +821,11 @@ export type updateCartItemHandlerResponse400 = {
   status: 400
 }
 
+export type updateCartItemHandlerResponse401 = {
+  data: ErrorResponse
+  status: 401
+}
+
 export type updateCartItemHandlerResponse404 = {
   data: ErrorResponse
   status: 404
@@ -809,7 +839,7 @@ export type updateCartItemHandlerResponse500 = {
 export type updateCartItemHandlerResponseSuccess = (updateCartItemHandlerResponse200) & {
   headers: Headers;
 };
-export type updateCartItemHandlerResponseError = (updateCartItemHandlerResponse400 | updateCartItemHandlerResponse404 | updateCartItemHandlerResponse500) & {
+export type updateCartItemHandlerResponseError = (updateCartItemHandlerResponse400 | updateCartItemHandlerResponse401 | updateCartItemHandlerResponse404 | updateCartItemHandlerResponse500) & {
   headers: Headers;
 };
 

@@ -25,6 +25,12 @@ import type {
 export type CartItem = CartItemResponse;
 export type Cart = GetCartResponse;
 
+/**
+ * Payload del checkout: el backend deduce el customer_id de la sesión,
+ * usa "Due on receipt" como término de pago y la fecha actual.
+ */
+export type CheckoutCartPayload = CheckoutCartRequest;
+
 // ---------------------------------------------------------------------------
 // Hooks (backend cart)
 // ---------------------------------------------------------------------------
@@ -166,7 +172,7 @@ export function useCheckoutCart() {
   const cartMutate = useCartMutate();
 
   const trigger = useCallback(
-    async (payload: CheckoutCartRequest) => {
+    async (payload: CheckoutCartPayload) => {
       setIsMutating(true);
       try {
         const res = await checkoutCartHandler(payload);

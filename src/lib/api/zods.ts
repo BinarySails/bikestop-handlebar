@@ -134,17 +134,13 @@ export const CheckoutCartHandlerBody = zod.object({
   "state": zod.string()
 }),
   "comments": zod.string().nullish(),
-  "customer_id": zod.uuid(),
-  "order_date": zod.iso.datetime({"offset":true}),
-  "payment_term_id": zod.union([zod.null(),zod.uuid()]).optional(),
   "shipping_address": zod.object({
   "address": zod.string(),
   "city": zod.string(),
   "country": zod.string(),
   "postal_code": zod.string(),
   "state": zod.string()
-}),
-  "tag_ids": zod.array(zod.uuid()).nullish()
+})
 })
 
 export const CheckoutCartHandlerResponse = zod.object({

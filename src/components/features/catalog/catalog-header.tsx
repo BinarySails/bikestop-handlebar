@@ -1,4 +1,4 @@
-import { useNavigate } from "@tanstack/react-router";
+giimport { useNavigate } from "@tanstack/react-router";
 import { ShoppingCart } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";

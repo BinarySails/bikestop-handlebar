@@ -4,9 +4,6 @@ import { useForm } from "@tanstack/react-form";
 import { z } from "zod";
 import { toast } from "sonner";
 
-import { CustomerCombobox } from "@/components/features/sales/customer-combobox";
-import { PaymentTermSelect } from "@/components/features/sales/payment-term-select";
-import { OrderTagsSelect } from "@/components/features/sales/tags/order-tags-select";
 import {
   CountrySelect,
   DEFAULT_COUNTRY,
@@ -15,7 +12,6 @@ import { StateSelect } from "@/components/features/locations/state-select";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { DatePicker } from "@/components/ui/date-picker";
 import {
   Dialog,
   DialogContent,
@@ -26,18 +22,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import type {
-  OrderTagId,
-  PaginatedCustomerSummaryDataItem,
-  PaymentTerm,
-} from "@/lib/api/schemas";
 import { useCheckoutCart } from "@/lib/cart/use-cart";
-import { computeDueDate, formatDueDate } from "@/lib/dates";
-
-const UUID_REGEX =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-const lenientUuid = z.string().regex(UUID_REGEX, "Invalid UUID");
 
 const addressSnapshotSchema = z.object({
   address: z.string(),
@@ -50,11 +35,7 @@ const addressSnapshotSchema = z.object({
 const CheckoutPayloadSchema = z.object({
   billing_address: addressSnapshotSchema,
   comments: z.string().nullish(),
-  customer_id: lenientUuid,
-  order_date: z.iso.datetime({ offset: true }),
-  payment_term_id: z.union([z.null(), lenientUuid]).optional(),
   shipping_address: addressSnapshotSchema,
-  tag_ids: z.array(lenientUuid).nullish(),
 });
 
 type AddressFormValues = {
@@ -66,14 +47,10 @@ type AddressFormValues = {
 };
 
 type CheckoutFormValues = {
-  customer: PaginatedCustomerSummaryDataItem | null;
   billing: AddressFormValues;
   shipping_same_as_billing: boolean;
   shipping: AddressFormValues;
-  order_date: Date;
-  payment_term: PaymentTerm | null;
   comments: string;
-  tag_ids: OrderTagId[];
 };
 
 function validateRequired(
@@ -97,47 +74,11 @@ const defaultAddress: AddressFormValues = {
 };
 
 const defaultValues: CheckoutFormValues = {
-  customer: null,
   billing: defaultAddress,
   shipping_same_as_billing: true,
   shipping: defaultAddress,
-  order_date: new Date(),
-  payment_term: null,
   comments: "",
-  tag_ids: [],
 };
-
-function PaymentTermField({
-  fieldName,
-  value: selected,
-  onChange,
-  orderDate,
-}: {
-  fieldName: string;
-  value: PaymentTerm | null;
-  onChange: (next: PaymentTerm | null) => void;
-  orderDate: Date;
-}) {
-  const dueDate = selected
-    ? computeDueDate(orderDate.toISOString(), selected.days_until_due ?? null)
-    : null;
-
-  return (
-    <div className="grid gap-1.5">
-      <Label htmlFor={fieldName}>Término de pago</Label>
-      <PaymentTermSelect id={fieldName} value={selected} onChange={onChange} />
-      {selected && dueDate ? (
-        <p className="text-xs text-muted-foreground">
-          Vence el {formatDueDate(dueDate)}
-        </p>
-      ) : selected?.type === "due_on_receipt" ? (
-        <p className="text-xs text-muted-foreground">
-          Vencimiento inmediato al recibir la factura.
-        </p>
-      ) : null}
-    </div>
-  );
-}
 
 function CheckoutForm({ onDone }: { onDone?: () => void }) {
   const navigate = useNavigate();
@@ -146,11 +87,6 @@ function CheckoutForm({ onDone }: { onDone?: () => void }) {
   const form = useForm({
     defaultValues,
     onSubmit: async ({ value }) => {
-      if (!value.customer) {
-        toast.error("Selecciona un cliente.");
-        return;
-      }
-
       const billingAddress = {
         country: value.billing.country.trim(),
         state: value.billing.state.trim(),
@@ -170,13 +106,9 @@ function CheckoutForm({ onDone }: { onDone?: () => void }) {
           };
 
       const payload = {
-        customer_id: value.customer.id,
         billing_address: billingAddress,
         shipping_address: shippingAddress,
-        order_date: value.order_date.toISOString(),
-        payment_term_id: value.payment_term?.id,
         comments: value.comments.trim() || null,
-        tag_ids: value.tag_ids.length > 0 ? value.tag_ids : null,
       };
 
       const parseResult = await CheckoutPayloadSchema.safeParseAsync(payload);
@@ -361,39 +293,6 @@ function CheckoutForm({ onDone }: { onDone?: () => void }) {
       }}
       className="space-y-6"
     >
-      <Card>
-        <CardHeader>
-          <CardTitle>Cliente</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form.Field
-            name="customer"
-            validators={{
-              onSubmit: ({ value }) => {
-                if (!value) return "Selecciona un cliente.";
-                return undefined;
-              },
-            }}
-          >
-            {(field) => (
-              <div className="grid gap-1.5">
-                <Label htmlFor={field.name}>Cliente</Label>
-                <CustomerCombobox
-                  id={field.name}
-                  value={field.state.value}
-                  onChange={(customer) => field.handleChange(customer)}
-                />
-                {field.state.meta.errors[0] && (
-                  <p className="text-xs text-destructive">
-                    {field.state.meta.errors[0]}
-                  </p>
-                )}
-              </div>
-            )}
-          </form.Field>
-        </CardContent>
-      </Card>
-
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
@@ -442,76 +341,30 @@ function CheckoutForm({ onDone }: { onDone?: () => void }) {
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Detalles de la orden</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-4 sm:grid-cols-2">
-          <form.Field name="order_date">
-            {(field) => (
-              <Label className="grid items-start gap-1.5">
-                <span>Fecha de orden</span>
-                <DatePicker
-                  value={field.state.value}
-                  onChange={(date) => field.handleChange(date ?? new Date())}
-                  placeholder="Seleccionar fecha"
-                />
-              </Label>
-            )}
-          </form.Field>
-
-          <form.Field name="payment_term">
-            {(field) => (
-              <PaymentTermField
-                fieldName={field.name}
-                value={field.state.value}
-                onChange={(next) => field.handleChange(next)}
-                orderDate={form.state.values.order_date}
-              />
-            )}
-          </form.Field>
-
-          <form.Field name="comments">
-            {(field) => (
-              <div className="grid gap-1.5 sm:col-span-2">
-                <Label htmlFor={field.name}>Comentarios</Label>
-                <Textarea
-                  id={field.name}
-                  value={field.state.value}
-                  onChange={(event) => field.handleChange(event.target.value)}
-                  placeholder="Notas u observaciones de la orden"
-                  rows={3}
-                />
-              </div>
-            )}
-          </form.Field>
-
-          <form.Field name="tag_ids">
-            {(field) => (
-              <div className="grid gap-1.5 sm:col-span-2">
-                <Label htmlFor="checkout-tags">Etiquetas</Label>
-                <OrderTagsSelect
-                  id="checkout-tags"
-                  value={field.state.value}
-                  onChange={field.handleChange}
-                  placeholder="Seleccionar etiquetas"
-                  activeOnly
-                />
-              </div>
-            )}
-          </form.Field>
-
-          <div className="flex justify-end gap-3 sm:col-span-2">
-            <Button
-              type="submit"
-              className="bg-amber-500 text-black hover:bg-amber-600"
-              disabled={isMutating}
-            >
-              {isMutating ? "Confirmando..." : "Confirmar pedido"}
-            </Button>
+      <form.Field name="comments">
+        {(field) => (
+          <div className="grid gap-1.5">
+            <Label htmlFor={field.name}>Comentarios</Label>
+            <Textarea
+              id={field.name}
+              value={field.state.value}
+              onChange={(event) => field.handleChange(event.target.value)}
+              placeholder="Notas u observaciones de la orden"
+              rows={3}
+            />
           </div>
-        </CardContent>
-      </Card>
+        )}
+      </form.Field>
+
+      <div className="flex justify-end">
+        <Button
+          type="submit"
+          className="bg-amber-500 text-black hover:bg-amber-600"
+          disabled={isMutating}
+        >
+          {isMutating ? "Confirmando..." : "Confirmar pedido"}
+        </Button>
+      </div>
     </form>
   );
 }
