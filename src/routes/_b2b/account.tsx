@@ -6,13 +6,9 @@ import { CustomerAddressList } from "@/components/features/customer/customer-add
 import { EntityCreateButton } from "@/components/features/entity/entity-create-button";
 import { Button } from "@/components/ui/button";
 import { useListCustomerAddressesRequest } from "@/lib/api/api";
-import { requireAuth } from "@/lib/auth/require-auth";
 import { useAuthStore } from "@/lib/auth/use-auth-store";
 
 export const Route = createFileRoute("/_b2b/account")({
-  beforeLoad: async ({ location }) => {
-    await requireAuth({ location, navigateTo: "/login" });
-  },
   component: AccountPage,
 });
 

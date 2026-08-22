@@ -18,6 +18,8 @@ import type {
 
 import type {
   AddSalesOrderCommentRequest,
+  AddToCartRequest,
+  AddToCartResponse,
   ApplyPromotionsRequest,
   AssignPermissionsRequest,
   AssignPermissionsResponse,
@@ -28,11 +30,13 @@ import type {
   AuthUser,
   Brand,
   BrandId,
+  CartItemId,
   CatalogProduct,
   Category,
   CategoryId,
   ChangeRoleStatusRequest,
   ChangeRoleStatusResponse,
+  CheckoutCartRequest,
   CreateBrandRequest,
   CreateCategoryRequest,
   CreateCustomerAddressRequest,
@@ -67,6 +71,7 @@ import type {
   DispatchSalesOrderLineResult,
   ErrorResponse,
   FileId,
+  GetCartResponse,
   GetCategoriesRequestParams,
   GetCategoriesResponse,
   GetCategoryByIdResponse,
@@ -122,6 +127,8 @@ import type {
   State,
   StateId,
   UpdateBrandRequest,
+  UpdateCartItemRequest,
+  UpdateCartItemResponse,
   UpdateCategoryRequest,
   UpdateCategoryResponse,
   UpdateCustomerAddressRequest,
@@ -372,6 +379,527 @@ export const useMeHandler = <TError = Promise<void>>(
   const swrFn = () => meHandler(fetchOptions)
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type getCartHandlerResponse200 = {
+  data: GetCartResponse
+  status: 200
+}
+
+export type getCartHandlerResponse401 = {
+  data: ErrorResponse
+  status: 401
+}
+
+export type getCartHandlerResponse404 = {
+  data: void
+  status: 404
+}
+
+export type getCartHandlerResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type getCartHandlerResponseSuccess = (getCartHandlerResponse200) & {
+  headers: Headers;
+};
+export type getCartHandlerResponseError = (getCartHandlerResponse401 | getCartHandlerResponse404 | getCartHandlerResponse500) & {
+  headers: Headers;
+};
+
+export type getCartHandlerResponse = (getCartHandlerResponseSuccess | getCartHandlerResponseError)
+
+export const getGetCartHandlerUrl = () => {
+
+
+
+
+  return `http://localhost:8080/api/v1/cart`
+}
+
+export const getCartHandler = async ( options?: RequestInit): Promise<getCartHandlerResponse> => {
+
+  const res = await fetch(getGetCartHandlerUrl(),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'GET'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: getCartHandlerResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as getCartHandlerResponse
+}
+
+
+
+
+export const getGetCartHandlerKey = () => [`http://localhost:8080/api/v1/cart`] as const;
+
+export type GetCartHandlerQueryResult = NonNullable<Awaited<ReturnType<typeof getCartHandler>>>
+
+export const useGetCartHandler = <TError = Promise<ErrorResponse | void>>(
+   options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getCartHandler>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
+) => {
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetCartHandlerKey() : null);
+  const swrFn = () => getCartHandler(fetchOptions)
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type clearCartHandlerResponse204 = {
+  data: void
+  status: 204
+}
+
+export type clearCartHandlerResponse401 = {
+  data: ErrorResponse
+  status: 401
+}
+
+export type clearCartHandlerResponse404 = {
+  data: void
+  status: 404
+}
+
+export type clearCartHandlerResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type clearCartHandlerResponseSuccess = (clearCartHandlerResponse204) & {
+  headers: Headers;
+};
+export type clearCartHandlerResponseError = (clearCartHandlerResponse401 | clearCartHandlerResponse404 | clearCartHandlerResponse500) & {
+  headers: Headers;
+};
+
+export type clearCartHandlerResponse = (clearCartHandlerResponseSuccess | clearCartHandlerResponseError)
+
+export const getClearCartHandlerUrl = () => {
+
+
+
+
+  return `http://localhost:8080/api/v1/cart`
+}
+
+export const clearCartHandler = async ( options?: RequestInit): Promise<clearCartHandlerResponse> => {
+
+  const res = await fetch(getClearCartHandlerUrl(),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'DELETE'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: clearCartHandlerResponse['data'] = body ? JSON.parse(body) : undefined
+  return { data, status: res.status, headers: res.headers } as clearCartHandlerResponse
+}
+
+
+
+
+export const getClearCartHandlerMutationFetcher = ( options?: RequestInit) => {
+  return (_: Key, __: { arg: Arguments }) => {
+    return clearCartHandler(options);
+  }
+}
+export const getClearCartHandlerMutationKey = () => [`http://localhost:8080/api/v1/cart`] as const;
+
+export type ClearCartHandlerMutationResult = NonNullable<Awaited<ReturnType<typeof clearCartHandler>>>
+
+export const useClearCartHandler = <TError = Promise<ErrorResponse | void>>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof clearCartHandler>>, TError, Key, Arguments, Awaited<ReturnType<typeof clearCartHandler>>> & { swrKey?: string }, fetch?: RequestInit}
+) => {
+
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getClearCartHandlerMutationKey();
+  const swrFn = getClearCartHandlerMutationFetcher(fetchOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type checkoutCartHandlerResponse201 = {
+  data: SalesOrder
+  status: 201
+}
+
+export type checkoutCartHandlerResponse400 = {
+  data: ErrorResponse
+  status: 400
+}
+
+export type checkoutCartHandlerResponse401 = {
+  data: ErrorResponse
+  status: 401
+}
+
+export type checkoutCartHandlerResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type checkoutCartHandlerResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type checkoutCartHandlerResponseSuccess = (checkoutCartHandlerResponse201) & {
+  headers: Headers;
+};
+export type checkoutCartHandlerResponseError = (checkoutCartHandlerResponse400 | checkoutCartHandlerResponse401 | checkoutCartHandlerResponse404 | checkoutCartHandlerResponse500) & {
+  headers: Headers;
+};
+
+export type checkoutCartHandlerResponse = (checkoutCartHandlerResponseSuccess | checkoutCartHandlerResponseError)
+
+export const getCheckoutCartHandlerUrl = () => {
+
+
+
+
+  return `http://localhost:8080/api/v1/cart/checkout`
+}
+
+export const checkoutCartHandler = async (checkoutCartRequest: CheckoutCartRequest, options?: RequestInit): Promise<checkoutCartHandlerResponse> => {
+
+  const res = await fetch(getCheckoutCartHandlerUrl(),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(checkoutCartRequest)
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: checkoutCartHandlerResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as checkoutCartHandlerResponse
+}
+
+
+
+
+export const getCheckoutCartHandlerMutationFetcher = ( options?: RequestInit) => {
+  return (_: Key, { arg }: { arg: CheckoutCartRequest }) => {
+    return checkoutCartHandler(arg, options);
+  }
+}
+export const getCheckoutCartHandlerMutationKey = () => [`http://localhost:8080/api/v1/cart/checkout`] as const;
+
+export type CheckoutCartHandlerMutationResult = NonNullable<Awaited<ReturnType<typeof checkoutCartHandler>>>
+
+export const useCheckoutCartHandler = <TError = Promise<ErrorResponse>>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof checkoutCartHandler>>, TError, Key, CheckoutCartRequest, Awaited<ReturnType<typeof checkoutCartHandler>>> & { swrKey?: string }, fetch?: RequestInit}
+) => {
+
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getCheckoutCartHandlerMutationKey();
+  const swrFn = getCheckoutCartHandlerMutationFetcher(fetchOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type addToCartHandlerResponse201 = {
+  data: AddToCartResponse
+  status: 201
+}
+
+export type addToCartHandlerResponse400 = {
+  data: ErrorResponse
+  status: 400
+}
+
+export type addToCartHandlerResponse401 = {
+  data: ErrorResponse
+  status: 401
+}
+
+export type addToCartHandlerResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type addToCartHandlerResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type addToCartHandlerResponseSuccess = (addToCartHandlerResponse201) & {
+  headers: Headers;
+};
+export type addToCartHandlerResponseError = (addToCartHandlerResponse400 | addToCartHandlerResponse401 | addToCartHandlerResponse404 | addToCartHandlerResponse500) & {
+  headers: Headers;
+};
+
+export type addToCartHandlerResponse = (addToCartHandlerResponseSuccess | addToCartHandlerResponseError)
+
+export const getAddToCartHandlerUrl = () => {
+
+
+
+
+  return `http://localhost:8080/api/v1/cart/items`
+}
+
+export const addToCartHandler = async (addToCartRequest: AddToCartRequest, options?: RequestInit): Promise<addToCartHandlerResponse> => {
+
+  const res = await fetch(getAddToCartHandlerUrl(),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(addToCartRequest)
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: addToCartHandlerResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as addToCartHandlerResponse
+}
+
+
+
+
+export const getAddToCartHandlerMutationFetcher = ( options?: RequestInit) => {
+  return (_: Key, { arg }: { arg: AddToCartRequest }) => {
+    return addToCartHandler(arg, options);
+  }
+}
+export const getAddToCartHandlerMutationKey = () => [`http://localhost:8080/api/v1/cart/items`] as const;
+
+export type AddToCartHandlerMutationResult = NonNullable<Awaited<ReturnType<typeof addToCartHandler>>>
+
+export const useAddToCartHandler = <TError = Promise<ErrorResponse>>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof addToCartHandler>>, TError, Key, AddToCartRequest, Awaited<ReturnType<typeof addToCartHandler>>> & { swrKey?: string }, fetch?: RequestInit}
+) => {
+
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getAddToCartHandlerMutationKey();
+  const swrFn = getAddToCartHandlerMutationFetcher(fetchOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type removeCartItemHandlerResponse204 = {
+  data: void
+  status: 204
+}
+
+export type removeCartItemHandlerResponse401 = {
+  data: ErrorResponse
+  status: 401
+}
+
+export type removeCartItemHandlerResponse404 = {
+  data: void
+  status: 404
+}
+
+export type removeCartItemHandlerResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type removeCartItemHandlerResponseSuccess = (removeCartItemHandlerResponse204) & {
+  headers: Headers;
+};
+export type removeCartItemHandlerResponseError = (removeCartItemHandlerResponse401 | removeCartItemHandlerResponse404 | removeCartItemHandlerResponse500) & {
+  headers: Headers;
+};
+
+export type removeCartItemHandlerResponse = (removeCartItemHandlerResponseSuccess | removeCartItemHandlerResponseError)
+
+export const getRemoveCartItemHandlerUrl = (itemId: CartItemId,) => {
+
+
+
+
+  return `http://localhost:8080/api/v1/cart/items/${itemId}`
+}
+
+export const removeCartItemHandler = async (itemId: CartItemId, options?: RequestInit): Promise<removeCartItemHandlerResponse> => {
+
+  const res = await fetch(getRemoveCartItemHandlerUrl(itemId),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'DELETE'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: removeCartItemHandlerResponse['data'] = body ? JSON.parse(body) : undefined
+  return { data, status: res.status, headers: res.headers } as removeCartItemHandlerResponse
+}
+
+
+
+
+export const getRemoveCartItemHandlerMutationFetcher = (itemId: CartItemId, options?: RequestInit) => {
+  return (_: Key, __: { arg: Arguments }) => {
+    return removeCartItemHandler(itemId, options);
+  }
+}
+export const getRemoveCartItemHandlerMutationKey = (itemId: CartItemId,) => [`http://localhost:8080/api/v1/cart/items/${itemId}`] as const;
+
+export type RemoveCartItemHandlerMutationResult = NonNullable<Awaited<ReturnType<typeof removeCartItemHandler>>>
+
+export const useRemoveCartItemHandler = <TError = Promise<ErrorResponse | void>>(
+  itemId: CartItemId, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof removeCartItemHandler>>, TError, Key, Arguments, Awaited<ReturnType<typeof removeCartItemHandler>>> & { swrKey?: string }, fetch?: RequestInit}
+) => {
+
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getRemoveCartItemHandlerMutationKey(itemId);
+  const swrFn = getRemoveCartItemHandlerMutationFetcher(itemId, fetchOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type updateCartItemHandlerResponse200 = {
+  data: UpdateCartItemResponse
+  status: 200
+}
+
+export type updateCartItemHandlerResponse400 = {
+  data: ErrorResponse
+  status: 400
+}
+
+export type updateCartItemHandlerResponse401 = {
+  data: ErrorResponse
+  status: 401
+}
+
+export type updateCartItemHandlerResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type updateCartItemHandlerResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type updateCartItemHandlerResponseSuccess = (updateCartItemHandlerResponse200) & {
+  headers: Headers;
+};
+export type updateCartItemHandlerResponseError = (updateCartItemHandlerResponse400 | updateCartItemHandlerResponse401 | updateCartItemHandlerResponse404 | updateCartItemHandlerResponse500) & {
+  headers: Headers;
+};
+
+export type updateCartItemHandlerResponse = (updateCartItemHandlerResponseSuccess | updateCartItemHandlerResponseError)
+
+export const getUpdateCartItemHandlerUrl = (itemId: CartItemId,) => {
+
+
+
+
+  return `http://localhost:8080/api/v1/cart/items/${itemId}`
+}
+
+export const updateCartItemHandler = async (itemId: CartItemId,
+    updateCartItemRequest: UpdateCartItemRequest, options?: RequestInit): Promise<updateCartItemHandlerResponse> => {
+
+  const res = await fetch(getUpdateCartItemHandlerUrl(itemId),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(updateCartItemRequest)
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: updateCartItemHandlerResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as updateCartItemHandlerResponse
+}
+
+
+
+
+export const getUpdateCartItemHandlerMutationFetcher = (itemId: CartItemId, options?: RequestInit) => {
+  return (_: Key, { arg }: { arg: UpdateCartItemRequest }) => {
+    return updateCartItemHandler(itemId, arg, options);
+  }
+}
+export const getUpdateCartItemHandlerMutationKey = (itemId: CartItemId,) => [`http://localhost:8080/api/v1/cart/items/${itemId}`] as const;
+
+export type UpdateCartItemHandlerMutationResult = NonNullable<Awaited<ReturnType<typeof updateCartItemHandler>>>
+
+export const useUpdateCartItemHandler = <TError = Promise<ErrorResponse>>(
+  itemId: CartItemId, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof updateCartItemHandler>>, TError, Key, UpdateCartItemRequest, Awaited<ReturnType<typeof updateCartItemHandler>>> & { swrKey?: string }, fetch?: RequestInit}
+) => {
+
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getUpdateCartItemHandlerMutationKey(itemId);
+  const swrFn = getUpdateCartItemHandlerMutationFetcher(itemId, fetchOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
