@@ -1,5 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
-import { ShoppingCart } from "lucide-react";
+import { ShoppingCart, UserRound } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,8 +23,21 @@ export function CatalogHeader() {
         </Button>
 
         <div className="flex items-center gap-1 sm:gap-2">
-          <Button variant="ghost" size="sm">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate({ to: "/" })}
+          >
             Productos
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate({ to: "/account" })}
+          >
+            <UserRound className="size-4" />
+            <span className="ml-2 hidden sm:inline">Mi Perfil</span>
           </Button>
 
           <Button
