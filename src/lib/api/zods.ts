@@ -73,6 +73,206 @@ export const MeHandlerResponse = zod.object({
 })
 
 
+export const GetCartHandlerResponse = zod.object({
+  "currency": zod.string(),
+  "grand_total": zod.int(),
+  "id": zod.uuid(),
+  "item_count": zod.int(),
+  "items": zod.array(zod.object({
+  "currency": zod.string(),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "images": zod.array(zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "file_id": zod.union([zod.null(),zod.uuid()]).optional(),
+  "id": zod.uuid(),
+  "image_index": zod.int(),
+  "image_url": zod.string(),
+  "status": zod.enum(['enable', 'disable', 'archive']),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "variant_id": zod.uuid()
+})),
+  "line_total": zod.int(),
+  "prices": zod.array(zod.object({
+  "amount": zod.int(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "currency": zod.string(),
+  "id": zod.uuid(),
+  "price_type": zod.enum(['regular', 'sale', 'wholesale']),
+  "status": zod.enum(['enable', 'disable', 'archive']),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "variant_id": zod.uuid()
+})),
+  "properties": zod.array(zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "property_name": zod.string(),
+  "property_value": zod.string(),
+  "status": zod.enum(['enable', 'disable', 'archive']),
+  "variant_id": zod.uuid()
+})),
+  "quantity": zod.int(),
+  "sku": zod.string(),
+  "unit_price": zod.int(),
+  "variant_id": zod.uuid()
+})),
+  "subtotal": zod.int(),
+  "tax_rate": zod.int(),
+  "tax_total": zod.int()
+})
+
+
+export const ClearCartHandlerResponse = zod.void()
+
+
+export const CheckoutCartHandlerBody = zod.object({
+  "billing_address": zod.object({
+  "address": zod.string(),
+  "city": zod.string(),
+  "country": zod.string(),
+  "postal_code": zod.string(),
+  "state": zod.string()
+}),
+  "comments": zod.string().nullish(),
+  "shipping_address": zod.object({
+  "address": zod.string(),
+  "city": zod.string(),
+  "country": zod.string(),
+  "postal_code": zod.string(),
+  "state": zod.string()
+})
+})
+
+export const CheckoutCartHandlerResponse = zod.object({
+  "billing_address": zod.object({
+  "address": zod.string(),
+  "city": zod.string(),
+  "country": zod.string(),
+  "postal_code": zod.string(),
+  "state": zod.string()
+}),
+  "comments": zod.string().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "created_by": zod.union([zod.null(),zod.uuid()]).optional(),
+  "customer": zod.object({
+  "customer_id": zod.uuid(),
+  "name": zod.string()
+}),
+  "discount_total": zod.int(),
+  "grand_total": zod.int(),
+  "id": zod.uuid(),
+  "lines": zod.array(zod.object({
+  "adjustments": zod.array(zod.object({
+  "amount": zod.int(),
+  "description": zod.string().nullish(),
+  "id": zod.uuid(),
+  "source": zod.union([zod.object({
+  "Promotion": zod.object({
+  "code": zod.string(),
+  "promotion_id": zod.uuid()
+})
+}),zod.object({
+  "Manual": zod.object({
+  "created_by": zod.uuid()
+})
+})])
+})),
+  "description": zod.string(),
+  "discount_amount": zod.int(),
+  "dispatched_quantity": zod.int(),
+  "id": zod.uuid(),
+  "line_number": zod.int(),
+  "line_total": zod.int(),
+  "product_id": zod.uuid(),
+  "quantity": zod.int(),
+  "tax_amount": zod.int(),
+  "tax_rate": zod.int(),
+  "unit_price": zod.int(),
+  "variant_id": zod.uuid()
+})),
+  "order_date": zod.iso.datetime({"offset":true}),
+  "order_number": zod.string(),
+  "payment_term": zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "days_until_due": zod.int().nullish(),
+  "description": zod.string().nullish(),
+  "id": zod.uuid(),
+  "is_active": zod.boolean(),
+  "name": zod.string(),
+  "type": zod.enum(['net', 'due_on_receipt']),
+  "updated_at": zod.iso.datetime({"offset":true})
+}),
+  "shipping_address": zod.object({
+  "address": zod.string(),
+  "city": zod.string(),
+  "country": zod.string(),
+  "postal_code": zod.string(),
+  "state": zod.string()
+}),
+  "status": zod.enum(['draft', 'quote', 'confirmed', 'partially_fulfilled', 'fulfilled', 'cancelled', 'closed']),
+  "subtotal": zod.int(),
+  "tags": zod.array(zod.object({
+  "color": zod.string().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "slug": zod.string(),
+  "status": zod.enum(['active', 'inactive'])
+})),
+  "tax_total": zod.int(),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+
+
+export const AddToCartHandlerBody = zod.object({
+  "quantity": zod.int(),
+  "variant_id": zod.uuid()
+})
+
+export const AddToCartHandlerResponse = zod.object({
+  "cart_id": zod.uuid(),
+  "item": zod.object({
+  "cart_id": zod.uuid(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "currency": zod.string(),
+  "id": zod.uuid(),
+  "quantity": zod.int(),
+  "unit_price": zod.int(),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "variant_id": zod.uuid()
+})
+})
+
+
+export const RemoveCartItemHandlerParams = zod.object({
+  "item_id": zod.uuid().describe('Cart item ID')
+})
+
+export const RemoveCartItemHandlerResponse = zod.void()
+
+
+export const UpdateCartItemHandlerParams = zod.object({
+  "item_id": zod.uuid().describe('Cart item ID')
+})
+
+export const UpdateCartItemHandlerBody = zod.object({
+  "quantity": zod.int()
+})
+
+export const UpdateCartItemHandlerResponse = zod.object({
+  "item": zod.union([zod.null(),zod.object({
+  "cart_id": zod.uuid(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "currency": zod.string(),
+  "id": zod.uuid(),
+  "quantity": zod.int(),
+  "unit_price": zod.int(),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "variant_id": zod.uuid()
+})]).optional()
+})
+
+
 export const listCatalogProductsRequestQueryPageMin = 0;
 
 export const listCatalogProductsRequestQueryLimitMin = 0;
