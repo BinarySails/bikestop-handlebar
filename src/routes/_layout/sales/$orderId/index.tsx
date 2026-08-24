@@ -20,6 +20,7 @@ import type {
   SalesOrder,
   SalesOrderLineId,
   SalesOrderStatus,
+  WarehouseId,
 } from "@/lib/api/schemas";
 import { computeDueDate, formatDueDate } from "@/lib/dates";
 
@@ -132,7 +133,16 @@ function OrderDetailPage() {
             (updated.status !== 200 && updated.status !== 201) ||
             !("id" in updated.data)
           ) {
-            throw new Error("No se pudo actualizar la orden");
+            const message =
+              "message" in updated.data ? updated.data.message : undefined;
+            throw new Error(
+              updated.status === 409 &&
+                "type" in updated.data &&
+                updated.data.type ===
+                  "create_sales_order_error_insufficient_stock"
+                ? "Stock insuficiente para una o más asignaciones de almacén."
+                : (message ?? "No se pudo actualizar la orden")
+            );
           }
 
           if (updated.status === 201 || updated.data.id !== order.id) {
@@ -151,7 +161,9 @@ function OrderDetailPage() {
         onAdvance={async () => {
           const updated = await updateSalesOrderStatusRequest(order.id);
           if (updated.status !== 200) {
-            throw new Error("No se pudo cambiar el estado de la orden");
+            throw new Error(
+              updated.data.message ?? "No se pudo cambiar el estado de la orden"
+            );
           }
           await mutate(updated, { revalidate: false });
         }}
@@ -162,8 +174,13 @@ function OrderDetailPage() {
           }
           await mutate(updated, { revalidate: false });
         }}
-        onDispatchLine={async (lineId: SalesOrderLineId, quantity: number) => {
+        onDispatchLine={async (
+          lineId: SalesOrderLineId,
+          warehouseId: WarehouseId,
+          quantity: number
+        ) => {
           const result = await dispatchSalesOrderLineRequest(order.id, lineId, {
+            warehouse_id: warehouseId,
             quantity,
           });
           if (result.status !== 201) {

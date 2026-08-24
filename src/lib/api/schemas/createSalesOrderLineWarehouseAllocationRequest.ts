@@ -6,7 +6,7 @@
  */
 import type { WarehouseId } from './warehouseId.ts';
 
-export interface DispatchSalesOrderLineRequest {
+export interface CreateSalesOrderLineWarehouseAllocationRequest {
   quantity: number;
   warehouse_id: WarehouseId;
 }
