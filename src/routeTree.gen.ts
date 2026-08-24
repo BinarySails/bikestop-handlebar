@@ -14,7 +14,7 @@ import { Route as B2bRouteImport } from './routes/_b2b'
 import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as B2bProductIdRouteImport } from './routes/_b2b/$productId'
-import { Route as LayoutCustomerRouteImport } from './routes/_layout/customer'
+import { Route as B2bAccountRouteImport } from './routes/_b2b/account'
 import { Route as LayoutDashboardRouteImport } from './routes/_layout/dashboard'
 import { Route as LayoutInventoryRouteImport } from './routes/_layout/inventory'
 import { Route as LayoutLocationsRouteImport } from './routes/_layout/locations'
@@ -67,10 +67,10 @@ const B2bProductIdRoute = B2bProductIdRouteImport.update({
   path: '/$productId',
   getParentRoute: () => B2bRoute,
 } as any)
-const LayoutCustomerRoute = LayoutCustomerRouteImport.update({
-  id: '/customer',
-  path: '/customer',
-  getParentRoute: () => LayoutRoute,
+const B2bAccountRoute = B2bAccountRouteImport.update({
+  id: '/account',
+  path: '/account',
+  getParentRoute: () => B2bRoute,
 } as any)
 const LayoutDashboardRoute = LayoutDashboardRouteImport.update({
   id: '/dashboard',
@@ -223,7 +223,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/sales': typeof LayoutSalesRouteRouteWithChildren
   '/$productId': typeof B2bProductIdRoute
-  '/customer': typeof LayoutCustomerRoute
+  '/account': typeof B2bAccountRoute
   '/dashboard': typeof LayoutDashboardRoute
   '/inventory': typeof LayoutInventoryRoute
   '/locations': typeof LayoutLocationsRoute
@@ -256,7 +256,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/$productId': typeof B2bProductIdRoute
-  '/customer': typeof LayoutCustomerRoute
+  '/account': typeof B2bAccountRoute
   '/dashboard': typeof LayoutDashboardRoute
   '/inventory': typeof LayoutInventoryRoute
   '/locations': typeof LayoutLocationsRoute
@@ -291,7 +291,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/_layout/sales': typeof LayoutSalesRouteRouteWithChildren
   '/_b2b/$productId': typeof B2bProductIdRoute
-  '/_layout/customer': typeof LayoutCustomerRoute
+  '/_b2b/account': typeof B2bAccountRoute
   '/_layout/dashboard': typeof LayoutDashboardRoute
   '/_layout/inventory': typeof LayoutInventoryRoute
   '/_layout/locations': typeof LayoutLocationsRoute
@@ -327,7 +327,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/sales'
     | '/$productId'
-    | '/customer'
+    | '/account'
     | '/dashboard'
     | '/inventory'
     | '/locations'
@@ -360,7 +360,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/$productId'
-    | '/customer'
+    | '/account'
     | '/dashboard'
     | '/inventory'
     | '/locations'
@@ -394,7 +394,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/_layout/sales'
     | '/_b2b/$productId'
-    | '/_layout/customer'
+    | '/_b2b/account'
     | '/_layout/dashboard'
     | '/_layout/inventory'
     | '/_layout/locations'
@@ -468,12 +468,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof B2bProductIdRouteImport
       parentRoute: typeof B2bRoute
     }
-    '/_layout/customer': {
-      id: '/_layout/customer'
-      path: '/customer'
-      fullPath: '/customer'
-      preLoaderRoute: typeof LayoutCustomerRouteImport
-      parentRoute: typeof LayoutRoute
+    '/_b2b/account': {
+      id: '/_b2b/account'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof B2bAccountRouteImport
+      parentRoute: typeof B2bRoute
     }
     '/_layout/dashboard': {
       id: '/_layout/dashboard'
@@ -676,11 +676,13 @@ declare module '@tanstack/react-router' {
 
 interface B2bRouteChildren {
   B2bProductIdRoute: typeof B2bProductIdRoute
+  B2bAccountRoute: typeof B2bAccountRoute
   B2bCartIndexRoute: typeof B2bCartIndexRoute
 }
 
 const B2bRouteChildren: B2bRouteChildren = {
   B2bProductIdRoute: B2bProductIdRoute,
+  B2bAccountRoute: B2bAccountRoute,
   B2bCartIndexRoute: B2bCartIndexRoute,
 }
 
@@ -735,7 +737,6 @@ const LayoutWarehousesRouteWithChildren =
 
 interface LayoutRouteChildren {
   LayoutSalesRouteRoute: typeof LayoutSalesRouteRouteWithChildren
-  LayoutCustomerRoute: typeof LayoutCustomerRoute
   LayoutDashboardRoute: typeof LayoutDashboardRoute
   LayoutInventoryRoute: typeof LayoutInventoryRoute
   LayoutLocationsRoute: typeof LayoutLocationsRoute
@@ -758,7 +759,6 @@ interface LayoutRouteChildren {
 
 const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutSalesRouteRoute: LayoutSalesRouteRouteWithChildren,
-  LayoutCustomerRoute: LayoutCustomerRoute,
   LayoutDashboardRoute: LayoutDashboardRoute,
   LayoutInventoryRoute: LayoutInventoryRoute,
   LayoutLocationsRoute: LayoutLocationsRoute,

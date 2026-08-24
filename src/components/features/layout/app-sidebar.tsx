@@ -154,9 +154,9 @@ export function AppSidebar() {
                   <UserRound className="size-4" aria-hidden="true" />
                   Perfil
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate({ to: "/customer" })}>
+                <DropdownMenuItem onClick={() => navigate({ to: "/account" })}>
                   <Building2 className="size-4" aria-hidden="true" />
-                  Cliente
+                  Mi Perfil
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem variant="destructive" onClick={handleLogout}>

@@ -39,6 +39,7 @@ import type {
   CheckoutCartRequest,
   CreateBrandRequest,
   CreateCategoryRequest,
+  CreateCustomerAddressRequest,
   CreateCustomerRequest,
   CreateFileRequest,
   CreateFileResponse,
@@ -57,6 +58,9 @@ import type {
   CreateVariantRequest,
   CreateWarehouseRequest,
   Customer,
+  CustomerAddress,
+  CustomerAddressId,
+  CustomerAddressWithAddressRow,
   DeleteCategoryResponse,
   DeleteFileRequestParams,
   DeleteFileResponse,
@@ -127,6 +131,7 @@ import type {
   UpdateCartItemResponse,
   UpdateCategoryRequest,
   UpdateCategoryResponse,
+  UpdateCustomerAddressRequest,
   UpdateCustomerRequest,
   UpdateCustomerStatusRequest,
   UpdatePermissionRequest,
@@ -1413,6 +1418,583 @@ export const useUpdateCustomerRequest = <TError = Promise<ErrorResponse>>(
 
   const swrKey = swrOptions?.swrKey ?? getUpdateCustomerRequestMutationKey(userId);
   const swrFn = getUpdateCustomerRequestMutationFetcher(userId, fetchOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type listCustomerAddressesRequestResponse200 = {
+  data: CustomerAddressWithAddressRow[]
+  status: 200
+}
+
+export type listCustomerAddressesRequestResponse401 = {
+  data: ErrorResponse
+  status: 401
+}
+
+export type listCustomerAddressesRequestResponse403 = {
+  data: ErrorResponse
+  status: 403
+}
+
+export type listCustomerAddressesRequestResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type listCustomerAddressesRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type listCustomerAddressesRequestResponseSuccess = (listCustomerAddressesRequestResponse200) & {
+  headers: Headers;
+};
+export type listCustomerAddressesRequestResponseError = (listCustomerAddressesRequestResponse401 | listCustomerAddressesRequestResponse403 | listCustomerAddressesRequestResponse404 | listCustomerAddressesRequestResponse500) & {
+  headers: Headers;
+};
+
+export type listCustomerAddressesRequestResponse = (listCustomerAddressesRequestResponseSuccess | listCustomerAddressesRequestResponseError)
+
+export const getListCustomerAddressesRequestUrl = (userId: UserId,) => {
+
+
+
+
+  return `http://localhost:8080/api/v1/customers/user/${userId}/addresses`
+}
+
+export const listCustomerAddressesRequest = async (userId: UserId, options?: RequestInit): Promise<listCustomerAddressesRequestResponse> => {
+
+  const res = await fetch(getListCustomerAddressesRequestUrl(userId),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'GET'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: listCustomerAddressesRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as listCustomerAddressesRequestResponse
+}
+
+
+
+
+export const getListCustomerAddressesRequestKey = (userId: UserId,) => [`http://localhost:8080/api/v1/customers/user/${userId}/addresses`] as const;
+
+export type ListCustomerAddressesRequestQueryResult = NonNullable<Awaited<ReturnType<typeof listCustomerAddressesRequest>>>
+
+export const useListCustomerAddressesRequest = <TError = Promise<ErrorResponse>>(
+  userId: UserId, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof listCustomerAddressesRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
+) => {
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false && userId !== null && userId !== undefined
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getListCustomerAddressesRequestKey(userId) : null);
+  const swrFn = () => listCustomerAddressesRequest(userId, fetchOptions)
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type createCustomerAddressRequestResponse201 = {
+  data: CustomerAddressWithAddressRow
+  status: 201
+}
+
+export type createCustomerAddressRequestResponse400 = {
+  data: ErrorResponse
+  status: 400
+}
+
+export type createCustomerAddressRequestResponse401 = {
+  data: ErrorResponse
+  status: 401
+}
+
+export type createCustomerAddressRequestResponse403 = {
+  data: ErrorResponse
+  status: 403
+}
+
+export type createCustomerAddressRequestResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type createCustomerAddressRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type createCustomerAddressRequestResponseSuccess = (createCustomerAddressRequestResponse201) & {
+  headers: Headers;
+};
+export type createCustomerAddressRequestResponseError = (createCustomerAddressRequestResponse400 | createCustomerAddressRequestResponse401 | createCustomerAddressRequestResponse403 | createCustomerAddressRequestResponse404 | createCustomerAddressRequestResponse500) & {
+  headers: Headers;
+};
+
+export type createCustomerAddressRequestResponse = (createCustomerAddressRequestResponseSuccess | createCustomerAddressRequestResponseError)
+
+export const getCreateCustomerAddressRequestUrl = (userId: UserId,) => {
+
+
+
+
+  return `http://localhost:8080/api/v1/customers/user/${userId}/addresses`
+}
+
+export const createCustomerAddressRequest = async (userId: UserId,
+    createCustomerAddressRequest: CreateCustomerAddressRequest, options?: RequestInit): Promise<createCustomerAddressRequestResponse> => {
+
+  const res = await fetch(getCreateCustomerAddressRequestUrl(userId),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(createCustomerAddressRequest)
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: createCustomerAddressRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as createCustomerAddressRequestResponse
+}
+
+
+
+
+export const getCreateCustomerAddressRequestMutationFetcher = (userId: UserId, options?: RequestInit) => {
+  return (_: Key, { arg }: { arg: CreateCustomerAddressRequest }) => {
+    return createCustomerAddressRequest(userId, arg, options);
+  }
+}
+export const getCreateCustomerAddressRequestMutationKey = (userId: UserId,) => [`http://localhost:8080/api/v1/customers/user/${userId}/addresses`] as const;
+
+export type CreateCustomerAddressRequestMutationResult = NonNullable<Awaited<ReturnType<typeof createCustomerAddressRequest>>>
+
+export const useCreateCustomerAddressRequest = <TError = Promise<ErrorResponse>>(
+  userId: UserId, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof createCustomerAddressRequest>>, TError, Key, CreateCustomerAddressRequest, Awaited<ReturnType<typeof createCustomerAddressRequest>>> & { swrKey?: string }, fetch?: RequestInit}
+) => {
+
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getCreateCustomerAddressRequestMutationKey(userId);
+  const swrFn = getCreateCustomerAddressRequestMutationFetcher(userId, fetchOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type deleteCustomerAddressRequestResponse200 = {
+  data: CustomerAddress
+  status: 200
+}
+
+export type deleteCustomerAddressRequestResponse401 = {
+  data: ErrorResponse
+  status: 401
+}
+
+export type deleteCustomerAddressRequestResponse403 = {
+  data: ErrorResponse
+  status: 403
+}
+
+export type deleteCustomerAddressRequestResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type deleteCustomerAddressRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type deleteCustomerAddressRequestResponseSuccess = (deleteCustomerAddressRequestResponse200) & {
+  headers: Headers;
+};
+export type deleteCustomerAddressRequestResponseError = (deleteCustomerAddressRequestResponse401 | deleteCustomerAddressRequestResponse403 | deleteCustomerAddressRequestResponse404 | deleteCustomerAddressRequestResponse500) & {
+  headers: Headers;
+};
+
+export type deleteCustomerAddressRequestResponse = (deleteCustomerAddressRequestResponseSuccess | deleteCustomerAddressRequestResponseError)
+
+export const getDeleteCustomerAddressRequestUrl = (userId: UserId,
+    addressId: CustomerAddressId,) => {
+
+
+
+
+  return `http://localhost:8080/api/v1/customers/user/${userId}/addresses/${addressId}`
+}
+
+export const deleteCustomerAddressRequest = async (userId: UserId,
+    addressId: CustomerAddressId, options?: RequestInit): Promise<deleteCustomerAddressRequestResponse> => {
+
+  const res = await fetch(getDeleteCustomerAddressRequestUrl(userId,addressId),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'DELETE'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: deleteCustomerAddressRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as deleteCustomerAddressRequestResponse
+}
+
+
+
+
+export const getDeleteCustomerAddressRequestMutationFetcher = (userId: UserId,
+    addressId: CustomerAddressId, options?: RequestInit) => {
+  return (_: Key, __: { arg: Arguments }) => {
+    return deleteCustomerAddressRequest(userId, addressId, options);
+  }
+}
+export const getDeleteCustomerAddressRequestMutationKey = (userId: UserId,
+    addressId: CustomerAddressId,) => [`http://localhost:8080/api/v1/customers/user/${userId}/addresses/${addressId}`] as const;
+
+export type DeleteCustomerAddressRequestMutationResult = NonNullable<Awaited<ReturnType<typeof deleteCustomerAddressRequest>>>
+
+export const useDeleteCustomerAddressRequest = <TError = Promise<ErrorResponse>>(
+  userId: UserId,
+    addressId: CustomerAddressId, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof deleteCustomerAddressRequest>>, TError, Key, Arguments, Awaited<ReturnType<typeof deleteCustomerAddressRequest>>> & { swrKey?: string }, fetch?: RequestInit}
+) => {
+
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getDeleteCustomerAddressRequestMutationKey(userId,addressId);
+  const swrFn = getDeleteCustomerAddressRequestMutationFetcher(userId,addressId, fetchOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type updateCustomerAddressRequestResponse200 = {
+  data: CustomerAddressWithAddressRow
+  status: 200
+}
+
+export type updateCustomerAddressRequestResponse400 = {
+  data: ErrorResponse
+  status: 400
+}
+
+export type updateCustomerAddressRequestResponse401 = {
+  data: ErrorResponse
+  status: 401
+}
+
+export type updateCustomerAddressRequestResponse403 = {
+  data: ErrorResponse
+  status: 403
+}
+
+export type updateCustomerAddressRequestResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type updateCustomerAddressRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type updateCustomerAddressRequestResponseSuccess = (updateCustomerAddressRequestResponse200) & {
+  headers: Headers;
+};
+export type updateCustomerAddressRequestResponseError = (updateCustomerAddressRequestResponse400 | updateCustomerAddressRequestResponse401 | updateCustomerAddressRequestResponse403 | updateCustomerAddressRequestResponse404 | updateCustomerAddressRequestResponse500) & {
+  headers: Headers;
+};
+
+export type updateCustomerAddressRequestResponse = (updateCustomerAddressRequestResponseSuccess | updateCustomerAddressRequestResponseError)
+
+export const getUpdateCustomerAddressRequestUrl = (userId: UserId,
+    addressId: CustomerAddressId,) => {
+
+
+
+
+  return `http://localhost:8080/api/v1/customers/user/${userId}/addresses/${addressId}`
+}
+
+export const updateCustomerAddressRequest = async (userId: UserId,
+    addressId: CustomerAddressId,
+    updateCustomerAddressRequest: UpdateCustomerAddressRequest, options?: RequestInit): Promise<updateCustomerAddressRequestResponse> => {
+
+  const res = await fetch(getUpdateCustomerAddressRequestUrl(userId,addressId),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(updateCustomerAddressRequest)
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: updateCustomerAddressRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as updateCustomerAddressRequestResponse
+}
+
+
+
+
+export const getUpdateCustomerAddressRequestMutationFetcher = (userId: UserId,
+    addressId: CustomerAddressId, options?: RequestInit) => {
+  return (_: Key, { arg }: { arg: UpdateCustomerAddressRequest }) => {
+    return updateCustomerAddressRequest(userId, addressId, arg, options);
+  }
+}
+export const getUpdateCustomerAddressRequestMutationKey = (userId: UserId,
+    addressId: CustomerAddressId,) => [`http://localhost:8080/api/v1/customers/user/${userId}/addresses/${addressId}`] as const;
+
+export type UpdateCustomerAddressRequestMutationResult = NonNullable<Awaited<ReturnType<typeof updateCustomerAddressRequest>>>
+
+export const useUpdateCustomerAddressRequest = <TError = Promise<ErrorResponse>>(
+  userId: UserId,
+    addressId: CustomerAddressId, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof updateCustomerAddressRequest>>, TError, Key, UpdateCustomerAddressRequest, Awaited<ReturnType<typeof updateCustomerAddressRequest>>> & { swrKey?: string }, fetch?: RequestInit}
+) => {
+
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getUpdateCustomerAddressRequestMutationKey(userId,addressId);
+  const swrFn = getUpdateCustomerAddressRequestMutationFetcher(userId,addressId, fetchOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type setDefaultBillingAddressRequestResponse200 = {
+  data: CustomerAddressWithAddressRow
+  status: 200
+}
+
+export type setDefaultBillingAddressRequestResponse401 = {
+  data: ErrorResponse
+  status: 401
+}
+
+export type setDefaultBillingAddressRequestResponse403 = {
+  data: ErrorResponse
+  status: 403
+}
+
+export type setDefaultBillingAddressRequestResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type setDefaultBillingAddressRequestResponse409 = {
+  data: ErrorResponse
+  status: 409
+}
+
+export type setDefaultBillingAddressRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type setDefaultBillingAddressRequestResponseSuccess = (setDefaultBillingAddressRequestResponse200) & {
+  headers: Headers;
+};
+export type setDefaultBillingAddressRequestResponseError = (setDefaultBillingAddressRequestResponse401 | setDefaultBillingAddressRequestResponse403 | setDefaultBillingAddressRequestResponse404 | setDefaultBillingAddressRequestResponse409 | setDefaultBillingAddressRequestResponse500) & {
+  headers: Headers;
+};
+
+export type setDefaultBillingAddressRequestResponse = (setDefaultBillingAddressRequestResponseSuccess | setDefaultBillingAddressRequestResponseError)
+
+export const getSetDefaultBillingAddressRequestUrl = (userId: UserId,
+    addressId: CustomerAddressId,) => {
+
+
+
+
+  return `http://localhost:8080/api/v1/customers/user/${userId}/addresses/${addressId}/default-billing`
+}
+
+export const setDefaultBillingAddressRequest = async (userId: UserId,
+    addressId: CustomerAddressId, options?: RequestInit): Promise<setDefaultBillingAddressRequestResponse> => {
+
+  const res = await fetch(getSetDefaultBillingAddressRequestUrl(userId,addressId),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'PATCH'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: setDefaultBillingAddressRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as setDefaultBillingAddressRequestResponse
+}
+
+
+
+
+export const getSetDefaultBillingAddressRequestMutationFetcher = (userId: UserId,
+    addressId: CustomerAddressId, options?: RequestInit) => {
+  return (_: Key, __: { arg: Arguments }) => {
+    return setDefaultBillingAddressRequest(userId, addressId, options);
+  }
+}
+export const getSetDefaultBillingAddressRequestMutationKey = (userId: UserId,
+    addressId: CustomerAddressId,) => [`http://localhost:8080/api/v1/customers/user/${userId}/addresses/${addressId}/default-billing`] as const;
+
+export type SetDefaultBillingAddressRequestMutationResult = NonNullable<Awaited<ReturnType<typeof setDefaultBillingAddressRequest>>>
+
+export const useSetDefaultBillingAddressRequest = <TError = Promise<ErrorResponse>>(
+  userId: UserId,
+    addressId: CustomerAddressId, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof setDefaultBillingAddressRequest>>, TError, Key, Arguments, Awaited<ReturnType<typeof setDefaultBillingAddressRequest>>> & { swrKey?: string }, fetch?: RequestInit}
+) => {
+
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getSetDefaultBillingAddressRequestMutationKey(userId,addressId);
+  const swrFn = getSetDefaultBillingAddressRequestMutationFetcher(userId,addressId, fetchOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type setDefaultShippingAddressRequestResponse200 = {
+  data: CustomerAddressWithAddressRow
+  status: 200
+}
+
+export type setDefaultShippingAddressRequestResponse401 = {
+  data: ErrorResponse
+  status: 401
+}
+
+export type setDefaultShippingAddressRequestResponse403 = {
+  data: ErrorResponse
+  status: 403
+}
+
+export type setDefaultShippingAddressRequestResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type setDefaultShippingAddressRequestResponse409 = {
+  data: ErrorResponse
+  status: 409
+}
+
+export type setDefaultShippingAddressRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type setDefaultShippingAddressRequestResponseSuccess = (setDefaultShippingAddressRequestResponse200) & {
+  headers: Headers;
+};
+export type setDefaultShippingAddressRequestResponseError = (setDefaultShippingAddressRequestResponse401 | setDefaultShippingAddressRequestResponse403 | setDefaultShippingAddressRequestResponse404 | setDefaultShippingAddressRequestResponse409 | setDefaultShippingAddressRequestResponse500) & {
+  headers: Headers;
+};
+
+export type setDefaultShippingAddressRequestResponse = (setDefaultShippingAddressRequestResponseSuccess | setDefaultShippingAddressRequestResponseError)
+
+export const getSetDefaultShippingAddressRequestUrl = (userId: UserId,
+    addressId: CustomerAddressId,) => {
+
+
+
+
+  return `http://localhost:8080/api/v1/customers/user/${userId}/addresses/${addressId}/default-shipping`
+}
+
+export const setDefaultShippingAddressRequest = async (userId: UserId,
+    addressId: CustomerAddressId, options?: RequestInit): Promise<setDefaultShippingAddressRequestResponse> => {
+
+  const res = await fetch(getSetDefaultShippingAddressRequestUrl(userId,addressId),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'PATCH'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: setDefaultShippingAddressRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as setDefaultShippingAddressRequestResponse
+}
+
+
+
+
+export const getSetDefaultShippingAddressRequestMutationFetcher = (userId: UserId,
+    addressId: CustomerAddressId, options?: RequestInit) => {
+  return (_: Key, __: { arg: Arguments }) => {
+    return setDefaultShippingAddressRequest(userId, addressId, options);
+  }
+}
+export const getSetDefaultShippingAddressRequestMutationKey = (userId: UserId,
+    addressId: CustomerAddressId,) => [`http://localhost:8080/api/v1/customers/user/${userId}/addresses/${addressId}/default-shipping`] as const;
+
+export type SetDefaultShippingAddressRequestMutationResult = NonNullable<Awaited<ReturnType<typeof setDefaultShippingAddressRequest>>>
+
+export const useSetDefaultShippingAddressRequest = <TError = Promise<ErrorResponse>>(
+  userId: UserId,
+    addressId: CustomerAddressId, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof setDefaultShippingAddressRequest>>, TError, Key, Arguments, Awaited<ReturnType<typeof setDefaultShippingAddressRequest>>> & { swrKey?: string }, fetch?: RequestInit}
+) => {
+
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getSetDefaultShippingAddressRequestMutationKey(userId,addressId);
+  const swrFn = getSetDefaultShippingAddressRequestMutationFetcher(userId,addressId, fetchOptions);
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
