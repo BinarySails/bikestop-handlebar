@@ -37,6 +37,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  listInventoryRequest,
   useCreateSalesOrderRequest,
   useListInventoryRequest,
 } from "@/lib/api/api";
@@ -51,6 +52,7 @@ import {
   type Variant,
   VariantStatus,
   type PaymentTerm,
+  type InventoryItemResponse,
   type WarehouseId,
 } from "@/lib/api/schemas";
 import { DEFAULT_COUNTRY } from "@/components/features/locations/country-select";
@@ -61,6 +63,8 @@ import { CreateSalesOrderRequestBody } from "@/lib/api/zods";
 
 const MAX_PRICE_DECIMALS = 2;
 const DEFAULT_TAX_PERCENT = "16";
+const INSUFFICIENT_STOCK_MESSAGE =
+  "No hay stock suficiente de esta variante en ningún almacén registrado.";
 
 const currencyFormatter = new Intl.NumberFormat("es-MX", {
   style: "currency",
@@ -84,6 +88,8 @@ type LineFormValues = {
   unit_price: string;
   tax_rate: string;
   warehouse_allocations: WarehouseAllocationFormValues[];
+  warehouse_allocation_manual?: boolean;
+  warehouse_error?: string;
 };
 
 export type WarehouseAllocationFormValues = {
@@ -273,6 +279,22 @@ export function validateWarehouseAllocations(
   return undefined;
 }
 
+export function selectDefaultWarehouse(
+  inventory: InventoryItemResponse[],
+  quantity: number
+): InventoryItemResponse | undefined {
+  return inventory.reduce<InventoryItemResponse | undefined>(
+    (selected, item) => {
+      if (item.available_quantity < quantity) return selected;
+      if (!selected || item.available_quantity > selected.available_quantity) {
+        return item;
+      }
+      return selected;
+    },
+    undefined
+  );
+}
+
 const defaultAddress: AddressFormValues = {
   country: DEFAULT_COUNTRY,
   state: "",
@@ -368,6 +390,7 @@ function valuesFromOrder(order: SalesOrder): SalesOrderFormValues {
         quantity: String(allocation.quantity),
         dispatched_quantity: allocation.dispatched_quantity,
       })),
+      warehouse_allocation_manual: true,
     })),
   };
 }
@@ -639,6 +662,54 @@ export function CreateSalesOrderForm({
     },
   });
 
+  async function assignDefaultWarehouse(
+    lineIndex: number,
+    variantId: string,
+    quantityValue: string
+  ) {
+    const quantity = Number(quantityValue);
+    if (!Number.isInteger(quantity) || quantity < 1) return;
+
+    let response: Awaited<ReturnType<typeof listInventoryRequest>>;
+    try {
+      response = await listInventoryRequest({ variant_id: variantId });
+    } catch {
+      return;
+    }
+    const currentLine = form.state.values.lines[lineIndex];
+    if (
+      !currentLine ||
+      currentLine.variant?.id !== variantId ||
+      currentLine.quantity !== quantityValue ||
+      currentLine.warehouse_allocation_manual
+    ) {
+      return;
+    }
+
+    const warehouse =
+      response.status === 200
+        ? selectDefaultWarehouse(response.data, quantity)
+        : undefined;
+    form.setFieldValue(
+      `lines[${lineIndex}].warehouse_allocations`,
+      warehouse
+        ? [
+            {
+              warehouse_id: warehouse.warehouse_id,
+              warehouse_name: warehouse.warehouse_name,
+              quantity: quantityValue,
+            },
+          ]
+        : []
+    );
+    form.setFieldValue(
+      `lines[${lineIndex}].warehouse_error`,
+      response.status === 200 && !warehouse
+        ? INSUFFICIENT_STOCK_MESSAGE
+        : undefined
+    );
+  }
+
   async function saveQuote() {
     setIsChangingStatus(true);
     try {
@@ -705,6 +776,14 @@ export function CreateSalesOrderForm({
     form.setFieldValue(
       `lines[${allocationLineIndex}].warehouse_allocations`,
       allocations
+    );
+    form.setFieldValue(
+      `lines[${allocationLineIndex}].warehouse_allocation_manual`,
+      true
+    );
+    form.setFieldValue(
+      `lines[${allocationLineIndex}].warehouse_error`,
+      undefined
     );
     setAllocationLineIndex(null);
     setAllocationVariantId(null);
@@ -1025,7 +1104,11 @@ export function CreateSalesOrderForm({
                       }}
                     >
                       <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Seleccionar almacén" />
+                        <SelectValue placeholder="Seleccionar almacén">
+                          {inventory?.warehouse_name ??
+                            allocation.warehouse_name ??
+                            "Almacén no disponible"}
+                        </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
                         {allocationInventory.map((item) => (
@@ -1512,6 +1595,7 @@ export function CreateSalesOrderForm({
                         unit_price: "",
                         tax_rate: DEFAULT_TAX_PERCENT,
                         warehouse_allocations: [],
+                        warehouse_allocation_manual: false,
                       })
                     }
                   >
@@ -1561,6 +1645,14 @@ export function CreateSalesOrderForm({
                                       `lines[${index}].warehouse_allocations`,
                                       []
                                     );
+                                    form.setFieldValue(
+                                      `lines[${index}].warehouse_allocation_manual`,
+                                      false
+                                    );
+                                    form.setFieldValue(
+                                      `lines[${index}].warehouse_error`,
+                                      undefined
+                                    );
                                   }}
                                 />
                               </div>
@@ -1589,6 +1681,14 @@ export function CreateSalesOrderForm({
                                       `lines[${index}].warehouse_allocations`,
                                       []
                                     );
+                                    form.setFieldValue(
+                                      `lines[${index}].warehouse_allocation_manual`,
+                                      false
+                                    );
+                                    form.setFieldValue(
+                                      `lines[${index}].warehouse_error`,
+                                      undefined
+                                    );
                                     if (variant) {
                                       form.setFieldValue(
                                         `lines[${index}].description`,
@@ -1602,6 +1702,11 @@ export function CreateSalesOrderForm({
                                           centsToPesosString(price.amount)
                                         );
                                       }
+                                      void assignDefaultWarehouse(
+                                        index,
+                                        variant.id,
+                                        line.quantity
+                                      );
                                     }
                                   }}
                                   disabled={!editable || !line.product}
@@ -1725,9 +1830,28 @@ export function CreateSalesOrderForm({
                                   step={1}
                                   value={subField.state.value}
                                   disabled={!editable}
-                                  onChange={(event) =>
-                                    subField.handleChange(event.target.value)
-                                  }
+                                  onChange={(event) => {
+                                    const quantity = event.target.value;
+                                    subField.handleChange(quantity);
+                                    if (
+                                      line.variant &&
+                                      !line.warehouse_allocation_manual
+                                    ) {
+                                      form.setFieldValue(
+                                        `lines[${index}].warehouse_allocations`,
+                                        []
+                                      );
+                                      form.setFieldValue(
+                                        `lines[${index}].warehouse_error`,
+                                        undefined
+                                      );
+                                      void assignDefaultWarehouse(
+                                        index,
+                                        line.variant.id,
+                                        quantity
+                                      );
+                                    }
+                                  }}
                                   onBlur={subField.handleBlur}
                                   aria-invalid={
                                     subField.state.meta.errors.length > 0
@@ -1861,7 +1985,11 @@ export function CreateSalesOrderForm({
                               </Button>
                             )}
                           </div>
-                          {line.warehouse_allocations.length === 0 ? (
+                          {line.warehouse_error ? (
+                            <p className="text-xs text-destructive">
+                              {line.warehouse_error}
+                            </p>
+                          ) : line.warehouse_allocations.length === 0 ? (
                             <p className="text-xs text-destructive">
                               Falta distribuir la cantidad de esta línea.
                             </p>
