@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, WarehouseIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { CustomerCombobox } from "@/components/features/sales/customer-combobox";
@@ -14,6 +14,7 @@ import {
 import { CountrySelect } from "@/components/features/locations/country-select";
 import { StateSelect } from "@/components/features/locations/state-select";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -36,6 +37,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   listInventoryRequest,
   useCreateSalesOrderRequest,
@@ -931,6 +937,23 @@ export function CreateSalesOrderForm({
     );
   }
 
+  function openWarehouseDistribution(lineIndex: number, line: LineFormValues) {
+    setAllocationLineIndex(lineIndex);
+    setAllocationVariantId(line.variant?.id ?? null);
+    setAllocationDraft(
+      line.warehouse_allocations.map((allocation) => ({ ...allocation }))
+    );
+  }
+
+  const allocationLine =
+    allocationLineIndex === null
+      ? undefined
+      : form.state.values.lines[allocationLineIndex];
+  const allocatedQuantity = allocationDraft.reduce(
+    (total, allocation) => total + (Number(allocation.quantity) || 0),
+    0
+  );
+
   return (
     <form
       onSubmit={(event) => {
@@ -1064,19 +1087,53 @@ export function CreateSalesOrderForm({
           }
         }}
       >
-        <DialogContent className="sm:max-w-2xl">
+        <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-hidden sm:max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Asignar almacenes</DialogTitle>
+            <DialogTitle>Distribución por almacén</DialogTitle>
             <DialogDescription>
-              Distribuye toda la cantidad de la línea entre uno o más almacenes.
+              {editable
+                ? "Distribuye toda la cantidad de la línea entre uno o más almacenes."
+                : "Consulta la distribución y el progreso de despacho de esta línea."}
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="flex items-center justify-between gap-3 rounded-lg bg-muted/40 px-3 py-2">
+            <div>
+              <p className="text-sm font-medium">Cantidad asignada</p>
+              <p className="text-xs text-muted-foreground" aria-live="polite">
+                {allocatedQuantity} / {allocationLine?.quantity || 0} unidades
+              </p>
+            </div>
+            <Badge
+              variant={
+                allocatedQuantity === Number(allocationLine?.quantity)
+                  ? "secondary"
+                  : "destructive"
+              }
+            >
+              {allocatedQuantity === Number(allocationLine?.quantity)
+                ? "Completa"
+                : "Pendiente"}
+            </Badge>
+          </div>
+          <div className="min-h-0 space-y-4 overflow-y-auto pr-1">
+            {allocationLine?.warehouse_error && (
+              <p className="text-sm text-destructive" role="alert">
+                {allocationLine.warehouse_error}
+              </p>
+            )}
+            {allocationDraft.length === 0 &&
+              !allocationLine?.warehouse_error && (
+                <p className="text-sm text-destructive" role="alert">
+                  Falta distribuir la cantidad de esta línea.
+                </p>
+              )}
             {allocationDraft.map((allocation, allocationIndex) => {
               const inventory = allocationInventory.find(
                 (item) => item.warehouse_id === allocation.warehouse_id
               );
-              return (
+              const quantity = Number(allocation.quantity);
+              const dispatched = allocation.dispatched_quantity ?? 0;
+              return editable ? (
                 <div
                   key={`${allocation.warehouse_id}-${allocationIndex}`}
                   className="grid gap-3 rounded-lg border p-3 sm:grid-cols-[1fr_8rem_auto] sm:items-end"
@@ -1170,63 +1227,86 @@ export function CreateSalesOrderForm({
                     <Trash2 className="size-4" />
                   </Button>
                 </div>
+              ) : (
+                <div
+                  key={allocation.warehouse_id}
+                  className="space-y-2 rounded-lg border p-3 text-sm"
+                >
+                  <div className="flex justify-between gap-3">
+                    <span className="font-medium">
+                      <WarehouseName
+                        variantId={allocationLine?.variant?.id}
+                        warehouseId={allocation.warehouse_id}
+                        fallback={allocation.warehouse_name}
+                      />
+                    </span>
+                    <span>{quantity} unidades</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Despachado: {dispatched} / {quantity} · Pendiente:{" "}
+                    {quantity - dispatched}
+                  </p>
+                </div>
               );
             })}
-            {isLoadingInventory ? (
-              <p className="text-sm text-muted-foreground">
-                Consultando inventario...
-              </p>
-            ) : allocationInventory.length === 0 ? (
-              <p className="text-sm text-destructive">
-                Esta variante no tiene inventario registrado por almacén.
-              </p>
-            ) : (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={allocationDraft.length >= allocationInventory.length}
-                onClick={() => {
-                  const next = allocationInventory.find(
-                    (item) =>
-                      !allocationDraft.some(
-                        (allocation) =>
-                          allocation.warehouse_id === item.warehouse_id
-                      )
-                  );
-                  if (!next) return;
-                  setAllocationDraft((current) => [
-                    ...current,
-                    {
-                      warehouse_id: next.warehouse_id,
-                      warehouse_name: next.warehouse_name,
-                      quantity: "1",
-                    },
-                  ]);
-                }}
-              >
-                <Plus className="size-4" />
-                Agregar almacén
-              </Button>
-            )}
-            {allocationLineIndex !== null && (
+            {editable &&
+              (isLoadingInventory ? (
+                <p className="text-sm text-muted-foreground">
+                  Consultando inventario...
+                </p>
+              ) : allocationInventory.length === 0 ? (
+                <p className="text-sm text-destructive">
+                  Esta variante no tiene inventario registrado por almacén.
+                </p>
+              ) : (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={
+                    allocationDraft.length >= allocationInventory.length
+                  }
+                  onClick={() => {
+                    const next = allocationInventory.find(
+                      (item) =>
+                        !allocationDraft.some(
+                          (allocation) =>
+                            allocation.warehouse_id === item.warehouse_id
+                        )
+                    );
+                    if (!next) return;
+                    setAllocationDraft((current) => [
+                      ...current,
+                      {
+                        warehouse_id: next.warehouse_id,
+                        warehouse_name: next.warehouse_name,
+                        quantity: "1",
+                      },
+                    ]);
+                  }}
+                >
+                  <Plus className="size-4" />
+                  Agregar almacén
+                </Button>
+              ))}
+            {!editable && allocationLine?.id && (
               <p className="text-sm font-medium">
-                Asignado:{" "}
-                {allocationDraft.reduce(
-                  (total, item) => total + (Number(item.quantity) || 0),
-                  0
-                )}{" "}
-                / {form.state.values.lines[allocationLineIndex]?.quantity || 0}
+                Progreso total:{" "}
+                {order?.lines.find((line) => line.id === allocationLine.id)
+                  ?.dispatched_quantity ?? 0}{" "}
+                / {allocationLine.quantity}
               </p>
             )}
           </div>
           <DialogFooter>
             <DialogClose render={<Button type="button" variant="outline" />}>
-              Cancelar
+              {editable ? "Cancelar" : "Cerrar"}
             </DialogClose>
-            <Button type="button" onClick={saveWarehouseAllocations}>
-              Guardar distribución
-            </Button>
+            {editable && (
+              <Button type="button" onClick={saveWarehouseAllocations}>
+                Guardar distribución
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -1262,6 +1342,11 @@ export function CreateSalesOrderForm({
             const selectedAllocation = line?.warehouse_allocations.find(
               (item) => item.warehouse_id === dispatchWarehouseId
             );
+            const pendingAllocations =
+              line?.warehouse_allocations.filter(
+                (allocation) =>
+                  allocation.quantity > allocation.dispatched_quantity
+              ) ?? [];
             const remaining = selectedAllocation
               ? selectedAllocation.quantity -
                 selectedAllocation.dispatched_quantity
@@ -1270,54 +1355,61 @@ export function CreateSalesOrderForm({
               <div className="space-y-4">
                 <div className="grid gap-1.5">
                   <Label>Almacén</Label>
-                  <Select
-                    value={dispatchWarehouseId ?? undefined}
-                    onValueChange={(warehouseId) => {
-                      if (!warehouseId) return;
-                      setDispatchWarehouseId(warehouseId);
-                      const selected = line?.warehouse_allocations.find(
-                        (item) => item.warehouse_id === warehouseId
-                      );
-                      setDispatchQuantity(
-                        selected
-                          ? String(
-                              selected.quantity - selected.dispatched_quantity
-                            )
-                          : ""
-                      );
-                    }}
-                    disabled={dispatchingLineId !== null}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Seleccionar almacén">
-                        {dispatchWarehouseId ? (
-                          <WarehouseName
-                            variantId={line?.variant_id}
-                            warehouseId={dispatchWarehouseId}
-                          />
-                        ) : null}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {line?.warehouse_allocations.map((allocation) => {
-                        const allocationRemaining =
-                          allocation.quantity - allocation.dispatched_quantity;
-                        return (
+                  {pendingAllocations.length === 1 ? (
+                    <div className="flex h-8 items-center rounded-lg border border-input px-2.5 text-sm">
+                      <WarehouseName
+                        variantId={line?.variant_id}
+                        warehouseId={pendingAllocations[0].warehouse_id}
+                      />
+                    </div>
+                  ) : (
+                    <Select
+                      value={dispatchWarehouseId ?? undefined}
+                      onValueChange={(warehouseId) => {
+                        if (!warehouseId) return;
+                        setDispatchWarehouseId(warehouseId);
+                        const selected = line?.warehouse_allocations.find(
+                          (item) => item.warehouse_id === warehouseId
+                        );
+                        setDispatchQuantity(
+                          selected
+                            ? String(
+                                selected.quantity - selected.dispatched_quantity
+                              )
+                            : ""
+                        );
+                      }}
+                      disabled={dispatchingLineId !== null}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Seleccionar almacén">
+                          {dispatchWarehouseId ? (
+                            <WarehouseName
+                              variantId={line?.variant_id}
+                              warehouseId={dispatchWarehouseId}
+                            />
+                          ) : null}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {pendingAllocations.map((allocation) => (
                           <SelectItem
                             key={allocation.warehouse_id}
                             value={allocation.warehouse_id}
-                            disabled={allocationRemaining === 0}
                           >
                             <WarehouseName
-                              variantId={line.variant_id}
+                              variantId={line?.variant_id}
                               warehouseId={allocation.warehouse_id}
                             />{" "}
-                            · {allocationRemaining} pendientes
+                            ·{" "}
+                            {allocation.quantity -
+                              allocation.dispatched_quantity}{" "}
+                            pendientes
                           </SelectItem>
-                        );
-                      })}
-                    </SelectContent>
-                  </Select>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                 </div>
                 <div className="grid gap-1.5">
                   <Label htmlFor="dispatch-quantity">
@@ -1620,6 +1712,13 @@ export function CreateSalesOrderForm({
                   {field.state.value.map((_, index) => {
                     const line = field.state.value[index];
                     const totals = computeLineTotals(line);
+                    const warehouseError = line.variant
+                      ? (line.warehouse_error ??
+                        validateWarehouseAllocations(
+                          line.quantity,
+                          line.warehouse_allocations
+                        ))
+                      : undefined;
 
                     return (
                       <div
@@ -1720,8 +1819,46 @@ export function CreateSalesOrderForm({
                             )}
                           </form.Field>
 
-                          {editable && (
-                            <div className="flex items-end">
+                          <div className="flex items-end gap-1">
+                            <Tooltip>
+                              <TooltipTrigger
+                                render={
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="relative size-9"
+                                    disabled={!line.variant}
+                                    aria-invalid={Boolean(warehouseError)}
+                                    aria-label={
+                                      editable
+                                        ? `Asignar almacenes para la línea ${index + 1}`
+                                        : `Ver distribución por almacén de la línea ${index + 1}`
+                                    }
+                                    onClick={() =>
+                                      openWarehouseDistribution(index, line)
+                                    }
+                                  />
+                                }
+                              >
+                                <WarehouseIcon className="size-4" />
+                                {warehouseError && (
+                                  <Badge
+                                    variant="destructive"
+                                    className="absolute -top-1 -right-1 size-3 p-0"
+                                    aria-hidden="true"
+                                  />
+                                )}
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                {line.variant
+                                  ? editable
+                                    ? "Asignar almacenes"
+                                    : "Ver distribución por almacén"
+                                  : "Selecciona una variante primero"}
+                              </TooltipContent>
+                            </Tooltip>
+                            {editable && (
                               <Button
                                 type="button"
                                 variant="ghost"
@@ -1732,8 +1869,8 @@ export function CreateSalesOrderForm({
                               >
                                 <Trash2 className="size-4" />
                               </Button>
-                            </div>
-                          )}
+                            )}
+                          </div>
 
                           {(order?.status === "confirmed" ||
                             order?.status === "partially_fulfilled" ||
@@ -1945,94 +2082,6 @@ export function CreateSalesOrderForm({
                               {currencyFormatter.format(totals.total / 100)}
                             </span>
                           </div>
-                        </div>
-
-                        <div className="space-y-3 rounded-lg bg-muted/30 p-3">
-                          <div className="flex flex-wrap items-center justify-between gap-3">
-                            <div>
-                              <p className="text-sm font-medium">
-                                Distribución por almacén
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                Asignado:{" "}
-                                {line.warehouse_allocations.reduce(
-                                  (total, allocation) =>
-                                    total + (Number(allocation.quantity) || 0),
-                                  0
-                                )}{" "}
-                                / {line.quantity || 0}
-                              </p>
-                            </div>
-                            {editable && (
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                disabled={!line.variant}
-                                onClick={() => {
-                                  setAllocationLineIndex(index);
-                                  setAllocationVariantId(
-                                    line.variant?.id ?? null
-                                  );
-                                  setAllocationDraft(
-                                    line.warehouse_allocations.map(
-                                      (allocation) => ({ ...allocation })
-                                    )
-                                  );
-                                }}
-                              >
-                                Asignar almacenes
-                              </Button>
-                            )}
-                          </div>
-                          {line.warehouse_error ? (
-                            <p className="text-xs text-destructive">
-                              {line.warehouse_error}
-                            </p>
-                          ) : line.warehouse_allocations.length === 0 ? (
-                            <p className="text-xs text-destructive">
-                              Falta distribuir la cantidad de esta línea.
-                            </p>
-                          ) : (
-                            <div className="grid gap-2 sm:grid-cols-2">
-                              {line.warehouse_allocations.map((allocation) => {
-                                const quantity = Number(allocation.quantity);
-                                const dispatched =
-                                  allocation.dispatched_quantity ?? 0;
-                                return (
-                                  <div
-                                    key={allocation.warehouse_id}
-                                    className="rounded-md border bg-background px-3 py-2 text-xs"
-                                  >
-                                    <div className="flex justify-between gap-3">
-                                      <span className="font-medium">
-                                        <WarehouseName
-                                          variantId={line.variant?.id}
-                                          warehouseId={allocation.warehouse_id}
-                                          fallback={allocation.warehouse_name}
-                                        />
-                                      </span>
-                                      <span>{quantity} unidades</span>
-                                    </div>
-                                    {!editable && (
-                                      <p className="mt-1 text-muted-foreground">
-                                        Despachado: {dispatched} / {quantity} ·
-                                        Pendiente: {quantity - dispatched}
-                                      </p>
-                                    )}
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          )}
-                          {!editable && line.id && (
-                            <p className="text-xs font-medium">
-                              Progreso total:{" "}
-                              {order?.lines.find((item) => item.id === line.id)
-                                ?.dispatched_quantity ?? 0}{" "}
-                              / {line.quantity}
-                            </p>
-                          )}
                         </div>
                       </div>
                     );
