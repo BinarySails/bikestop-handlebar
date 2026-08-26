@@ -6,6 +6,7 @@ import { CatalogSidebar } from "@/components/features/catalog/catalog-sidebar";
 import {
   Pagination,
   PaginationContent,
+  PaginationEllipsis,
   PaginationItem,
   PaginationLink,
   PaginationNext,
@@ -19,6 +20,38 @@ import {
 } from "@/lib/api/api";
 
 const PAGE_SIZE = 20;
+
+function generatePaginationPages(
+  currentPage: number,
+  totalPages: number
+): (number | "ellipsis")[] {
+  if (totalPages <= 7) {
+    return Array.from({ length: totalPages }, (_, i) => i);
+  }
+
+  const pages: (number | "ellipsis")[] = [];
+
+  pages.push(0);
+
+  if (currentPage > 3) {
+    pages.push("ellipsis");
+  }
+
+  const start = Math.max(1, currentPage - 1);
+  const end = Math.min(totalPages - 2, currentPage + 1);
+
+  for (let i = start; i <= end; i++) {
+    pages.push(i);
+  }
+
+  if (currentPage < totalPages - 4) {
+    pages.push("ellipsis");
+  }
+
+  pages.push(totalPages - 1);
+
+  return pages;
+}
 
 type SortOption =
   | "name_asc"
@@ -231,20 +264,26 @@ export function CatalogPage() {
                     }
                   />
                 </PaginationItem>
-                {Array.from({ length: totalPages }, (_, index) => (
-                  <PaginationItem key={index}>
-                    <PaginationLink
-                      href="#"
-                      onClick={(event) => {
-                        event.preventDefault();
-                        setPage(index);
-                      }}
-                      isActive={index === page}
-                    >
-                      {index + 1}
-                    </PaginationLink>
-                  </PaginationItem>
-                ))}
+                {generatePaginationPages(page, totalPages).map((item, index) =>
+                  item === "ellipsis" ? (
+                    <PaginationItem key={`ellipsis-${index}`}>
+                      <PaginationEllipsis />
+                    </PaginationItem>
+                  ) : (
+                    <PaginationItem key={item}>
+                      <PaginationLink
+                        href="#"
+                        onClick={(event) => {
+                          event.preventDefault();
+                          setPage(item);
+                        }}
+                        isActive={item === page}
+                      >
+                        {item + 1}
+                      </PaginationLink>
+                    </PaginationItem>
+                  )
+                )}
                 <PaginationItem>
                   <PaginationNext
                     href="#"
