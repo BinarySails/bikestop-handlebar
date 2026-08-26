@@ -8,9 +8,9 @@ export function B2BLayout({ children }: { children: React.ReactNode }) {
   const setOpen = useCartDrawerStore((s) => s.setOpen);
 
   return (
-    <div className="flex h-dvh flex-col overflow-hidden">
+    <div className="flex min-h-0 flex-1 flex-col">
       <CatalogHeader />
-      <main className="flex-1 overflow-y-auto">{children}</main>
+      <main className="min-h-0 flex-1 overflow-y-auto">{children}</main>
       <AppFooter />
       <CartDrawer open={open} onOpenChange={setOpen} />
     </div>

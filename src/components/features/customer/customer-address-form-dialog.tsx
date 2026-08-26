@@ -4,6 +4,7 @@ import { toast } from "sonner";
 
 import { LocalitySelect } from "@/components/features/locations/locality-select";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -26,6 +27,8 @@ import {
   useCreateCustomerAddressRequest,
   useListStatesRequest,
   useUpdateCustomerAddressRequest,
+  setDefaultShippingAddressRequest,
+  setDefaultBillingAddressRequest,
 } from "@/lib/api/api";
 import type { CustomerAddressWithAddressRow, State } from "@/lib/api/schemas";
 
@@ -72,6 +75,8 @@ type FormValues = {
   city: string;
   postal_code: string;
   address: string;
+  is_default_shipping: boolean;
+  is_default_billing: boolean;
 };
 
 type CustomerAddressFormDialogProps = {
@@ -173,6 +178,8 @@ function CustomerAddressForm({
       city: address?.city ?? "",
       postal_code: address?.postal_code ?? "",
       address: address?.street_address ?? "",
+      is_default_shipping: false as boolean,
+      is_default_billing: false as boolean,
     } satisfies FormValues,
     onSubmit: async ({ value }) => {
       const payload = {
@@ -192,6 +199,23 @@ function CustomerAddressForm({
 
       const status = Number(result.status);
       if (status === 201 || status === 200) {
+        if (mode === "create" && "id" in result.data) {
+          const newAddressId = result.data.id;
+          if (value.is_default_shipping) {
+            try {
+              await setDefaultShippingAddressRequest(userId, newAddressId);
+            } catch {
+              // silently ignore - address was created successfully
+            }
+          }
+          if (value.is_default_billing) {
+            try {
+              await setDefaultBillingAddressRequest(userId, newAddressId);
+            } catch {
+              // silently ignore - address was created successfully
+            }
+          }
+        }
         toast.success(
           mode === "create" ? "Dirección agregada" : "Dirección actualizada"
         );
@@ -434,6 +458,46 @@ function CustomerAddressForm({
           )}
         </form.Field>
       </div>
+
+      {mode === "create" && (
+        <div className="space-y-3">
+          <p className="text-sm font-medium text-muted-foreground">
+            Marcar como dirección predeterminada
+          </p>
+          <form.Field name="is_default_shipping">
+            {(field) => (
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id={field.name}
+                  checked={field.state.value}
+                  onCheckedChange={() =>
+                    field.handleChange(!field.state.value)
+                  }
+                />
+                <Label htmlFor={field.name} className="text-sm">
+                  Dirección de envío
+                </Label>
+              </div>
+            )}
+          </form.Field>
+          <form.Field name="is_default_billing">
+            {(field) => (
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id={field.name}
+                  checked={field.state.value}
+                  onCheckedChange={() =>
+                    field.handleChange(!field.state.value)
+                  }
+                />
+                <Label htmlFor={field.name} className="text-sm">
+                  Dirección de facturación
+                </Label>
+              </div>
+            )}
+          </form.Field>
+        </div>
+      )}
 
       <DialogFooter>
         <Button type="button" variant="outline" onClick={onCancel}>
