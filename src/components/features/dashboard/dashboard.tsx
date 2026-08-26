@@ -124,10 +124,7 @@ export function Dashboard({ from, to, onRangeChange }: DashboardProps) {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <SiteHeader
-        title="Dashboard comercial"
-        description="Ventas, clientes y operación en America/Mexico_City"
-      />
+      <SiteHeader title="Dashboard comercial" />
       <main className="flex-1 space-y-6 p-4 md:p-6">
         <DateRangeFilter from={from} to={to} onChange={onRangeChange} />
 
