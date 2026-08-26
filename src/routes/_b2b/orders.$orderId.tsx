@@ -3,12 +3,7 @@ import { ArrowLeft } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -120,7 +115,9 @@ function OrderDetailPage() {
       <div className="mt-6 grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Dirección de facturación</CardTitle>
+            <CardTitle className="text-base">
+              Dirección de facturación
+            </CardTitle>
           </CardHeader>
           <CardContent className="text-sm">
             <p>{order.billing_address.country}</p>
@@ -183,23 +180,32 @@ function OrderDetailPage() {
             <div className="w-64 space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Subtotal</span>
-                <span>{currencyFormatter.format(centsToPesos(order.subtotal))}</span>
+                <span>
+                  {currencyFormatter.format(centsToPesos(order.subtotal))}
+                </span>
               </div>
               {order.discount_total > 0 && (
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Descuento</span>
                   <span>
-                    -{currencyFormatter.format(centsToPesos(order.discount_total))}
+                    -
+                    {currencyFormatter.format(
+                      centsToPesos(order.discount_total)
+                    )}
                   </span>
                 </div>
               )}
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Impuestos</span>
-                <span>{currencyFormatter.format(centsToPesos(order.tax_total))}</span>
+                <span>
+                  {currencyFormatter.format(centsToPesos(order.tax_total))}
+                </span>
               </div>
               <div className="flex justify-between border-t pt-2 text-base font-semibold">
                 <span>Total</span>
-                <span>{currencyFormatter.format(centsToPesos(order.grand_total))}</span>
+                <span>
+                  {currencyFormatter.format(centsToPesos(order.grand_total))}
+                </span>
               </div>
             </div>
           </div>
@@ -212,7 +218,7 @@ function OrderDetailPage() {
             <CardTitle className="text-base">Comentarios</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="whitespace-pre-wrap text-sm text-muted-foreground">
+            <p className="text-sm whitespace-pre-wrap text-muted-foreground">
               {order.comments}
             </p>
           </CardContent>
@@ -238,7 +244,10 @@ function OrderDetailPage() {
 
       <div className="mt-6 text-sm text-muted-foreground">
         <p>
-          Término de pago: <span className="font-medium text-foreground">{order.payment_term.name}</span>
+          Término de pago:{" "}
+          <span className="font-medium text-foreground">
+            {order.payment_term.name}
+          </span>
         </p>
       </div>
     </div>

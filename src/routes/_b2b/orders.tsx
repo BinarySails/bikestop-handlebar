@@ -110,8 +110,7 @@ function OrdersPage() {
     { swr: { enabled: Boolean(customerId) } }
   );
 
-  const orders =
-    ordersRes?.status === 200 ? ordersRes.data.data : [];
+  const orders = ordersRes?.status === 200 ? ordersRes.data.data : [];
   const total = ordersRes?.status === 200 ? ordersRes.data.total : 0;
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
@@ -166,7 +165,9 @@ function OrdersPage() {
                       </p>
                     </div>
                     <p className="text-sm font-medium text-foreground">
-                      {currencyFormatter.format(centsToPesos(order.grand_total))}
+                      {currencyFormatter.format(
+                        centsToPesos(order.grand_total)
+                      )}
                     </p>
                   </div>
                 </div>
@@ -215,9 +216,7 @@ function OrdersPage() {
                       href="#"
                       onClick={(event) => {
                         event.preventDefault();
-                        setPage((prev) =>
-                          Math.min(totalPages - 1, prev + 1)
-                        );
+                        setPage((prev) => Math.min(totalPages - 1, prev + 1));
                       }}
                       aria-disabled={page === totalPages - 1}
                       className={

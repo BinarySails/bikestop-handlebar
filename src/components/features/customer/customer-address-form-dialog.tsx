@@ -470,9 +470,7 @@ function CustomerAddressForm({
                 <Checkbox
                   id={field.name}
                   checked={field.state.value}
-                  onCheckedChange={() =>
-                    field.handleChange(!field.state.value)
-                  }
+                  onCheckedChange={() => field.handleChange(!field.state.value)}
                 />
                 <Label htmlFor={field.name} className="text-sm">
                   Dirección de envío
@@ -486,9 +484,7 @@ function CustomerAddressForm({
                 <Checkbox
                   id={field.name}
                   checked={field.state.value}
-                  onCheckedChange={() =>
-                    field.handleChange(!field.state.value)
-                  }
+                  onCheckedChange={() => field.handleChange(!field.state.value)}
                 />
                 <Label htmlFor={field.name} className="text-sm">
                   Dirección de facturación

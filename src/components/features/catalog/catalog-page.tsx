@@ -264,26 +264,25 @@ export function CatalogPage() {
                     }
                   />
                 </PaginationItem>
-                {generatePaginationPages(page, totalPages).map(
-                  (item, index) =>
-                    item === "ellipsis" ? (
-                      <PaginationItem key={`ellipsis-${index}`}>
-                        <PaginationEllipsis />
-                      </PaginationItem>
-                    ) : (
-                      <PaginationItem key={item}>
-                        <PaginationLink
-                          href="#"
-                          onClick={(event) => {
-                            event.preventDefault();
-                            setPage(item);
-                          }}
-                          isActive={item === page}
-                        >
-                          {item + 1}
-                        </PaginationLink>
-                      </PaginationItem>
-                    )
+                {generatePaginationPages(page, totalPages).map((item, index) =>
+                  item === "ellipsis" ? (
+                    <PaginationItem key={`ellipsis-${index}`}>
+                      <PaginationEllipsis />
+                    </PaginationItem>
+                  ) : (
+                    <PaginationItem key={item}>
+                      <PaginationLink
+                        href="#"
+                        onClick={(event) => {
+                          event.preventDefault();
+                          setPage(item);
+                        }}
+                        isActive={item === page}
+                      >
+                        {item + 1}
+                      </PaginationLink>
+                    </PaginationItem>
+                  )
                 )}
                 <PaginationItem>
                   <PaginationNext
