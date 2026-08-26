@@ -8,7 +8,7 @@ export const customerFixtures: Customer[] = [
     tax_id: "BIC123456789",
     phone: "5512345678",
     email: "ventas@bicicletasnorte.mx",
-    status: "active",
+    status: "enable",
     created_at: "2026-08-06T15:00:00Z",
     updated_at: "2026-08-06T15:00:00Z",
   },

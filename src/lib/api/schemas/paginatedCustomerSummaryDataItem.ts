@@ -11,6 +11,8 @@ export type PaginatedCustomerSummaryDataItem = {
   /** @nullable */
   email?: string | null;
   id: CustomerId;
-  tax_id: string;
-  username: string;
+  /** @nullable */
+  tax_id?: string | null;
+  /** @nullable */
+  username?: string | null;
 };

@@ -99,10 +99,10 @@ export function UserPermissionsTable({ userId }: UserPermissionsTableProps) {
                 <TableCell>
                   <Badge
                     variant={
-                      permission.status === "active" ? "default" : "secondary"
+                      permission.status === "enable" ? "default" : "secondary"
                     }
                   >
-                    {permission.status === "active" ? "Activo" : "Inactivo"}
+                    {permission.status === "enable" ? "Activo" : "Inactivo"}
                   </Badge>
                 </TableCell>
               </TableRow>

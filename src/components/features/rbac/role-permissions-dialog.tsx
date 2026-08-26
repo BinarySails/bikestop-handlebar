@@ -71,10 +71,10 @@ export function RolePermissionsDialog({
                     </span>
                   </div>
                   <Badge
-                    variant={perm.status === "active" ? "default" : "secondary"}
+                    variant={perm.status === "enable" ? "default" : "secondary"}
                     className="ml-2 shrink-0"
                   >
-                    {perm.status === "active" ? "Activo" : "Inactivo"}
+                    {perm.status === "enable" ? "Activo" : "Inactivo"}
                   </Badge>
                 </div>
               ))}

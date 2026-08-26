@@ -80,16 +80,16 @@ function PermissionsPage() {
     useDeletePermissionHandler(deletePermission?.id ?? "");
 
   const allPermissions = useMemo(
-    () => (data?.data?.permissions ?? []).filter((p) => p.status !== "deleted"),
+    () => (data?.data?.permissions ?? []).filter((p) => p.status !== "archive"),
     [data?.data?.permissions]
   );
 
   const filteredPermissions = useMemo(() => {
     const query = search.trim().toLowerCase();
     return allPermissions.filter((permission) => {
-      if (statusFilter === "active" && permission.status !== "active")
+      if (statusFilter === "active" && permission.status !== "enable")
         return false;
-      if (statusFilter === "inactive" && permission.status !== "inactive")
+      if (statusFilter === "inactive" && permission.status !== "disable")
         return false;
       if (query) {
         const matches =
@@ -172,15 +172,15 @@ function PermissionsPage() {
       header: "Estado",
       cell: (permission) => (
         <Badge
-          variant={permission.status === "active" ? "default" : "secondary"}
+          variant={permission.status === "enable" ? "default" : "secondary"}
           className="gap-1"
         >
-          {permission.status === "active" ? (
+          {permission.status === "enable" ? (
             <CircleCheck className="size-3" />
           ) : (
             <CircleX className="size-3" />
           )}
-          {permission.status === "active" ? "Activo" : "Inactivo"}
+          {permission.status === "enable" ? "Activo" : "Inactivo"}
         </Badge>
       ),
     },

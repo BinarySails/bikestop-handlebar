@@ -32,7 +32,7 @@ export function UserActionsMenu({
   const { trigger, isMutating } = useUpdateUserRequest(user.id);
 
   async function changeArchiveStatus() {
-    const result = await trigger({ status: archived ? "active" : "inactive" });
+    const result = await trigger({ status: archived ? "enable" : "disable" });
     if (result.status === 200) {
       toast.success(archived ? "Usuario reactivado." : "Usuario archivado.");
       onUpdated();

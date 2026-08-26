@@ -86,7 +86,7 @@ export function UsersTableCard({
   const users = (response?.users ?? []).filter(
     (user) =>
       params.view !== UserViewParam.archived ||
-      (user.status === "inactive" &&
+      (user.status === "disable" &&
         user.roles.some((role) => role.slug !== "client"))
   );
   const total = response?.total ?? 0;

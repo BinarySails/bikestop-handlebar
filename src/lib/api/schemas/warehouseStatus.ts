@@ -9,6 +9,7 @@ export type WarehouseStatus = typeof WarehouseStatus[keyof typeof WarehouseStatu
 
 
 export const WarehouseStatus = {
-  active: 'active',
-  inactive: 'inactive',
+  enable: 'enable',
+  disable: 'disable',
+  archive: 'archive',
 } as const;

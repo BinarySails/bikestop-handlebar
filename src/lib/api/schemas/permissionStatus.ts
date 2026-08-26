@@ -9,7 +9,7 @@ export type PermissionStatus = typeof PermissionStatus[keyof typeof PermissionSt
 
 
 export const PermissionStatus = {
-  active: 'active',
-  inactive: 'inactive',
-  deleted: 'deleted',
+  enable: 'enable',
+  disable: 'disable',
+  archive: 'archive',
 } as const;

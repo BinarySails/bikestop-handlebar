@@ -150,7 +150,7 @@ export function BrandsCatalog({
       cell: (brand) => (
         <div className="flex items-center gap-4">
           <BrandImage
-            src={brand.image_url}
+            src={brand.image_url ?? ""}
             alt={brand.display_name}
             className="size-14 rounded-xl bg-background shadow-sm"
           />

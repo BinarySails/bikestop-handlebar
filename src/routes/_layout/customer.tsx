@@ -39,8 +39,9 @@ export const Route = createFileRoute("/_layout/customer")({
 });
 
 const statusLabels: Record<CustomerStatus, string> = {
-  active: "Activo",
-  inactive: "Inactivo",
+  enable: "Activo",
+  disable: "Inactivo",
+  archive: "Archivado",
 };
 
 function CustomerPage() {
@@ -113,7 +114,7 @@ function CustomerPage() {
         await mutate();
         setDeactivateOpen(false);
         toast.success(
-          status === "inactive"
+          status === "disable"
             ? "Perfil de cliente desactivado."
             : "Perfil de cliente reactivado."
         );
@@ -174,7 +175,7 @@ function CustomerPage() {
     );
   }
 
-  const isInactive = customer.status === "inactive";
+  const isInactive = customer.status === "disable";
 
   return (
     <main className="flex flex-1 flex-col p-6 md:p-10">
@@ -199,7 +200,7 @@ function CustomerPage() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => handleSetStatus("active")}
+              onClick={() => handleSetStatus("enable")}
               disabled={statusPending}
             >
               {statusPending ? "Reactivando..." : "Reactivar perfil"}
@@ -244,7 +245,7 @@ function CustomerPage() {
             <Button
               type="button"
               variant="destructive"
-              onClick={() => handleSetStatus("inactive")}
+              onClick={() => handleSetStatus("disable")}
               disabled={statusPending}
             >
               {statusPending ? "Desactivando..." : "Desactivar"}

@@ -53,7 +53,7 @@ function BrandEditForm({
   onSaved: () => void;
 }) {
   const [name, setName] = useState(brand.display_name);
-  const [imageUrl, setImageUrl] = useState(brand.image_url);
+  const [imageUrl, setImageUrl] = useState(brand.image_url ?? "");
   const [error, setError] = useState<string>();
   const [pending, setPending] = useState(false);
   const [imageUploading, setImageUploading] = useState(false);
@@ -114,7 +114,7 @@ function BrandEditForm({
         onSave={() => saveChanges()}
         onDiscard={() => {
           setName(brand.display_name);
-          setImageUrl(brand.image_url);
+          setImageUrl(brand.image_url ?? "");
           setError(undefined);
         }}
       />

@@ -33,7 +33,7 @@ const root: Category = {
   slug: "bicicletas",
   description: null,
   parent_id: null,
-  status: "active",
+  status: "enable",
   created_at: "2026-01-01T00:00:00Z",
 };
 const child: Category = {
@@ -42,7 +42,7 @@ const child: Category = {
   slug: "montana",
   description: "Para montaña",
   parent_id: "root",
-  status: "active",
+  status: "enable",
   created_at: "2026-01-02T00:00:00Z",
 };
 const grandchild: Category = {
@@ -51,7 +51,7 @@ const grandchild: Category = {
   slug: "enduro",
   description: null,
   parent_id: "child",
-  status: "active",
+  status: "enable",
   created_at: "2026-01-03T00:00:00Z",
 };
 

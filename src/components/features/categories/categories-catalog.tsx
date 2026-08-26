@@ -275,9 +275,9 @@ export function CategoriesCatalog({
         header: "Estado",
         cell: (info) => (
           <Badge
-            variant={info.getValue() === "active" ? "default" : "secondary"}
+            variant={info.getValue() === "enable" ? "default" : "secondary"}
           >
-            {info.getValue() === "active" ? "Activa" : "Inactiva"}
+            {info.getValue() === "enable" ? "Activa" : "Inactiva"}
           </Badge>
         ),
       }),

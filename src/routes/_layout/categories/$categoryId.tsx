@@ -78,9 +78,9 @@ function CategoryDetailPage() {
         subtitle="Detalle de la categoría"
         badge={
           <Badge
-            variant={category.status === "active" ? "default" : "secondary"}
+            variant={category.status === "enable" ? "default" : "secondary"}
           >
-            {category.status === "active" ? "Activa" : "Inactiva"}
+            {category.status === "enable" ? "Activa" : "Inactiva"}
           </Badge>
         }
         extraActions={
