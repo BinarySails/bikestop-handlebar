@@ -1,6 +1,5 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import {
-  Building2,
   LayoutDashboard,
   LogOut,
   MapPin,
@@ -153,10 +152,6 @@ export function AppSidebar() {
                 <DropdownMenuItem onClick={() => navigate({ to: "/profile" })}>
                   <UserRound className="size-4" aria-hidden="true" />
                   Perfil
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate({ to: "/customer" })}>
-                  <Building2 className="size-4" aria-hidden="true" />
-                  Cliente
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem variant="destructive" onClick={handleLogout}>

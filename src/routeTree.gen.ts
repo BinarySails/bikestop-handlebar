@@ -14,7 +14,8 @@ import { Route as B2bRouteImport } from './routes/_b2b'
 import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as B2bProductIdRouteImport } from './routes/_b2b/$productId'
-import { Route as LayoutCustomerRouteImport } from './routes/_layout/customer'
+import { Route as B2bAccountRouteImport } from './routes/_b2b/account'
+import { Route as B2bOrdersRouteImport } from './routes/_b2b/orders'
 import { Route as LayoutDashboardRouteImport } from './routes/_layout/dashboard'
 import { Route as LayoutInventoryRouteImport } from './routes/_layout/inventory'
 import { Route as LayoutLocationsRouteImport } from './routes/_layout/locations'
@@ -23,6 +24,8 @@ import { Route as LayoutProfileRouteImport } from './routes/_layout/profile'
 import { Route as LayoutRolesRouteImport } from './routes/_layout/roles'
 import { Route as LayoutSalesRouteRouteImport } from './routes/_layout/sales/route'
 import { Route as LayoutWarehousesRouteImport } from './routes/_layout/warehouses'
+import { Route as B2bCartIndexRouteImport } from './routes/_b2b/cart/index'
+import { Route as B2bOrdersOrderIdRouteImport } from './routes/_b2b/orders.$orderId'
 import { Route as LayoutBrandsIndexRouteImport } from './routes/_layout/brands/index'
 import { Route as LayoutCategoriesIndexRouteImport } from './routes/_layout/categories/index'
 import { Route as LayoutCategoriesCategoryIdRouteImport } from './routes/_layout/categories/$categoryId'
@@ -66,10 +69,15 @@ const B2bProductIdRoute = B2bProductIdRouteImport.update({
   path: '/$productId',
   getParentRoute: () => B2bRoute,
 } as any)
-const LayoutCustomerRoute = LayoutCustomerRouteImport.update({
-  id: '/customer',
-  path: '/customer',
-  getParentRoute: () => LayoutRoute,
+const B2bAccountRoute = B2bAccountRouteImport.update({
+  id: '/account',
+  path: '/account',
+  getParentRoute: () => B2bRoute,
+} as any)
+const B2bOrdersRoute = B2bOrdersRouteImport.update({
+  id: '/orders',
+  path: '/orders',
+  getParentRoute: () => B2bRoute,
 } as any)
 const LayoutDashboardRoute = LayoutDashboardRouteImport.update({
   id: '/dashboard',
@@ -110,6 +118,16 @@ const LayoutWarehousesRoute = LayoutWarehousesRouteImport.update({
   id: '/warehouses',
   path: '/warehouses',
   getParentRoute: () => LayoutRoute,
+} as any)
+const B2bCartIndexRoute = B2bCartIndexRouteImport.update({
+  id: '/cart/',
+  path: '/cart/',
+  getParentRoute: () => B2bRoute,
+} as any)
+const B2bOrdersOrderIdRoute = B2bOrdersOrderIdRouteImport.update({
+  id: '/$orderId',
+  path: '/$orderId',
+  getParentRoute: () => B2bOrdersRoute,
 } as any)
 const LayoutBrandsIndexRoute = LayoutBrandsIndexRouteImport.update({
   id: '/brands/',
@@ -217,7 +235,8 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/sales': typeof LayoutSalesRouteRouteWithChildren
   '/$productId': typeof B2bProductIdRoute
-  '/customer': typeof LayoutCustomerRoute
+  '/account': typeof B2bAccountRoute
+  '/orders': typeof B2bOrdersRouteWithChildren
   '/dashboard': typeof LayoutDashboardRoute
   '/inventory': typeof LayoutInventoryRoute
   '/locations': typeof LayoutLocationsRoute
@@ -226,12 +245,14 @@ export interface FileRoutesByFullPath {
   '/roles': typeof LayoutRolesRoute
   '/warehouses': typeof LayoutWarehousesRouteWithChildren
   '/sales/$orderId': typeof LayoutSalesOrderIdRouteRouteWithChildren
+  '/orders/$orderId': typeof B2bOrdersOrderIdRoute
   '/categories/$categoryId': typeof LayoutCategoriesCategoryIdRoute
   '/products/$productId': typeof LayoutProductsProductIdRoute
   '/sales/new': typeof LayoutSalesNewRoute
   '/sales/tags': typeof LayoutSalesTagsRoute
   '/users/$userId': typeof LayoutUsersUserIdRoute
   '/warehouses/$warehouseId': typeof LayoutWarehousesWarehouseIdRoute
+  '/cart/': typeof B2bCartIndexRoute
   '/brands/': typeof LayoutBrandsIndexRoute
   '/categories/': typeof LayoutCategoriesIndexRoute
   '/products/': typeof LayoutProductsIndexRoute
@@ -249,19 +270,22 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/$productId': typeof B2bProductIdRoute
-  '/customer': typeof LayoutCustomerRoute
+  '/account': typeof B2bAccountRoute
+  '/orders': typeof B2bOrdersRouteWithChildren
   '/dashboard': typeof LayoutDashboardRoute
   '/inventory': typeof LayoutInventoryRoute
   '/locations': typeof LayoutLocationsRoute
   '/permissions': typeof LayoutPermissionsRoute
   '/profile': typeof LayoutProfileRoute
   '/roles': typeof LayoutRolesRoute
+  '/orders/$orderId': typeof B2bOrdersOrderIdRoute
   '/categories/$categoryId': typeof LayoutCategoriesCategoryIdRoute
   '/products/$productId': typeof LayoutProductsProductIdRoute
   '/sales/new': typeof LayoutSalesNewRoute
   '/sales/tags': typeof LayoutSalesTagsRoute
   '/users/$userId': typeof LayoutUsersUserIdRoute
   '/warehouses/$warehouseId': typeof LayoutWarehousesWarehouseIdRoute
+  '/cart': typeof B2bCartIndexRoute
   '/brands': typeof LayoutBrandsIndexRoute
   '/categories': typeof LayoutCategoriesIndexRoute
   '/products': typeof LayoutProductsIndexRoute
@@ -283,7 +307,8 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/_layout/sales': typeof LayoutSalesRouteRouteWithChildren
   '/_b2b/$productId': typeof B2bProductIdRoute
-  '/_layout/customer': typeof LayoutCustomerRoute
+  '/_b2b/account': typeof B2bAccountRoute
+  '/_b2b/orders': typeof B2bOrdersRouteWithChildren
   '/_layout/dashboard': typeof LayoutDashboardRoute
   '/_layout/inventory': typeof LayoutInventoryRoute
   '/_layout/locations': typeof LayoutLocationsRoute
@@ -292,12 +317,14 @@ export interface FileRoutesById {
   '/_layout/roles': typeof LayoutRolesRoute
   '/_layout/warehouses': typeof LayoutWarehousesRouteWithChildren
   '/_layout/sales/$orderId': typeof LayoutSalesOrderIdRouteRouteWithChildren
+  '/_b2b/orders/$orderId': typeof B2bOrdersOrderIdRoute
   '/_layout/categories/$categoryId': typeof LayoutCategoriesCategoryIdRoute
   '/_layout/products/$productId': typeof LayoutProductsProductIdRoute
   '/_layout/sales/new': typeof LayoutSalesNewRoute
   '/_layout/sales/tags': typeof LayoutSalesTagsRoute
   '/_layout/users/$userId': typeof LayoutUsersUserIdRoute
   '/_layout/warehouses/$warehouseId': typeof LayoutWarehousesWarehouseIdRoute
+  '/_b2b/cart/': typeof B2bCartIndexRoute
   '/_layout/brands/': typeof LayoutBrandsIndexRoute
   '/_layout/categories/': typeof LayoutCategoriesIndexRoute
   '/_layout/products/': typeof LayoutProductsIndexRoute
@@ -318,7 +345,8 @@ export interface FileRouteTypes {
     | '/login'
     | '/sales'
     | '/$productId'
-    | '/customer'
+    | '/account'
+    | '/orders'
     | '/dashboard'
     | '/inventory'
     | '/locations'
@@ -327,12 +355,14 @@ export interface FileRouteTypes {
     | '/roles'
     | '/warehouses'
     | '/sales/$orderId'
+    | '/orders/$orderId'
     | '/categories/$categoryId'
     | '/products/$productId'
     | '/sales/new'
     | '/sales/tags'
     | '/users/$userId'
     | '/warehouses/$warehouseId'
+    | '/cart/'
     | '/brands/'
     | '/categories/'
     | '/products/'
@@ -350,19 +380,22 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/$productId'
-    | '/customer'
+    | '/account'
+    | '/orders'
     | '/dashboard'
     | '/inventory'
     | '/locations'
     | '/permissions'
     | '/profile'
     | '/roles'
+    | '/orders/$orderId'
     | '/categories/$categoryId'
     | '/products/$productId'
     | '/sales/new'
     | '/sales/tags'
     | '/users/$userId'
     | '/warehouses/$warehouseId'
+    | '/cart'
     | '/brands'
     | '/categories'
     | '/products'
@@ -383,7 +416,8 @@ export interface FileRouteTypes {
     | '/login'
     | '/_layout/sales'
     | '/_b2b/$productId'
-    | '/_layout/customer'
+    | '/_b2b/account'
+    | '/_b2b/orders'
     | '/_layout/dashboard'
     | '/_layout/inventory'
     | '/_layout/locations'
@@ -392,12 +426,14 @@ export interface FileRouteTypes {
     | '/_layout/roles'
     | '/_layout/warehouses'
     | '/_layout/sales/$orderId'
+    | '/_b2b/orders/$orderId'
     | '/_layout/categories/$categoryId'
     | '/_layout/products/$productId'
     | '/_layout/sales/new'
     | '/_layout/sales/tags'
     | '/_layout/users/$userId'
     | '/_layout/warehouses/$warehouseId'
+    | '/_b2b/cart/'
     | '/_layout/brands/'
     | '/_layout/categories/'
     | '/_layout/products/'
@@ -456,12 +492,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof B2bProductIdRouteImport
       parentRoute: typeof B2bRoute
     }
-    '/_layout/customer': {
-      id: '/_layout/customer'
-      path: '/customer'
-      fullPath: '/customer'
-      preLoaderRoute: typeof LayoutCustomerRouteImport
-      parentRoute: typeof LayoutRoute
+    '/_b2b/account': {
+      id: '/_b2b/account'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof B2bAccountRouteImport
+      parentRoute: typeof B2bRoute
+    }
+    '/_b2b/orders': {
+      id: '/_b2b/orders'
+      path: '/orders'
+      fullPath: '/orders'
+      preLoaderRoute: typeof B2bOrdersRouteImport
+      parentRoute: typeof B2bRoute
     }
     '/_layout/dashboard': {
       id: '/_layout/dashboard'
@@ -518,6 +561,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/warehouses'
       preLoaderRoute: typeof LayoutWarehousesRouteImport
       parentRoute: typeof LayoutRoute
+    }
+    '/_b2b/cart/': {
+      id: '/_b2b/cart/'
+      path: '/cart'
+      fullPath: '/cart/'
+      preLoaderRoute: typeof B2bCartIndexRouteImport
+      parentRoute: typeof B2bRoute
+    }
+    '/_b2b/orders/$orderId': {
+      id: '/_b2b/orders/$orderId'
+      path: '/$orderId'
+      fullPath: '/orders/$orderId'
+      preLoaderRoute: typeof B2bOrdersOrderIdRouteImport
+      parentRoute: typeof B2bOrdersRoute
     }
     '/_layout/brands/': {
       id: '/_layout/brands/'
@@ -655,12 +712,30 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface B2bOrdersRouteChildren {
+  B2bOrdersOrderIdRoute: typeof B2bOrdersOrderIdRoute
+}
+
+const B2bOrdersRouteChildren: B2bOrdersRouteChildren = {
+  B2bOrdersOrderIdRoute: B2bOrdersOrderIdRoute,
+}
+
+const B2bOrdersRouteWithChildren = B2bOrdersRoute._addFileChildren(
+  B2bOrdersRouteChildren,
+)
+
 interface B2bRouteChildren {
   B2bProductIdRoute: typeof B2bProductIdRoute
+  B2bAccountRoute: typeof B2bAccountRoute
+  B2bOrdersRoute: typeof B2bOrdersRouteWithChildren
+  B2bCartIndexRoute: typeof B2bCartIndexRoute
 }
 
 const B2bRouteChildren: B2bRouteChildren = {
   B2bProductIdRoute: B2bProductIdRoute,
+  B2bAccountRoute: B2bAccountRoute,
+  B2bOrdersRoute: B2bOrdersRouteWithChildren,
+  B2bCartIndexRoute: B2bCartIndexRoute,
 }
 
 const B2bRouteWithChildren = B2bRoute._addFileChildren(B2bRouteChildren)
@@ -714,7 +789,6 @@ const LayoutWarehousesRouteWithChildren =
 
 interface LayoutRouteChildren {
   LayoutSalesRouteRoute: typeof LayoutSalesRouteRouteWithChildren
-  LayoutCustomerRoute: typeof LayoutCustomerRoute
   LayoutDashboardRoute: typeof LayoutDashboardRoute
   LayoutInventoryRoute: typeof LayoutInventoryRoute
   LayoutLocationsRoute: typeof LayoutLocationsRoute
@@ -737,7 +811,6 @@ interface LayoutRouteChildren {
 
 const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutSalesRouteRoute: LayoutSalesRouteRouteWithChildren,
-  LayoutCustomerRoute: LayoutCustomerRoute,
   LayoutDashboardRoute: LayoutDashboardRoute,
   LayoutInventoryRoute: LayoutInventoryRoute,
   LayoutLocationsRoute: LayoutLocationsRoute,

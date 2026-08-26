@@ -163,8 +163,8 @@ function SidebarContent(props: CatalogSidebarProps) {
 export function CatalogSidebar(props: CatalogSidebarProps) {
   return (
     <>
-      <aside className="hidden w-64 shrink-0 lg:block">
-        <div className="sticky top-20 rounded-lg border p-4">
+      <aside className="hidden w-64 shrink-0 self-start lg:block">
+        <div className="sticky top-20 max-h-[calc(100dvh-5rem)] overflow-y-auto rounded-lg border p-4">
           <SidebarContent {...props} />
         </div>
       </aside>

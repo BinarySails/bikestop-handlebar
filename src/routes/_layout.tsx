@@ -22,7 +22,7 @@ function LayoutComponent() {
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <main className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+        <main className="flex min-h-0 flex-1 flex-col">
           <Outlet />
         </main>
         <AppFooter />

@@ -1,12 +1,15 @@
 import { useNavigate } from "@tanstack/react-router";
-import { ShoppingCart } from "lucide-react";
+import { Package, ShoppingCart, UserRound } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useGetCart } from "@/lib/cart/use-cart";
 
 export function CatalogHeader() {
   const navigate = useNavigate();
-  const cartItemCount = 0;
+  const { data: cartRes } = useGetCart();
+
+  const cartItemCount = cartRes?.status === 200 ? cartRes.data.item_count : 0;
 
   return (
     <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur">
@@ -20,13 +23,36 @@ export function CatalogHeader() {
         </Button>
 
         <div className="flex items-center gap-1 sm:gap-2">
-          <Button variant="ghost" size="sm">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate({ to: "/" })}
+          >
             Productos
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate({ to: "/orders" })}
+          >
+            <Package className="size-4" />
+            <span className="ml-2 hidden sm:inline">Mis Pedidos</span>
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate({ to: "/account" })}
+          >
+            <UserRound className="size-4" />
+            <span className="ml-2 hidden sm:inline">Mi Perfil</span>
           </Button>
 
           <Button
             size="sm"
             className="relative bg-amber-500 text-black hover:bg-amber-600"
+            onClick={() => navigate({ to: "/cart" })}
           >
             <ShoppingCart className="size-4" />
             <span className="ml-2 hidden sm:inline">Carrito</span>
