@@ -17,7 +17,8 @@ export interface Customer {
   /** @nullable */
   phone?: string | null;
   status: CustomerStatus;
-  tax_id: string;
+  /** @nullable */
+  tax_id?: string | null;
   updated_at: string;
-  user_id: UserId;
+  user_id?: null | UserId;
 }

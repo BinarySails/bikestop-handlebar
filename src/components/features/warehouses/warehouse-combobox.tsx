@@ -30,7 +30,7 @@ export function WarehouseCombobox({
 
   const { data: res, isLoading } = useListWarehousesRequest(
     {
-      status: WarehouseStatus.active,
+      status: WarehouseStatus.enable,
     },
     { swr: { keepPreviousData: true } }
   );

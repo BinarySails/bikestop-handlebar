@@ -47,18 +47,21 @@ type StatusFilter = "all" | WarehouseStatus;
 
 const statusFilterLabel: Record<StatusFilter, string> = {
   all: "Todos",
-  active: "Activo",
-  inactive: "Inactivo",
+  enable: "Activo",
+  disable: "Inactivo",
+  archive: "Archivado",
 };
 
 const statusBadgeVariant: Record<WarehouseStatus, "default" | "secondary"> = {
-  active: "default",
-  inactive: "secondary",
+  enable: "default",
+  disable: "secondary",
+  archive: "secondary",
 };
 
 const statusLabel: Record<WarehouseStatus, string> = {
-  active: "Activo",
-  inactive: "Inactivo",
+  enable: "Activo",
+  disable: "Inactivo",
+  archive: "Archivado",
 };
 
 function matchesSearch(warehouse: WarehouseResponse, query: string) {
@@ -191,8 +194,8 @@ function WarehousesIndexPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="active">Activo</SelectItem>
-                  <SelectItem value="inactive">Inactivo</SelectItem>
+                  <SelectItem value="enable">Activo</SelectItem>
+                  <SelectItem value="disable">Inactivo</SelectItem>
                 </SelectContent>
               </Select>
               <Button

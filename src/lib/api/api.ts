@@ -61,6 +61,7 @@ import type {
   CustomerAddress,
   CustomerAddressId,
   CustomerAddressWithAddressRow,
+  CustomerId,
   DeleteCategoryResponse,
   DeleteFileRequestParams,
   DeleteFileResponse,
@@ -83,6 +84,7 @@ import type {
   GetUserPermissionsResponse,
   InventoryItemResponse,
   InventoryTransactionResponse,
+  ListAuditEventsRequestParams,
   ListBrandsRequestParams,
   ListCatalogProductsRequestParams,
   ListCatalogProductsResponse,
@@ -107,6 +109,7 @@ import type {
   LoginResponse,
   OrderTagId,
   OrderTagResponse,
+  PaginatedAuditEventResponse,
   PaginatedBrand,
   PaginatedCustomerSummary,
   PaginatedSalesOrderSummaryView,
@@ -155,6 +158,88 @@ import type {
   WarehouseId,
   WarehouseResponse
 } from './schemas';
+
+export type listAuditEventsRequestResponse200 = {
+  data: PaginatedAuditEventResponse
+  status: 200
+}
+
+export type listAuditEventsRequestResponse400 = {
+  data: ErrorResponse
+  status: 400
+}
+
+export type listAuditEventsRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type listAuditEventsRequestResponseSuccess = (listAuditEventsRequestResponse200) & {
+  headers: Headers;
+};
+export type listAuditEventsRequestResponseError = (listAuditEventsRequestResponse400 | listAuditEventsRequestResponse500) & {
+  headers: Headers;
+};
+
+export type listAuditEventsRequestResponse = (listAuditEventsRequestResponseSuccess | listAuditEventsRequestResponseError)
+
+export const getListAuditEventsRequestUrl = (params?: ListAuditEventsRequestParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `http://localhost:8080/api/v1/audit-log?${stringifiedParams}` : `http://localhost:8080/api/v1/audit-log`
+}
+
+export const listAuditEventsRequest = async (params?: ListAuditEventsRequestParams, options?: RequestInit): Promise<listAuditEventsRequestResponse> => {
+
+  const res = await fetch(getListAuditEventsRequestUrl(params),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'GET'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: listAuditEventsRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as listAuditEventsRequestResponse
+}
+
+
+
+
+export const getListAuditEventsRequestKey = (params?: ListAuditEventsRequestParams,) => [`http://localhost:8080/api/v1/audit-log`, ...(params ? [params]: [])] as const;
+
+export type ListAuditEventsRequestQueryResult = NonNullable<Awaited<ReturnType<typeof listAuditEventsRequest>>>
+
+export const useListAuditEventsRequest = <TError = Promise<ErrorResponse>>(
+  params?: ListAuditEventsRequestParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof listAuditEventsRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
+) => {
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getListAuditEventsRequestKey(params) : null);
+  const swrFn = () => listAuditEventsRequest(params, fetchOptions)
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
 
 export type loginHandlerResponse200 = {
   data: LoginResponse
@@ -1241,192 +1326,6 @@ export const useCreateCustomerRequest = <TError = Promise<ErrorResponse>>(
   }
 }
 
-export type getCustomerRequestResponse200 = {
-  data: Customer
-  status: 200
-}
-
-export type getCustomerRequestResponse401 = {
-  data: ErrorResponse
-  status: 401
-}
-
-export type getCustomerRequestResponse403 = {
-  data: ErrorResponse
-  status: 403
-}
-
-export type getCustomerRequestResponse404 = {
-  data: ErrorResponse
-  status: 404
-}
-
-export type getCustomerRequestResponse500 = {
-  data: ErrorResponse
-  status: 500
-}
-
-export type getCustomerRequestResponseSuccess = (getCustomerRequestResponse200) & {
-  headers: Headers;
-};
-export type getCustomerRequestResponseError = (getCustomerRequestResponse401 | getCustomerRequestResponse403 | getCustomerRequestResponse404 | getCustomerRequestResponse500) & {
-  headers: Headers;
-};
-
-export type getCustomerRequestResponse = (getCustomerRequestResponseSuccess | getCustomerRequestResponseError)
-
-export const getGetCustomerRequestUrl = (userId: UserId,) => {
-
-
-
-
-  return `http://localhost:8080/api/v1/customers/user/${userId}`
-}
-
-export const getCustomerRequest = async (userId: UserId, options?: RequestInit): Promise<getCustomerRequestResponse> => {
-
-  const res = await fetch(getGetCustomerRequestUrl(userId),
-  {
-      credentials: 'include',
-    ...options,
-    method: 'GET'
-
-
-  }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: getCustomerRequestResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as getCustomerRequestResponse
-}
-
-
-
-
-export const getGetCustomerRequestKey = (userId: UserId,) => [`http://localhost:8080/api/v1/customers/user/${userId}`] as const;
-
-export type GetCustomerRequestQueryResult = NonNullable<Awaited<ReturnType<typeof getCustomerRequest>>>
-
-export const useGetCustomerRequest = <TError = Promise<ErrorResponse>>(
-  userId: UserId, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getCustomerRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
-) => {
-  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
-
-  const isEnabled = swrOptions?.enabled !== false && userId !== null && userId !== undefined
-  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetCustomerRequestKey(userId) : null);
-  const swrFn = () => getCustomerRequest(userId, fetchOptions)
-
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
-
-  return {
-    swrKey,
-    ...query
-  }
-}
-
-export type updateCustomerRequestResponse200 = {
-  data: Customer
-  status: 200
-}
-
-export type updateCustomerRequestResponse400 = {
-  data: ErrorResponse
-  status: 400
-}
-
-export type updateCustomerRequestResponse401 = {
-  data: ErrorResponse
-  status: 401
-}
-
-export type updateCustomerRequestResponse403 = {
-  data: ErrorResponse
-  status: 403
-}
-
-export type updateCustomerRequestResponse404 = {
-  data: ErrorResponse
-  status: 404
-}
-
-export type updateCustomerRequestResponse409 = {
-  data: ErrorResponse
-  status: 409
-}
-
-export type updateCustomerRequestResponse500 = {
-  data: ErrorResponse
-  status: 500
-}
-
-export type updateCustomerRequestResponseSuccess = (updateCustomerRequestResponse200) & {
-  headers: Headers;
-};
-export type updateCustomerRequestResponseError = (updateCustomerRequestResponse400 | updateCustomerRequestResponse401 | updateCustomerRequestResponse403 | updateCustomerRequestResponse404 | updateCustomerRequestResponse409 | updateCustomerRequestResponse500) & {
-  headers: Headers;
-};
-
-export type updateCustomerRequestResponse = (updateCustomerRequestResponseSuccess | updateCustomerRequestResponseError)
-
-export const getUpdateCustomerRequestUrl = (userId: UserId,) => {
-
-
-
-
-  return `http://localhost:8080/api/v1/customers/user/${userId}`
-}
-
-export const updateCustomerRequest = async (userId: UserId,
-    updateCustomerRequest: UpdateCustomerRequest, options?: RequestInit): Promise<updateCustomerRequestResponse> => {
-
-  const res = await fetch(getUpdateCustomerRequestUrl(userId),
-  {
-      credentials: 'include',
-    ...options,
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(updateCustomerRequest)
-  }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: updateCustomerRequestResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as updateCustomerRequestResponse
-}
-
-
-
-
-export const getUpdateCustomerRequestMutationFetcher = (userId: UserId, options?: RequestInit) => {
-  return (_: Key, { arg }: { arg: UpdateCustomerRequest }) => {
-    return updateCustomerRequest(userId, arg, options);
-  }
-}
-export const getUpdateCustomerRequestMutationKey = (userId: UserId,) => [`http://localhost:8080/api/v1/customers/user/${userId}`] as const;
-
-export type UpdateCustomerRequestMutationResult = NonNullable<Awaited<ReturnType<typeof updateCustomerRequest>>>
-
-export const useUpdateCustomerRequest = <TError = Promise<ErrorResponse>>(
-  userId: UserId, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof updateCustomerRequest>>, TError, Key, UpdateCustomerRequest, Awaited<ReturnType<typeof updateCustomerRequest>>> & { swrKey?: string }, fetch?: RequestInit}
-) => {
-
-  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
-
-  const swrKey = swrOptions?.swrKey ?? getUpdateCustomerRequestMutationKey(userId);
-  const swrFn = getUpdateCustomerRequestMutationFetcher(userId, fetchOptions);
-
-  const query = useSWRMutation(swrKey, swrFn, swrOptions)
-
-  return {
-    swrKey,
-    ...query
-  }
-}
-
 export type listCustomerAddressesRequestResponse200 = {
   data: CustomerAddressWithAddressRow[]
   status: 200
@@ -2004,6 +1903,182 @@ export const useSetDefaultShippingAddressRequest = <TError = Promise<ErrorRespon
   }
 }
 
+export type getCustomerRequestResponse200 = {
+  data: Customer
+  status: 200
+}
+
+export type getCustomerRequestResponse401 = {
+  data: ErrorResponse
+  status: 401
+}
+
+export type getCustomerRequestResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type getCustomerRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type getCustomerRequestResponseSuccess = (getCustomerRequestResponse200) & {
+  headers: Headers;
+};
+export type getCustomerRequestResponseError = (getCustomerRequestResponse401 | getCustomerRequestResponse404 | getCustomerRequestResponse500) & {
+  headers: Headers;
+};
+
+export type getCustomerRequestResponse = (getCustomerRequestResponseSuccess | getCustomerRequestResponseError)
+
+export const getGetCustomerRequestUrl = (customerId: CustomerId,) => {
+
+
+
+
+  return `http://localhost:8080/api/v1/customers/${customerId}`
+}
+
+export const getCustomerRequest = async (customerId: CustomerId, options?: RequestInit): Promise<getCustomerRequestResponse> => {
+
+  const res = await fetch(getGetCustomerRequestUrl(customerId),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'GET'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: getCustomerRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as getCustomerRequestResponse
+}
+
+
+
+
+export const getGetCustomerRequestKey = (customerId: CustomerId,) => [`http://localhost:8080/api/v1/customers/${customerId}`] as const;
+
+export type GetCustomerRequestQueryResult = NonNullable<Awaited<ReturnType<typeof getCustomerRequest>>>
+
+export const useGetCustomerRequest = <TError = Promise<ErrorResponse>>(
+  customerId: CustomerId, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getCustomerRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
+) => {
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false && customerId !== null && customerId !== undefined
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetCustomerRequestKey(customerId) : null);
+  const swrFn = () => getCustomerRequest(customerId, fetchOptions)
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type updateCustomerRequestResponse200 = {
+  data: Customer
+  status: 200
+}
+
+export type updateCustomerRequestResponse400 = {
+  data: ErrorResponse
+  status: 400
+}
+
+export type updateCustomerRequestResponse401 = {
+  data: ErrorResponse
+  status: 401
+}
+
+export type updateCustomerRequestResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type updateCustomerRequestResponse409 = {
+  data: ErrorResponse
+  status: 409
+}
+
+export type updateCustomerRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type updateCustomerRequestResponseSuccess = (updateCustomerRequestResponse200) & {
+  headers: Headers;
+};
+export type updateCustomerRequestResponseError = (updateCustomerRequestResponse400 | updateCustomerRequestResponse401 | updateCustomerRequestResponse404 | updateCustomerRequestResponse409 | updateCustomerRequestResponse500) & {
+  headers: Headers;
+};
+
+export type updateCustomerRequestResponse = (updateCustomerRequestResponseSuccess | updateCustomerRequestResponseError)
+
+export const getUpdateCustomerRequestUrl = (customerId: CustomerId,) => {
+
+
+
+
+  return `http://localhost:8080/api/v1/customers/${customerId}`
+}
+
+export const updateCustomerRequest = async (customerId: CustomerId,
+    updateCustomerRequest: UpdateCustomerRequest, options?: RequestInit): Promise<updateCustomerRequestResponse> => {
+
+  const res = await fetch(getUpdateCustomerRequestUrl(customerId),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(updateCustomerRequest)
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: updateCustomerRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as updateCustomerRequestResponse
+}
+
+
+
+
+export const getUpdateCustomerRequestMutationFetcher = (customerId: CustomerId, options?: RequestInit) => {
+  return (_: Key, { arg }: { arg: UpdateCustomerRequest }) => {
+    return updateCustomerRequest(customerId, arg, options);
+  }
+}
+export const getUpdateCustomerRequestMutationKey = (customerId: CustomerId,) => [`http://localhost:8080/api/v1/customers/${customerId}`] as const;
+
+export type UpdateCustomerRequestMutationResult = NonNullable<Awaited<ReturnType<typeof updateCustomerRequest>>>
+
+export const useUpdateCustomerRequest = <TError = Promise<ErrorResponse>>(
+  customerId: CustomerId, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof updateCustomerRequest>>, TError, Key, UpdateCustomerRequest, Awaited<ReturnType<typeof updateCustomerRequest>>> & { swrKey?: string }, fetch?: RequestInit}
+) => {
+
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getUpdateCustomerRequestMutationKey(customerId);
+  const swrFn = getUpdateCustomerRequestMutationFetcher(customerId, fetchOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
 export type updateCustomerStatusRequestResponse200 = {
   data: Customer
   status: 200
@@ -2019,11 +2094,6 @@ export type updateCustomerStatusRequestResponse401 = {
   status: 401
 }
 
-export type updateCustomerStatusRequestResponse403 = {
-  data: ErrorResponse
-  status: 403
-}
-
 export type updateCustomerStatusRequestResponse404 = {
   data: ErrorResponse
   status: 404
@@ -2037,24 +2107,24 @@ export type updateCustomerStatusRequestResponse500 = {
 export type updateCustomerStatusRequestResponseSuccess = (updateCustomerStatusRequestResponse200) & {
   headers: Headers;
 };
-export type updateCustomerStatusRequestResponseError = (updateCustomerStatusRequestResponse400 | updateCustomerStatusRequestResponse401 | updateCustomerStatusRequestResponse403 | updateCustomerStatusRequestResponse404 | updateCustomerStatusRequestResponse500) & {
+export type updateCustomerStatusRequestResponseError = (updateCustomerStatusRequestResponse400 | updateCustomerStatusRequestResponse401 | updateCustomerStatusRequestResponse404 | updateCustomerStatusRequestResponse500) & {
   headers: Headers;
 };
 
 export type updateCustomerStatusRequestResponse = (updateCustomerStatusRequestResponseSuccess | updateCustomerStatusRequestResponseError)
 
-export const getUpdateCustomerStatusRequestUrl = (userId: UserId,) => {
+export const getUpdateCustomerStatusRequestUrl = (customerId: CustomerId,) => {
 
 
 
 
-  return `http://localhost:8080/api/v1/customers/user/${userId}/status`
+  return `http://localhost:8080/api/v1/customers/${customerId}/status`
 }
 
-export const updateCustomerStatusRequest = async (userId: UserId,
+export const updateCustomerStatusRequest = async (customerId: CustomerId,
     updateCustomerStatusRequest: UpdateCustomerStatusRequest, options?: RequestInit): Promise<updateCustomerStatusRequestResponse> => {
 
-  const res = await fetch(getUpdateCustomerStatusRequestUrl(userId),
+  const res = await fetch(getUpdateCustomerStatusRequestUrl(customerId),
   {
       credentials: 'include',
     ...options,
@@ -2074,23 +2144,23 @@ export const updateCustomerStatusRequest = async (userId: UserId,
 
 
 
-export const getUpdateCustomerStatusRequestMutationFetcher = (userId: UserId, options?: RequestInit) => {
+export const getUpdateCustomerStatusRequestMutationFetcher = (customerId: CustomerId, options?: RequestInit) => {
   return (_: Key, { arg }: { arg: UpdateCustomerStatusRequest }) => {
-    return updateCustomerStatusRequest(userId, arg, options);
+    return updateCustomerStatusRequest(customerId, arg, options);
   }
 }
-export const getUpdateCustomerStatusRequestMutationKey = (userId: UserId,) => [`http://localhost:8080/api/v1/customers/user/${userId}/status`] as const;
+export const getUpdateCustomerStatusRequestMutationKey = (customerId: CustomerId,) => [`http://localhost:8080/api/v1/customers/${customerId}/status`] as const;
 
 export type UpdateCustomerStatusRequestMutationResult = NonNullable<Awaited<ReturnType<typeof updateCustomerStatusRequest>>>
 
 export const useUpdateCustomerStatusRequest = <TError = Promise<ErrorResponse>>(
-  userId: UserId, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof updateCustomerStatusRequest>>, TError, Key, UpdateCustomerStatusRequest, Awaited<ReturnType<typeof updateCustomerStatusRequest>>> & { swrKey?: string }, fetch?: RequestInit}
+  customerId: CustomerId, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof updateCustomerStatusRequest>>, TError, Key, UpdateCustomerStatusRequest, Awaited<ReturnType<typeof updateCustomerStatusRequest>>> & { swrKey?: string }, fetch?: RequestInit}
 ) => {
 
   const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
 
-  const swrKey = swrOptions?.swrKey ?? getUpdateCustomerStatusRequestMutationKey(userId);
-  const swrFn = getUpdateCustomerStatusRequestMutationFetcher(userId, fetchOptions);
+  const swrKey = swrOptions?.swrKey ?? getUpdateCustomerStatusRequestMutationKey(customerId);
+  const swrFn = getUpdateCustomerStatusRequestMutationFetcher(customerId, fetchOptions);
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions)
 

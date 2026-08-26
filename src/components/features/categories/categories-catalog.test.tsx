@@ -56,7 +56,7 @@ const child: Category = {
   slug: "montana",
   description: null,
   parent_id: "root",
-  status: "inactive",
+  status: "disable",
   created_at: "2026-01-02T00:00:00Z",
 };
 

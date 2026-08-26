@@ -42,7 +42,7 @@ export function UserEditForm({
   onSaved,
 }: UserEditFormProps) {
   const isClient = user.roles.some((role) => role.slug === "client");
-  const archived = user.status === "inactive";
+  const archived = user.status === "archive";
   const [name, setName] = useState(user.name);
   const [fatherLastName, setFatherLastName] = useState(user.father_last_name);
   const [motherLastName, setMotherLastName] = useState(
@@ -173,8 +173,8 @@ export function UserEditForm({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="active">Activo</SelectItem>
-                  <SelectItem value="inactive">Inactivo</SelectItem>
+                  <SelectItem value="enable">Activo</SelectItem>
+                  <SelectItem value="disable">Inactivo</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -211,7 +211,7 @@ export function UserEditForm({
               variant={archived ? "outline" : "destructive"}
               disabled={isMutating}
               onClick={() =>
-                submit({ status: archived ? "active" : "inactive" })
+                submit({ status: archived ? "enable" : "archive" })
               }
             >
               {archived ? <RotateCcwIcon /> : <ArchiveIcon />}

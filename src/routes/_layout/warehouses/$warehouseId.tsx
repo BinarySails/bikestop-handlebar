@@ -44,8 +44,9 @@ import { UpdateWarehouseRequestBody } from "@/lib/api/zods";
 const DEFAULT_COUNTRY = "México";
 
 const statusLabels: Record<string, string> = {
-  active: "Activo",
-  inactive: "Inactivo",
+  enable: "Activo",
+  disable: "Inactivo",
+  archive: "Archivado",
 };
 
 export const Route = createFileRoute("/_layout/warehouses/$warehouseId")({
@@ -139,7 +140,7 @@ function WarehouseDetailView({
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deletePending, setDeletePending] = useState(false);
 
-  const isInactive = warehouse.status === "inactive";
+  const isInactive = warehouse.status === "disable";
 
   const form = useForm({
     defaultValues: {
@@ -208,7 +209,7 @@ function WarehouseDetailView({
   async function handleDelete() {
     setDeletePending(true);
     try {
-      const result = await updateWarehouseStatus({ status: "inactive" });
+      const result = await updateWarehouseStatus({ status: "archive" });
 
       if (result?.status !== 200) {
         toast.error("Error al eliminar el almacén.");
@@ -253,7 +254,7 @@ function WarehouseDetailView({
               onSave={() => form.handleSubmit()}
               onDiscard={() => form.reset()}
               onDelete={() => setDeleteOpen(true)}
-              showDelete={warehouse.status === "active"}
+              showDelete={warehouse.status === "enable"}
             />
           )}
         </form.Subscribe>
@@ -391,11 +392,11 @@ function WarehouseDetailView({
                     />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="active">
-                      {statusLabels.active}
+                    <SelectItem value="enable">
+                      {statusLabels.enable}
                     </SelectItem>
-                    <SelectItem value="inactive">
-                      {statusLabels.inactive}
+                    <SelectItem value="disable">
+                      {statusLabels.disable}
                     </SelectItem>
                   </SelectContent>
                 </Select>

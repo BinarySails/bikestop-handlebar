@@ -55,12 +55,12 @@ export const Route = createFileRoute("/_layout/permissions")({
 
 const PAGE_SIZE = 10;
 
-type StatusFilter = "all" | "active" | "inactive";
+type StatusFilter = "all" | "enable" | "disable";
 
 const statusFilterLabel: Record<StatusFilter, string> = {
   all: "Todos",
-  active: "Activos",
-  inactive: "Inactivos",
+  enable: "Activos",
+  disable: "Inactivos",
 };
 
 function PermissionsPage() {
@@ -80,16 +80,16 @@ function PermissionsPage() {
     useDeletePermissionHandler(deletePermission?.id ?? "");
 
   const allPermissions = useMemo(
-    () => (data?.data?.permissions ?? []).filter((p) => p.status !== "deleted"),
+    () => (data?.data?.permissions ?? []).filter((p) => p.status !== "archive"),
     [data?.data?.permissions]
   );
 
   const filteredPermissions = useMemo(() => {
     const query = search.trim().toLowerCase();
     return allPermissions.filter((permission) => {
-      if (statusFilter === "active" && permission.status !== "active")
+      if (statusFilter === "enable" && permission.status !== "enable")
         return false;
-      if (statusFilter === "inactive" && permission.status !== "inactive")
+      if (statusFilter === "disable" && permission.status !== "disable")
         return false;
       if (query) {
         const matches =
@@ -172,15 +172,15 @@ function PermissionsPage() {
       header: "Estado",
       cell: (permission) => (
         <Badge
-          variant={permission.status === "active" ? "default" : "secondary"}
+          variant={permission.status === "enable" ? "default" : "secondary"}
           className="gap-1"
         >
-          {permission.status === "active" ? (
+          {permission.status === "enable" ? (
             <CircleCheck className="size-3" />
           ) : (
             <CircleX className="size-3" />
           )}
-          {permission.status === "active" ? "Activo" : "Inactivo"}
+          {permission.status === "enable" ? "Activo" : "Inactivo"}
         </Badge>
       ),
     },
@@ -271,8 +271,8 @@ function PermissionsPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="active">Activos</SelectItem>
-                  <SelectItem value="inactive">Inactivos</SelectItem>
+                  <SelectItem value="enable">Activos</SelectItem>
+                  <SelectItem value="disable">Inactivos</SelectItem>
                 </SelectContent>
               </Select>
               <Button

@@ -542,12 +542,12 @@ export function CreateSalesOrderForm({
       const shippingAddress = value.shipping_same_as_billing
         ? billingAddress
         : {
-            country: value.shipping.country.trim(),
-            state: value.shipping.state.trim(),
-            city: value.shipping.city.trim(),
-            postal_code: value.shipping.postal_code.trim(),
-            address: value.shipping.address.trim(),
-          };
+          country: value.shipping.country.trim(),
+          state: value.shipping.state.trim(),
+          city: value.shipping.city.trim(),
+          postal_code: value.shipping.postal_code.trim(),
+          address: value.shipping.address.trim(),
+        };
 
       const payload = {
         customer_id: value.customer.id,
@@ -614,16 +614,16 @@ export function CreateSalesOrderForm({
         } else {
           const errorData =
             "data" in result &&
-            typeof result.data === "object" &&
-            result.data !== null &&
-            "message" in result.data
+              typeof result.data === "object" &&
+              result.data !== null &&
+              "message" in result.data
               ? (result.data as { message?: string }).message
               : undefined;
           const errorType =
             "data" in result &&
-            typeof result.data === "object" &&
-            result.data !== null &&
-            "type" in result.data
+              typeof result.data === "object" &&
+              result.data !== null &&
+              "type" in result.data
               ? (result.data as { type?: string }).type
               : undefined;
           toast.error(
@@ -1015,10 +1015,10 @@ export function CreateSalesOrderForm({
                           current.map((item, index) =>
                             index === allocationIndex
                               ? {
-                                  ...item,
-                                  warehouse_id: warehouseId,
-                                  warehouse_name: selected?.warehouse_name,
-                                }
+                                ...item,
+                                warehouse_id: warehouseId,
+                                warehouse_name: selected?.warehouse_name,
+                              }
                               : item
                           )
                         );
@@ -1181,7 +1181,7 @@ export function CreateSalesOrderForm({
             );
             const remaining = selectedAllocation
               ? selectedAllocation.quantity -
-                selectedAllocation.dispatched_quantity
+              selectedAllocation.dispatched_quantity
               : 0;
             return (
               <div className="space-y-4">
@@ -1198,8 +1198,8 @@ export function CreateSalesOrderForm({
                       setDispatchQuantity(
                         selected
                           ? String(
-                              selected.quantity - selected.dispatched_quantity
-                            )
+                            selected.quantity - selected.dispatched_quantity
+                          )
                           : ""
                       );
                     }}
@@ -1658,9 +1658,9 @@ export function CreateSalesOrderForm({
                                     setDispatchQuantity(
                                       firstAllocation
                                         ? String(
-                                            firstAllocation.quantity -
-                                              firstAllocation.dispatched_quantity
-                                          )
+                                          firstAllocation.quantity -
+                                          firstAllocation.dispatched_quantity
+                                        )
                                         : ""
                                     );
                                   }}
@@ -1668,7 +1668,7 @@ export function CreateSalesOrderForm({
                                   {dispatchingLineId === line.id
                                     ? "Despachando..."
                                     : order.status === "fulfilled" ||
-                                        remainingQuantityForLine(line.id) === 0
+                                      remainingQuantityForLine(line.id) === 0
                                       ? "Despachada"
                                       : "Despachar"}
                                 </Button>

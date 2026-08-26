@@ -29,7 +29,7 @@ const categories: Category[] = [
     slug: "doble",
     description: null,
     parent_id: "child",
-    status: "inactive",
+    status: "disable",
     created_at: "2026-01-03T00:00:00Z",
   },
   {

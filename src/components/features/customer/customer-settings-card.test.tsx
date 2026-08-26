@@ -106,7 +106,7 @@ describe("CustomerSettingsCard", () => {
       .mockResolvedValue();
     render(
       <CustomerSettingsCard
-        customer={{ ...customerFixtures[0], status: "inactive" }}
+        customer={{ ...customerFixtures[0], status: "disable" }}
         onUpdateField={onUpdateField}
         disabled
       />

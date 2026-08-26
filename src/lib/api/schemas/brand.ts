@@ -11,6 +11,7 @@ export interface Brand {
   created_at: string;
   display_name: string;
   id: BrandId;
-  image_url: string;
+  /** @nullable */
+  image_url?: string | null;
   status: BrandStatus;
 }

@@ -33,7 +33,7 @@ export function DeletePermissionDialog({
           <DialogDescription>
             ¿Estás seguro de eliminar el permiso{" "}
             <strong>{permission.display_name}</strong>?
-            {permission.status === "active" && (
+            {permission.status === "enable" && (
               <span className="mt-2 block text-destructive">
                 Este permiso está activo. Si está asignado a algún rol, se
                 removerá automáticamente.
