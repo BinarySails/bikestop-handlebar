@@ -313,7 +313,7 @@ export function CategoriesCatalog({
                 <DropdownMenuItem
                   onClick={() =>
                     navigate({
-                      to: "/categories/$categoryId",
+                      to: "/admin/categories/$categoryId",
                       params: { categoryId: category.id },
                     })
                   }
@@ -323,7 +323,7 @@ export function CategoriesCatalog({
                 <DropdownMenuItem
                   onClick={() =>
                     navigate({
-                      to: "/categories/$categoryId/edit",
+                      to: "/admin/categories/$categoryId/edit",
                       params: { categoryId: category.id },
                     })
                   }

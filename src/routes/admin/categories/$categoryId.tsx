@@ -86,7 +86,10 @@ function CategoryDetailPage() {
         extraActions={
           <Button
             render={
-              <Link to="/admin/categories/$categoryId/edit" params={{ categoryId }} />
+              <Link
+                to="/admin/categories/$categoryId/edit"
+                params={{ categoryId }}
+              />
             }
           >
             <Pencil className="size-4" /> Editar categoría

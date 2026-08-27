@@ -42,7 +42,7 @@ export function OrderTagsSelect({
   id,
 }: OrderTagsSelectProps) {
   const { data, isLoading } = useListTagsRequest(
-    activeOnly ? { status: "active" } : undefined
+    activeOnly ? { status: "enable" } : undefined
   );
   const tags = data?.status === 200 ? data.data.tags : [];
 

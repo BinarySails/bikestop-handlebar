@@ -149,7 +149,9 @@ export function AppSidebar() {
                 }
               />
               <DropdownMenuContent align="start" side="top" className="w-52">
-                <DropdownMenuItem onClick={() => navigate({ to: "/profile" })}>
+                <DropdownMenuItem
+                  onClick={() => navigate({ to: "/admin/profile" })}
+                >
                   <UserRound className="size-4" aria-hidden="true" />
                   Perfil
                 </DropdownMenuItem>

@@ -38,7 +38,7 @@ export function CreateRoleDialog({
   const form = useForm({
     defaultValues: {
       displayName: role?.display_name ?? "",
-      isActive: role?.status === "active",
+      isActive: role?.status === "enable",
     },
     onSubmit: async ({ value }) => {
       const slug = value.displayName.toLowerCase().replace(/\s+/g, "-");

@@ -103,7 +103,6 @@ function OrdersPage() {
 
   const { data: ordersRes, isLoading } = useListSalesOrdersRequest(
     {
-      customer_id: customerId,
       page: page + 1,
       limit: PAGE_SIZE,
     },

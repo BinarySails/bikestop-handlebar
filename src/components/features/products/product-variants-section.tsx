@@ -100,7 +100,7 @@ function ViewVariantMenuItem({
     <DropdownMenuItem
       onClick={() =>
         navigate({
-          to: "/products/$productId/variants/$variantId",
+          to: "/admin/products/$productId/variants/$variantId",
           params: { productId, variantId },
         })
       }

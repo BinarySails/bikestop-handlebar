@@ -5,11 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGetSaleOrderRequest } from "@/lib/api/api";
 
-export const Route = createFileRoute(
-  "/admin/sales/$orderId/payments-invoices"
-)({
-  component: PaymentsAndInvoicesPage,
-});
+export const Route = createFileRoute("/admin/sales/$orderId/payments-invoices")(
+  {
+    component: PaymentsAndInvoicesPage,
+  }
+);
 
 function PaymentsAndInvoicesPage() {
   const { orderId } = Route.useParams();

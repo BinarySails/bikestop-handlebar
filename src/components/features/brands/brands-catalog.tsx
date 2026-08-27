@@ -186,7 +186,7 @@ export function BrandsCatalog({
               <DropdownMenuItem
                 onClick={() =>
                   navigate({
-                    to: "/brands/$brandId/edit",
+                    to: "/admin/brands/$brandId/edit",
                     params: { brandId: brand.id },
                   })
                 }

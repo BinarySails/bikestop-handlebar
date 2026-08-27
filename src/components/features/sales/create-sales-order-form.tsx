@@ -639,7 +639,7 @@ export function CreateSalesOrderForm({
 
         if (result.status === 201) {
           toast.success(`Orden ${result.data.order_number} creada.`);
-          navigate({ to: "/sales" });
+          navigate({ to: "/admin/sales" });
         } else {
           const errorData =
             "data" in result &&
