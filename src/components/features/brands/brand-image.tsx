@@ -4,7 +4,7 @@ import { ImageOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type BrandImageProps = {
-  src: string;
+  src: string | null | undefined;
   alt: string;
   className?: string;
 };

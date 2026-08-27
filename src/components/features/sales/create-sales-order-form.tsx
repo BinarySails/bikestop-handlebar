@@ -1342,11 +1342,6 @@ export function CreateSalesOrderForm({
             const selectedAllocation = line?.warehouse_allocations.find(
               (item) => item.warehouse_id === dispatchWarehouseId
             );
-            const pendingAllocations =
-              line?.warehouse_allocations.filter(
-                (allocation) =>
-                  allocation.quantity > allocation.dispatched_quantity
-              ) ?? [];
             const remaining = selectedAllocation
               ? selectedAllocation.quantity -
                 selectedAllocation.dispatched_quantity
@@ -1355,44 +1350,37 @@ export function CreateSalesOrderForm({
               <div className="space-y-4">
                 <div className="grid gap-1.5">
                   <Label>Almacén</Label>
-                  {pendingAllocations.length === 1 ? (
-                    <div className="flex h-8 items-center rounded-lg border border-input px-2.5 text-sm">
-                      <WarehouseName
-                        variantId={line?.variant_id}
-                        warehouseId={pendingAllocations[0].warehouse_id}
-                      />
-                    </div>
-                  ) : (
-                    <Select
-                      value={dispatchWarehouseId ?? undefined}
-                      onValueChange={(warehouseId) => {
-                        if (!warehouseId) return;
-                        setDispatchWarehouseId(warehouseId);
-                        const selected = line?.warehouse_allocations.find(
-                          (item) => item.warehouse_id === warehouseId
-                        );
-                        setDispatchQuantity(
-                          selected
-                            ? String(
-                                selected.quantity - selected.dispatched_quantity
-                              )
-                            : ""
-                        );
-                      }}
-                      disabled={dispatchingLineId !== null}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Seleccionar almacén">
-                          {dispatchWarehouseId ? (
-                            <WarehouseName
-                              variantId={line?.variant_id}
-                              warehouseId={dispatchWarehouseId}
-                            />
-                          ) : null}
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent>
-                        {pendingAllocations.map((allocation) => (
+                  <Select
+                    value={dispatchWarehouseId ?? undefined}
+                    onValueChange={(warehouseId) => {
+                      if (!warehouseId) return;
+                      setDispatchWarehouseId(warehouseId);
+                      const selected = line?.warehouse_allocations.find(
+                        (item) => item.warehouse_id === warehouseId
+                      );
+                      setDispatchQuantity(
+                        selected
+                          ? String(
+                              selected.quantity - selected.dispatched_quantity
+                            )
+                          : ""
+                      );
+                    }}
+                    disabled={dispatchingLineId !== null}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Seleccionar almacén">
+                        {dispatchWarehouseId ? (
+                          <WarehouseName
+                            variantId={line?.variant_id}
+                            warehouseId={dispatchWarehouseId}
+                          />
+                        ) : null}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {line?.warehouse_allocations.map((allocation) => {
+                        return (
                           <SelectItem
                             key={allocation.warehouse_id}
                             value={allocation.warehouse_id}
@@ -1406,10 +1394,10 @@ export function CreateSalesOrderForm({
                               allocation.dispatched_quantity}{" "}
                             pendientes
                           </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="grid gap-1.5">
                   <Label htmlFor="dispatch-quantity">

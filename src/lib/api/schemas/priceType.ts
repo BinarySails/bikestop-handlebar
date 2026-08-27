@@ -12,4 +12,5 @@ export const PriceType = {
   regular: 'regular',
   sale: 'sale',
   wholesale: 'wholesale',
+  acquisition_cost: 'acquisition_cost',
 } as const;

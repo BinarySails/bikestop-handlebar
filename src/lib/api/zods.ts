@@ -34,7 +34,7 @@ export const LoginHandlerResponse = zod.object({
   "display_name": zod.string(),
   "id": zod.uuid(),
   "slug": zod.string(),
-  "status": zod.enum(['active', 'inactive', 'deleted'])
+  "status": zod.enum(['enable', 'disable', 'archive'])
 })),
   "status": zod.enum(['enable', 'disable', 'archive']),
   "username": zod.string()
@@ -66,7 +66,7 @@ export const MeHandlerResponse = zod.object({
   "display_name": zod.string(),
   "id": zod.uuid(),
   "slug": zod.string(),
-  "status": zod.enum(['active', 'inactive', 'deleted'])
+  "status": zod.enum(['enable', 'disable', 'archive'])
 })),
   "status": zod.enum(['enable', 'disable', 'archive']),
   "username": zod.string()
@@ -98,7 +98,7 @@ export const GetCartHandlerResponse = zod.object({
   "created_at": zod.iso.datetime({"offset":true}),
   "currency": zod.string(),
   "id": zod.uuid(),
-  "price_type": zod.enum(['regular', 'sale', 'wholesale']),
+  "price_type": zod.enum(['regular', 'sale', 'wholesale', 'acquisition_cost']),
   "status": zod.enum(['enable', 'disable', 'archive']),
   "updated_at": zod.iso.datetime({"offset":true}),
   "variant_id": zod.uuid()
@@ -222,7 +222,7 @@ export const CheckoutCartHandlerResponse = zod.object({
   "display_name": zod.string(),
   "id": zod.uuid(),
   "slug": zod.string(),
-  "status": zod.enum(['active', 'inactive'])
+  "status": zod.enum(['enable', 'disable', 'archive'])
 })),
   "tax_total": zod.int(),
   "updated_at": zod.iso.datetime({"offset":true})
@@ -325,7 +325,7 @@ export const ListCatalogProductsRequestResponse = zod.object({
   "created_at": zod.iso.datetime({"offset":true}),
   "currency": zod.string(),
   "id": zod.uuid(),
-  "price_type": zod.enum(['regular', 'sale', 'wholesale']),
+  "price_type": zod.enum(['regular', 'sale', 'wholesale', 'acquisition_cost']),
   "status": zod.enum(['enable', 'disable', 'archive']),
   "updated_at": zod.iso.datetime({"offset":true}),
   "variant_id": zod.uuid()
@@ -349,7 +349,7 @@ export const ListCatalogProductsRequestResponse = zod.object({
   "created_at": zod.iso.datetime({"offset":true}),
   "currency": zod.string(),
   "id": zod.uuid(),
-  "price_type": zod.enum(['regular', 'sale', 'wholesale']),
+  "price_type": zod.enum(['regular', 'sale', 'wholesale', 'acquisition_cost']),
   "status": zod.enum(['enable', 'disable', 'archive']),
   "updated_at": zod.iso.datetime({"offset":true}),
   "variant_id": zod.uuid()
@@ -401,7 +401,7 @@ export const GetCatalogProductRequestResponse = zod.object({
   "created_at": zod.iso.datetime({"offset":true}),
   "currency": zod.string(),
   "id": zod.uuid(),
-  "price_type": zod.enum(['regular', 'sale', 'wholesale']),
+  "price_type": zod.enum(['regular', 'sale', 'wholesale', 'acquisition_cost']),
   "status": zod.enum(['enable', 'disable', 'archive']),
   "updated_at": zod.iso.datetime({"offset":true}),
   "variant_id": zod.uuid()
@@ -425,7 +425,7 @@ export const GetCatalogProductRequestResponse = zod.object({
   "created_at": zod.iso.datetime({"offset":true}),
   "currency": zod.string(),
   "id": zod.uuid(),
-  "price_type": zod.enum(['regular', 'sale', 'wholesale']),
+  "price_type": zod.enum(['regular', 'sale', 'wholesale', 'acquisition_cost']),
   "status": zod.enum(['enable', 'disable', 'archive']),
   "updated_at": zod.iso.datetime({"offset":true}),
   "variant_id": zod.uuid()
@@ -738,7 +738,7 @@ export const CreateFileRequestResponse = zod.object({
   "object_key": zod.string(),
   "original_filename": zod.string(),
   "size": zod.int(),
-  "status": zod.enum(['active', 'archive', 'delete', 'hard_delete']),
+  "status": zod.enum(['enable', 'archive', 'delete', 'hard_delete']),
   "storage_provider": zod.string()
 }),
   "public_url": zod.string(),
@@ -785,7 +785,7 @@ export const DeleteFileRequestResponse = zod.object({
   "object_key": zod.string(),
   "original_filename": zod.string(),
   "size": zod.int(),
-  "status": zod.enum(['active', 'archive', 'delete', 'hard_delete']),
+  "status": zod.enum(['enable', 'archive', 'delete', 'hard_delete']),
   "storage_provider": zod.string()
 })
 })
@@ -821,7 +821,7 @@ export const GetDownloadUrlRequestResponse = zod.object({
   "object_key": zod.string(),
   "original_filename": zod.string(),
   "size": zod.int(),
-  "status": zod.enum(['active', 'archive', 'delete', 'hard_delete']),
+  "status": zod.enum(['enable', 'archive', 'delete', 'hard_delete']),
   "storage_provider": zod.string()
 })
 })
@@ -1345,7 +1345,7 @@ export const ListVariantsRequestResponseItem = zod.object({
   "created_at": zod.iso.datetime({"offset":true}),
   "currency": zod.string(),
   "id": zod.uuid(),
-  "price_type": zod.enum(['regular', 'sale', 'wholesale']),
+  "price_type": zod.enum(['regular', 'sale', 'wholesale', 'acquisition_cost']),
   "status": zod.enum(['enable', 'disable', 'archive']),
   "updated_at": zod.iso.datetime({"offset":true}),
   "variant_id": zod.uuid()
@@ -1380,7 +1380,7 @@ export const CreateVariantRequestBody = zod.object({
   "prices": zod.array(zod.object({
   "amount": zod.int(),
   "currency": zod.string(),
-  "price_type": zod.enum(['regular', 'sale', 'wholesale'])
+  "price_type": zod.enum(['regular', 'sale', 'wholesale', 'acquisition_cost'])
 })),
   "properties": zod.array(zod.object({
   "property_name": zod.string(),
@@ -1409,7 +1409,7 @@ export const CreateVariantRequestResponse = zod.object({
   "created_at": zod.iso.datetime({"offset":true}),
   "currency": zod.string(),
   "id": zod.uuid(),
-  "price_type": zod.enum(['regular', 'sale', 'wholesale']),
+  "price_type": zod.enum(['regular', 'sale', 'wholesale', 'acquisition_cost']),
   "status": zod.enum(['enable', 'disable', 'archive']),
   "updated_at": zod.iso.datetime({"offset":true}),
   "variant_id": zod.uuid()
@@ -1454,7 +1454,7 @@ export const GetVariantRequestResponse = zod.object({
   "created_at": zod.iso.datetime({"offset":true}),
   "currency": zod.string(),
   "id": zod.uuid(),
-  "price_type": zod.enum(['regular', 'sale', 'wholesale']),
+  "price_type": zod.enum(['regular', 'sale', 'wholesale', 'acquisition_cost']),
   "status": zod.enum(['enable', 'disable', 'archive']),
   "updated_at": zod.iso.datetime({"offset":true}),
   "variant_id": zod.uuid()
@@ -1491,7 +1491,7 @@ export const UpdateVariantRequestBody = zod.object({
   "prices": zod.array(zod.object({
   "amount": zod.int(),
   "currency": zod.string(),
-  "price_type": zod.enum(['regular', 'sale', 'wholesale']),
+  "price_type": zod.enum(['regular', 'sale', 'wholesale', 'acquisition_cost']),
   "status": zod.enum(['enable', 'disable', 'archive'])
 })).nullish(),
   "properties": zod.array(zod.object({
@@ -1523,7 +1523,7 @@ export const UpdateVariantRequestResponse = zod.object({
   "created_at": zod.iso.datetime({"offset":true}),
   "currency": zod.string(),
   "id": zod.uuid(),
-  "price_type": zod.enum(['regular', 'sale', 'wholesale']),
+  "price_type": zod.enum(['regular', 'sale', 'wholesale', 'acquisition_cost']),
   "status": zod.enum(['enable', 'disable', 'archive']),
   "updated_at": zod.iso.datetime({"offset":true}),
   "variant_id": zod.uuid()
@@ -2070,7 +2070,7 @@ export const ListRolesHandlerResponse = zod.object({
   "display_name": zod.string(),
   "id": zod.uuid(),
   "slug": zod.string(),
-  "status": zod.enum(['active', 'inactive', 'deleted'])
+  "status": zod.enum(['enable', 'disable', 'archive'])
 }))
 })
 
@@ -2086,7 +2086,7 @@ export const CreateRoleHandlerResponse = zod.object({
   "display_name": zod.string(),
   "id": zod.uuid(),
   "slug": zod.string(),
-  "status": zod.enum(['active', 'inactive', 'deleted'])
+  "status": zod.enum(['enable', 'disable', 'archive'])
 })
 })
 
@@ -2098,7 +2098,7 @@ export const UpdateRoleHandlerParams = zod.object({
 export const UpdateRoleHandlerBody = zod.object({
   "display_name": zod.string(),
   "slug": zod.string(),
-  "status": zod.enum(['active', 'inactive', 'deleted'])
+  "status": zod.enum(['enable', 'disable', 'archive'])
 })
 
 export const UpdateRoleHandlerResponse = zod.object({
@@ -2107,7 +2107,7 @@ export const UpdateRoleHandlerResponse = zod.object({
   "display_name": zod.string(),
   "id": zod.uuid(),
   "slug": zod.string(),
-  "status": zod.enum(['active', 'inactive', 'deleted'])
+  "status": zod.enum(['enable', 'disable', 'archive'])
 })
 })
 
@@ -2122,7 +2122,7 @@ export const DeleteRoleHandlerResponse = zod.object({
   "display_name": zod.string(),
   "id": zod.uuid(),
   "slug": zod.string(),
-  "status": zod.enum(['active', 'inactive', 'deleted'])
+  "status": zod.enum(['enable', 'disable', 'archive'])
 })
 })
 
@@ -2188,7 +2188,7 @@ export const ChangeRoleStatusHandlerParams = zod.object({
 })
 
 export const ChangeRoleStatusHandlerBody = zod.object({
-  "status": zod.enum(['active', 'inactive', 'deleted'])
+  "status": zod.enum(['enable', 'disable', 'archive'])
 })
 
 export const ChangeRoleStatusHandlerResponse = zod.object({
@@ -2197,7 +2197,7 @@ export const ChangeRoleStatusHandlerResponse = zod.object({
   "display_name": zod.string(),
   "id": zod.uuid(),
   "slug": zod.string(),
-  "status": zod.enum(['active', 'inactive', 'deleted'])
+  "status": zod.enum(['enable', 'disable', 'archive'])
 })
 })
 
@@ -2229,7 +2229,7 @@ export const ListUserRolesHandlerResponse = zod.object({
   "display_name": zod.string(),
   "id": zod.uuid(),
   "slug": zod.string(),
-  "status": zod.enum(['active', 'inactive', 'deleted'])
+  "status": zod.enum(['enable', 'disable', 'archive'])
 })),
   "user_id": zod.uuid()
 })
@@ -2250,7 +2250,7 @@ export const AssignRolesToUserHandlerResponse = zod.object({
   "display_name": zod.string(),
   "id": zod.uuid(),
   "slug": zod.string(),
-  "status": zod.enum(['active', 'inactive', 'deleted'])
+  "status": zod.enum(['enable', 'disable', 'archive'])
 })),
   "user_id": zod.uuid()
 })
@@ -2268,7 +2268,7 @@ export const RemoveUserRoleHandlerResponse = zod.object({
 
 
 export const ListTagsRequestQueryParams = zod.object({
-  "status": zod.enum(['active', 'inactive']).optional()
+  "status": zod.enum(['enable', 'disable', 'archive']).optional()
 })
 
 export const ListTagsRequestResponse = zod.object({
@@ -2278,7 +2278,7 @@ export const ListTagsRequestResponse = zod.object({
   "display_name": zod.string(),
   "id": zod.uuid(),
   "slug": zod.string(),
-  "status": zod.enum(['active', 'inactive'])
+  "status": zod.enum(['enable', 'disable', 'archive'])
 }))
 })
 
@@ -2296,7 +2296,7 @@ export const CreateTagRequestResponse = zod.object({
   "display_name": zod.string(),
   "id": zod.uuid(),
   "slug": zod.string(),
-  "status": zod.enum(['active', 'inactive'])
+  "status": zod.enum(['enable', 'disable', 'archive'])
 })
 })
 
@@ -2312,7 +2312,7 @@ export const GetTagRequestResponse = zod.object({
   "display_name": zod.string(),
   "id": zod.uuid(),
   "slug": zod.string(),
-  "status": zod.enum(['active', 'inactive'])
+  "status": zod.enum(['enable', 'disable', 'archive'])
 })
 })
 
@@ -2329,7 +2329,7 @@ export const DeleteTagRequestResponse = zod.object({
   "display_name": zod.string(),
   "id": zod.uuid(),
   "slug": zod.string(),
-  "status": zod.enum(['active', 'inactive'])
+  "status": zod.enum(['enable', 'disable', 'archive'])
 })
 })
 })
@@ -2343,7 +2343,7 @@ export const UpdateTagRequestBody = zod.object({
   "color": zod.string().nullish(),
   "display_name": zod.string(),
   "slug": zod.string(),
-  "status": zod.enum(['active', 'inactive'])
+  "status": zod.enum(['enable', 'disable', 'archive'])
 })
 
 export const UpdateTagRequestResponse = zod.object({
@@ -2353,7 +2353,7 @@ export const UpdateTagRequestResponse = zod.object({
   "display_name": zod.string(),
   "id": zod.uuid(),
   "slug": zod.string(),
-  "status": zod.enum(['active', 'inactive'])
+  "status": zod.enum(['enable', 'disable', 'archive'])
 })
 })
 
@@ -2420,7 +2420,7 @@ export const ListSalesOrdersRequestResponse = zod.object({
   "display_name": zod.string(),
   "id": zod.uuid(),
   "slug": zod.string(),
-  "status": zod.enum(['active', 'inactive'])
+  "status": zod.enum(['enable', 'disable', 'archive'])
 })),
   "tax_total": zod.int(),
   "updated_at": zod.iso.datetime({"offset":true})
@@ -2544,7 +2544,7 @@ export const CreateSalesOrderRequestResponse = zod.object({
   "display_name": zod.string(),
   "id": zod.uuid(),
   "slug": zod.string(),
-  "status": zod.enum(['active', 'inactive'])
+  "status": zod.enum(['enable', 'disable', 'archive'])
 })),
   "tax_total": zod.int(),
   "updated_at": zod.iso.datetime({"offset":true})
@@ -2634,7 +2634,7 @@ export const GetSaleOrderRequestResponse = zod.object({
   "display_name": zod.string(),
   "id": zod.uuid(),
   "slug": zod.string(),
-  "status": zod.enum(['active', 'inactive'])
+  "status": zod.enum(['enable', 'disable', 'archive'])
 })),
   "tax_total": zod.int(),
   "updated_at": zod.iso.datetime({"offset":true})
@@ -2758,7 +2758,7 @@ export const UpdateSalesOrderRequestResponse = zod.object({
   "display_name": zod.string(),
   "id": zod.uuid(),
   "slug": zod.string(),
-  "status": zod.enum(['active', 'inactive'])
+  "status": zod.enum(['enable', 'disable', 'archive'])
 })),
   "tax_total": zod.int(),
   "updated_at": zod.iso.datetime({"offset":true})
@@ -2848,7 +2848,7 @@ export const UpdateSalesOrderStatusRequestResponse = zod.object({
   "display_name": zod.string(),
   "id": zod.uuid(),
   "slug": zod.string(),
-  "status": zod.enum(['active', 'inactive'])
+  "status": zod.enum(['enable', 'disable', 'archive'])
 })),
   "tax_total": zod.int(),
   "updated_at": zod.iso.datetime({"offset":true})
@@ -2942,7 +2942,7 @@ export const ApplyPromotionsRequestResponse = zod.object({
   "display_name": zod.string(),
   "id": zod.uuid(),
   "slug": zod.string(),
-  "status": zod.enum(['active', 'inactive'])
+  "status": zod.enum(['enable', 'disable', 'archive'])
 })),
   "tax_total": zod.int(),
   "updated_at": zod.iso.datetime({"offset":true})
@@ -3032,7 +3032,7 @@ export const CancelSalesOrderRequestResponse = zod.object({
   "display_name": zod.string(),
   "id": zod.uuid(),
   "slug": zod.string(),
-  "status": zod.enum(['active', 'inactive'])
+  "status": zod.enum(['enable', 'disable', 'archive'])
 })),
   "tax_total": zod.int(),
   "updated_at": zod.iso.datetime({"offset":true})
@@ -3126,7 +3126,7 @@ export const AddSalesOrderCommentRequestResponse = zod.object({
   "display_name": zod.string(),
   "id": zod.uuid(),
   "slug": zod.string(),
-  "status": zod.enum(['active', 'inactive'])
+  "status": zod.enum(['enable', 'disable', 'archive'])
 })),
   "tax_total": zod.int(),
   "updated_at": zod.iso.datetime({"offset":true})
@@ -3242,7 +3242,7 @@ export const UpdateSalesOrderTagsRequestResponse = zod.object({
   "display_name": zod.string(),
   "id": zod.uuid(),
   "slug": zod.string(),
-  "status": zod.enum(['active', 'inactive'])
+  "status": zod.enum(['enable', 'disable', 'archive'])
 })),
   "tax_total": zod.int(),
   "updated_at": zod.iso.datetime({"offset":true})
@@ -3501,7 +3501,7 @@ export const ListUsersRequestResponse = zod.object({
   "display_name": zod.string(),
   "id": zod.uuid(),
   "slug": zod.string(),
-  "status": zod.enum(['active', 'inactive', 'deleted'])
+  "status": zod.enum(['enable', 'disable', 'archive'])
 }))
 })))
 })
@@ -3578,7 +3578,7 @@ export const UpdateUserRequestResponse = zod.object({
   "display_name": zod.string(),
   "id": zod.uuid(),
   "slug": zod.string(),
-  "status": zod.enum(['active', 'inactive', 'deleted'])
+  "status": zod.enum(['enable', 'disable', 'archive'])
 }))
 }))
 

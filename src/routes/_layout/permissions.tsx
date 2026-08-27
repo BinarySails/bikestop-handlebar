@@ -55,12 +55,12 @@ export const Route = createFileRoute("/_layout/permissions")({
 
 const PAGE_SIZE = 10;
 
-type StatusFilter = "all" | "active" | "inactive";
+type StatusFilter = "all" | "enable" | "disable";
 
 const statusFilterLabel: Record<StatusFilter, string> = {
   all: "Todos",
-  active: "Activos",
-  inactive: "Inactivos",
+  enable: "Activos",
+  disable: "Inactivos",
 };
 
 function PermissionsPage() {
@@ -87,9 +87,9 @@ function PermissionsPage() {
   const filteredPermissions = useMemo(() => {
     const query = search.trim().toLowerCase();
     return allPermissions.filter((permission) => {
-      if (statusFilter === "active" && permission.status !== "enable")
+      if (statusFilter === "enable" && permission.status !== "enable")
         return false;
-      if (statusFilter === "inactive" && permission.status !== "disable")
+      if (statusFilter === "disable" && permission.status !== "disable")
         return false;
       if (query) {
         const matches =
@@ -271,8 +271,8 @@ function PermissionsPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="active">Activos</SelectItem>
-                  <SelectItem value="inactive">Inactivos</SelectItem>
+                  <SelectItem value="enable">Activos</SelectItem>
+                  <SelectItem value="disable">Inactivos</SelectItem>
                 </SelectContent>
               </Select>
               <Button

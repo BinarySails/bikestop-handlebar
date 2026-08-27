@@ -196,7 +196,8 @@ function WarehousesIndexPage() {
                   <SelectItem value="all">Todos</SelectItem>
                   <SelectItem value="enable">Activo</SelectItem>
                   <SelectItem value="disable">Inactivo</SelectItem>
-                  <SelectItem value="archive">Archivado</SelectItem>
+                  <SelectItem value="enable">Activo</SelectItem>
+                  <SelectItem value="disable">Inactivo</SelectItem>
                 </SelectContent>
               </Select>
               <Button

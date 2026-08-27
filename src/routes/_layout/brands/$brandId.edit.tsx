@@ -53,12 +53,13 @@ function BrandEditForm({
   onSaved: () => void;
 }) {
   const [name, setName] = useState(brand.display_name);
-  const [imageUrl, setImageUrl] = useState(brand.image_url ?? "");
+  const [imageUrl, setImageUrl] = useState<string>(brand.image_url ?? "");
   const [error, setError] = useState<string>();
   const [pending, setPending] = useState(false);
   const [imageUploading, setImageUploading] = useState(false);
 
-  const isDirty = name !== brand.display_name || imageUrl !== brand.image_url;
+  const isDirty =
+    name !== brand.display_name || imageUrl !== (brand.image_url ?? "");
 
   async function saveChanges() {
     setError(undefined);
