@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  getListAuditEventsRequestKey,
+  getListSalesOrderAuditLogRequestKey,
   useAddSalesOrderCommentRequest,
   useGetSaleOrderRequest,
   useMeHandler,
@@ -66,9 +66,7 @@ function OrderDetailPage() {
   } = useGetSaleOrderRequest(orderId);
   const { trigger: addComment } = useAddSalesOrderCommentRequest(orderId);
   const { mutate: swrMutate } = useSWRConfig();
-  const auditKey = getListAuditEventsRequestKey({
-    entity_type: "sales_order",
-    entity_id: orderId,
+  const auditKey = getListSalesOrderAuditLogRequestKey(orderId, {
     page: 0,
     limit: 20,
   });
@@ -210,7 +208,7 @@ function OrderDetailPage() {
         }}
       />
 
-      <SalesOrderAuditLog orderId={order.id} knownLines={order.lines} />
+      <SalesOrderAuditLog orderId={order.id} />
     </section>
   );
 }

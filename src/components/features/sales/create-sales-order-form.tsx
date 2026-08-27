@@ -585,15 +585,114 @@ export function CreateSalesOrderForm({
           (order.status === "draft" || order.status === "quote") &&
           onSaveOrder
         ) {
+          const originalBilling = addressValues(order.billing_address);
+          const billingChanged =
+            originalBilling.country !== billingAddress.country ||
+            originalBilling.state !== billingAddress.state ||
+            originalBilling.city !== billingAddress.city ||
+            originalBilling.postal_code !== billingAddress.postal_code ||
+            originalBilling.address !== billingAddress.address;
+
+          const originalShipping = addressValues(order.shipping_address);
+          const shippingChanged = value.shipping_same_as_billing
+            ? false
+            : originalShipping.country !== shippingAddress.country ||
+              originalShipping.state !== shippingAddress.state ||
+              originalShipping.city !== shippingAddress.city ||
+              originalShipping.postal_code !== shippingAddress.postal_code ||
+              originalShipping.address !== shippingAddress.address;
+
+          const paymentTermChanged =
+            order.payment_term?.id !== value.payment_term?.id;
+
+          const commentsChanged =
+            (order.comments ?? "").trim() !== value.comments.trim();
+
+          const originalTagIds = [...order.tags.map((tag) => tag.id)].sort();
+          const valueTagIds = [...value.tag_ids].sort();
+          const tagsChanged =
+            originalTagIds.length !== valueTagIds.length ||
+            originalTagIds.some((id, index) => id !== valueTagIds[index]);
+
+          const customerChanged =
+            order.customer.customer_id !== value.customer?.id;
+
+          const orderDateChanged =
+            new Date(order.order_date).getTime() !== value.order_date.getTime();
+
+          const sortAllocations = <T extends { warehouse_id: string }>(
+            items: T[]
+          ) =>
+            [...items].sort((a, b) =>
+              a.warehouse_id.localeCompare(b.warehouse_id)
+            );
+
+          const originalLineSignature = JSON.stringify(
+            order.lines.map((line) => ({
+              id: line.id,
+              variant_id: line.variant_id,
+              description: line.description.trim(),
+              quantity: line.quantity,
+              unit_price: line.unit_price,
+              tax_rate: line.tax_rate,
+              allocations: sortAllocations(
+                line.warehouse_allocations.map((a) => ({
+                  warehouse_id: a.warehouse_id,
+                  quantity: a.quantity,
+                }))
+              ),
+            }))
+          );
+
+          const valueLineSignature = JSON.stringify(
+            completeLines.map((line) => ({
+              id: line.id ?? null,
+              variant_id: line.variant.id,
+              description: line.description.trim(),
+              quantity: Number(line.quantity),
+              unit_price: pesosToCents(Number(line.unit_price)),
+              tax_rate: percentToBasisPoints(line.tax_rate),
+              allocations: sortAllocations(
+                line.warehouse_allocations.map((a) => ({
+                  warehouse_id: a.warehouse_id,
+                  quantity: Number(a.quantity),
+                }))
+              ),
+            }))
+          );
+
+          const linesChanged = originalLineSignature !== valueLineSignature;
+
+          const onlyAddressOrPaymentChanged =
+            (billingChanged || paymentTermChanged || shippingChanged) &&
+            !linesChanged &&
+            !commentsChanged &&
+            !tagsChanged &&
+            !customerChanged &&
+            !orderDateChanged;
+
           try {
             await onSaveOrder(parseResult.data);
             form.reset(value);
             setConfirmation(null);
-            toast.success(
-              order.status === "quote"
-                ? "Nueva cotización creada"
-                : "Cambios guardados"
-            );
+
+            if (onlyAddressOrPaymentChanged) {
+              if (billingChanged) {
+                toast.success("Dirección de facturación actualizada");
+              }
+              if (shippingChanged) {
+                toast.success("Dirección de envío actualizada");
+              }
+              if (paymentTermChanged) {
+                toast.success("Término de pago actualizado");
+              }
+            } else {
+              toast.success(
+                order.status === "quote"
+                  ? "Nueva cotización creada"
+                  : "Cambios guardados"
+              );
+            }
           } catch (error) {
             toast.error(
               error instanceof Error

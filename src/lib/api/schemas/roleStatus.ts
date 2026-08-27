@@ -9,7 +9,7 @@ export type RoleStatus = typeof RoleStatus[keyof typeof RoleStatus];
 
 
 export const RoleStatus = {
-  active: 'active',
-  inactive: 'inactive',
-  deleted: 'deleted',
+  enable: 'enable',
+  disable: 'disable',
+  archive: 'archive',
 } as const;

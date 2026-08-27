@@ -9,12 +9,14 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useListAuditEventsRequest } from "@/lib/api/api";
+import { useListSalesOrderAuditLogRequest } from "@/lib/api/api";
 import {
   type AuditEventResponse,
-  type ListAuditEventsRequestParams,
+  type ListSalesOrderAuditLogRequestParams,
   type SalesOrderId,
-  type SalesOrderLine,
+  type SalesOrderUpdatedAuditData,
+  type SalesOrderUpdatedAuditLine,
+  type SalesOrderUpdatedAuditModifiedLine,
 } from "@/lib/api/schemas";
 import { formatDueDateWithFns } from "@/lib/dates";
 
@@ -37,6 +39,44 @@ const JUST_NOW_SEC = 60;
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function isUpdatedAuditData(data: unknown): data is SalesOrderUpdatedAuditData {
+  return (
+    isPlainObject(data) &&
+    ("added_lines" in data ||
+      "removed_lines" in data ||
+      "modified_lines" in data ||
+      "grand_total" in data ||
+      "line_count" in data ||
+      "billing_address" in data ||
+      "shipping_address" in data ||
+      "payment_term_id" in data)
+  );
+}
+
+function isAuditLine(value: unknown): value is SalesOrderUpdatedAuditLine {
+  return (
+    isPlainObject(value) &&
+    typeof value.line_id === "string" &&
+    typeof value.variant_id === "string" &&
+    typeof value.description === "string" &&
+    typeof value.quantity === "number" &&
+    typeof value.unit_price === "number" &&
+    typeof value.line_total === "number"
+  );
+}
+
+function isModifiedAuditLine(
+  value: unknown
+): value is SalesOrderUpdatedAuditModifiedLine {
+  return (
+    isPlainObject(value) &&
+    typeof value.line_id === "string" &&
+    typeof value.variant_id === "string" &&
+    typeof value.description === "string" &&
+    "changes" in value
+  );
 }
 
 function statusLabel(value: unknown): string | null {
@@ -117,22 +157,67 @@ function truncate(value: string, max: number): string {
   return `${value.slice(0, max - 1)}…`;
 }
 
-function findMatchingLine(
-  lines: SalesOrderLine[],
-  targetCents: number
-): SalesOrderLine | undefined {
-  return lines.find((l) => l.line_total === targetCents);
+function describeLineChanges(description: string, changes: unknown): string[] {
+  if (!isPlainObject(changes)) return [];
+  const out: string[] = [];
+
+  if ("quantity" in changes) {
+    const pair = readPair(changes.quantity);
+    if (pair && typeof pair.from === "number" && typeof pair.to === "number") {
+      out.push(
+        `cambió la cantidad de ${description} de ${pair.from} a ${pair.to}`
+      );
+    }
+  }
+  if ("unit_price" in changes) {
+    const pair = readPair(changes.unit_price);
+    if (pair && typeof pair.from === "number" && typeof pair.to === "number") {
+      out.push(
+        `cambió el precio unitario de ${description} de ${money.format(pair.from / 100)} a ${money.format(pair.to / 100)}`
+      );
+    }
+  }
+  if ("discount_amount" in changes) {
+    const pair = readPair(changes.discount_amount);
+    if (pair && typeof pair.from === "number" && typeof pair.to === "number") {
+      out.push(
+        `cambió el descuento de ${description} de ${money.format(pair.from / 100)} a ${money.format(pair.to / 100)}`
+      );
+    }
+  }
+  if ("description" in changes) {
+    const pair = readPair(changes.description);
+    if (
+      pair &&
+      typeof pair.from === "string" &&
+      typeof pair.to === "string" &&
+      pair.from !== pair.to
+    ) {
+      out.push(
+        `cambió la descripción de la línea de "${truncate(pair.from, 40)}" a "${truncate(pair.to, 40)}"`
+      );
+    }
+  }
+  if ("variant_id" in changes) {
+    const pair = readPair(changes.variant_id);
+    if (
+      pair &&
+      typeof pair.from === "string" &&
+      typeof pair.to === "string" &&
+      pair.from !== pair.to
+    ) {
+      out.push(`cambió la variante de la línea`);
+    }
+  }
+
+  return out;
 }
 
-function summarizeUpdate(
-  data: unknown,
-  knownLines?: SalesOrderLine[]
-): string[] {
-  if (!isPlainObject(data)) return [];
+function summarizeAggregateUpdate(data: SalesOrderUpdatedAuditData): string[] {
+  const phrases: string[] = [];
 
   const grandTotalPair = readPair(data.grand_total);
   const lineCountPair = readPair(data.line_count);
-
   const fromGT =
     typeof grandTotalPair?.from === "number" ? grandTotalPair.from : null;
   const toGT =
@@ -141,31 +226,24 @@ function summarizeUpdate(
     typeof lineCountPair?.from === "number" ? lineCountPair.from : null;
   const toLC = typeof lineCountPair?.to === "number" ? lineCountPair.to : null;
 
-  const lineCountChanged = fromLC !== null && toLC !== null && fromLC !== toLC;
   const grandTotalChanged = fromGT !== null && toGT !== null && fromGT !== toGT;
 
-  const phrases: string[] = [];
-
-  if (lineCountChanged && fromLC !== null && toLC !== null) {
+  if (
+    fromLC !== null &&
+    toLC !== null &&
+    fromLC !== toLC &&
+    typeof data.line_count === "object"
+  ) {
     const lineDelta = toLC - fromLC;
     let moneySuffix = "";
-    let matchedDescription: string | null = null;
-
     if (grandTotalChanged && fromGT !== null && toGT !== null) {
       const valueDelta = Math.abs(toGT - fromGT);
       const sign = lineDelta > 0 ? "+" : "-";
       moneySuffix = ` (${sign}${money.format(valueDelta / 100)})`;
-
-      if (lineDelta > 0 && knownLines) {
-        const match = findMatchingLine(knownLines, valueDelta);
-        if (match) matchedDescription = match.description;
-      }
     }
-
     if (lineDelta > 0) {
-      const descPart = matchedDescription ? `: ${matchedDescription}` : "";
       phrases.push(
-        `agregó ${lineDelta} ${lineDelta === 1 ? "línea" : "líneas"}${descPart}${moneySuffix} (${fromLC} → ${toLC})`
+        `agregó ${lineDelta} ${lineDelta === 1 ? "línea" : "líneas"}${moneySuffix} (${fromLC} → ${toLC})`
       );
     } else {
       const n = Math.abs(lineDelta);
@@ -195,6 +273,15 @@ function summarizeUpdate(
       case "order_date":
         phrases.push("cambió la fecha de la orden");
         break;
+      case "billing_address":
+        phrases.push("actualizó la dirección de facturación");
+        break;
+      case "shipping_address":
+        phrases.push("actualizó la dirección de envío");
+        break;
+      case "payment_term_id":
+        phrases.push("cambió el término de pago");
+        break;
       default:
         break;
     }
@@ -203,11 +290,46 @@ function summarizeUpdate(
   return phrases;
 }
 
-function describe(
-  event: AuditEventResponse,
-  actorName: string,
-  knownLines?: SalesOrderLine[]
-): string {
+function summarizeUpdate(data: unknown): string[] {
+  if (!isUpdatedAuditData(data)) return [];
+
+  const perLine: string[] = [];
+
+  if (Array.isArray(data.added_lines)) {
+    for (const raw of data.added_lines) {
+      if (!isAuditLine(raw)) continue;
+      perLine.push(
+        `agregó ${raw.description} (${raw.quantity} × ${money.format(raw.unit_price / 100)})`
+      );
+    }
+  }
+  if (Array.isArray(data.removed_lines)) {
+    for (const raw of data.removed_lines) {
+      if (!isAuditLine(raw)) continue;
+      perLine.push(
+        `eliminó ${raw.description} (${raw.quantity} × ${money.format(raw.unit_price / 100)})`
+      );
+    }
+  }
+  if (Array.isArray(data.modified_lines)) {
+    for (const raw of data.modified_lines) {
+      if (!isModifiedAuditLine(raw)) continue;
+      perLine.push(...describeLineChanges(raw.description, raw.changes));
+    }
+  }
+
+  if (perLine.length > 0) return perLine;
+
+  return summarizeAggregateUpdate(data);
+}
+
+function joinPhrases(phrases: string[]): string {
+  if (phrases.length === 1) return phrases[0];
+  if (phrases.length === 2) return `${phrases[0]} y ${phrases[1]}`;
+  return `${phrases.slice(0, -1).join(", ")} y ${phrases[phrases.length - 1]}`;
+}
+
+function describe(event: AuditEventResponse, actorName: string): string {
   switch (event.action) {
     case "sales_order.created": {
       if (isPlainObject(event.data)) {
@@ -239,10 +361,9 @@ function describe(
     }
 
     case "sales_order.updated": {
-      const phrases = summarizeUpdate(event.data, knownLines);
+      const phrases = summarizeUpdate(event.data);
       if (phrases.length === 0) return `${actorName} actualizó la orden`;
-      if (phrases.length === 1) return `${actorName} ${phrases[0]}`;
-      return `${actorName} ${phrases[0]} y ${phrases.slice(1).join(", ")}`;
+      return `${actorName} ${joinPhrases(phrases)}`;
     }
 
     case "sales_order.status_changed": {
@@ -312,15 +433,9 @@ function describe(
   }
 }
 
-function TimelineRow({
-  event,
-  knownLines,
-}: {
-  event: AuditEventResponse;
-  knownLines?: SalesOrderLine[];
-}) {
+function TimelineRow({ event }: { event: AuditEventResponse }) {
   const actorName = event.actor?.name ?? "Sistema";
-  const description = describe(event, actorName, knownLines);
+  const description = describe(event, actorName);
 
   return (
     <li className="relative flex gap-3 pb-4 last:pb-0">
@@ -375,23 +490,17 @@ function ErrorState({ onRetry }: { onRetry: () => void }) {
   );
 }
 
-export function SalesOrderAuditLog({
-  orderId,
-  knownLines,
-}: {
-  orderId: SalesOrderId;
-  knownLines?: SalesOrderLine[];
-}) {
-  const params: ListAuditEventsRequestParams = {
-    entity_type: "sales_order",
-    entity_id: orderId,
+export function SalesOrderAuditLog({ orderId }: { orderId: SalesOrderId }) {
+  const params: ListSalesOrderAuditLogRequestParams = {
     page: 0,
     limit: 20,
   };
 
-  const { data, isLoading, error, mutate } = useListAuditEventsRequest(params, {
-    swr: { keepPreviousData: true },
-  });
+  const { data, isLoading, error, mutate } = useListSalesOrderAuditLogRequest(
+    orderId,
+    params,
+    { swr: { keepPreviousData: true } }
+  );
 
   const events = data?.status === 200 ? data.data.data : [];
 
@@ -415,11 +524,7 @@ export function SalesOrderAuditLog({
         ) : (
           <ul className="list-none pl-0">
             {events.map((event) => (
-              <TimelineRow
-                key={event.id}
-                event={event}
-                knownLines={knownLines}
-              />
+              <TimelineRow key={event.id} event={event} />
             ))}
           </ul>
         )}

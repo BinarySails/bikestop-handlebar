@@ -9,7 +9,7 @@ export type CategoryStatus = typeof CategoryStatus[keyof typeof CategoryStatus];
 
 
 export const CategoryStatus = {
-  active: 'active',
+  enable: 'enable',
   disable: 'disable',
   archive: 'archive',
 } as const;

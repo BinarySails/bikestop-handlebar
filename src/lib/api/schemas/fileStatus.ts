@@ -9,7 +9,7 @@ export type FileStatus = typeof FileStatus[keyof typeof FileStatus];
 
 
 export const FileStatus = {
-  active: 'active',
+  enable: 'enable',
   archive: 'archive',
   delete: 'delete',
   hard_delete: 'hard_delete',
