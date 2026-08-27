@@ -58,7 +58,8 @@ function BrandEditForm({
   const [pending, setPending] = useState(false);
   const [imageUploading, setImageUploading] = useState(false);
 
-  const isDirty = name !== brand.display_name || imageUrl !== (brand.image_url ?? "");
+  const isDirty =
+    name !== brand.display_name || imageUrl !== (brand.image_url ?? "");
 
   async function saveChanges() {
     setError(undefined);
@@ -112,11 +113,11 @@ function BrandEditForm({
         isDirty={isDirty}
         isSubmitting={pending || imageUploading}
         onSave={() => saveChanges()}
-          onDiscard={() => {
-            setName(brand.display_name);
-            setImageUrl(brand.image_url ?? "");
-            setError(undefined);
-          }}
+        onDiscard={() => {
+          setName(brand.display_name);
+          setImageUrl(brand.image_url ?? "");
+          setError(undefined);
+        }}
       />
       <Card>
         <CardHeader>

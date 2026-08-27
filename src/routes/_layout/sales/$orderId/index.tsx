@@ -1,11 +1,14 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ChevronLeft } from "lucide-react";
+import { useSWRConfig } from "swr";
 
 import { CreateSalesOrderForm } from "@/components/features/sales/create-sales-order-form";
+import { SalesOrderAuditLog } from "@/components/features/sales/sales-order-audit-log";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
+  getListAuditEventsRequestKey,
   useAddSalesOrderCommentRequest,
   useGetSaleOrderRequest,
   useMeHandler,
@@ -62,6 +65,16 @@ function OrderDetailPage() {
     mutate,
   } = useGetSaleOrderRequest(orderId);
   const { trigger: addComment } = useAddSalesOrderCommentRequest(orderId);
+  const { mutate: swrMutate } = useSWRConfig();
+  const auditKey = getListAuditEventsRequestKey({
+    entity_type: "sales_order",
+    entity_id: orderId,
+    page: 0,
+    limit: 20,
+  });
+  const revalidateAudit = () => {
+    void swrMutate(auditKey);
+  };
 
   if (isLoading) {
     return (
@@ -126,6 +139,7 @@ function OrderDetailPage() {
             throw new Error("No se pudo agregar el comentario");
           }
           await mutate(updated, { revalidate: false });
+          revalidateAudit();
         }}
         onSaveOrder={async (payload) => {
           const updated = await updateSalesOrderRequest(order.id, payload);
@@ -157,6 +171,7 @@ function OrderDetailPage() {
             { status: 200, data: updated.data, headers: new Headers() },
             { revalidate: false }
           );
+          revalidateAudit();
         }}
         onAdvance={async () => {
           const updated = await updateSalesOrderStatusRequest(order.id);
@@ -166,6 +181,7 @@ function OrderDetailPage() {
             );
           }
           await mutate(updated, { revalidate: false });
+          revalidateAudit();
         }}
         onCancel={async () => {
           const updated = await cancelSalesOrderRequest(order.id);
@@ -173,6 +189,7 @@ function OrderDetailPage() {
             throw new Error("No se pudo cancelar la orden");
           }
           await mutate(updated, { revalidate: false });
+          revalidateAudit();
         }}
         onDispatchLine={async (
           lineId: SalesOrderLineId,
@@ -189,8 +206,11 @@ function OrderDetailPage() {
             );
           }
           await mutate();
+          revalidateAudit();
         }}
       />
+
+      <SalesOrderAuditLog orderId={order.id} knownLines={order.lines} />
     </section>
   );
 }
