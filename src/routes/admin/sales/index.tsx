@@ -67,8 +67,8 @@ const statusLabel: Record<keyof typeof SalesOrderStatus, string> = {
   draft: "Borrador",
   quote: "Cotización",
   confirmed: "Confirmada",
-  partially_fulfilled: "Parcialmente despachada",
-  fulfilled: "Completamente despachada",
+  partially_fulfilled: "D. Parcial",
+  fulfilled: "Completo",
   cancelled: "Cancelada",
   closed: "Cerrada",
 };

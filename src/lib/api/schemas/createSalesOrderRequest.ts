@@ -9,12 +9,15 @@ import type { CreateSalesOrderLineRequest } from './createSalesOrderLineRequest.
 import type { CustomerId } from './customerId.ts';
 import type { OrderTagId } from './orderTagId.ts';
 import type { PaymentTermId } from './paymentTermId.ts';
+import type { SalesOrderStatus } from './salesOrderStatus.ts';
 
 export interface CreateSalesOrderRequest {
   billing_address: AddressSnapshot;
   /** @nullable */
   comments?: string | null;
   customer_id: CustomerId;
+  /** @nullable */
+  initial_status?: SalesOrderStatus | null;
   lines: CreateSalesOrderLineRequest[];
   order_date: string;
   payment_term_id?: null | PaymentTermId;

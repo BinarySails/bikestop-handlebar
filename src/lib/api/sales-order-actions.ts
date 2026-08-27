@@ -51,6 +51,21 @@ export async function cancelSalesOrderRequest(
   } as SalesOrderActionResponse;
 }
 
+export async function confirmSalesOrderRequest(
+  id: SalesOrderId
+): Promise<SalesOrderActionResponse> {
+  const response = await fetch(`${getGetSaleOrderRequestUrl(id)}/confirm`, {
+    method: "PATCH",
+    credentials: "include",
+  });
+
+  return {
+    data: await parseResponse(response),
+    status: response.status,
+    headers: response.headers,
+  } as SalesOrderActionResponse;
+}
+
 export async function dispatchSalesOrderLineRequest(
   id: SalesOrderId,
   lineId: SalesOrderLineId,

@@ -675,7 +675,8 @@ export const UpdateCustomerRequestBody = zod.object({
   "company_name": zod.string().nullish(),
   "email": zod.string().nullish(),
   "phone": zod.string().nullish(),
-  "tax_id": zod.string().nullish()
+  "tax_id": zod.string().nullish(),
+  "user_id": zod.uuid().nullish()
 })
 
 export const UpdateCustomerRequestResponse = zod.object({
@@ -2441,6 +2442,7 @@ export const CreateSalesOrderRequestBody = zod.object({
 }),
   "comments": zod.string().nullish(),
   "customer_id": zod.uuid(),
+  "initial_status": zod.union([zod.null(),zod.enum(["draft","quote","confirmed","partially_fulfilled","fulfilled","cancelled","closed"])]).optional(),
   "lines": zod.array(zod.object({
   "description": zod.string(),
   "line_id": zod.union([zod.null(),zod.uuid()]).optional(),

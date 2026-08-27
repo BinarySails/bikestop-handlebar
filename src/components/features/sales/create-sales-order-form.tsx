@@ -115,6 +115,7 @@ type SalesOrderFormValues = {
   comments: string;
   tag_ids: OrderTagId[];
   lines: LineFormValues[];
+  initial_status: "draft" | "quote" | "confirmed";
 };
 
 function countDecimals(value: string): number {
@@ -319,6 +320,7 @@ const defaultValues: SalesOrderFormValues = {
   comments: "",
   tag_ids: [],
   lines: [],
+  initial_status: "draft",
 };
 
 function addressValues(
@@ -365,6 +367,7 @@ function valuesFromOrder(order: SalesOrder): SalesOrderFormValues {
     payment_term: order.payment_term ?? null,
     comments: order.comments ?? "",
     tag_ids: order.tags.map((tag) => tag.id),
+    initial_status: order.status as "draft" | "quote" | "confirmed",
     lines: order.lines.map((line) => ({
       id: line.id,
       product: {
@@ -407,6 +410,7 @@ export function CreateSalesOrderForm({
   onAddComment,
   onSaveOrder,
   onAdvance,
+  onConfirm,
   onCancel,
   onDispatchLine,
 }: {
@@ -415,6 +419,7 @@ export function CreateSalesOrderForm({
   onAddComment?: (comment: string) => Promise<void>;
   onSaveOrder?: (payload: CreateSalesOrderRequest) => Promise<void>;
   onAdvance?: () => Promise<void>;
+  onConfirm?: () => Promise<void>;
   onCancel?: () => Promise<void>;
   onDispatchLine?: (
     lineId: SalesOrderLineId,
@@ -428,6 +433,7 @@ export function CreateSalesOrderForm({
   const editable =
     !order || order.status === "draft" || order.status === "quote";
   const canAdvance = order?.status === "draft" || order?.status === "quote";
+  const canConfirm = order?.status === "draft";
   const canCancel =
     order?.status === "draft" ||
     order?.status === "quote" ||
@@ -444,7 +450,7 @@ export function CreateSalesOrderForm({
   const [newComment, setNewComment] = useState("");
   const [isAddingComment, setIsAddingComment] = useState(false);
   const [confirmation, setConfirmation] = useState<
-    "advance" | "cancel" | "save-quote" | null
+    "advance" | "confirm" | "cancel" | "save-quote" | null
   >(null);
   const [isChangingStatus, setIsChangingStatus] = useState(false);
   const [dispatchLineId, setDispatchLineId] = useState<SalesOrderLineId | null>(
@@ -508,6 +514,9 @@ export function CreateSalesOrderForm({
             ? "El borrador se convirtió en cotización"
             : "La cotización fue confirmada"
         );
+      } else if (confirmation === "confirm") {
+        await onConfirm?.();
+        toast.success("La orden fue confirmada");
       } else {
         await onCancel?.();
         toast.success("La orden fue cancelada");
@@ -519,7 +528,9 @@ export function CreateSalesOrderForm({
           ? error.message
           : confirmation === "advance"
             ? "No se pudo cambiar el estado de la orden"
-            : "No se pudo cancelar la orden"
+            : confirmation === "confirm"
+              ? "No se pudo confirmar la orden"
+              : "No se pudo cancelar la orden"
       );
     } finally {
       setIsChangingStatus(false);
@@ -586,6 +597,7 @@ export function CreateSalesOrderForm({
         payment_term_id: value.payment_term?.id,
         comments: value.comments.trim() || null,
         tag_ids: value.tag_ids.length > 0 ? value.tag_ids : null,
+        initial_status: order ? null : value.initial_status,
         lines: completeLines.map((line) => ({
           line_id: line.id ?? null,
           variant_id: line.variant.id,
@@ -1008,6 +1020,17 @@ export function CreateSalesOrderForm({
           </Button>
         )}
 
+        {canConfirm && (
+          <Button
+            type="button"
+            variant="default"
+            disabled={isChangingStatus}
+            onClick={() => setConfirmation("confirm")}
+          >
+            Confirmar orden
+          </Button>
+        )}
+
         {canCancel && (
           <Button
             type="button"
@@ -1038,9 +1061,11 @@ export function CreateSalesOrderForm({
                 ? "Al guardar los cambios se creará una nueva cotización y la cotización actual será cancelada."
                 : confirmation === "cancel"
                   ? "¿Deseas cancelar esta orden? Esta acción no se puede deshacer."
-                  : order?.status === "draft"
-                    ? "¿Deseas convertir este borrador en cotización?"
-                    : "¿Deseas confirmar esta cotización?"}
+                  : confirmation === "confirm"
+                    ? "¿Deseas confirmar esta orden directamente? Se saltará el paso de cotización."
+                    : order?.status === "draft"
+                      ? "¿Deseas convertir este borrador en cotización?"
+                      : "¿Deseas confirmar esta cotización?"}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -1071,7 +1096,9 @@ export function CreateSalesOrderForm({
                   ? "Crear nueva cotización"
                   : confirmation === "cancel"
                     ? "Cancelar orden"
-                    : "Continuar"}
+                    : confirmation === "confirm"
+                      ? "Confirmar orden"
+                      : "Continuar"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1448,6 +1475,40 @@ export function CreateSalesOrderForm({
       </Dialog>
 
       <fieldset disabled={!editable} className="space-y-6">
+        {!isDetail && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Estado inicial</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form.Field name="initial_status">
+                {(field) => (
+                  <div className="grid gap-1.5">
+                    <Label htmlFor={field.name}>Estado</Label>
+                    <Select
+                      value={field.state.value}
+                      onValueChange={(val) =>
+                        field.handleChange(
+                          val as "draft" | "quote" | "confirmed"
+                        )
+                      }
+                    >
+                      <SelectTrigger id={field.name}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="draft">Borrador</SelectItem>
+                        <SelectItem value="quote">Cotización</SelectItem>
+                        <SelectItem value="confirmed">Confirmada</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </form.Field>
+            </CardContent>
+          </Card>
+        )}
+
         <Card>
           <CardHeader>
             <CardTitle>Cliente</CardTitle>

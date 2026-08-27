@@ -12,6 +12,7 @@ import {
 } from "@/lib/api/api";
 import {
   cancelSalesOrderRequest,
+  confirmSalesOrderRequest,
   dispatchSalesOrderLineRequest,
   updateSalesOrderStatusRequest,
 } from "@/lib/api/sales-order-actions";
@@ -163,6 +164,15 @@ function OrderDetailPage() {
           if (updated.status !== 200) {
             throw new Error(
               updated.data.message ?? "No se pudo cambiar el estado de la orden"
+            );
+          }
+          await mutate(updated, { revalidate: false });
+        }}
+        onConfirm={async () => {
+          const updated = await confirmSalesOrderRequest(order.id);
+          if (updated.status !== 200) {
+            throw new Error(
+              updated.data.message ?? "No se pudo confirmar la orden"
             );
           }
           await mutate(updated, { revalidate: false });

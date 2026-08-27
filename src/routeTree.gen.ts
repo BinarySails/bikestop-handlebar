@@ -28,6 +28,7 @@ import { Route as B2bOrdersRouteImport } from './routes/b2b/orders'
 import { Route as AdminBrandsIndexRouteImport } from './routes/admin/brands/index'
 import { Route as AdminCategoriesIndexRouteImport } from './routes/admin/categories/index'
 import { Route as AdminCategoriesCategoryIdRouteImport } from './routes/admin/categories/$categoryId'
+import { Route as AdminClientsIndexRouteImport } from './routes/admin/clients/index'
 import { Route as AdminProductsIndexRouteImport } from './routes/admin/products/index'
 import { Route as AdminProductsProductIdRouteImport } from './routes/admin/products/$productId'
 import { Route as AdminPromotionsIndexRouteImport } from './routes/admin/promotions/index'
@@ -143,6 +144,11 @@ const AdminCategoriesCategoryIdRoute =
     path: '/categories/$categoryId',
     getParentRoute: () => AdminRoute,
   } as any)
+const AdminClientsIndexRoute = AdminClientsIndexRouteImport.update({
+  id: '/clients/',
+  path: '/clients/',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminProductsIndexRoute = AdminProductsIndexRouteImport.update({
   id: '/products/',
   path: '/products/',
@@ -265,6 +271,7 @@ export interface FileRoutesByFullPath {
   '/b2b/orders/$orderId': typeof B2bOrdersOrderIdRoute
   '/admin/brands/': typeof AdminBrandsIndexRoute
   '/admin/categories/': typeof AdminCategoriesIndexRoute
+  '/admin/clients/': typeof AdminClientsIndexRoute
   '/admin/products/': typeof AdminProductsIndexRoute
   '/admin/promotions/': typeof AdminPromotionsIndexRoute
   '/admin/sales/': typeof AdminSalesIndexRoute
@@ -301,6 +308,7 @@ export interface FileRoutesByTo {
   '/b2b/orders/$orderId': typeof B2bOrdersOrderIdRoute
   '/admin/brands': typeof AdminBrandsIndexRoute
   '/admin/categories': typeof AdminCategoriesIndexRoute
+  '/admin/clients': typeof AdminClientsIndexRoute
   '/admin/products': typeof AdminProductsIndexRoute
   '/admin/promotions': typeof AdminPromotionsIndexRoute
   '/admin/sales': typeof AdminSalesIndexRoute
@@ -341,6 +349,7 @@ export interface FileRoutesById {
   '/b2b/orders/$orderId': typeof B2bOrdersOrderIdRoute
   '/admin/brands/': typeof AdminBrandsIndexRoute
   '/admin/categories/': typeof AdminCategoriesIndexRoute
+  '/admin/clients/': typeof AdminClientsIndexRoute
   '/admin/products/': typeof AdminProductsIndexRoute
   '/admin/promotions/': typeof AdminPromotionsIndexRoute
   '/admin/sales/': typeof AdminSalesIndexRoute
@@ -382,6 +391,7 @@ export interface FileRouteTypes {
     | '/b2b/orders/$orderId'
     | '/admin/brands/'
     | '/admin/categories/'
+    | '/admin/clients/'
     | '/admin/products/'
     | '/admin/promotions/'
     | '/admin/sales/'
@@ -418,6 +428,7 @@ export interface FileRouteTypes {
     | '/b2b/orders/$orderId'
     | '/admin/brands'
     | '/admin/categories'
+    | '/admin/clients'
     | '/admin/products'
     | '/admin/promotions'
     | '/admin/sales'
@@ -457,6 +468,7 @@ export interface FileRouteTypes {
     | '/b2b/orders/$orderId'
     | '/admin/brands/'
     | '/admin/categories/'
+    | '/admin/clients/'
     | '/admin/products/'
     | '/admin/promotions/'
     | '/admin/sales/'
@@ -610,6 +622,13 @@ declare module '@tanstack/react-router' {
       path: '/categories/$categoryId'
       fullPath: '/admin/categories/$categoryId'
       preLoaderRoute: typeof AdminCategoriesCategoryIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/clients/': {
+      id: '/admin/clients/'
+      path: '/clients'
+      fullPath: '/admin/clients/'
+      preLoaderRoute: typeof AdminClientsIndexRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/products/': {
@@ -805,6 +824,7 @@ interface AdminRouteChildren {
   AdminUsersUserIdRoute: typeof AdminUsersUserIdRoute
   AdminBrandsIndexRoute: typeof AdminBrandsIndexRoute
   AdminCategoriesIndexRoute: typeof AdminCategoriesIndexRoute
+  AdminClientsIndexRoute: typeof AdminClientsIndexRoute
   AdminProductsIndexRoute: typeof AdminProductsIndexRoute
   AdminPromotionsIndexRoute: typeof AdminPromotionsIndexRoute
   AdminUsersIndexRoute: typeof AdminUsersIndexRoute
@@ -828,6 +848,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminUsersUserIdRoute: AdminUsersUserIdRoute,
   AdminBrandsIndexRoute: AdminBrandsIndexRoute,
   AdminCategoriesIndexRoute: AdminCategoriesIndexRoute,
+  AdminClientsIndexRoute: AdminClientsIndexRoute,
   AdminProductsIndexRoute: AdminProductsIndexRoute,
   AdminPromotionsIndexRoute: AdminPromotionsIndexRoute,
   AdminUsersIndexRoute: AdminUsersIndexRoute,

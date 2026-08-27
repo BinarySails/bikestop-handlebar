@@ -1,5 +1,6 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import {
+  Contact,
   LayoutDashboard,
   LogOut,
   MapPin,
@@ -47,6 +48,7 @@ const navigationItems = [
   { label: "Promociones", icon: BadgePercent, to: "/admin/promotions" },
   { label: "Locaciones", icon: MapPin, to: "/admin/locations" },
   { label: "Usuarios", icon: Users, to: "/admin/users" },
+  { label: "Clientes", icon: Contact, to: "/admin/clients" },
   { label: "Roles", icon: Shield, to: "/admin/roles" },
   { label: "Almacenes", icon: Warehouse, to: "/admin/warehouses" },
 ] as const;
