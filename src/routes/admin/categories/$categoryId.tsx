@@ -1,0 +1,136 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Pencil, Tags } from "lucide-react";
+
+import { EntityDetailHeader } from "@/components/features/entity/entity-detail-header";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useGetCategoriesRequest, useGetCategoryRequest } from "@/lib/api/api";
+
+export const Route = createFileRoute("/admin/categories/$categoryId")({
+  component: CategoryDetailPage,
+});
+
+const dateFormatter = new Intl.DateTimeFormat("es-MX", {
+  dateStyle: "long",
+});
+
+function CategoryDetailPage() {
+  const { categoryId } = Route.useParams();
+  const detailQuery = useGetCategoryRequest(categoryId);
+  const categoriesQuery = useGetCategoriesRequest();
+  const category =
+    detailQuery.data?.status === 200
+      ? detailQuery.data.data.category
+      : undefined;
+  const categories =
+    categoriesQuery.data?.status === 200
+      ? categoriesQuery.data.data.categories
+      : [];
+  const parentName = category?.parent_id
+    ? (categories.find((item) => item.id === category.parent_id)
+        ?.display_name ?? "Categoría padre no disponible")
+    : "Sin categoría padre";
+
+  if (detailQuery.isLoading) {
+    return (
+      <main className="mx-auto flex w-full max-w-5xl flex-col gap-6 p-4 sm:p-6">
+        <Skeleton className="h-10 w-64" />
+        <Skeleton className="h-72 w-full rounded-xl" />
+      </main>
+    );
+  }
+
+  if (detailQuery.error || detailQuery.data?.status !== 200 || !category) {
+    const notFound = detailQuery.data?.status === 404;
+
+    return (
+      <main className="flex flex-1 flex-col items-center justify-center gap-4 p-6 text-center">
+        <h1 className="text-xl font-semibold">
+          {notFound
+            ? "Categoría no encontrada"
+            : "No se pudo cargar la categoría"}
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          {notFound
+            ? "La categoría solicitada ya no existe."
+            : "Intenta cargar la información nuevamente."}
+        </p>
+        <div className="flex gap-2">
+          <Button variant="outline" render={<Link to="/admin/categories" />}>
+            Volver a categorías
+          </Button>
+          {!notFound && (
+            <Button onClick={() => detailQuery.mutate()}>Reintentar</Button>
+          )}
+        </div>
+      </main>
+    );
+  }
+
+  return (
+    <main className="mx-auto flex w-full max-w-5xl flex-col gap-6 p-4 sm:p-6">
+      <EntityDetailHeader
+        backTo="/categories"
+        backLabel="Volver a categorías"
+        title={category.display_name}
+        subtitle="Detalle de la categoría"
+        badge={
+          <Badge
+            variant={category.status === "enable" ? "default" : "secondary"}
+          >
+            {category.status === "enable" ? "Activa" : "Inactiva"}
+          </Badge>
+        }
+        extraActions={
+          <Button
+            render={
+              <Link to="/admin/categories/$categoryId/edit" params={{ categoryId }} />
+            }
+          >
+            <Pencil className="size-4" /> Editar categoría
+          </Button>
+        }
+      />
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Tags className="size-4" /> Información general
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <dl className="grid gap-6 sm:grid-cols-2">
+            <div>
+              <dt className="text-sm text-muted-foreground">Nombre visible</dt>
+              <dd className="mt-1 font-medium">{category.display_name}</dd>
+            </div>
+            <div>
+              <dt className="text-sm text-muted-foreground">Slug</dt>
+              <dd className="mt-1 font-mono text-sm">{category.slug}</dd>
+            </div>
+            <div>
+              <dt className="text-sm text-muted-foreground">Categoría padre</dt>
+              <dd className="mt-1">{parentName}</dd>
+            </div>
+            <div>
+              <dt className="text-sm text-muted-foreground">
+                Fecha de creación
+              </dt>
+              <dd className="mt-1">
+                {dateFormatter.format(new Date(category.created_at))}
+              </dd>
+            </div>
+            <div className="sm:col-span-2">
+              <dt className="text-sm text-muted-foreground">Descripción</dt>
+              <dd className="mt-1 whitespace-pre-wrap">
+                {category.description || "Sin descripción"}
+              </dd>
+            </div>
+          </dl>
+        </CardContent>
+      </Card>
+    </main>
+  );
+}

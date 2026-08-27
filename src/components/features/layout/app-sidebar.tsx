@@ -38,17 +38,17 @@ import { useAuthStore } from "@/lib/auth/use-auth-store";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 const navigationItems = [
-  { label: "Dashboard", icon: LayoutDashboard, to: "/dashboard" },
-  { label: "Productos", icon: Package, to: "/products" },
-  { label: "Ventas", icon: ShoppingCart, to: "/sales" },
-  { label: "Inventario", icon: Package, to: "/inventory" },
-  { label: "Categorías", icon: Shapes, to: "/categories" },
-  { label: "Marcas", icon: Tags, to: "/brands" },
-  { label: "Promociones", icon: BadgePercent, to: "/promotions" },
-  { label: "Locaciones", icon: MapPin, to: "/locations" },
-  { label: "Usuarios", icon: Users, to: "/users" },
-  { label: "Roles", icon: Shield, to: "/roles" },
-  { label: "Almacenes", icon: Warehouse, to: "/warehouses" },
+  { label: "Dashboard", icon: LayoutDashboard, to: "/admin/dashboard" },
+  { label: "Productos", icon: Package, to: "/admin/products" },
+  { label: "Ventas", icon: ShoppingCart, to: "/admin/sales" },
+  { label: "Inventario", icon: Package, to: "/admin/inventory" },
+  { label: "Categorías", icon: Shapes, to: "/admin/categories" },
+  { label: "Marcas", icon: Tags, to: "/admin/brands" },
+  { label: "Promociones", icon: BadgePercent, to: "/admin/promotions" },
+  { label: "Locaciones", icon: MapPin, to: "/admin/locations" },
+  { label: "Usuarios", icon: Users, to: "/admin/users" },
+  { label: "Roles", icon: Shield, to: "/admin/roles" },
+  { label: "Almacenes", icon: Warehouse, to: "/admin/warehouses" },
 ] as const;
 
 function getInitials(name: string): string {

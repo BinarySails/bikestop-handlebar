@@ -96,7 +96,7 @@ export function UsersTableCard({
   const roles =
     rolesQuery.data?.status === 200
       ? rolesQuery.data.data.roles.filter(
-          (role) => role.slug !== "client" && role.status === "active"
+          (role) => role.slug !== "client" && role.status === "enable"
         )
       : [];
   const invalidResponse = query.data && query.data.status !== 200;

@@ -34,7 +34,7 @@ export function CatalogHeader() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navigate({ to: "/orders" })}
+            onClick={() => navigate({ to: "/b2b/orders" })}
           >
             <Package className="size-4" />
             <span className="ml-2 hidden sm:inline">Mis Pedidos</span>
@@ -43,7 +43,7 @@ export function CatalogHeader() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navigate({ to: "/account" })}
+            onClick={() => navigate({ to: "/b2b/account" })}
           >
             <UserRound className="size-4" />
             <span className="ml-2 hidden sm:inline">Mi Perfil</span>
@@ -52,7 +52,7 @@ export function CatalogHeader() {
           <Button
             size="sm"
             className="relative bg-amber-500 text-black hover:bg-amber-600"
-            onClick={() => navigate({ to: "/cart" })}
+            onClick={() => navigate({ to: "/b2b/cart" })}
           >
             <ShoppingCart className="size-4" />
             <span className="ml-2 hidden sm:inline">Carrito</span>
