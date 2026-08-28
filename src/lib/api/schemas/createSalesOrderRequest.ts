@@ -16,8 +16,7 @@ export interface CreateSalesOrderRequest {
   /** @nullable */
   comments?: string | null;
   customer_id: CustomerId;
-  /** @nullable */
-  initial_status?: SalesOrderStatus | null;
+  initial_status?: null | SalesOrderStatus;
   lines: CreateSalesOrderLineRequest[];
   order_date: string;
   payment_term_id?: null | PaymentTermId;

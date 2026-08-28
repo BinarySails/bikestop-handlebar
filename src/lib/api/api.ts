@@ -7318,6 +7318,91 @@ export const useAddSalesOrderCommentRequest = <TError = Promise<ErrorResponse>>(
   }
 }
 
+export type confirmSalesOrderRequestResponse200 = {
+  data: SalesOrder
+  status: 200
+}
+
+export type confirmSalesOrderRequestResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type confirmSalesOrderRequestResponse409 = {
+  data: ErrorResponse
+  status: 409
+}
+
+export type confirmSalesOrderRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type confirmSalesOrderRequestResponseSuccess = (confirmSalesOrderRequestResponse200) & {
+  headers: Headers;
+};
+export type confirmSalesOrderRequestResponseError = (confirmSalesOrderRequestResponse404 | confirmSalesOrderRequestResponse409 | confirmSalesOrderRequestResponse500) & {
+  headers: Headers;
+};
+
+export type confirmSalesOrderRequestResponse = (confirmSalesOrderRequestResponseSuccess | confirmSalesOrderRequestResponseError)
+
+export const getConfirmSalesOrderRequestUrl = (id: SalesOrderId,) => {
+
+
+
+
+  return `http://localhost:8080/api/v1/sales-orders/${id}/confirm`
+}
+
+export const confirmSalesOrderRequest = async (id: SalesOrderId, options?: RequestInit): Promise<confirmSalesOrderRequestResponse> => {
+
+  const res = await fetch(getConfirmSalesOrderRequestUrl(id),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'PATCH'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: confirmSalesOrderRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as confirmSalesOrderRequestResponse
+}
+
+
+
+
+export const getConfirmSalesOrderRequestMutationFetcher = (id: SalesOrderId, options?: RequestInit) => {
+  return (_: Key, __: { arg: Arguments }) => {
+    return confirmSalesOrderRequest(id, options);
+  }
+}
+export const getConfirmSalesOrderRequestMutationKey = (id: SalesOrderId,) => [`http://localhost:8080/api/v1/sales-orders/${id}/confirm`] as const;
+
+export type ConfirmSalesOrderRequestMutationResult = NonNullable<Awaited<ReturnType<typeof confirmSalesOrderRequest>>>
+
+export const useConfirmSalesOrderRequest = <TError = Promise<ErrorResponse>>(
+  id: SalesOrderId, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof confirmSalesOrderRequest>>, TError, Key, Arguments, Awaited<ReturnType<typeof confirmSalesOrderRequest>>> & { swrKey?: string }, fetch?: RequestInit}
+) => {
+
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getConfirmSalesOrderRequestMutationKey(id);
+  const swrFn = getConfirmSalesOrderRequestMutationFetcher(id, fetchOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
 export type dispatchSalesOrderLineRequestResponse201 = {
   data: DispatchSalesOrderLineResult
   status: 201

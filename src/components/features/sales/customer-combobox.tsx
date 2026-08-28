@@ -117,8 +117,7 @@ export function CustomerCombobox({
               <div className="flex flex-col">
                 <span className="font-medium">{customer.company_name}</span>
                 <span className="text-xs text-muted-foreground">
-                  @{customer.username}
-                  {customer.tax_id ? ` · ${customer.tax_id}` : null}
+                  {customer.tax_id ? `${customer.tax_id}` : null}
                 </span>
               </div>
             </ComboboxItem>

@@ -389,6 +389,7 @@ function valuesFromOrder(order: SalesOrder): SalesOrderFormValues {
         images: [],
         created_at: order.created_at,
         updated_at: order.updated_at,
+        total_inventory: 0,
       } as Variant,
       description: line.description,
       quantity: String(line.quantity),
@@ -1492,6 +1493,17 @@ export function CreateSalesOrderForm({
                           val as "draft" | "quote" | "confirmed"
                         )
                       }
+                      itemToStringLabel={(e) => {
+                        if (e === "draft") {
+                          return "Borrador";
+                        } else if (e === "quote") {
+                          return "Cotización";
+                        } else if (e === "confirmed") {
+                          return "Confirmada";
+                        }
+
+                        return "?";
+                      }}
                     >
                       <SelectTrigger id={field.name}>
                         <SelectValue />
@@ -1759,6 +1771,30 @@ export function CreateSalesOrderForm({
                   )}
 
                   {field.state.value.map((_, index) => {
+                    function clearProductLine() {
+                      form.setFieldValue(`lines[${index}].product`, null);
+                      form.setFieldValue(`lines[${index}].variant`, null);
+                      form.setFieldValue(`lines[${index}].description`, "");
+                      form.setFieldValue(`lines[${index}].quantity`, "1");
+                      form.setFieldValue(`lines[${index}].unit_price`, "");
+                      form.setFieldValue(
+                        `lines[${index}].tax_rate`,
+                        DEFAULT_TAX_PERCENT
+                      );
+                      form.setFieldValue(
+                        `lines[${index}].warehouse_allocations`,
+                        []
+                      );
+                      form.setFieldValue(
+                        `lines[${index}].warehouse_allocation_manual`,
+                        false
+                      );
+                      form.setFieldValue(
+                        `lines[${index}].warehouse_error`,
+                        undefined
+                      );
+                    }
+
                     const line = field.state.value[index];
                     const totals = computeLineTotals(line);
                     const warehouseError = line.variant
@@ -1783,6 +1819,7 @@ export function CreateSalesOrderForm({
                                   id={subField.name}
                                   value={subField.state.value}
                                   disabled={!editable}
+                                  onClear={clearProductLine}
                                   onChange={(product) => {
                                     subField.handleChange(product);
                                     form.setFieldValue(
@@ -1857,6 +1894,7 @@ export function CreateSalesOrderForm({
                                       );
                                     }
                                   }}
+                                  onClear={clearProductLine}
                                   disabled={!editable || !line.product}
                                 />
                                 {subField.state.meta.errors[0] && (
@@ -1980,7 +2018,7 @@ export function CreateSalesOrderForm({
                               <Input
                                 id={subField.name}
                                 value={subField.state.value}
-                                disabled={!editable}
+                                disabled
                                 onChange={(event) =>
                                   subField.handleChange(event.target.value)
                                 }
@@ -2069,7 +2107,7 @@ export function CreateSalesOrderForm({
                                   min={0}
                                   step="0.01"
                                   value={subField.state.value}
-                                  disabled={!editable}
+                                  disabled
                                   onChange={(event) =>
                                     subField.handleChange(event.target.value)
                                   }
@@ -2105,7 +2143,7 @@ export function CreateSalesOrderForm({
                                   max={100}
                                   step="0.01"
                                   value={subField.state.value}
-                                  disabled={!editable}
+                                  disabled
                                   onChange={(event) =>
                                     subField.handleChange(event.target.value)
                                   }

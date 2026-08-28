@@ -32,12 +32,14 @@ export function VariantCombobox({
   productId,
   value,
   onChange,
+  onClear,
   disabled,
 }: {
   id?: string;
   productId: string | null;
   value: Variant | null;
   onChange: (variant: Variant | null) => void;
+  onClear?: () => void;
   disabled?: boolean;
 }) {
   const { data: res, isLoading } = useListVariantsRequest(
@@ -70,6 +72,10 @@ export function VariantCombobox({
       items={items}
       value={selected}
       onValueChange={(variant: Variant | null) => {
+        if (!variant) {
+          onClear?.();
+          return;
+        }
         onChange(variant);
       }}
       itemToStringLabel={(variant: Variant) => `${variant.display_name}`}
@@ -109,6 +115,9 @@ export function VariantCombobox({
                     <div className="flex flex-col">
                       <span className="font-medium">
                         {variant.display_name}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        C.: {variant.total_inventory}
                       </span>
                       <span className="text-xs text-muted-foreground">
                         SKU: {variant.sku}

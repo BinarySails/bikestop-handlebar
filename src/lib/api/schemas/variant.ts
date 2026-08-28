@@ -23,5 +23,6 @@ export interface Variant {
   properties: VariantProperty[];
   sku: string;
   status: VariantStatus;
+  total_inventory: number;
   updated_at: string;
 }

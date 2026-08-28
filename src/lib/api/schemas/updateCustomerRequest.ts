@@ -15,6 +15,5 @@ export interface UpdateCustomerRequest {
   phone?: string | null;
   /** @nullable */
   tax_id?: string | null;
-  /** @nullable */
   user_id?: null | UserId;
 }
