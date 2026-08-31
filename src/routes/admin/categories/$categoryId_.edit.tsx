@@ -66,7 +66,7 @@ function CategoryEditPage() {
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-col gap-6 p-4 sm:p-6">
       <EntityDetailHeader
-        backTo="/categories/$categoryId"
+        backTo="/admin/categories/$categoryId"
         backParams={{ categoryId }}
         backLabel="Volver al detalle"
         title="Editar categoría"

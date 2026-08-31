@@ -238,7 +238,7 @@ function ProductDetailView({
         >
           {([isSubmitting, isDirty]) => (
             <EntityDetailHeader
-              backTo="/products"
+              backTo="/admin/products"
               backLabel="Volver a todos los productos"
               title="Producto"
               badge={

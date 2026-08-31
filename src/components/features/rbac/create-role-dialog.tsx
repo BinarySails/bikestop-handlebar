@@ -47,7 +47,7 @@ export function CreateRoleDialog({
         const result = await updateTrigger({
           display_name: value.displayName,
           slug,
-          status: (value.isActive ? "active" : "inactive") as RoleStatus,
+          status: (value.isActive ? "enable" : "disable") as RoleStatus,
         });
         if (result?.status === 200) {
           toast.success(`Rol "${value.displayName}" actualizado.`);

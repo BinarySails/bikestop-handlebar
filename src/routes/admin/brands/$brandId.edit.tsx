@@ -106,7 +106,7 @@ function BrandEditForm({
   return (
     <section className="mx-auto w-full max-w-3xl space-y-6 p-4 sm:p-6">
       <EntityDetailHeader
-        backTo="/brands"
+        backTo="/admin/brands"
         backLabel="Volver a marcas"
         title="Editar marca"
         subtitle={brand.display_name}

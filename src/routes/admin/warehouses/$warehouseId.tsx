@@ -241,7 +241,7 @@ function WarehouseDetailView({
         >
           {([isSubmitting, isDirty]) => (
             <EntityDetailHeader
-              backTo="/warehouses"
+              backTo="/admin/warehouses"
               backLabel="Volver a todos los almacenes"
               title="Almacén"
               badge={

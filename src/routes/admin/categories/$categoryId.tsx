@@ -72,7 +72,7 @@ function CategoryDetailPage() {
   return (
     <main className="mx-auto flex w-full max-w-5xl flex-col gap-6 p-4 sm:p-6">
       <EntityDetailHeader
-        backTo="/categories"
+        backTo="/admin/categories"
         backLabel="Volver a categorías"
         title={category.display_name}
         subtitle="Detalle de la categoría"

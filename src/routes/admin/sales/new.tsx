@@ -11,7 +11,7 @@ function NewSalesOrderPage() {
   return (
     <section className="mx-auto flex w-full max-w-7xl flex-col gap-6 p-6">
       <EntityDetailHeader
-        backTo="/sales"
+        backTo="/admin/sales"
         backLabel="Volver a órdenes de venta"
         title="Nueva orden de venta"
       />

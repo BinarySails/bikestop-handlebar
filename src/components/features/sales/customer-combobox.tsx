@@ -28,7 +28,7 @@ export function CustomerCombobox({
 }) {
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebouncedValue(search.trim());
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(0);
   const [allItems, setAllItems] = useState<Customer[]>([]);
 
   const {
@@ -45,7 +45,7 @@ export function CustomerCombobox({
   );
 
   useEffect(() => {
-    setPage(1);
+    setPage(0);
     setAllItems([]);
   }, [debouncedSearch]);
 

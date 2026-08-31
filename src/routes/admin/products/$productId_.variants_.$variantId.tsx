@@ -321,7 +321,7 @@ function VariantDetailView({
         >
           {([isSubmitting, isDirty]) => (
             <EntityDetailHeader
-              backTo="/products/$productId"
+              backTo="/admin/products/$productId"
               backParams={{ productId }}
               backLabel="Volver al producto"
               title="Variante"
