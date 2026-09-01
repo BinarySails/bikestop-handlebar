@@ -193,12 +193,13 @@ describe("UsersTableCard", () => {
         status: 200,
         data: {
           users: [
+            { ...user, status: "archive" },
             { ...user, status: "disable" },
             {
               ...user,
               id: "44444444-4444-4444-8444-444444444444",
               email: "cliente@example.com",
-              status: "disable",
+              status: "archive",
               roles: [
                 { ...salesRole, slug: "client", display_name: "Cliente" },
               ],

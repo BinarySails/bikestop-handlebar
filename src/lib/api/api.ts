@@ -97,6 +97,7 @@ import type {
   ListProductsRequestParams,
   ListProductsResponse,
   ListRolesResponse,
+  ListSalesOrderAuditLogRequestParams,
   ListSalesOrdersRequestParams,
   ListTagsRequestParams,
   ListTagsResponse,
@@ -7135,6 +7136,92 @@ export const useApplyPromotionsRequest = <TError = Promise<ErrorResponse>>(
   const swrFn = getApplyPromotionsRequestMutationFetcher(id, fetchOptions);
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type listSalesOrderAuditLogRequestResponse200 = {
+  data: PaginatedAuditEventResponse
+  status: 200
+}
+
+export type listSalesOrderAuditLogRequestResponse400 = {
+  data: ErrorResponse
+  status: 400
+}
+
+export type listSalesOrderAuditLogRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type listSalesOrderAuditLogRequestResponseSuccess = (listSalesOrderAuditLogRequestResponse200) & {
+  headers: Headers;
+};
+export type listSalesOrderAuditLogRequestResponseError = (listSalesOrderAuditLogRequestResponse400 | listSalesOrderAuditLogRequestResponse500) & {
+  headers: Headers;
+};
+
+export type listSalesOrderAuditLogRequestResponse = (listSalesOrderAuditLogRequestResponseSuccess | listSalesOrderAuditLogRequestResponseError)
+
+export const getListSalesOrderAuditLogRequestUrl = (id: SalesOrderId,
+    params?: ListSalesOrderAuditLogRequestParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `http://localhost:8080/api/v1/sales-orders/${id}/audit-log?${stringifiedParams}` : `http://localhost:8080/api/v1/sales-orders/${id}/audit-log`
+}
+
+export const listSalesOrderAuditLogRequest = async (id: SalesOrderId,
+    params?: ListSalesOrderAuditLogRequestParams, options?: RequestInit): Promise<listSalesOrderAuditLogRequestResponse> => {
+
+  const res = await fetch(getListSalesOrderAuditLogRequestUrl(id,params),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'GET'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: listSalesOrderAuditLogRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as listSalesOrderAuditLogRequestResponse
+}
+
+
+
+
+export const getListSalesOrderAuditLogRequestKey = (id: SalesOrderId,
+    params?: ListSalesOrderAuditLogRequestParams,) => [`http://localhost:8080/api/v1/sales-orders/${id}/audit-log`, ...(params ? [params]: [])] as const;
+
+export type ListSalesOrderAuditLogRequestQueryResult = NonNullable<Awaited<ReturnType<typeof listSalesOrderAuditLogRequest>>>
+
+export const useListSalesOrderAuditLogRequest = <TError = Promise<ErrorResponse>>(
+  id: SalesOrderId,
+    params?: ListSalesOrderAuditLogRequestParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof listSalesOrderAuditLogRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
+) => {
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false && id !== null && id !== undefined
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getListSalesOrderAuditLogRequestKey(id,params) : null);
+  const swrFn = () => listSalesOrderAuditLogRequest(id,params, fetchOptions)
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
