@@ -5,7 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  useGetCustomerRequest,
+  useGetCustomerByUserRequest,
   useListSalesOrdersRequest,
   useMeHandler,
 } from "@/lib/api/api";
@@ -96,7 +96,9 @@ function OrdersPage() {
   const { data: meRes } = useMeHandler();
   const userId = actor?.id ?? (meRes?.status === 200 ? meRes.data.id : "");
 
-  const { data: customerRes } = useGetCustomerRequest(userId, {
+  // Resolve the caller's customer profile from their user id: the list endpoint
+  // filters by `customer_id`, which is distinct from the auth user id.
+  const { data: customerRes } = useGetCustomerByUserRequest(userId, {
     swr: { enabled: Boolean(userId) },
   });
   const customerId =
@@ -107,6 +109,7 @@ function OrdersPage() {
 
   const { data: ordersRes, isLoading } = useListSalesOrdersRequest(
     {
+      customer_id: customerId,
       page: page + 1,
       limit: PAGE_SIZE,
     },
