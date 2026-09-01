@@ -5,7 +5,7 @@ import { CustomerAddressFormDialog } from "@/components/features/customer/custom
 import { CustomerAddressList } from "@/components/features/customer/customer-address-list";
 import { EntityCreateButton } from "@/components/features/entity/entity-create-button";
 import { Button } from "@/components/ui/button";
-import { useListCustomerAddressesRequest } from "@/lib/api/api";
+import { useListCustomerAddressesRequest, useMeHandler } from "@/lib/api/api";
 import { useAuthStore } from "@/lib/auth/use-auth-store";
 
 export const Route = createFileRoute("/b2b/account")({
@@ -14,7 +14,10 @@ export const Route = createFileRoute("/b2b/account")({
 
 function AccountPage() {
   const actor = useAuthStore((state) => state.actor);
-  const userId = actor?.id ?? "";
+  // `actor` is null on a fresh SSR load (the /b2b auth guard is skipped during
+  // SSR and beforeLoad does not re-run on hydration), so fall back to /auth/me.
+  const { data: meRes } = useMeHandler();
+  const userId = actor?.id ?? (meRes?.status === 200 ? meRes.data.id : "");
 
   const { data: addressesRes, mutate: mutateAddresses } =
     useListCustomerAddressesRequest(userId, {
