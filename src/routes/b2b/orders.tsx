@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import {
   useGetCustomerRequest,
   useListSalesOrdersRequest,
+  useMeHandler,
 } from "@/lib/api/api";
 import { useAuthStore } from "@/lib/auth/use-auth-store";
 import { centsToPesos } from "@/lib/money";
@@ -90,7 +91,10 @@ export const Route = createFileRoute("/b2b/orders")({
 
 function OrdersPage() {
   const actor = useAuthStore((state) => state.actor);
-  const userId = actor?.id ?? "";
+  // `actor` is null on a fresh SSR load (the /b2b auth guard is skipped during
+  // SSR and beforeLoad does not re-run on hydration), so fall back to /auth/me.
+  const { data: meRes } = useMeHandler();
+  const userId = actor?.id ?? (meRes?.status === 200 ? meRes.data.id : "");
 
   const { data: customerRes } = useGetCustomerRequest(userId, {
     swr: { enabled: Boolean(userId) },
