@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "@tanstack/react-form";
 import { toast } from "sonner";
 
@@ -73,7 +73,7 @@ export function EditClientDialog({
       form.setFieldValue("phone", customer.phone ?? "");
       form.setFieldValue("email", customer.email ?? "");
     }
-  }, [customer, open]);
+  }, [customer, open, form]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
