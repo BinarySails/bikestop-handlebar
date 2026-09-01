@@ -275,9 +275,9 @@ export function CategoriesCatalog({
         header: "Estado",
         cell: (info) => (
           <Badge
-            variant={info.getValue() === "active" ? "default" : "secondary"}
+            variant={info.getValue() === "enable" ? "default" : "secondary"}
           >
-            {info.getValue() === "active" ? "Activa" : "Inactiva"}
+            {info.getValue() === "enable" ? "Activa" : "Inactiva"}
           </Badge>
         ),
       }),
@@ -313,7 +313,7 @@ export function CategoriesCatalog({
                 <DropdownMenuItem
                   onClick={() =>
                     navigate({
-                      to: "/categories/$categoryId",
+                      to: "/admin/categories/$categoryId",
                       params: { categoryId: category.id },
                     })
                   }
@@ -323,7 +323,7 @@ export function CategoriesCatalog({
                 <DropdownMenuItem
                   onClick={() =>
                     navigate({
-                      to: "/categories/$categoryId/edit",
+                      to: "/admin/categories/$categoryId/edit",
                       params: { categoryId: category.id },
                     })
                   }

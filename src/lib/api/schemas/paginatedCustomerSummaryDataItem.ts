@@ -5,6 +5,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { CustomerId } from './customerId.ts';
+import type { CustomerStatus } from './customerStatus.ts';
 
 export type PaginatedCustomerSummaryDataItem = {
   company_name: string;
@@ -13,6 +14,7 @@ export type PaginatedCustomerSummaryDataItem = {
   id: CustomerId;
   /** @nullable */
   tax_id?: string | null;
+  status: CustomerStatus;
   /** @nullable */
   username?: string | null;
 };

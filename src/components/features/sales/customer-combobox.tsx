@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Loader2Icon } from "lucide-react";
 
 import {
   Combobox,
@@ -14,7 +15,7 @@ import { useDebouncedValue } from "@/lib/use-debounced-value";
 
 type Customer = PaginatedCustomerSummaryDataItem;
 
-const EMPTY_CUSTOMERS: Customer[] = [];
+const PAGE_SIZE = 20;
 
 export function CustomerCombobox({
   id,
@@ -27,23 +28,62 @@ export function CustomerCombobox({
 }) {
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebouncedValue(search.trim());
+  const [page, setPage] = useState(0);
+  const [allItems, setAllItems] = useState<Customer[]>([]);
 
-  const { data: res, isLoading } = useListCustomersRequest(
+  const {
+    data: res,
+    isLoading,
+    isValidating,
+  } = useListCustomersRequest(
     {
       search: debouncedSearch || undefined,
-      limit: 20,
+      page,
+      limit: PAGE_SIZE,
     },
     { swr: { keepPreviousData: true } }
   );
 
-  const results = res?.status === 200 ? res.data.data : EMPTY_CUSTOMERS;
+  useEffect(() => {
+    setPage(0);
+    setAllItems([]);
+  }, [debouncedSearch]);
+
+  useEffect(() => {
+    if (res?.status === 200) {
+      const data = res.data.data;
+      setAllItems((prev) => (page === 1 ? data : [...prev, ...data]));
+    }
+  }, [res, page]);
+
+  const total = res?.status === 200 ? res.data.total : 0;
+  const hasMore = page * PAGE_SIZE < total;
+
+  const fetchingRef = useRef(false);
+  fetchingRef.current = isValidating;
+
+  const handleScroll = useCallback(
+    (e: React.UIEvent<HTMLDivElement>) => {
+      const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+      if (
+        scrollHeight - scrollTop - clientHeight < 50 &&
+        hasMore &&
+        !fetchingRef.current
+      ) {
+        setPage((prev) => prev + 1);
+      }
+    },
+    [hasMore]
+  );
 
   const items = useMemo(() => {
-    if (!value || results.some((customer) => customer.id === value.id)) {
-      return results;
+    if (!value || allItems.some((customer) => customer.id === value.id)) {
+      return allItems;
     }
-    return [...results, value];
-  }, [results, value]);
+    return [...allItems, value];
+  }, [allItems, value]);
+
+  const isFetchingNextPage = isValidating && page > 1;
 
   return (
     <Combobox
@@ -71,17 +111,22 @@ export function CustomerCombobox({
         <ComboboxEmpty>
           {isLoading ? "Buscando clientes..." : "No se encontraron clientes."}
         </ComboboxEmpty>
-        <ComboboxList>
-          {(customer: Customer) => (
+        <ComboboxList onScroll={handleScroll}>
+          {items.map((customer) => (
             <ComboboxItem key={customer.id} value={customer}>
               <div className="flex flex-col">
                 <span className="font-medium">{customer.company_name}</span>
                 <span className="text-xs text-muted-foreground">
-                  @{customer.username}
-                  {customer.tax_id ? ` · ${customer.tax_id}` : null}
+                  {customer.tax_id ? `${customer.tax_id}` : null}
                 </span>
               </div>
             </ComboboxItem>
+          ))}
+          {isFetchingNextPage && (
+            <li className="flex items-center justify-center py-2 text-sm text-muted-foreground">
+              <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
+              Cargando más...
+            </li>
           )}
         </ComboboxList>
       </ComboboxContent>

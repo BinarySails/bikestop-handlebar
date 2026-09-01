@@ -30,7 +30,7 @@ const parent: Category = {
   slug: "bicicletas",
   description: null,
   parent_id: null,
-  status: "active",
+  status: "enable",
   created_at: "2026-01-01T00:00:00Z",
 };
 const child: Category = {

@@ -32,7 +32,7 @@ export function UserActionsMenu({
   const { trigger, isMutating } = useUpdateUserRequest(user.id);
 
   async function changeArchiveStatus() {
-    const result = await trigger({ status: archived ? "enable" : "archive" });
+    const result = await trigger({ status: archived ? "enable" : "disable" });
     if (result.status === 200) {
       toast.success(archived ? "Usuario reactivado." : "Usuario archivado.");
       onUpdated();
@@ -58,7 +58,7 @@ export function UserActionsMenu({
         <DropdownMenuItem
           onClick={() =>
             navigate({
-              to: "/users/$userId",
+              to: "/admin/users/$userId",
               params: { userId: user.id },
               search: { roles: user.roles.map((role) => role.id) },
             })

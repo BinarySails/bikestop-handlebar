@@ -38,7 +38,7 @@ export function CreateRoleDialog({
   const form = useForm({
     defaultValues: {
       displayName: role?.display_name ?? "",
-      isActive: role?.status === "active",
+      isActive: role?.status === "enable",
     },
     onSubmit: async ({ value }) => {
       const slug = value.displayName.toLowerCase().replace(/\s+/g, "-");
@@ -47,7 +47,7 @@ export function CreateRoleDialog({
         const result = await updateTrigger({
           display_name: value.displayName,
           slug,
-          status: (value.isActive ? "active" : "inactive") as RoleStatus,
+          status: (value.isActive ? "enable" : "disable") as RoleStatus,
         });
         if (result?.status === 200) {
           toast.success(`Rol "${value.displayName}" actualizado.`);

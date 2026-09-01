@@ -4,6 +4,7 @@
  * ciclo
  * OpenAPI spec version: 0.1.0
  */
+import type { UserId } from './userId.ts';
 
 export interface UpdateCustomerRequest {
   /** @nullable */
@@ -14,4 +15,5 @@ export interface UpdateCustomerRequest {
   phone?: string | null;
   /** @nullable */
   tax_id?: string | null;
+  user_id?: null | UserId;
 }

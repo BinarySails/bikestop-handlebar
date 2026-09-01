@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, WarehouseIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { CustomerCombobox } from "@/components/features/sales/customer-combobox";
@@ -14,6 +14,7 @@ import {
 import { CountrySelect } from "@/components/features/locations/country-select";
 import { StateSelect } from "@/components/features/locations/state-select";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -37,6 +38,12 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  listInventoryRequest,
   useCreateSalesOrderRequest,
   useListInventoryRequest,
 } from "@/lib/api/api";
@@ -51,6 +58,7 @@ import {
   type Variant,
   VariantStatus,
   type PaymentTerm,
+  type InventoryItemResponse,
   type WarehouseId,
 } from "@/lib/api/schemas";
 import { DEFAULT_COUNTRY } from "@/components/features/locations/country-select";
@@ -61,6 +69,8 @@ import { CreateSalesOrderRequestBody } from "@/lib/api/zods";
 
 const MAX_PRICE_DECIMALS = 2;
 const DEFAULT_TAX_PERCENT = "16";
+const INSUFFICIENT_STOCK_MESSAGE =
+  "No hay stock suficiente de esta variante en ningún almacén registrado.";
 
 const currencyFormatter = new Intl.NumberFormat("es-MX", {
   style: "currency",
@@ -84,6 +94,8 @@ type LineFormValues = {
   unit_price: string;
   tax_rate: string;
   warehouse_allocations: WarehouseAllocationFormValues[];
+  warehouse_allocation_manual?: boolean;
+  warehouse_error?: string;
 };
 
 export type WarehouseAllocationFormValues = {
@@ -103,6 +115,7 @@ type SalesOrderFormValues = {
   comments: string;
   tag_ids: OrderTagId[];
   lines: LineFormValues[];
+  initial_status: "draft" | "quote" | "confirmed";
 };
 
 function countDecimals(value: string): number {
@@ -273,6 +286,22 @@ export function validateWarehouseAllocations(
   return undefined;
 }
 
+export function selectDefaultWarehouse(
+  inventory: InventoryItemResponse[],
+  quantity: number
+): InventoryItemResponse | undefined {
+  return inventory.reduce<InventoryItemResponse | undefined>(
+    (selected, item) => {
+      if (item.available_quantity < quantity) return selected;
+      if (!selected || item.available_quantity > selected.available_quantity) {
+        return item;
+      }
+      return selected;
+    },
+    undefined
+  );
+}
+
 const defaultAddress: AddressFormValues = {
   country: DEFAULT_COUNTRY,
   state: "",
@@ -291,6 +320,7 @@ const defaultValues: SalesOrderFormValues = {
   comments: "",
   tag_ids: [],
   lines: [],
+  initial_status: "draft",
 };
 
 function addressValues(
@@ -337,6 +367,7 @@ function valuesFromOrder(order: SalesOrder): SalesOrderFormValues {
     payment_term: order.payment_term ?? null,
     comments: order.comments ?? "",
     tag_ids: order.tags.map((tag) => tag.id),
+    initial_status: order.status as "draft" | "quote" | "confirmed",
     lines: order.lines.map((line) => ({
       id: line.id,
       product: {
@@ -358,6 +389,7 @@ function valuesFromOrder(order: SalesOrder): SalesOrderFormValues {
         images: [],
         created_at: order.created_at,
         updated_at: order.updated_at,
+        total_inventory: 0,
       } as Variant,
       description: line.description,
       quantity: String(line.quantity),
@@ -368,6 +400,7 @@ function valuesFromOrder(order: SalesOrder): SalesOrderFormValues {
         quantity: String(allocation.quantity),
         dispatched_quantity: allocation.dispatched_quantity,
       })),
+      warehouse_allocation_manual: true,
     })),
   };
 }
@@ -378,6 +411,7 @@ export function CreateSalesOrderForm({
   onAddComment,
   onSaveOrder,
   onAdvance,
+  onConfirm,
   onCancel,
   onDispatchLine,
 }: {
@@ -386,6 +420,7 @@ export function CreateSalesOrderForm({
   onAddComment?: (comment: string) => Promise<void>;
   onSaveOrder?: (payload: CreateSalesOrderRequest) => Promise<void>;
   onAdvance?: () => Promise<void>;
+  onConfirm?: () => Promise<void>;
   onCancel?: () => Promise<void>;
   onDispatchLine?: (
     lineId: SalesOrderLineId,
@@ -399,6 +434,7 @@ export function CreateSalesOrderForm({
   const editable =
     !order || order.status === "draft" || order.status === "quote";
   const canAdvance = order?.status === "draft" || order?.status === "quote";
+  const canConfirm = order?.status === "draft";
   const canCancel =
     order?.status === "draft" ||
     order?.status === "quote" ||
@@ -415,7 +451,7 @@ export function CreateSalesOrderForm({
   const [newComment, setNewComment] = useState("");
   const [isAddingComment, setIsAddingComment] = useState(false);
   const [confirmation, setConfirmation] = useState<
-    "advance" | "cancel" | "save-quote" | null
+    "advance" | "confirm" | "cancel" | "save-quote" | null
   >(null);
   const [isChangingStatus, setIsChangingStatus] = useState(false);
   const [dispatchLineId, setDispatchLineId] = useState<SalesOrderLineId | null>(
@@ -479,6 +515,9 @@ export function CreateSalesOrderForm({
             ? "El borrador se convirtió en cotización"
             : "La cotización fue confirmada"
         );
+      } else if (confirmation === "confirm") {
+        await onConfirm?.();
+        toast.success("La orden fue confirmada");
       } else {
         await onCancel?.();
         toast.success("La orden fue cancelada");
@@ -490,7 +529,9 @@ export function CreateSalesOrderForm({
           ? error.message
           : confirmation === "advance"
             ? "No se pudo cambiar el estado de la orden"
-            : "No se pudo cancelar la orden"
+            : confirmation === "confirm"
+              ? "No se pudo confirmar la orden"
+              : "No se pudo cancelar la orden"
       );
     } finally {
       setIsChangingStatus(false);
@@ -557,6 +598,7 @@ export function CreateSalesOrderForm({
         payment_term_id: value.payment_term?.id,
         comments: value.comments.trim() || null,
         tag_ids: value.tag_ids.length > 0 ? value.tag_ids : null,
+        initial_status: order ? null : value.initial_status,
         lines: completeLines.map((line) => ({
           line_id: line.id ?? null,
           variant_id: line.variant.id,
@@ -709,7 +751,7 @@ export function CreateSalesOrderForm({
 
         if (result.status === 201) {
           toast.success(`Orden ${result.data.order_number} creada.`);
-          navigate({ to: "/sales" });
+          navigate({ to: "/admin/sales" });
         } else {
           const errorData =
             "data" in result &&
@@ -737,6 +779,54 @@ export function CreateSalesOrderForm({
       }
     },
   });
+
+  async function assignDefaultWarehouse(
+    lineIndex: number,
+    variantId: string,
+    quantityValue: string
+  ) {
+    const quantity = Number(quantityValue);
+    if (!Number.isInteger(quantity) || quantity < 1) return;
+
+    let response: Awaited<ReturnType<typeof listInventoryRequest>>;
+    try {
+      response = await listInventoryRequest({ variant_id: variantId });
+    } catch {
+      return;
+    }
+    const currentLine = form.state.values.lines[lineIndex];
+    if (
+      !currentLine ||
+      currentLine.variant?.id !== variantId ||
+      currentLine.quantity !== quantityValue ||
+      currentLine.warehouse_allocation_manual
+    ) {
+      return;
+    }
+
+    const warehouse =
+      response.status === 200
+        ? selectDefaultWarehouse(response.data, quantity)
+        : undefined;
+    form.setFieldValue(
+      `lines[${lineIndex}].warehouse_allocations`,
+      warehouse
+        ? [
+            {
+              warehouse_id: warehouse.warehouse_id,
+              warehouse_name: warehouse.warehouse_name,
+              quantity: quantityValue,
+            },
+          ]
+        : []
+    );
+    form.setFieldValue(
+      `lines[${lineIndex}].warehouse_error`,
+      response.status === 200 && !warehouse
+        ? INSUFFICIENT_STOCK_MESSAGE
+        : undefined
+    );
+  }
 
   async function saveQuote() {
     setIsChangingStatus(true);
@@ -804,6 +894,14 @@ export function CreateSalesOrderForm({
     form.setFieldValue(
       `lines[${allocationLineIndex}].warehouse_allocations`,
       allocations
+    );
+    form.setFieldValue(
+      `lines[${allocationLineIndex}].warehouse_allocation_manual`,
+      true
+    );
+    form.setFieldValue(
+      `lines[${allocationLineIndex}].warehouse_error`,
+      undefined
     );
     setAllocationLineIndex(null);
     setAllocationVariantId(null);
@@ -951,6 +1049,23 @@ export function CreateSalesOrderForm({
     );
   }
 
+  function openWarehouseDistribution(lineIndex: number, line: LineFormValues) {
+    setAllocationLineIndex(lineIndex);
+    setAllocationVariantId(line.variant?.id ?? null);
+    setAllocationDraft(
+      line.warehouse_allocations.map((allocation) => ({ ...allocation }))
+    );
+  }
+
+  const allocationLine =
+    allocationLineIndex === null
+      ? undefined
+      : form.state.values.lines[allocationLineIndex];
+  const allocatedQuantity = allocationDraft.reduce(
+    (total, allocation) => total + (Number(allocation.quantity) || 0),
+    0
+  );
+
   return (
     <form
       onSubmit={(event) => {
@@ -1005,6 +1120,17 @@ export function CreateSalesOrderForm({
           </Button>
         )}
 
+        {canConfirm && (
+          <Button
+            type="button"
+            variant="default"
+            disabled={isChangingStatus}
+            onClick={() => setConfirmation("confirm")}
+          >
+            Confirmar orden
+          </Button>
+        )}
+
         {canCancel && (
           <Button
             type="button"
@@ -1035,9 +1161,11 @@ export function CreateSalesOrderForm({
                 ? "Al guardar los cambios se creará una nueva cotización y la cotización actual será cancelada."
                 : confirmation === "cancel"
                   ? "¿Deseas cancelar esta orden? Esta acción no se puede deshacer."
-                  : order?.status === "draft"
-                    ? "¿Deseas convertir este borrador en cotización?"
-                    : "¿Deseas confirmar esta cotización?"}
+                  : confirmation === "confirm"
+                    ? "¿Deseas confirmar esta orden directamente? Se saltará el paso de cotización."
+                    : order?.status === "draft"
+                      ? "¿Deseas convertir este borrador en cotización?"
+                      : "¿Deseas confirmar esta cotización?"}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -1068,7 +1196,9 @@ export function CreateSalesOrderForm({
                   ? "Crear nueva cotización"
                   : confirmation === "cancel"
                     ? "Cancelar orden"
-                    : "Continuar"}
+                    : confirmation === "confirm"
+                      ? "Confirmar orden"
+                      : "Continuar"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1084,19 +1214,53 @@ export function CreateSalesOrderForm({
           }
         }}
       >
-        <DialogContent className="sm:max-w-2xl">
+        <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-hidden sm:max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Asignar almacenes</DialogTitle>
+            <DialogTitle>Distribución por almacén</DialogTitle>
             <DialogDescription>
-              Distribuye toda la cantidad de la línea entre uno o más almacenes.
+              {editable
+                ? "Distribuye toda la cantidad de la línea entre uno o más almacenes."
+                : "Consulta la distribución y el progreso de despacho de esta línea."}
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="flex items-center justify-between gap-3 rounded-lg bg-muted/40 px-3 py-2">
+            <div>
+              <p className="text-sm font-medium">Cantidad asignada</p>
+              <p className="text-xs text-muted-foreground" aria-live="polite">
+                {allocatedQuantity} / {allocationLine?.quantity || 0} unidades
+              </p>
+            </div>
+            <Badge
+              variant={
+                allocatedQuantity === Number(allocationLine?.quantity)
+                  ? "secondary"
+                  : "destructive"
+              }
+            >
+              {allocatedQuantity === Number(allocationLine?.quantity)
+                ? "Completa"
+                : "Pendiente"}
+            </Badge>
+          </div>
+          <div className="min-h-0 space-y-4 overflow-y-auto pr-1">
+            {allocationLine?.warehouse_error && (
+              <p className="text-sm text-destructive" role="alert">
+                {allocationLine.warehouse_error}
+              </p>
+            )}
+            {allocationDraft.length === 0 &&
+              !allocationLine?.warehouse_error && (
+                <p className="text-sm text-destructive" role="alert">
+                  Falta distribuir la cantidad de esta línea.
+                </p>
+              )}
             {allocationDraft.map((allocation, allocationIndex) => {
               const inventory = allocationInventory.find(
                 (item) => item.warehouse_id === allocation.warehouse_id
               );
-              return (
+              const quantity = Number(allocation.quantity);
+              const dispatched = allocation.dispatched_quantity ?? 0;
+              return editable ? (
                 <div
                   key={`${allocation.warehouse_id}-${allocationIndex}`}
                   className="grid gap-3 rounded-lg border p-3 sm:grid-cols-[1fr_8rem_auto] sm:items-end"
@@ -1124,7 +1288,11 @@ export function CreateSalesOrderForm({
                       }}
                     >
                       <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Seleccionar almacén" />
+                        <SelectValue placeholder="Seleccionar almacén">
+                          {inventory?.warehouse_name ??
+                            allocation.warehouse_name ??
+                            "Almacén no disponible"}
+                        </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
                         {allocationInventory.map((item) => (
@@ -1186,63 +1354,86 @@ export function CreateSalesOrderForm({
                     <Trash2 className="size-4" />
                   </Button>
                 </div>
+              ) : (
+                <div
+                  key={allocation.warehouse_id}
+                  className="space-y-2 rounded-lg border p-3 text-sm"
+                >
+                  <div className="flex justify-between gap-3">
+                    <span className="font-medium">
+                      <WarehouseName
+                        variantId={allocationLine?.variant?.id}
+                        warehouseId={allocation.warehouse_id}
+                        fallback={allocation.warehouse_name}
+                      />
+                    </span>
+                    <span>{quantity} unidades</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Despachado: {dispatched} / {quantity} · Pendiente:{" "}
+                    {quantity - dispatched}
+                  </p>
+                </div>
               );
             })}
-            {isLoadingInventory ? (
-              <p className="text-sm text-muted-foreground">
-                Consultando inventario...
-              </p>
-            ) : allocationInventory.length === 0 ? (
-              <p className="text-sm text-destructive">
-                Esta variante no tiene inventario registrado por almacén.
-              </p>
-            ) : (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={allocationDraft.length >= allocationInventory.length}
-                onClick={() => {
-                  const next = allocationInventory.find(
-                    (item) =>
-                      !allocationDraft.some(
-                        (allocation) =>
-                          allocation.warehouse_id === item.warehouse_id
-                      )
-                  );
-                  if (!next) return;
-                  setAllocationDraft((current) => [
-                    ...current,
-                    {
-                      warehouse_id: next.warehouse_id,
-                      warehouse_name: next.warehouse_name,
-                      quantity: "1",
-                    },
-                  ]);
-                }}
-              >
-                <Plus className="size-4" />
-                Agregar almacén
-              </Button>
-            )}
-            {allocationLineIndex !== null && (
+            {editable &&
+              (isLoadingInventory ? (
+                <p className="text-sm text-muted-foreground">
+                  Consultando inventario...
+                </p>
+              ) : allocationInventory.length === 0 ? (
+                <p className="text-sm text-destructive">
+                  Esta variante no tiene inventario registrado por almacén.
+                </p>
+              ) : (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={
+                    allocationDraft.length >= allocationInventory.length
+                  }
+                  onClick={() => {
+                    const next = allocationInventory.find(
+                      (item) =>
+                        !allocationDraft.some(
+                          (allocation) =>
+                            allocation.warehouse_id === item.warehouse_id
+                        )
+                    );
+                    if (!next) return;
+                    setAllocationDraft((current) => [
+                      ...current,
+                      {
+                        warehouse_id: next.warehouse_id,
+                        warehouse_name: next.warehouse_name,
+                        quantity: "1",
+                      },
+                    ]);
+                  }}
+                >
+                  <Plus className="size-4" />
+                  Agregar almacén
+                </Button>
+              ))}
+            {!editable && allocationLine?.id && (
               <p className="text-sm font-medium">
-                Asignado:{" "}
-                {allocationDraft.reduce(
-                  (total, item) => total + (Number(item.quantity) || 0),
-                  0
-                )}{" "}
-                / {form.state.values.lines[allocationLineIndex]?.quantity || 0}
+                Progreso total:{" "}
+                {order?.lines.find((line) => line.id === allocationLine.id)
+                  ?.dispatched_quantity ?? 0}{" "}
+                / {allocationLine.quantity}
               </p>
             )}
           </div>
           <DialogFooter>
             <DialogClose render={<Button type="button" variant="outline" />}>
-              Cancelar
+              {editable ? "Cancelar" : "Cerrar"}
             </DialogClose>
-            <Button type="button" onClick={saveWarehouseAllocations}>
-              Guardar distribución
-            </Button>
+            {editable && (
+              <Button type="button" onClick={saveWarehouseAllocations}>
+                Guardar distribución
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -1316,19 +1507,19 @@ export function CreateSalesOrderForm({
                     </SelectTrigger>
                     <SelectContent>
                       {line?.warehouse_allocations.map((allocation) => {
-                        const allocationRemaining =
-                          allocation.quantity - allocation.dispatched_quantity;
                         return (
                           <SelectItem
                             key={allocation.warehouse_id}
                             value={allocation.warehouse_id}
-                            disabled={allocationRemaining === 0}
                           >
                             <WarehouseName
-                              variantId={line.variant_id}
+                              variantId={line?.variant_id}
                               warehouseId={allocation.warehouse_id}
                             />{" "}
-                            · {allocationRemaining} pendientes
+                            ·{" "}
+                            {allocation.quantity -
+                              allocation.dispatched_quantity}{" "}
+                            pendientes
                           </SelectItem>
                         );
                       })}
@@ -1384,6 +1575,51 @@ export function CreateSalesOrderForm({
       </Dialog>
 
       <fieldset disabled={!editable} className="space-y-6">
+        {!isDetail && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Estado inicial</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form.Field name="initial_status">
+                {(field) => (
+                  <div className="grid gap-1.5">
+                    <Label htmlFor={field.name}>Estado</Label>
+                    <Select
+                      value={field.state.value}
+                      onValueChange={(val) =>
+                        field.handleChange(
+                          val as "draft" | "quote" | "confirmed"
+                        )
+                      }
+                      itemToStringLabel={(e) => {
+                        if (e === "draft") {
+                          return "Borrador";
+                        } else if (e === "quote") {
+                          return "Cotización";
+                        } else if (e === "confirmed") {
+                          return "Confirmada";
+                        }
+
+                        return "?";
+                      }}
+                    >
+                      <SelectTrigger id={field.name}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="draft">Borrador</SelectItem>
+                        <SelectItem value="quote">Cotización</SelectItem>
+                        <SelectItem value="confirmed">Confirmada</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </form.Field>
+            </CardContent>
+          </Card>
+        )}
+
         <Card>
           <CardHeader>
             <CardTitle>Cliente</CardTitle>
@@ -1611,6 +1847,7 @@ export function CreateSalesOrderForm({
                         unit_price: "",
                         tax_rate: DEFAULT_TAX_PERCENT,
                         warehouse_allocations: [],
+                        warehouse_allocation_manual: false,
                       })
                     }
                   >
@@ -1633,8 +1870,39 @@ export function CreateSalesOrderForm({
                   )}
 
                   {field.state.value.map((_, index) => {
+                    function clearProductLine() {
+                      form.setFieldValue(`lines[${index}].product`, null);
+                      form.setFieldValue(`lines[${index}].variant`, null);
+                      form.setFieldValue(`lines[${index}].description`, "");
+                      form.setFieldValue(`lines[${index}].quantity`, "1");
+                      form.setFieldValue(`lines[${index}].unit_price`, "");
+                      form.setFieldValue(
+                        `lines[${index}].tax_rate`,
+                        DEFAULT_TAX_PERCENT
+                      );
+                      form.setFieldValue(
+                        `lines[${index}].warehouse_allocations`,
+                        []
+                      );
+                      form.setFieldValue(
+                        `lines[${index}].warehouse_allocation_manual`,
+                        false
+                      );
+                      form.setFieldValue(
+                        `lines[${index}].warehouse_error`,
+                        undefined
+                      );
+                    }
+
                     const line = field.state.value[index];
                     const totals = computeLineTotals(line);
+                    const warehouseError = line.variant
+                      ? (line.warehouse_error ??
+                        validateWarehouseAllocations(
+                          line.quantity,
+                          line.warehouse_allocations
+                        ))
+                      : undefined;
 
                     return (
                       <div
@@ -1650,6 +1918,7 @@ export function CreateSalesOrderForm({
                                   id={subField.name}
                                   value={subField.state.value}
                                   disabled={!editable}
+                                  onClear={clearProductLine}
                                   onChange={(product) => {
                                     subField.handleChange(product);
                                     form.setFieldValue(
@@ -1659,6 +1928,14 @@ export function CreateSalesOrderForm({
                                     form.setFieldValue(
                                       `lines[${index}].warehouse_allocations`,
                                       []
+                                    );
+                                    form.setFieldValue(
+                                      `lines[${index}].warehouse_allocation_manual`,
+                                      false
+                                    );
+                                    form.setFieldValue(
+                                      `lines[${index}].warehouse_error`,
+                                      undefined
                                     );
                                   }}
                                 />
@@ -1688,6 +1965,14 @@ export function CreateSalesOrderForm({
                                       `lines[${index}].warehouse_allocations`,
                                       []
                                     );
+                                    form.setFieldValue(
+                                      `lines[${index}].warehouse_allocation_manual`,
+                                      false
+                                    );
+                                    form.setFieldValue(
+                                      `lines[${index}].warehouse_error`,
+                                      undefined
+                                    );
                                     if (variant) {
                                       form.setFieldValue(
                                         `lines[${index}].description`,
@@ -1701,8 +1986,14 @@ export function CreateSalesOrderForm({
                                           centsToPesosString(price.amount)
                                         );
                                       }
+                                      void assignDefaultWarehouse(
+                                        index,
+                                        variant.id,
+                                        line.quantity
+                                      );
                                     }
                                   }}
+                                  onClear={clearProductLine}
                                   disabled={!editable || !line.product}
                                 />
                                 {subField.state.meta.errors[0] && (
@@ -1714,8 +2005,46 @@ export function CreateSalesOrderForm({
                             )}
                           </form.Field>
 
-                          {editable && (
-                            <div className="flex items-end">
+                          <div className="flex items-end gap-1">
+                            <Tooltip>
+                              <TooltipTrigger
+                                render={
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="relative size-9"
+                                    disabled={!line.variant}
+                                    aria-invalid={Boolean(warehouseError)}
+                                    aria-label={
+                                      editable
+                                        ? `Asignar almacenes para la línea ${index + 1}`
+                                        : `Ver distribución por almacén de la línea ${index + 1}`
+                                    }
+                                    onClick={() =>
+                                      openWarehouseDistribution(index, line)
+                                    }
+                                  />
+                                }
+                              >
+                                <WarehouseIcon className="size-4" />
+                                {warehouseError && (
+                                  <Badge
+                                    variant="destructive"
+                                    className="absolute -top-1 -right-1 size-3 p-0"
+                                    aria-hidden="true"
+                                  />
+                                )}
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                {line.variant
+                                  ? editable
+                                    ? "Asignar almacenes"
+                                    : "Ver distribución por almacén"
+                                  : "Selecciona una variante primero"}
+                              </TooltipContent>
+                            </Tooltip>
+                            {editable && (
                               <Button
                                 type="button"
                                 variant="ghost"
@@ -1726,8 +2055,8 @@ export function CreateSalesOrderForm({
                               >
                                 <Trash2 className="size-4" />
                               </Button>
-                            </div>
-                          )}
+                            )}
+                          </div>
 
                           {(order?.status === "confirmed" ||
                             order?.status === "partially_fulfilled" ||
@@ -1788,7 +2117,7 @@ export function CreateSalesOrderForm({
                               <Input
                                 id={subField.name}
                                 value={subField.state.value}
-                                disabled={!editable}
+                                disabled
                                 onChange={(event) =>
                                   subField.handleChange(event.target.value)
                                 }
@@ -1824,9 +2153,28 @@ export function CreateSalesOrderForm({
                                   step={1}
                                   value={subField.state.value}
                                   disabled={!editable}
-                                  onChange={(event) =>
-                                    subField.handleChange(event.target.value)
-                                  }
+                                  onChange={(event) => {
+                                    const quantity = event.target.value;
+                                    subField.handleChange(quantity);
+                                    if (
+                                      line.variant &&
+                                      !line.warehouse_allocation_manual
+                                    ) {
+                                      form.setFieldValue(
+                                        `lines[${index}].warehouse_allocations`,
+                                        []
+                                      );
+                                      form.setFieldValue(
+                                        `lines[${index}].warehouse_error`,
+                                        undefined
+                                      );
+                                      void assignDefaultWarehouse(
+                                        index,
+                                        line.variant.id,
+                                        quantity
+                                      );
+                                    }
+                                  }}
                                   onBlur={subField.handleBlur}
                                   aria-invalid={
                                     subField.state.meta.errors.length > 0
@@ -1858,7 +2206,7 @@ export function CreateSalesOrderForm({
                                   min={0}
                                   step="0.01"
                                   value={subField.state.value}
-                                  disabled={!editable}
+                                  disabled
                                   onChange={(event) =>
                                     subField.handleChange(event.target.value)
                                   }
@@ -1894,7 +2242,7 @@ export function CreateSalesOrderForm({
                                   max={100}
                                   step="0.01"
                                   value={subField.state.value}
-                                  disabled={!editable}
+                                  disabled
                                   onChange={(event) =>
                                     subField.handleChange(event.target.value)
                                   }
@@ -1920,90 +2268,6 @@ export function CreateSalesOrderForm({
                               {currencyFormatter.format(totals.total / 100)}
                             </span>
                           </div>
-                        </div>
-
-                        <div className="space-y-3 rounded-lg bg-muted/30 p-3">
-                          <div className="flex flex-wrap items-center justify-between gap-3">
-                            <div>
-                              <p className="text-sm font-medium">
-                                Distribución por almacén
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                Asignado:{" "}
-                                {line.warehouse_allocations.reduce(
-                                  (total, allocation) =>
-                                    total + (Number(allocation.quantity) || 0),
-                                  0
-                                )}{" "}
-                                / {line.quantity || 0}
-                              </p>
-                            </div>
-                            {editable && (
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                disabled={!line.variant}
-                                onClick={() => {
-                                  setAllocationLineIndex(index);
-                                  setAllocationVariantId(
-                                    line.variant?.id ?? null
-                                  );
-                                  setAllocationDraft(
-                                    line.warehouse_allocations.map(
-                                      (allocation) => ({ ...allocation })
-                                    )
-                                  );
-                                }}
-                              >
-                                Asignar almacenes
-                              </Button>
-                            )}
-                          </div>
-                          {line.warehouse_allocations.length === 0 ? (
-                            <p className="text-xs text-destructive">
-                              Falta distribuir la cantidad de esta línea.
-                            </p>
-                          ) : (
-                            <div className="grid gap-2 sm:grid-cols-2">
-                              {line.warehouse_allocations.map((allocation) => {
-                                const quantity = Number(allocation.quantity);
-                                const dispatched =
-                                  allocation.dispatched_quantity ?? 0;
-                                return (
-                                  <div
-                                    key={allocation.warehouse_id}
-                                    className="rounded-md border bg-background px-3 py-2 text-xs"
-                                  >
-                                    <div className="flex justify-between gap-3">
-                                      <span className="font-medium">
-                                        <WarehouseName
-                                          variantId={line.variant?.id}
-                                          warehouseId={allocation.warehouse_id}
-                                          fallback={allocation.warehouse_name}
-                                        />
-                                      </span>
-                                      <span>{quantity} unidades</span>
-                                    </div>
-                                    {!editable && (
-                                      <p className="mt-1 text-muted-foreground">
-                                        Despachado: {dispatched} / {quantity} ·
-                                        Pendiente: {quantity - dispatched}
-                                      </p>
-                                    )}
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          )}
-                          {!editable && line.id && (
-                            <p className="text-xs font-medium">
-                              Progreso total:{" "}
-                              {order?.lines.find((item) => item.id === line.id)
-                                ?.dispatched_quantity ?? 0}{" "}
-                              / {line.quantity}
-                            </p>
-                          )}
                         </div>
                       </div>
                     );

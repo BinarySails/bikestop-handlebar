@@ -26,7 +26,7 @@ export function CreateUserDialog({ onCreated }: { onCreated?: () => void }) {
   const rolesQuery = useListRolesHandler();
   const roles =
     rolesQuery.data?.status === 200
-      ? rolesQuery.data.data.roles.filter((role) => role.status === "active")
+      ? rolesQuery.data.data.roles.filter((role) => role.status === "enable")
       : [];
 
   const form = useForm({

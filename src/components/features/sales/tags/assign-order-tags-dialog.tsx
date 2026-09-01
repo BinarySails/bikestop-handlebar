@@ -49,7 +49,7 @@ export function AssignOrderTagsDialog({
   const [saving, setSaving] = useState(false);
 
   const { data, isLoading } = useListTagsRequest(
-    open ? { status: "active" } : undefined
+    open ? { status: "enable" } : undefined
   );
   const tags = data?.status === 200 ? data.data.tags : [];
 

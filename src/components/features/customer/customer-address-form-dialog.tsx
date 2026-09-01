@@ -182,6 +182,11 @@ function CustomerAddressForm({
       is_default_billing: false as boolean,
     } satisfies FormValues,
     onSubmit: async ({ value }) => {
+      if (!userId) {
+        toast.error("No se pudo identificar tu usuario. Recarga la página.");
+        return;
+      }
+
       const payload = {
         contact_name: value.contact_name.trim(),
         phone: value.phone.trim(),

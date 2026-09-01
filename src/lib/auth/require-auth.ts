@@ -108,7 +108,7 @@ export function requirePolicy(requiredPolicy: string) {
 
   if (!actor?.policies?.includes(requiredPolicy)) {
     throw redirect({
-      to: "/dashboard",
+      to: "/admin/dashboard",
     });
   }
 }

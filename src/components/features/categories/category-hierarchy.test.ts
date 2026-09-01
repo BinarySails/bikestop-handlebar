@@ -11,7 +11,7 @@ const categories: Category[] = [
     slug: "bicicletas",
     description: null,
     parent_id: null,
-    status: "active",
+    status: "enable",
     created_at: "2026-01-01T00:00:00Z",
   },
   {
@@ -20,7 +20,7 @@ const categories: Category[] = [
     slug: "montana",
     description: null,
     parent_id: "root",
-    status: "active",
+    status: "enable",
     created_at: "2026-01-02T00:00:00Z",
   },
   {
@@ -38,7 +38,7 @@ const categories: Category[] = [
     slug: "huerfana",
     description: null,
     parent_id: "missing",
-    status: "active",
+    status: "enable",
     created_at: "2026-01-04T00:00:00Z",
   },
 ];
