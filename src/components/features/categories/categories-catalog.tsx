@@ -1,3 +1,5 @@
+/* oxlint-disable react/incompatible-library -- TanStack Table cannot be memoized safely */
+/* oxlint-disable react/no-unstable-nested-components -- TanStack Table cell renderers are callbacks, not components */
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import {

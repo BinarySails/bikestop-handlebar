@@ -8,6 +8,7 @@
 export type ListSalesOrdersRequestParams = {
 status?: string;
 order_number?: string;
+customer_id?: string;
 customer_username?: string;
 customer_company_name?: string;
 order_date_from?: string;

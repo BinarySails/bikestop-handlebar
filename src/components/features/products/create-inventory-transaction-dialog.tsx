@@ -1,4 +1,4 @@
-import { useForm } from "@tanstack/react-form";
+import { useForm, type ReactFormExtendedApi } from "@tanstack/react-form";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -46,6 +46,96 @@ function validateQuantity(value: string): string | undefined {
     return "La cantidad debe ser un número entero mayor a 0.";
   }
   return undefined;
+}
+
+type TransactionFormData = {
+  productId: string;
+  variantId: string;
+  warehouseId: string;
+  sourceWarehouseId: string;
+  destinationWarehouseId: string;
+  quantity: string;
+  transactionType:
+    | "correction_addition"
+    | "correction_substraction"
+    | "available"
+    | "in_transit";
+};
+
+type TransactionForm = ReactFormExtendedApi<
+  TransactionFormData,
+  any,
+  any,
+  any,
+  any,
+  any,
+  any,
+  any,
+  any,
+  any,
+  any,
+  any
+>;
+
+function VariantField({
+  form,
+  effectiveProductId,
+  show,
+}: {
+  form: TransactionForm;
+  effectiveProductId: string;
+  show: boolean;
+}) {
+  const { data: variantsResponse } = useListVariantsRequest(
+    effectiveProductId,
+    undefined,
+    {
+      swr: {
+        revalidateOnFocus: false,
+        enabled: !!effectiveProductId,
+      },
+    }
+  );
+
+  const variants =
+    variantsResponse?.status === 200 ? variantsResponse.data : [];
+
+  if (!show) return null;
+
+  return (
+    <form.Field
+      name="variantId"
+      validators={{
+        onSubmit: ({ value }) => {
+          if (!value) return "La variante es obligatoria.";
+          return undefined;
+        },
+      }}
+    >
+      {(field) => (
+        <div className="grid gap-2">
+          <Label htmlFor={field.name}>Variante</Label>
+          <VariantCombobox
+            id={field.name}
+            productId={effectiveProductId ?? null}
+            value={
+              variants.find((variant) => variant.id === field.state.value) ??
+              null
+            }
+            onChange={(variant) => {
+              field.handleChange(variant?.id ?? "");
+            }}
+            disabled={!effectiveProductId}
+          />
+          {field.state.meta.errors?.[0] && (
+            <p className="text-sm text-destructive">
+              {field.state.meta.errors[0]}
+            </p>
+          )}
+        </div>
+      )}
+    </form.Field>
+  );
 }
 
 export function CreateInventoryTransactionDialog({
@@ -255,54 +345,12 @@ export function CreateInventoryTransactionDialog({
               {(selectedProductId) => {
                 const effectiveProductId =
                   preselectedProductId ?? selectedProductId;
-                const { data: variantsResponse } = useListVariantsRequest(
-                  effectiveProductId,
-                  undefined,
-                  {
-                    swr: {
-                      revalidateOnFocus: false,
-                      enabled: !!effectiveProductId,
-                    },
-                  }
-                );
-
-                const variants =
-                  variantsResponse?.status === 200 ? variantsResponse.data : [];
-
                 return (
-                  <form.Field
-                    name="variantId"
-                    validators={{
-                      onSubmit: ({ value }) => {
-                        if (!value) return "La variante es obligatoria.";
-                        return undefined;
-                      },
-                    }}
-                  >
-                    {(field) => (
-                      <div className="grid gap-2">
-                        <Label htmlFor={field.name}>Variante</Label>
-                        <VariantCombobox
-                          id={field.name}
-                          productId={effectiveProductId ?? null}
-                          value={
-                            variants.find(
-                              (variant) => variant.id === field.state.value
-                            ) ?? null
-                          }
-                          onChange={(variant) => {
-                            field.handleChange(variant?.id ?? "");
-                          }}
-                          disabled={!effectiveProductId}
-                        />
-                        {field.state.meta.errors?.[0] && (
-                          <p className="text-sm text-destructive">
-                            {field.state.meta.errors[0]}
-                          </p>
-                        )}
-                      </div>
-                    )}
-                  </form.Field>
+                  <VariantField
+                    form={form}
+                    effectiveProductId={effectiveProductId}
+                    show
+                  />
                 );
               }}
             </form.Subscribe>
@@ -368,7 +416,8 @@ export function CreateInventoryTransactionDialog({
                     name="sourceWarehouseId"
                     validators={{
                       onSubmit: ({ value }) => {
-                        if (!value) return "El almacén de origen es obligatorio.";
+                        if (!value)
+                          return "El almacén de origen es obligatorio.";
                         return undefined;
                       },
                     }}

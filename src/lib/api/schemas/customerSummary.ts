@@ -5,12 +5,14 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { CustomerId } from './customerId.ts';
+import type { CustomerStatus } from './customerStatus.ts';
 
 export interface CustomerSummary {
   company_name: string;
   /** @nullable */
   email?: string | null;
   id: CustomerId;
+  status: CustomerStatus;
   /** @nullable */
   tax_id?: string | null;
   /** @nullable */

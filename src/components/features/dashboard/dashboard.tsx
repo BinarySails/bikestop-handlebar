@@ -1,3 +1,4 @@
+/* oxlint-disable react/no-unstable-nested-components -- recharts formatter/render callbacks are not components */
 import { useState, type ReactNode } from "react";
 import {
   AlertTriangle,

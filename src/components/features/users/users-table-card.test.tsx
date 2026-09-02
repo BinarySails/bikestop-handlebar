@@ -1,16 +1,15 @@
 // @vitest-environment jsdom
 /* oxlint-disable vitest/require-mock-type-parameters */
 
-import {
-  cleanup,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { UserViewParam, type ListUsersRequestParams } from "@/lib/api/schemas";
+import {
+  SortOrderParam,
+  UserSortByParam,
+  UserViewParam,
+  type ListUsersRequestParams,
+} from "@/lib/api/schemas";
 
 import { UsersTableCard } from "./users-table-card";
 
@@ -49,14 +48,14 @@ const adminRole = {
   id: "11111111-1111-4111-8111-111111111111",
   display_name: "Administrador",
   slug: "admin",
-  status: "active" as const,
+  status: "enable" as const,
   created_at: "2026-01-01T00:00:00Z",
 };
 const salesRole = {
   id: "22222222-2222-4222-8222-222222222222",
   display_name: "Ventas",
   slug: "sales",
-  status: "active" as const,
+  status: "enable" as const,
   created_at: "2026-01-01T00:00:00Z",
 };
 const user = {
@@ -118,7 +117,7 @@ describe("UsersTableCard", () => {
     expect(roleFilter.textContent).not.toContain(adminRole.id);
   });
 
-  it("debounces client search and resets pagination", async () => {
+  it("omits role and sort controls for the client view", async () => {
     const onParamsChange = vi.fn();
     render(
       <UsersTableCard
@@ -130,39 +129,16 @@ describe("UsersTableCard", () => {
     expect(api.listUsers).toHaveBeenCalledWith(
       {
         view: UserViewParam.client,
-        search: undefined,
+        role: undefined,
         limit: 20,
         offset: 20,
+        sort_by: UserSortByParam.display_name,
+        sort_order: SortOrderParam.asc,
       },
       { swr: { keepPreviousData: true } }
     );
-    expect(screen.queryByText("Fecha de registro")).toBeNull();
-    expect(
-      screen.queryByText(
-        new Intl.DateTimeFormat("es-MX", { dateStyle: "medium" }).format(
-          new Date(user.created_at)
-        )
-      )
-    ).toBeNull();
-    expect(screen.queryByText("Nombre: A–Z")).toBeNull();
-    expect(
-      screen.queryByRole("button", { name: "Mostrar archivados" })
-    ).toBeNull();
-
-    fireEvent.change(
-      screen.getByLabelText("Buscar por nombre, usuario o correo"),
-      {
-        target: { value: "  juan  " },
-      }
-    );
-    await waitFor(
-      () =>
-        expect(onParamsChange).toHaveBeenCalledWith({
-          search: "juan",
-          offset: 0,
-        }),
-      { timeout: 700 }
-    );
+    expect(screen.queryByText("Filtrar por rol")).toBeNull();
+    expect(screen.getByText("Usuarios inactivos")).toBeTruthy();
   });
 
   it("navigates views and uses server pagination totals", () => {

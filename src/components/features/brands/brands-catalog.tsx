@@ -70,6 +70,13 @@ export function BrandsCatalog({
   const page = filters.page ?? 0;
   const limit = 10;
   const [search, setSearch] = useState(filters.display_name ?? "");
+  const [prevDisplayName, setPrevDisplayName] = useState(
+    filters.display_name ?? ""
+  );
+  if ((filters.display_name ?? "") !== prevDisplayName) {
+    setPrevDisplayName(filters.display_name ?? "");
+    setSearch(filters.display_name ?? "");
+  }
   const [archivedOnly, setArchivedOnly] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [archiveBrand, setArchiveBrand] = useState<Brand | null>(null);
@@ -87,10 +94,6 @@ export function BrandsCatalog({
       archivedOnly ? brand.status === "archive" : brand.status !== "archive"
     ) ?? [];
 
-  useEffect(
-    () => setSearch(filters.display_name ?? ""),
-    [filters.display_name]
-  );
   useEffect(() => {
     const timer = window.setTimeout(() => {
       const display_name = search.trim() || undefined;

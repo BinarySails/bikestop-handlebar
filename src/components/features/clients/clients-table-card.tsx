@@ -57,6 +57,11 @@ export function ClientsTableCard({
   onParamsChange,
 }: ClientsTableCardProps) {
   const [searchInput, setSearchInput] = useState(search ?? "");
+  const [prevSearch, setPrevSearch] = useState(search ?? "");
+  if ((search ?? "") !== prevSearch) {
+    setPrevSearch(search ?? "");
+    setSearchInput(search ?? "");
+  }
   const [assignCustomerId, setAssignCustomerId] = useState<string | null>(null);
   const [editCustomerId, setEditCustomerId] = useState<string | null>(null);
   const [statusCustomerId, setStatusCustomerId] = useState<string | null>(null);
@@ -71,8 +76,6 @@ export function ClientsTableCard({
     },
     { swr: { keepPreviousData: true } }
   );
-
-  useEffect(() => setSearchInput(search ?? ""), [search]);
 
   useEffect(() => {
     const timeout = window.setTimeout(() => {
@@ -104,9 +107,7 @@ export function ClientsTableCard({
       const result = await updateStatus({ status: newStatus });
       if (result.status === 200) {
         toast.success(
-          newStatus === "disable"
-            ? "Cliente desactivado."
-            : "Cliente activado."
+          newStatus === "disable" ? "Cliente desactivado." : "Cliente activado."
         );
         setStatusCustomerId(null);
         query.mutate();
@@ -270,7 +271,7 @@ export function ClientsTableCard({
                 {isUpdatingStatus
                   ? "Procesando..."
                   : clients.find((c) => c.id === statusCustomerId)?.status ===
-                    "enable"
+                      "enable"
                     ? "Desactivar"
                     : "Activar"}
               </Button>

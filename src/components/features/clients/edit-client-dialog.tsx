@@ -2,10 +2,7 @@ import { useEffect } from "react";
 import { useForm } from "@tanstack/react-form";
 import { toast } from "sonner";
 
-import {
-  useGetCustomerRequest,
-  useUpdateCustomerRequest,
-} from "@/lib/api/api";
+import { useGetCustomerRequest, useUpdateCustomerRequest } from "@/lib/api/api";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -38,8 +35,7 @@ export function EditClientDialog({
   const { trigger: updateCustomer, isMutating } =
     useUpdateCustomerRequest(customerId);
 
-  const customer =
-    customerRes?.status === 200 ? customerRes.data : undefined;
+  const customer = customerRes?.status === 200 ? customerRes.data : undefined;
 
   const form = useForm({
     defaultValues: {
