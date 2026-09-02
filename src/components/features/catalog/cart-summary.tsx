@@ -22,7 +22,7 @@ function calculateDiscount(promo: Promotion, subtotal: number): number {
   if ("Standard" in method) {
     const { target, value } = method.Standard;
     if ("percentage" in value) {
-      return Math.round(subtotal * value.percentage / 100);
+      return Math.round((subtotal * value.percentage) / 100);
     }
     if ("fixed_amount" in value) {
       const fixed = value.fixed_amount as unknown as [number, string];
@@ -85,7 +85,7 @@ export function CartSummary({ cart, onCheckout }: CartSummaryProps) {
       const res = await listActivePromotionsRequest();
 
       if (res.status !== 200) {
-        setPrbunx oxfmt.omoError("Error al validar el código de descuento");
+        setPromoError("Error al validar el código de descuento");
         return;
       }
 
@@ -200,9 +200,7 @@ export function CartSummary({ cart, onCheckout }: CartSummaryProps) {
           </div>
         )}
 
-        {promoError && (
-          <p className="text-xs text-destructive">{promoError}</p>
-        )}
+        {promoError && <p className="text-xs text-destructive">{promoError}</p>}
       </div>
 
       <div className="flex gap-2">
