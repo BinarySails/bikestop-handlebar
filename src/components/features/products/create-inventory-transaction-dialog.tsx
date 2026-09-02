@@ -139,9 +139,9 @@ export function CreateInventoryTransactionDialog({
         } else {
           const errorMessage =
             "data" in result &&
-              typeof result.data === "object" &&
-              result.data !== null &&
-              "message" in result.data
+            typeof result.data === "object" &&
+            result.data !== null &&
+            "message" in result.data
               ? (result.data as { message?: string }).message
               : undefined;
           toast.error(errorMessage ?? "Error al crear transacción.");
@@ -176,9 +176,9 @@ export function CreateInventoryTransactionDialog({
         } else {
           const errorMessage =
             "data" in result &&
-              typeof result.data === "object" &&
-              result.data !== null &&
-              "message" in result.data
+            typeof result.data === "object" &&
+            result.data !== null &&
+            "message" in result.data
               ? (result.data as { message?: string }).message
               : undefined;
           toast.error(errorMessage ?? "Error al crear transacción.");
@@ -317,10 +317,10 @@ export function CreateInventoryTransactionDialog({
                   onValueChange={(val) => {
                     field.handleChange(
                       val as
-                      | "correction_addition"
-                      | "correction_substraction"
-                      | "available"
-                      | "in_transit"
+                        | "correction_addition"
+                        | "correction_substraction"
+                        | "available"
+                        | "in_transit"
                     );
                     if (val === "in_transit") {
                       form.setFieldValue("warehouseId", "");
@@ -368,7 +368,8 @@ export function CreateInventoryTransactionDialog({
                     name="sourceWarehouseId"
                     validators={{
                       onSubmit: ({ value }) => {
-                        if (!value) return "El almacén de origen es obligatorio.";
+                        if (!value)
+                          return "El almacén de origen es obligatorio.";
                         return undefined;
                       },
                     }}

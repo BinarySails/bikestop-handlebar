@@ -85,7 +85,7 @@ export function CartSummary({ cart, onCheckout }: CartSummaryProps) {
       const res = await listActivePromotionsRequest();
 
       if (res.status !== 200) {
-        setPromoError("Error al validar el código de descuento");
+        setPrbunx oxfmt.omoError("Error al validar el código de descuento");
         return;
       }
 
