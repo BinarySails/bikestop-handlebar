@@ -368,7 +368,8 @@ export function CreateInventoryTransactionDialog({
                     name="sourceWarehouseId"
                     validators={{
                       onSubmit: ({ value }) => {
-                        if (!value) return "El almacén de origen es obligatorio.";
+                        if (!value)
+                          return "El almacén de origen es obligatorio.";
                         return undefined;
                       },
                     }}
