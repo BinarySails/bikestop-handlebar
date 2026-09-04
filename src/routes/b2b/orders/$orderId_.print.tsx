@@ -124,7 +124,7 @@ function OrderPrintPage() {
 
       <section className="grid gap-6 py-6 sm:grid-cols-2">
         <div>
-          <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <h2 className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
             Cliente
           </h2>
           <p className="mt-1 font-medium">{order.customer.name}</p>
@@ -133,7 +133,7 @@ function OrderPrintPage() {
           </div>
         </div>
         <div>
-          <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <h2 className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
             Dirección de envío
           </h2>
           <div className="mt-1 text-sm text-muted-foreground">
@@ -153,7 +153,7 @@ function OrderPrintPage() {
 
       <table className="mt-6 w-full border-collapse text-sm">
         <thead>
-          <tr className="border-b text-left text-xs uppercase tracking-wide text-muted-foreground">
+          <tr className="border-b text-left text-xs tracking-wide text-muted-foreground uppercase">
             <th className="py-2 pr-2 font-semibold">#</th>
             <th className="py-2 pr-2 font-semibold">Descripción</th>
             <th className="py-2 pr-2 text-right font-semibold">Cant.</th>
@@ -214,18 +214,17 @@ function OrderPrintPage() {
 
       {order.comments && (
         <section className="mt-6 border-t pt-4">
-          <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <h2 className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
             Comentarios
           </h2>
-          <p className="mt-1 whitespace-pre-wrap text-sm text-muted-foreground">
+          <p className="mt-1 text-sm whitespace-pre-wrap text-muted-foreground">
             {order.comments}
           </p>
         </section>
       )}
 
       <footer className="mt-8 border-t pt-4 text-xs text-muted-foreground">
-        Documento generado desde BikeStop el{" "}
-        {dateFormatter.format(new Date())}.
+        Documento generado desde BikeStop el {dateFormatter.format(new Date())}.
       </footer>
     </div>
   );
