@@ -85,7 +85,7 @@ function generatePaginationPages(
   return pages;
 }
 
-export const Route = createFileRoute("/b2b/orders")({
+export const Route = createFileRoute("/b2b/orders/")({
   component: OrdersPage,
 });
 
@@ -110,7 +110,8 @@ function OrdersPage() {
   const { data: ordersRes, isLoading } = useListSalesOrdersRequest(
     {
       customer_id: customerId,
-      page: page + 1,
+      // The endpoint paginates from 0; `page` state is already 0-indexed.
+      page,
       limit: PAGE_SIZE,
     },
     { swr: { enabled: Boolean(customerId) } }

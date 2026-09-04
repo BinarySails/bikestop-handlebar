@@ -31,10 +31,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuthStore } from "@/lib/auth/use-auth-store";
-import {
-  useListCustomerAddressesRequest,
-  useMeHandler,
-} from "@/lib/api/api";
+import { useListCustomerAddressesRequest, useMeHandler } from "@/lib/api/api";
 import type { CustomerAddressWithAddressRow } from "@/lib/api/schemas";
 import { useCheckoutCart } from "@/lib/cart/use-cart";
 
@@ -122,33 +119,35 @@ function CheckoutForm({ onDone }: { onDone?: () => void }) {
   const defaultBilling = addresses.find((a) => a.is_default_billing);
   const defaultShipping = addresses.find((a) => a.is_default_shipping);
 
-  const [selectedBillingId, setSelectedBillingId] = useState<
-    string | "new"
-  >(defaultBilling ? defaultBilling.id : "new");
-  const [selectedShippingId, setSelectedShippingId] = useState<
-    string | "new"
-  >(defaultShipping ? defaultShipping.id : "new");
+  const [selectedBillingId, setSelectedBillingId] = useState<string | "new">(
+    defaultBilling ? defaultBilling.id : "new"
+  );
+  const [selectedShippingId, setSelectedShippingId] = useState<string | "new">(
+    defaultShipping ? defaultShipping.id : "new"
+  );
 
   const selectedBillingAddr =
     selectedBillingId !== "new"
-      ? addresses.find((a) => a.id === selectedBillingId) ?? null
+      ? (addresses.find((a) => a.id === selectedBillingId) ?? null)
       : null;
   const selectedShippingAddr =
     selectedShippingId !== "new"
-      ? addresses.find((a) => a.id === selectedShippingId) ?? null
+      ? (addresses.find((a) => a.id === selectedShippingId) ?? null)
       : null;
 
+  const defaultValues: CheckoutFormValues = {
+    billing: selectedBillingAddr
+      ? addressToFormValues(selectedBillingAddr)
+      : emptyAddress,
+    shipping_same_as_billing: true,
+    shipping: selectedShippingAddr
+      ? addressToFormValues(selectedShippingAddr)
+      : emptyAddress,
+    comments: "",
+  };
+
   const form = useForm({
-    defaultValues: {
-      billing: selectedBillingAddr
-        ? addressToFormValues(selectedBillingAddr)
-        : emptyAddress,
-      shipping_same_as_billing: true,
-      shipping: selectedShippingAddr
-        ? addressToFormValues(selectedShippingAddr)
-        : emptyAddress,
-      comments: "",
-    } satisfies CheckoutFormValues,
+    defaultValues,
     onSubmit: async ({ value }) => {
       const billingAddress = selectedBillingAddr
         ? {
@@ -533,7 +532,10 @@ function CheckoutForm({ onDone }: { onDone?: () => void }) {
                                 )}
                               </SelectItem>
                             ))}
-                            <SelectItem value="new" label="Ingresar nueva dirección">
+                            <SelectItem
+                              value="new"
+                              label="Ingresar nueva dirección"
+                            >
                               Ingresar nueva dirección
                             </SelectItem>
                           </SelectContent>
@@ -556,9 +558,7 @@ function CheckoutForm({ onDone }: { onDone?: () => void }) {
                         </div>
                         <div className="grid gap-1.5">
                           <Label>Ciudad</Label>
-                          <p className="text-sm">
-                            {selectedShippingAddr.city}
-                          </p>
+                          <p className="text-sm">{selectedShippingAddr.city}</p>
                         </div>
                         <div className="grid gap-1.5">
                           <Label>Código postal</Label>

@@ -104,9 +104,7 @@ export function ClientsTableCard({
       const result = await updateStatus({ status: newStatus });
       if (result.status === 200) {
         toast.success(
-          newStatus === "disable"
-            ? "Cliente desactivado."
-            : "Cliente activado."
+          newStatus === "disable" ? "Cliente desactivado." : "Cliente activado."
         );
         setStatusCustomerId(null);
         query.mutate();
@@ -270,7 +268,7 @@ export function ClientsTableCard({
                 {isUpdatingStatus
                   ? "Procesando..."
                   : clients.find((c) => c.id === statusCustomerId)?.status ===
-                    "enable"
+                      "enable"
                     ? "Desactivar"
                     : "Activar"}
               </Button>

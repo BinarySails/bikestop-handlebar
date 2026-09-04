@@ -113,6 +113,7 @@ import type {
   OrderFunnel,
   OrderTagId,
   OrderTagResponse,
+  PaginatedAuditEventResponse,
   PaginatedBrand,
   PaginatedCustomerSummary,
   PaginatedSalesOrderSummaryView,

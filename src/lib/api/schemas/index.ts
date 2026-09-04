@@ -164,6 +164,8 @@ export * from './orderTag.ts';
 export * from './orderTagId.ts';
 export * from './orderTagResponse.ts';
 export * from './orderTagStatus.ts';
+export * from './paginatedAuditEventResponse.ts';
+export * from './paginatedAuditEventResponseDataItem.ts';
 export * from './paginatedBrand.ts';
 export * from './paginatedBrandDataItem.ts';
 export * from './paginatedCustomerSummary.ts';
