@@ -22,7 +22,8 @@ import {
 } from "@/components/ui/dialog";
 import {
   useCreateCustomerRequest,
-  useGetCustomerRequest,
+  useGetCustomerByUserRequest,
+  useMeHandler,
   useUpdateCustomerRequest,
   useUpdateCustomerStatusRequest,
 } from "@/lib/api/api";
@@ -46,14 +47,25 @@ const statusLabels: Record<CustomerStatus, string> = {
 
 function CustomerPage() {
   const actor = useAuthStore((state) => state.actor);
-  const userId = actor?.id ?? "";
-  const { data: res, error, isLoading, mutate } = useGetCustomerRequest(userId);
-  const { trigger: createCustomer } = useCreateCustomerRequest();
-  const { trigger: updateCustomer } = useUpdateCustomerRequest(userId);
-  const { trigger: updateCustomerStatus } =
-    useUpdateCustomerStatusRequest(userId);
+  // `actor` can be null on a fresh load; fall back to /auth/me for the user id.
+  const { data: meRes } = useMeHandler();
+  const userId = actor?.id ?? (meRes?.status === 200 ? meRes.data.id : "");
+
+  // The customer profile is keyed by `customer.id`, which is distinct from the
+  // auth user id — resolve it from the session user instead of assuming they
+  // match (passing the user id to GET /customers/{customer_id} just 404s).
+  const { data: res, error, isLoading, mutate } = useGetCustomerByUserRequest(
+    userId,
+    { swr: { enabled: Boolean(userId) } }
+  );
 
   const customer: Customer | null = res?.status === 200 ? res.data : null;
+
+  const { trigger: createCustomer } = useCreateCustomerRequest();
+  const { trigger: updateCustomer } = useUpdateCustomerRequest(customer?.id ?? "");
+  const { trigger: updateCustomerStatus } = useUpdateCustomerStatusRequest(
+    customer?.id ?? ""
+  );
 
   const [deactivateOpen, setDeactivateOpen] = useState(false);
   const [statusPending, setStatusPending] = useState(false);
