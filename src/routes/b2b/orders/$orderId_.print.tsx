@@ -106,7 +106,7 @@ function OrderPrintPage() {
 
       <header className="flex flex-wrap items-start justify-between gap-4 border-b pb-6">
         <div>
-          <p className="text-lg font-bold tracking-tight">Bikestop</p>
+          <p className="text-lg font-bold tracking-tight">BikeStop</p>
           <p className="text-sm text-muted-foreground">Pedido de venta</p>
         </div>
         <div className="text-right">
@@ -224,7 +224,7 @@ function OrderPrintPage() {
       )}
 
       <footer className="mt-8 border-t pt-4 text-xs text-muted-foreground">
-        Documento generado desde Bikestop el{" "}
+        Documento generado desde BikeStop el{" "}
         {dateFormatter.format(new Date())}.
       </footer>
     </div>
