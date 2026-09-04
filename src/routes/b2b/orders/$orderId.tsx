@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Printer } from "lucide-react";
 
 import { ProductLineThumbnail } from "@/components/features/sales/product-line-thumbnail";
 import { Badge } from "@/components/ui/badge";
@@ -104,6 +104,21 @@ function OrderDetailPage() {
         <Badge variant={statusBadgeVariant[order.status]}>
           {statusLabel[order.status]}
         </Badge>
+        <Button
+          render={
+            <Link
+              to="/b2b/orders/$orderId/print"
+              params={{ orderId: order.id }}
+            />
+          }
+          nativeButton={false}
+          variant="outline"
+          size="sm"
+          className="ml-auto"
+        >
+          <Printer className="size-4" />
+          Exportar / Imprimir
+        </Button>
       </div>
 
       <p className="mt-1 text-sm text-muted-foreground">
