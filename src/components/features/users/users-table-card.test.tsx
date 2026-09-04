@@ -4,7 +4,12 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { UserViewParam, type ListUsersRequestParams } from "@/lib/api/schemas";
+import {
+  SortOrderParam,
+  UserSortByParam,
+  UserViewParam,
+  type ListUsersRequestParams,
+} from "@/lib/api/schemas";
 
 import { UsersTableCard } from "./users-table-card";
 
@@ -112,7 +117,7 @@ describe("UsersTableCard", () => {
     expect(roleFilter.textContent).not.toContain(adminRole.id);
   });
 
-  it("debounces client search and resets pagination", async () => {
+  it("omits role and sort controls for the client view", async () => {
     const onParamsChange = vi.fn();
     render(
       <UsersTableCard
@@ -125,17 +130,15 @@ describe("UsersTableCard", () => {
       {
         view: UserViewParam.client,
         role: undefined,
-        sort_by: "display_name",
-        sort_order: "asc",
         limit: 20,
         offset: 20,
+        sort_by: UserSortByParam.display_name,
+        sort_order: SortOrderParam.asc,
       },
       { swr: { keepPreviousData: true } }
     );
-    expect(screen.queryByText("Nombre: A–Z")).toBeNull();
-    expect(
-      screen.getByRole("button", { name: "Mostrar archivados" })
-    ).toBeTruthy();
+    expect(screen.queryByText("Filtrar por rol")).toBeNull();
+    expect(screen.getByText("Usuarios inactivos")).toBeTruthy();
   });
 
   it("navigates views and uses server pagination totals", () => {

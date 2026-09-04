@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
 import { z } from "zod";
@@ -619,12 +619,13 @@ export function CheckoutDialog({
 }) {
   const [openCount, setOpenCount] = useState(0);
 
-  useEffect(() => {
-    if (open) setOpenCount((count) => count + 1);
-  }, [open]);
+  function handleOpenChange(next: boolean) {
+    if (next) setOpenCount((count) => count + 1);
+    onOpenChange(next);
+  }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-4xl">
         <DialogHeader>
           <DialogTitle>Completar pedido</DialogTitle>

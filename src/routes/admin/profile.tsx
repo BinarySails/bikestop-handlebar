@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 
 import {
@@ -19,13 +19,9 @@ function ProfilePage() {
   const userId = actor?.id ?? "";
   const { data: res, error, isLoading } = useMeHandler();
   const { trigger } = useUpdateUserProfileRequest(userId);
-  const [user, setUser] = useState<UserResponse | null>(null);
-
-  useEffect(() => {
-    if (res?.status === 200) {
-      setUser(res.data);
-    }
-  }, [res]);
+  const [user, setUser] = useState<UserResponse | null>(
+    res?.status === 200 ? res.data : null
+  );
 
   async function handleUpdateField(field: ProfileField, value: string) {
     const payload: UpdateUserProfileRequest = { [field]: value };

@@ -6,6 +6,40 @@
  */
 import * as zod from 'zod';
 
+export const ListAuditEventsRequestQueryParams = zod.object({
+  "actor": zod.uuid().optional(),
+  "action": zod.string().optional(),
+  "entity_type": zod.string().optional(),
+  "entity_id": zod.uuid().optional(),
+  "date_from": zod.string().optional(),
+  "date_to": zod.string().optional(),
+  "page": zod.int().optional(),
+  "limit": zod.int().optional()
+})
+
+export const ListAuditEventsRequestResponse = zod.object({
+  "data": zod.array(zod.object({
+  "action": zod.string(),
+  "actor": zod.union([zod.null(),zod.object({
+  "email": zod.string(),
+  "id": zod.uuid(),
+  "name": zod.string()
+}).describe('Resolved actor information for an audit event.')]).optional(),
+  "data": zod.unknown(),
+  "entity": zod.object({
+  "entity_id": zod.uuid(),
+  "entity_type": zod.string()
+}).describe('API representation of the audited entity. Serialized literals are stable\nbecause they come from the domain enums\' Display implementations.'),
+  "id": zod.uuid(),
+  "metadata": zod.unknown(),
+  "occurred_at": zod.iso.datetime({"offset":true})
+}).describe('API representation of an audit event.\n\n`metadata` is intended for non-sensitive source information (e.g. request\nids). IP addresses or authentication data must never be stored here.')),
+  "limit": zod.int(),
+  "page": zod.int(),
+  "total": zod.int()
+})
+
+
 export const LoginHandlerBody = zod.object({
   "identifier": zod.string(),
   "password": zod.string()
@@ -457,6 +491,7 @@ export const ListCustomersRequestResponse = zod.object({
   "company_name": zod.string(),
   "email": zod.string().nullish(),
   "id": zod.uuid(),
+  "status": zod.enum(['enable', 'disable', 'archive']),
   "tax_id": zod.string().nullish(),
   "username": zod.string().nullish()
 })),
@@ -2366,6 +2401,7 @@ export const UpdateTagRequestResponse = zod.object({
 export const ListSalesOrdersRequestQueryParams = zod.object({
   "status": zod.string().optional(),
   "order_number": zod.string().optional(),
+  "customer_id": zod.string().optional(),
   "customer_username": zod.string().optional(),
   "customer_company_name": zod.string().optional(),
   "order_date_from": zod.string().optional(),

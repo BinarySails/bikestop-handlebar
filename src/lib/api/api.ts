@@ -87,6 +87,7 @@ import type {
   GetUserPermissionsResponse,
   InventoryItemResponse,
   InventoryTransactionResponse,
+  ListAuditEventsRequestParams,
   ListBrandsRequestParams,
   ListCatalogProductsRequestParams,
   ListCatalogProductsResponse,
@@ -113,6 +114,7 @@ import type {
   OrderFunnel,
   OrderTagId,
   OrderTagResponse,
+  PaginatedAuditEventResponse,
   PaginatedBrand,
   PaginatedCustomerSummary,
   PaginatedSalesOrderSummaryView,
@@ -163,6 +165,88 @@ import type {
   WarehouseId,
   WarehouseResponse
 } from './schemas';
+
+export type listAuditEventsRequestResponse200 = {
+  data: PaginatedAuditEventResponse
+  status: 200
+}
+
+export type listAuditEventsRequestResponse400 = {
+  data: ErrorResponse
+  status: 400
+}
+
+export type listAuditEventsRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type listAuditEventsRequestResponseSuccess = (listAuditEventsRequestResponse200) & {
+  headers: Headers;
+};
+export type listAuditEventsRequestResponseError = (listAuditEventsRequestResponse400 | listAuditEventsRequestResponse500) & {
+  headers: Headers;
+};
+
+export type listAuditEventsRequestResponse = (listAuditEventsRequestResponseSuccess | listAuditEventsRequestResponseError)
+
+export const getListAuditEventsRequestUrl = (params?: ListAuditEventsRequestParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `http://localhost:8080/api/v1/audit-log?${stringifiedParams}` : `http://localhost:8080/api/v1/audit-log`
+}
+
+export const listAuditEventsRequest = async (params?: ListAuditEventsRequestParams, options?: RequestInit): Promise<listAuditEventsRequestResponse> => {
+
+  const res = await fetch(getListAuditEventsRequestUrl(params),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'GET'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: listAuditEventsRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as listAuditEventsRequestResponse
+}
+
+
+
+
+export const getListAuditEventsRequestKey = (params?: ListAuditEventsRequestParams,) => [`http://localhost:8080/api/v1/audit-log`, ...(params ? [params]: [])] as const;
+
+export type ListAuditEventsRequestQueryResult = NonNullable<Awaited<ReturnType<typeof listAuditEventsRequest>>>
+
+export const useListAuditEventsRequest = <TError = Promise<ErrorResponse>>(
+  params?: ListAuditEventsRequestParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof listAuditEventsRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
+) => {
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getListAuditEventsRequestKey(params) : null);
+  const swrFn = () => listAuditEventsRequest(params, fetchOptions)
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
 
 export type loginHandlerResponse200 = {
   data: LoginResponse

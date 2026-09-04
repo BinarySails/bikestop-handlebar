@@ -57,6 +57,11 @@ export function ClientsTableCard({
   onParamsChange,
 }: ClientsTableCardProps) {
   const [searchInput, setSearchInput] = useState(search ?? "");
+  const [prevSearch, setPrevSearch] = useState(search ?? "");
+  if ((search ?? "") !== prevSearch) {
+    setPrevSearch(search ?? "");
+    setSearchInput(search ?? "");
+  }
   const [assignCustomerId, setAssignCustomerId] = useState<string | null>(null);
   const [editCustomerId, setEditCustomerId] = useState<string | null>(null);
   const [statusCustomerId, setStatusCustomerId] = useState<string | null>(null);
@@ -71,8 +76,6 @@ export function ClientsTableCard({
     },
     { swr: { keepPreviousData: true } }
   );
-
-  useEffect(() => setSearchInput(search ?? ""), [search]);
 
   useEffect(() => {
     const timeout = window.setTimeout(() => {
