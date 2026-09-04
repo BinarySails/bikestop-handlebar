@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { useGetSaleOrderRequest } from "@/lib/api/api";
+import { useGetMySaleOrderRequest } from "@/lib/api/api";
 import type { SalesOrder, SalesOrderStatus } from "@/lib/api/schemas";
 import { computeDueDate, formatDueDate } from "@/lib/dates";
 import { centsToPesos } from "@/lib/money";
@@ -59,7 +59,7 @@ export const Route = createFileRoute("/b2b/orders/$orderId")({
 
 function OrderDetailPage() {
   const { orderId } = Route.useParams();
-  const { data: orderRes, isLoading } = useGetSaleOrderRequest(orderId);
+  const { data: orderRes, isLoading } = useGetMySaleOrderRequest(orderId);
 
   const order = orderRes?.status === 200 ? orderRes.data : null;
 
