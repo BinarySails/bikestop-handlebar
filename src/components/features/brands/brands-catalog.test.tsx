@@ -148,7 +148,7 @@ describe("BrandsCatalog", () => {
     );
     fireEvent.click(await screen.findByText("Ver"));
     expect(api.navigate).toHaveBeenCalledWith({
-      to: "/brands/$brandId/edit",
+      to: "/admin/brands/$brandId/edit",
       params: { brandId: brandFixtures[0].id },
     });
   });

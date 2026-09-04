@@ -139,7 +139,7 @@ function ProductsListPage() {
   } = useListProductsRequest({
     page: page + 1,
     limit: PAGE_SIZE,
-    is_archived: status === "archive" ? true : false,
+    is_archived: status === "archive",
     status:
       status === "all" ? undefined : status === "archive" ? undefined : status,
     search: appliedSearch || undefined,
