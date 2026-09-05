@@ -147,6 +147,7 @@ export * from './listPermissionsResponse.ts';
 export * from './listProductsRequestParams.ts';
 export * from './listProductsResponse.ts';
 export * from './listRolesResponse.ts';
+export * from './listMySalesOrdersRequestParams.ts';
 export * from './listSalesOrderAuditLogRequestParams.ts';
 export * from './listSalesOrdersRequestParams.ts';
 export * from './listTagsRequestParams.ts';

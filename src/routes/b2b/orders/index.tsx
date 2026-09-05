@@ -4,12 +4,7 @@ import { ArrowLeft } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  useGetCustomerRequest,
-  useListSalesOrdersRequest,
-  useMeHandler,
-} from "@/lib/api/api";
-import { useAuthStore } from "@/lib/auth/use-auth-store";
+import { useListMySalesOrdersRequest } from "@/lib/api/api";
 import { centsToPesos } from "@/lib/money";
 import type { SalesOrderStatus } from "@/lib/api/schemas";
 import {
@@ -85,33 +80,21 @@ function generatePaginationPages(
   return pages;
 }
 
-export const Route = createFileRoute("/b2b/orders")({
+export const Route = createFileRoute("/b2b/orders/")({
   component: OrdersPage,
 });
 
 function OrdersPage() {
-  const actor = useAuthStore((state) => state.actor);
-  // `actor` is null on a fresh SSR load (the /b2b auth guard is skipped during
-  // SSR and beforeLoad does not re-run on hydration), so fall back to /auth/me.
-  const { data: meRes } = useMeHandler();
-  const userId = actor?.id ?? (meRes?.status === 200 ? meRes.data.id : "");
-
-  const { data: customerRes } = useGetCustomerRequest(userId, {
-    swr: { enabled: Boolean(userId) },
-  });
-  const customerId =
-    customerRes?.status === 200 ? customerRes.data.id : undefined;
-
   const [page, setPage] = useState(0);
   const PAGE_SIZE = 20;
 
-  const { data: ordersRes, isLoading } = useListSalesOrdersRequest(
-    {
-      page: page + 1,
-      limit: PAGE_SIZE,
-    },
-    { swr: { enabled: Boolean(customerId) } }
-  );
+  // `/sales-orders/me` scopes to the caller's customer via the session cookie,
+  // so no user/customer id has to be resolved on the client. The endpoint
+  // paginates from 0; `page` state is already 0-indexed.
+  const { data: ordersRes, isLoading } = useListMySalesOrdersRequest({
+    page,
+    limit: PAGE_SIZE,
+  });
 
   const orders = ordersRes?.status === 200 ? ordersRes.data.data : [];
   const total = ordersRes?.status === 200 ? ordersRes.data.total : 0;

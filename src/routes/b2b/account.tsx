@@ -1,12 +1,23 @@
+import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
+import { toast } from "sonner";
 
 import { CustomerAddressFormDialog } from "@/components/features/customer/customer-address-form-dialog";
 import { CustomerAddressList } from "@/components/features/customer/customer-address-list";
 import { EntityCreateButton } from "@/components/features/entity/entity-create-button";
+import {
+  ProfileSettingsCard,
+  type ProfileField,
+} from "@/components/features/profile/profile-settings-card";
 import { Button } from "@/components/ui/button";
-import { useListCustomerAddressesRequest, useMeHandler } from "@/lib/api/api";
+import {
+  useListCustomerAddressesRequest,
+  useMeHandler,
+  useUpdateUserProfileRequest,
+} from "@/lib/api/api";
 import { useAuthStore } from "@/lib/auth/use-auth-store";
+import type { UpdateUserProfileRequest, UserResponse } from "@/lib/api/schemas";
 
 export const Route = createFileRoute("/b2b/account")({
   component: AccountPage,
@@ -19,11 +30,36 @@ function AccountPage() {
   const { data: meRes } = useMeHandler();
   const userId = actor?.id ?? (meRes?.status === 200 ? meRes.data.id : "");
 
+  const [user, setUser] = useState<UserResponse | null>(null);
+  useEffect(() => {
+    if (meRes?.status === 200) setUser(meRes.data);
+  }, [meRes]);
+
+  const { trigger: updateProfile } = useUpdateUserProfileRequest(userId);
+
   const { data: addressesRes, mutate: mutateAddresses } =
     useListCustomerAddressesRequest(userId, {
       swr: { enabled: Boolean(userId) },
     });
   const addresses = addressesRes?.status === 200 ? addressesRes.data : [];
+
+  async function handleUpdateProfileField(field: ProfileField, value: string) {
+    const payload: UpdateUserProfileRequest = { [field]: value };
+    const result = await updateProfile(payload);
+
+    if (result.status === 200) {
+      setUser(result.data);
+      toast.success("Información actualizada.");
+      return;
+    }
+
+    const message =
+      result.data && "message" in result.data
+        ? (result.data.message ?? "Error al actualizar la información.")
+        : "Error al actualizar la información.";
+    toast.error(message);
+    throw new Error(message);
+  }
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col p-4 py-6 sm:px-6">
@@ -38,25 +74,49 @@ function AccountPage() {
         Volver al catálogo
       </Button>
 
-      <div className="flex items-center justify-between gap-3">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">
-          Mis Direcciones
-        </h1>
-        <CustomerAddressFormDialog
-          userId={userId}
-          mode="create"
-          onSuccess={() => mutateAddresses()}
-          trigger={<EntityCreateButton>Agregar dirección</EntityCreateButton>}
-        />
-      </div>
+      <h1 className="text-3xl font-bold tracking-tight text-foreground">
+        Mi Perfil
+      </h1>
 
-      <div className="mt-4">
-        <CustomerAddressList
-          userId={userId}
-          addresses={addresses}
-          onChanged={() => mutateAddresses()}
-        />
-      </div>
+      <section className="mt-6">
+        <h2 className="text-lg font-semibold text-foreground">
+          Información personal
+        </h2>
+        <div className="mt-3">
+          {user ? (
+            <ProfileSettingsCard
+              user={user}
+              onUpdateField={handleUpdateProfileField}
+            />
+          ) : (
+            <div className="rounded-2xl border border-dashed p-6 text-center text-sm text-muted-foreground">
+              Cargando información...
+            </div>
+          )}
+        </div>
+      </section>
+
+      <section className="mt-8">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold text-foreground">
+            Mis Direcciones
+          </h2>
+          <CustomerAddressFormDialog
+            userId={userId}
+            mode="create"
+            onSuccess={() => mutateAddresses()}
+            trigger={<EntityCreateButton>Agregar dirección</EntityCreateButton>}
+          />
+        </div>
+
+        <div className="mt-3">
+          <CustomerAddressList
+            userId={userId}
+            addresses={addresses}
+            onChanged={() => mutateAddresses()}
+          />
+        </div>
+      </section>
     </div>
   );
 }
