@@ -30,12 +30,11 @@ export function CustomerCombobox({
   const debouncedSearch = useDebouncedValue(search.trim());
   const [page, setPage] = useState(0);
   const [allItems, setAllItems] = useState<Customer[]>([]);
-  const [prevSearch, setPrevSearch] = useState(debouncedSearch);
-  if (debouncedSearch !== prevSearch) {
-    setPrevSearch(debouncedSearch);
+
+  useEffect(() => {
     setPage(0);
     setAllItems([]);
-  }
+  }, [debouncedSearch]);
 
   const {
     data: res,
@@ -50,10 +49,12 @@ export function CustomerCombobox({
     { swr: { keepPreviousData: true } }
   );
 
-  if (res?.status === 200) {
-    const data = res.data.data;
-    setAllItems((prev) => (page === 1 ? data : [...prev, ...data]));
-  }
+  useEffect(() => {
+    if (res?.status === 200) {
+      const data = res.data.data;
+      setAllItems((prev) => (page === 1 ? data : [...prev, ...data]));
+    }
+  }, [res, page]);
 
   const total = res?.status === 200 ? res.data.total : 0;
   const hasMore = page * PAGE_SIZE < total;

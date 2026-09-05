@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { ImageOff } from "lucide-react";
 
 import {
   Combobox,
@@ -66,6 +67,7 @@ export function VariantCombobox({
   }, [all, value]);
 
   const selected = value;
+  const selectedImage = selected?.images[0]?.image_url;
 
   return (
     <Combobox
@@ -82,14 +84,29 @@ export function VariantCombobox({
       isItemEqualToValue={(a: Variant, b: Variant) => a.id === b.id}
       disabled={disabled || !productId}
     >
-      <ComboboxInput
-        id={id}
-        placeholder={
-          productId ? "Seleccionar variante" : "Selecciona un producto primero"
-        }
-        showClear
-        className="w-full"
-      />
+      <div className="relative w-full">
+        <ComboboxInput
+          id={id}
+          placeholder={
+            productId
+              ? "Seleccionar variante"
+              : "Selecciona un producto primero"
+          }
+          showClear
+          className="w-full"
+        />
+        {selectedImage ? (
+          <img
+            src={selectedImage}
+            alt={selected?.display_name ?? ""}
+            className="pointer-events-none absolute top-1/2 left-2 size-6 -translate-y-1/2 rounded object-cover"
+          />
+        ) : selected ? (
+          <div className="pointer-events-none absolute top-1/2 left-2 flex size-6 -translate-y-1/2 items-center justify-center rounded bg-muted text-muted-foreground">
+            <ImageOff className="size-3.5" />
+          </div>
+        ) : null}
+      </div>
       <ComboboxContent>
         <ComboboxEmpty>
           {isLoading

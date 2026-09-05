@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
-import { Plus, Trash2, WarehouseIcon } from "lucide-react";
+import { ImageOff, Plus, Trash2, WarehouseIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { CustomerCombobox } from "@/components/features/sales/customer-combobox";
@@ -45,6 +45,7 @@ import {
 import {
   listInventoryRequest,
   useCreateSalesOrderRequest,
+  useGetVariantRequest,
   useListInventoryRequest,
 } from "@/lib/api/api";
 import {
@@ -226,6 +227,52 @@ function WarehouseName({
       ? data.data.find((item) => item.warehouse_id === warehouseId)
       : undefined;
   return <>{inventory?.warehouse_name ?? fallback ?? warehouseId}</>;
+}
+
+function VariantLineImage({
+  variant,
+  productId,
+  variantId,
+}: {
+  variant: Variant | null;
+  productId?: string | null;
+  variantId?: string | null;
+}) {
+  const needsFetch =
+    Boolean(variant) &&
+    (variant?.images.length ?? 0) === 0 &&
+    Boolean(productId) &&
+    Boolean(variantId);
+  const { data: fetched } = useGetVariantRequest(
+    productId ?? "",
+    variantId ?? "",
+    { swr: { enabled: needsFetch } }
+  );
+  const images =
+    (variant?.images.length ?? 0) > 0
+      ? variant!.images
+      : fetched?.status === 200
+        ? fetched.data.images
+        : [];
+  const sorted = [...images].sort((a, b) => a.image_index - b.image_index);
+  const resolved = sorted[0];
+
+  return (
+    <div className="size-16 shrink-0 overflow-hidden rounded-md border bg-muted">
+      {resolved ? (
+        <img
+          src={resolved.image_url}
+          alt={variant?.display_name ?? ""}
+          className="size-full object-cover"
+          loading="lazy"
+        />
+      ) : (
+        <div className="flex size-full items-center justify-center text-muted-foreground">
+          <ImageOff className="size-5" />
+        </div>
+      )}
+    </div>
+  );
 }
 
 function computeLineTotals(line: LineFormValues) {
@@ -1910,6 +1957,16 @@ export function CreateSalesOrderForm({
                         className="space-y-3 rounded-lg border p-4"
                       >
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+                          <div className="flex items-start gap-3 sm:flex-col">
+                            <VariantLineImage
+                              variant={line.variant}
+                              productId={line.product?.id ?? null}
+                              variantId={line.variant?.id ?? null}
+                            />
+                            <span className="text-xs text-muted-foreground sm:sr-only">
+                              Imagen de la variante
+                            </span>
+                          </div>
                           <form.Field name={`lines[${index}].product`}>
                             {(subField) => (
                               <div className="grid flex-1 gap-1.5">
