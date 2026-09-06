@@ -94,9 +94,9 @@ import type {
   ListCustomersRequestParams,
   ListInventoryRequestParams,
   ListLocalitiesResponse,
+  ListMySalesOrdersRequestParams,
   ListPermissionsResponse,
   ListProductsRequestParams,
-  ListMySalesOrdersRequestParams,
   ListProductsResponse,
   ListRolesResponse,
   ListSalesOrderAuditLogRequestParams,
@@ -125,7 +125,7 @@ import type {
   Product,
   ProductId,
   Promotion,
-  PromotionId,
+  PromotionIdentifier,
   RemovePermissionsRequest,
   RemovePermissionsResponse,
   RemoveUserRoleResponse,
@@ -1334,6 +1334,91 @@ export const useCreateCustomerRequest = <TError = Promise<ErrorResponse>>(
   }
 }
 
+export type getCustomerByUserRequestResponse200 = {
+  data: Customer
+  status: 200
+}
+
+export type getCustomerByUserRequestResponse401 = {
+  data: ErrorResponse
+  status: 401
+}
+
+export type getCustomerByUserRequestResponse403 = {
+  data: ErrorResponse
+  status: 403
+}
+
+export type getCustomerByUserRequestResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type getCustomerByUserRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type getCustomerByUserRequestResponseSuccess = (getCustomerByUserRequestResponse200) & {
+  headers: Headers;
+};
+export type getCustomerByUserRequestResponseError = (getCustomerByUserRequestResponse401 | getCustomerByUserRequestResponse403 | getCustomerByUserRequestResponse404 | getCustomerByUserRequestResponse500) & {
+  headers: Headers;
+};
+
+export type getCustomerByUserRequestResponse = (getCustomerByUserRequestResponseSuccess | getCustomerByUserRequestResponseError)
+
+export const getGetCustomerByUserRequestUrl = (userId: UserId,) => {
+
+
+
+
+  return `http://localhost:8080/api/v1/customers/user/${userId}`
+}
+
+export const getCustomerByUserRequest = async (userId: UserId, options?: RequestInit): Promise<getCustomerByUserRequestResponse> => {
+
+  const res = await fetch(getGetCustomerByUserRequestUrl(userId),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'GET'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: getCustomerByUserRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as getCustomerByUserRequestResponse
+}
+
+
+
+
+export const getGetCustomerByUserRequestKey = (userId: UserId,) => [`http://localhost:8080/api/v1/customers/user/${userId}`] as const;
+
+export type GetCustomerByUserRequestQueryResult = NonNullable<Awaited<ReturnType<typeof getCustomerByUserRequest>>>
+
+export const useGetCustomerByUserRequest = <TError = Promise<ErrorResponse>>(
+  userId: UserId, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getCustomerByUserRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
+) => {
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false && userId !== null && userId !== undefined
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetCustomerByUserRequestKey(userId) : null);
+  const swrFn = () => getCustomerByUserRequest(userId, fetchOptions)
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
 export type listCustomerAddressesRequestResponse200 = {
   data: CustomerAddressWithAddressRow[]
   status: 200
@@ -1982,91 +2067,6 @@ export const useGetCustomerRequest = <TError = Promise<ErrorResponse>>(
   const isEnabled = swrOptions?.enabled !== false && customerId !== null && customerId !== undefined
   const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetCustomerRequestKey(customerId) : null);
   const swrFn = () => getCustomerRequest(customerId, fetchOptions)
-
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
-
-  return {
-    swrKey,
-    ...query
-  }
-}
-
-export type getCustomerByUserRequestResponse200 = {
-  data: Customer
-  status: 200
-}
-
-export type getCustomerByUserRequestResponse401 = {
-  data: ErrorResponse
-  status: 401
-}
-
-export type getCustomerByUserRequestResponse403 = {
-  data: ErrorResponse
-  status: 403
-}
-
-export type getCustomerByUserRequestResponse404 = {
-  data: ErrorResponse
-  status: 404
-}
-
-export type getCustomerByUserRequestResponse500 = {
-  data: ErrorResponse
-  status: 500
-}
-
-export type getCustomerByUserRequestResponseSuccess = (getCustomerByUserRequestResponse200) & {
-  headers: Headers;
-};
-export type getCustomerByUserRequestResponseError = (getCustomerByUserRequestResponse401 | getCustomerByUserRequestResponse403 | getCustomerByUserRequestResponse404 | getCustomerByUserRequestResponse500) & {
-  headers: Headers;
-};
-
-export type getCustomerByUserRequestResponse = (getCustomerByUserRequestResponseSuccess | getCustomerByUserRequestResponseError)
-
-export const getGetCustomerByUserRequestUrl = (userId: UserId,) => {
-
-
-
-
-  return `http://localhost:8080/api/v1/customers/user/${userId}`
-}
-
-export const getCustomerByUserRequest = async (userId: UserId, options?: RequestInit): Promise<getCustomerByUserRequestResponse> => {
-
-  const res = await fetch(getGetCustomerByUserRequestUrl(userId),
-  {
-      credentials: 'include',
-    ...options,
-    method: 'GET'
-
-
-  }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: getCustomerByUserRequestResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as getCustomerByUserRequestResponse
-}
-
-
-
-
-export const getGetCustomerByUserRequestKey = (userId: UserId,) => [`http://localhost:8080/api/v1/customers/user/${userId}`] as const;
-
-export type GetCustomerByUserRequestQueryResult = NonNullable<Awaited<ReturnType<typeof getCustomerByUserRequest>>>
-
-export const useGetCustomerByUserRequest = <TError = Promise<ErrorResponse>>(
-  userId: UserId, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getCustomerByUserRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
-) => {
-  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
-
-  const isEnabled = swrOptions?.enabled !== false && userId !== null && userId !== undefined
-  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetCustomerByUserRequestKey(userId) : null);
-  const swrFn = () => getCustomerByUserRequest(userId, fetchOptions)
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
@@ -5099,7 +5099,7 @@ export type getPromotionRequestResponseError = (getPromotionRequestResponse404 |
 
 export type getPromotionRequestResponse = (getPromotionRequestResponseSuccess | getPromotionRequestResponseError)
 
-export const getGetPromotionRequestUrl = (id: PromotionId,) => {
+export const getGetPromotionRequestUrl = (id: PromotionIdentifier,) => {
 
 
 
@@ -5107,7 +5107,7 @@ export const getGetPromotionRequestUrl = (id: PromotionId,) => {
   return `http://localhost:8080/api/v1/promotions/${id}`
 }
 
-export const getPromotionRequest = async (id: PromotionId, options?: RequestInit): Promise<getPromotionRequestResponse> => {
+export const getPromotionRequest = async (id: PromotionIdentifier, options?: RequestInit): Promise<getPromotionRequestResponse> => {
 
   const res = await fetch(getGetPromotionRequestUrl(id),
   {
@@ -5129,12 +5129,12 @@ export const getPromotionRequest = async (id: PromotionId, options?: RequestInit
 
 
 
-export const getGetPromotionRequestKey = (id: PromotionId,) => [`http://localhost:8080/api/v1/promotions/${id}`] as const;
+export const getGetPromotionRequestKey = (id: PromotionIdentifier,) => [`http://localhost:8080/api/v1/promotions/${id}`] as const;
 
 export type GetPromotionRequestQueryResult = NonNullable<Awaited<ReturnType<typeof getPromotionRequest>>>
 
 export const useGetPromotionRequest = <TError = Promise<ErrorResponse>>(
-  id: PromotionId, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getPromotionRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
+  id: PromotionIdentifier, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getPromotionRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
 ) => {
   const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
 
@@ -6966,81 +6966,6 @@ export const useCreateSalesOrderRequest = <TError = Promise<ErrorResponse>>(
   }
 }
 
-export type getSaleOrderRequestResponse200 = {
-  data: SalesOrder
-  status: 200
-}
-
-export type getSaleOrderRequestResponse404 = {
-  data: ErrorResponse
-  status: 404
-}
-
-export type getSaleOrderRequestResponse500 = {
-  data: ErrorResponse
-  status: 500
-}
-
-export type getSaleOrderRequestResponseSuccess = (getSaleOrderRequestResponse200) & {
-  headers: Headers;
-};
-export type getSaleOrderRequestResponseError = (getSaleOrderRequestResponse404 | getSaleOrderRequestResponse500) & {
-  headers: Headers;
-};
-
-export type getSaleOrderRequestResponse = (getSaleOrderRequestResponseSuccess | getSaleOrderRequestResponseError)
-
-export const getGetSaleOrderRequestUrl = (id: SalesOrderId,) => {
-
-
-
-
-  return `http://localhost:8080/api/v1/sales-orders/${id}`
-}
-
-export const getSaleOrderRequest = async (id: SalesOrderId, options?: RequestInit): Promise<getSaleOrderRequestResponse> => {
-
-  const res = await fetch(getGetSaleOrderRequestUrl(id),
-  {
-      credentials: 'include',
-    ...options,
-    method: 'GET'
-
-
-  }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: getSaleOrderRequestResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as getSaleOrderRequestResponse
-}
-
-
-
-
-export const getGetSaleOrderRequestKey = (id: SalesOrderId,) => [`http://localhost:8080/api/v1/sales-orders/${id}`] as const;
-
-export type GetSaleOrderRequestQueryResult = NonNullable<Awaited<ReturnType<typeof getSaleOrderRequest>>>
-
-export const useGetSaleOrderRequest = <TError = Promise<ErrorResponse>>(
-  id: SalesOrderId, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getSaleOrderRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
-) => {
-  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
-
-  const isEnabled = swrOptions?.enabled !== false && id !== null && id !== undefined
-  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetSaleOrderRequestKey(id) : null);
-  const swrFn = () => getSaleOrderRequest(id, fetchOptions)
-
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
-
-  return {
-    swrKey,
-    ...query
-  }
-}
-
 export type listMySalesOrdersRequestResponse200 = {
   data: PaginatedSalesOrderSummaryView
   status: 200
@@ -7204,6 +7129,81 @@ export const useGetMySaleOrderRequest = <TError = Promise<ErrorResponse>>(
   const isEnabled = swrOptions?.enabled !== false && id !== null && id !== undefined
   const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetMySaleOrderRequestKey(id) : null);
   const swrFn = () => getMySaleOrderRequest(id, fetchOptions)
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type getSaleOrderRequestResponse200 = {
+  data: SalesOrder
+  status: 200
+}
+
+export type getSaleOrderRequestResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type getSaleOrderRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type getSaleOrderRequestResponseSuccess = (getSaleOrderRequestResponse200) & {
+  headers: Headers;
+};
+export type getSaleOrderRequestResponseError = (getSaleOrderRequestResponse404 | getSaleOrderRequestResponse500) & {
+  headers: Headers;
+};
+
+export type getSaleOrderRequestResponse = (getSaleOrderRequestResponseSuccess | getSaleOrderRequestResponseError)
+
+export const getGetSaleOrderRequestUrl = (id: SalesOrderId,) => {
+
+
+
+
+  return `http://localhost:8080/api/v1/sales-orders/${id}`
+}
+
+export const getSaleOrderRequest = async (id: SalesOrderId, options?: RequestInit): Promise<getSaleOrderRequestResponse> => {
+
+  const res = await fetch(getGetSaleOrderRequestUrl(id),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'GET'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: getSaleOrderRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as getSaleOrderRequestResponse
+}
+
+
+
+
+export const getGetSaleOrderRequestKey = (id: SalesOrderId,) => [`http://localhost:8080/api/v1/sales-orders/${id}`] as const;
+
+export type GetSaleOrderRequestQueryResult = NonNullable<Awaited<ReturnType<typeof getSaleOrderRequest>>>
+
+export const useGetSaleOrderRequest = <TError = Promise<ErrorResponse>>(
+  id: SalesOrderId, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getSaleOrderRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
+) => {
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false && id !== null && id !== undefined
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetSaleOrderRequestKey(id) : null);
+  const swrFn = () => getSaleOrderRequest(id, fetchOptions)
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 

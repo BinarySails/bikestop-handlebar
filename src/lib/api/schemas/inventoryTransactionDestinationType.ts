@@ -13,4 +13,5 @@ export const InventoryTransactionDestinationType = {
   customer: 'customer',
   supplier: 'supplier',
   store: 'store',
+  sales_order: 'sales_order',
 } as const;
