@@ -306,10 +306,6 @@ function SalesOrdersPage() {
       cell: (order) => <span>{order.customer.name}</span>,
     },
     {
-      header: "Término de pago",
-      cell: (order) => <span>{order.payment_term.name}</span>,
-    },
-    {
       header: "Fecha de creación",
       cell: (order) => (
         <span>{dateFormatter.format(new Date(order.created_at))}</span>

@@ -4,15 +4,22 @@ import { ArrowLeft, Printer } from "lucide-react";
 
 import { SalesOrderPrintDocument } from "@/components/features/sales/sales-order-print-document";
 import { Button } from "@/components/ui/button";
-import { useGetMySaleOrderRequest } from "@/lib/api/api";
+import { useGetSaleOrderRequest } from "@/lib/api/api";
 
-export const Route = createFileRoute("/b2b/orders/$orderId_/print")({
+export const Route = createFileRoute("/admin/sales/$orderId/print")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    autoprint:
+      search.autoprint === true ||
+      search.autoprint === "1" ||
+      search.autoprint === "true",
+  }),
   component: OrderPrintPage,
 });
 
 function OrderPrintPage() {
   const { orderId } = Route.useParams();
-  const { data: orderRes, isLoading } = useGetMySaleOrderRequest(orderId);
+  const { autoprint } = Route.useSearch();
+  const { data: orderRes, isLoading } = useGetSaleOrderRequest(orderId);
   const order = orderRes?.status === 200 ? orderRes.data : null;
 
   // Set a print-friendly document title so the browser's "save as PDF" and the
@@ -26,6 +33,22 @@ function OrderPrintPage() {
     };
   }, [order]);
 
+  // When opened via the "Imprimir" button (?autoprint), open the browser
+  // print dialog as soon as the order has loaded, then close the tab once
+  // printing finishes so the user stays on the detail page.
+  useEffect(() => {
+    if (!autoprint || !order) return;
+    const timer = window.setTimeout(() => window.print(), 300);
+    return () => window.clearTimeout(timer);
+  }, [autoprint, order]);
+
+  useEffect(() => {
+    if (!autoprint) return;
+    const close = () => window.close();
+    window.addEventListener("afterprint", close);
+    return () => window.removeEventListener("afterprint", close);
+  }, [autoprint]);
+
   if (isLoading) {
     return (
       <div className="mx-auto w-full max-w-3xl p-6">
@@ -38,14 +61,14 @@ function OrderPrintPage() {
     return (
       <div className="mx-auto w-full max-w-3xl p-6">
         <Button
-          render={<Link to="/b2b/orders" />}
+          render={<Link to="/admin/sales" />}
           nativeButton={false}
           variant="ghost"
           size="sm"
           className="-ml-2"
         >
           <ArrowLeft />
-          Volver a mis pedidos
+          Volver a ventas
         </Button>
         <p className="mt-4 text-sm text-muted-foreground">
           No se encontró el pedido.
@@ -59,7 +82,7 @@ function OrderPrintPage() {
       <div className="no-print mb-6 flex items-center justify-between gap-3">
         <Button
           render={
-            <Link to="/b2b/orders/$orderId" params={{ orderId: order.id }} />
+            <Link to="/admin/sales/$orderId" params={{ orderId: order.id }} />
           }
           nativeButton={false}
           variant="ghost"

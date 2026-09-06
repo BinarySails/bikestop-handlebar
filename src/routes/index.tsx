@@ -1,16 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
-
-import { B2BLayout } from "@/components/features/layout/b2b-layout";
-import { CatalogPage } from "@/components/features/catalog/catalog-page";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/")({
-  component: HomePage,
+  beforeLoad: () => {
+    throw redirect({
+      to: "/b2b",
+    });
+  },
 });
-
-function HomePage() {
-  return (
-    <B2BLayout>
-      <CatalogPage />
-    </B2BLayout>
-  );
-}

@@ -34,8 +34,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { logoutHandler } from "@/lib/api/api";
 import { useAuthStore } from "@/lib/auth/use-auth-store";
+import { useLogout } from "@/lib/auth/use-logout";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 const navigationItems = [
@@ -66,6 +66,7 @@ export function AppSidebar() {
   const navigate = useNavigate();
   const pathname = useLocation({ select: (location) => location.pathname });
   const actor = useAuthStore((state) => state.actor);
+  const { logout: handleLogout } = useLogout();
 
   const displayName =
     actor && "name" in actor && actor.name
@@ -77,16 +78,6 @@ export function AppSidebar() {
       ? actor.name
       : (actor?.username ?? "U")
   );
-
-  async function handleLogout() {
-    try {
-      await logoutHandler();
-    } catch {
-      // clear the local session regardless of the server response
-    }
-    useAuthStore.getState().clearAuth();
-    navigate({ to: "/login" });
-  }
 
   return (
     <Sidebar collapsible="icon" variant="inset">

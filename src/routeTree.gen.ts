@@ -22,6 +22,7 @@ import { Route as AdminProfileRouteImport } from './routes/admin/profile'
 import { Route as AdminRolesRouteImport } from './routes/admin/roles'
 import { Route as AdminSalesRouteRouteImport } from './routes/admin/sales/route'
 import { Route as AdminWarehousesRouteImport } from './routes/admin/warehouses'
+import { Route as B2bIndexRouteImport } from './routes/b2b/index'
 import { Route as B2bProductIdRouteImport } from './routes/b2b/$productId'
 import { Route as B2bAccountRouteImport } from './routes/b2b/account'
 import { Route as AdminBrandsIndexRouteImport } from './routes/admin/brands/index'
@@ -46,6 +47,7 @@ import { Route as AdminBrandsBrandIdEditRouteImport } from './routes/admin/brand
 import { Route as AdminCategoriesCategoryIdEditRouteImport } from './routes/admin/categories/$categoryId_.edit'
 import { Route as AdminSalesOrderIdIndexRouteImport } from './routes/admin/sales/$orderId/index'
 import { Route as AdminSalesOrderIdPaymentsInvoicesRouteImport } from './routes/admin/sales/$orderId/payments-invoices'
+import { Route as AdminSalesOrderIdPrintRouteImport } from './routes/admin/sales/$orderId/print'
 import { Route as B2bOrdersOrderIdPrintRouteImport } from './routes/b2b/orders/$orderId_.print'
 import { Route as AdminProductsProductIdVariantsVariantIdRouteImport } from './routes/admin/products/$productId_.variants_.$variantId'
 
@@ -113,6 +115,11 @@ const AdminWarehousesRoute = AdminWarehousesRouteImport.update({
   id: '/warehouses',
   path: '/warehouses',
   getParentRoute: () => AdminRoute,
+} as any)
+const B2bIndexRoute = B2bIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => B2bRoute,
 } as any)
 const B2bProductIdRoute = B2bProductIdRouteImport.update({
   id: '/$productId',
@@ -238,6 +245,11 @@ const AdminSalesOrderIdPaymentsInvoicesRoute =
     path: '/payments-invoices',
     getParentRoute: () => AdminSalesOrderIdRouteRoute,
   } as any)
+const AdminSalesOrderIdPrintRoute = AdminSalesOrderIdPrintRouteImport.update({
+  id: '/print',
+  path: '/print',
+  getParentRoute: () => AdminSalesOrderIdRouteRoute,
+} as any)
 const B2bOrdersOrderIdPrintRoute = B2bOrdersOrderIdPrintRouteImport.update({
   id: '/orders/$orderId_/print',
   path: '/orders/$orderId/print',
@@ -266,6 +278,7 @@ export interface FileRoutesByFullPath {
   '/admin/warehouses': typeof AdminWarehousesRouteWithChildren
   '/b2b/$productId': typeof B2bProductIdRoute
   '/b2b/account': typeof B2bAccountRoute
+  '/b2b/': typeof B2bIndexRoute
   '/admin/sales/$orderId': typeof AdminSalesOrderIdRouteRouteWithChildren
   '/admin/categories/$categoryId': typeof AdminCategoriesCategoryIdRoute
   '/admin/products/$productId': typeof AdminProductsProductIdRoute
@@ -287,6 +300,7 @@ export interface FileRoutesByFullPath {
   '/admin/brands/$brandId/edit': typeof AdminBrandsBrandIdEditRoute
   '/admin/categories/$categoryId/edit': typeof AdminCategoriesCategoryIdEditRoute
   '/admin/sales/$orderId/payments-invoices': typeof AdminSalesOrderIdPaymentsInvoicesRoute
+  '/admin/sales/$orderId/print': typeof AdminSalesOrderIdPrintRoute
   '/b2b/orders/$orderId/print': typeof B2bOrdersOrderIdPrintRoute
   '/admin/sales/$orderId/': typeof AdminSalesOrderIdIndexRoute
   '/admin/products/$productId/variants/$variantId': typeof AdminProductsProductIdVariantsVariantIdRoute
@@ -294,7 +308,6 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
-  '/b2b': typeof B2bRouteWithChildren
   '/login': typeof LoginRoute
   '/admin/customer': typeof AdminCustomerRoute
   '/admin/dashboard': typeof AdminDashboardRoute
@@ -305,6 +318,7 @@ export interface FileRoutesByTo {
   '/admin/roles': typeof AdminRolesRoute
   '/b2b/$productId': typeof B2bProductIdRoute
   '/b2b/account': typeof B2bAccountRoute
+  '/b2b': typeof B2bIndexRoute
   '/admin/categories/$categoryId': typeof AdminCategoriesCategoryIdRoute
   '/admin/products/$productId': typeof AdminProductsProductIdRoute
   '/admin/sales/new': typeof AdminSalesNewRoute
@@ -325,6 +339,7 @@ export interface FileRoutesByTo {
   '/admin/brands/$brandId/edit': typeof AdminBrandsBrandIdEditRoute
   '/admin/categories/$categoryId/edit': typeof AdminCategoriesCategoryIdEditRoute
   '/admin/sales/$orderId/payments-invoices': typeof AdminSalesOrderIdPaymentsInvoicesRoute
+  '/admin/sales/$orderId/print': typeof AdminSalesOrderIdPrintRoute
   '/b2b/orders/$orderId/print': typeof B2bOrdersOrderIdPrintRoute
   '/admin/sales/$orderId': typeof AdminSalesOrderIdIndexRoute
   '/admin/products/$productId/variants/$variantId': typeof AdminProductsProductIdVariantsVariantIdRoute
@@ -346,6 +361,7 @@ export interface FileRoutesById {
   '/admin/warehouses': typeof AdminWarehousesRouteWithChildren
   '/b2b/$productId': typeof B2bProductIdRoute
   '/b2b/account': typeof B2bAccountRoute
+  '/b2b/': typeof B2bIndexRoute
   '/admin/sales/$orderId': typeof AdminSalesOrderIdRouteRouteWithChildren
   '/admin/categories/$categoryId': typeof AdminCategoriesCategoryIdRoute
   '/admin/products/$productId': typeof AdminProductsProductIdRoute
@@ -367,6 +383,7 @@ export interface FileRoutesById {
   '/admin/brands/$brandId/edit': typeof AdminBrandsBrandIdEditRoute
   '/admin/categories/$categoryId_/edit': typeof AdminCategoriesCategoryIdEditRoute
   '/admin/sales/$orderId/payments-invoices': typeof AdminSalesOrderIdPaymentsInvoicesRoute
+  '/admin/sales/$orderId/print': typeof AdminSalesOrderIdPrintRoute
   '/b2b/orders/$orderId_/print': typeof B2bOrdersOrderIdPrintRoute
   '/admin/sales/$orderId/': typeof AdminSalesOrderIdIndexRoute
   '/admin/products/$productId_/variants_/$variantId': typeof AdminProductsProductIdVariantsVariantIdRoute
@@ -389,6 +406,7 @@ export interface FileRouteTypes {
     | '/admin/warehouses'
     | '/b2b/$productId'
     | '/b2b/account'
+    | '/b2b/'
     | '/admin/sales/$orderId'
     | '/admin/categories/$categoryId'
     | '/admin/products/$productId'
@@ -410,6 +428,7 @@ export interface FileRouteTypes {
     | '/admin/brands/$brandId/edit'
     | '/admin/categories/$categoryId/edit'
     | '/admin/sales/$orderId/payments-invoices'
+    | '/admin/sales/$orderId/print'
     | '/b2b/orders/$orderId/print'
     | '/admin/sales/$orderId/'
     | '/admin/products/$productId/variants/$variantId'
@@ -417,7 +436,6 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/admin'
-    | '/b2b'
     | '/login'
     | '/admin/customer'
     | '/admin/dashboard'
@@ -428,6 +446,7 @@ export interface FileRouteTypes {
     | '/admin/roles'
     | '/b2b/$productId'
     | '/b2b/account'
+    | '/b2b'
     | '/admin/categories/$categoryId'
     | '/admin/products/$productId'
     | '/admin/sales/new'
@@ -448,6 +467,7 @@ export interface FileRouteTypes {
     | '/admin/brands/$brandId/edit'
     | '/admin/categories/$categoryId/edit'
     | '/admin/sales/$orderId/payments-invoices'
+    | '/admin/sales/$orderId/print'
     | '/b2b/orders/$orderId/print'
     | '/admin/sales/$orderId'
     | '/admin/products/$productId/variants/$variantId'
@@ -468,6 +488,7 @@ export interface FileRouteTypes {
     | '/admin/warehouses'
     | '/b2b/$productId'
     | '/b2b/account'
+    | '/b2b/'
     | '/admin/sales/$orderId'
     | '/admin/categories/$categoryId'
     | '/admin/products/$productId'
@@ -489,6 +510,7 @@ export interface FileRouteTypes {
     | '/admin/brands/$brandId/edit'
     | '/admin/categories/$categoryId_/edit'
     | '/admin/sales/$orderId/payments-invoices'
+    | '/admin/sales/$orderId/print'
     | '/b2b/orders/$orderId_/print'
     | '/admin/sales/$orderId/'
     | '/admin/products/$productId_/variants_/$variantId'
@@ -593,6 +615,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/warehouses'
       preLoaderRoute: typeof AdminWarehousesRouteImport
       parentRoute: typeof AdminRoute
+    }
+    '/b2b/': {
+      id: '/b2b/'
+      path: '/'
+      fullPath: '/b2b/'
+      preLoaderRoute: typeof B2bIndexRouteImport
+      parentRoute: typeof B2bRoute
     }
     '/b2b/$productId': {
       id: '/b2b/$productId'
@@ -762,6 +791,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSalesOrderIdPaymentsInvoicesRouteImport
       parentRoute: typeof AdminSalesOrderIdRouteRoute
     }
+    '/admin/sales/$orderId/print': {
+      id: '/admin/sales/$orderId/print'
+      path: '/print'
+      fullPath: '/admin/sales/$orderId/print'
+      preLoaderRoute: typeof AdminSalesOrderIdPrintRouteImport
+      parentRoute: typeof AdminSalesOrderIdRouteRoute
+    }
     '/b2b/orders/$orderId_/print': {
       id: '/b2b/orders/$orderId_/print'
       path: '/orders/$orderId/print'
@@ -781,6 +817,7 @@ declare module '@tanstack/react-router' {
 
 interface AdminSalesOrderIdRouteRouteChildren {
   AdminSalesOrderIdPaymentsInvoicesRoute: typeof AdminSalesOrderIdPaymentsInvoicesRoute
+  AdminSalesOrderIdPrintRoute: typeof AdminSalesOrderIdPrintRoute
   AdminSalesOrderIdIndexRoute: typeof AdminSalesOrderIdIndexRoute
 }
 
@@ -788,6 +825,7 @@ const AdminSalesOrderIdRouteRouteChildren: AdminSalesOrderIdRouteRouteChildren =
   {
     AdminSalesOrderIdPaymentsInvoicesRoute:
       AdminSalesOrderIdPaymentsInvoicesRoute,
+    AdminSalesOrderIdPrintRoute: AdminSalesOrderIdPrintRoute,
     AdminSalesOrderIdIndexRoute: AdminSalesOrderIdIndexRoute,
   }
 
@@ -882,6 +920,7 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 interface B2bRouteChildren {
   B2bProductIdRoute: typeof B2bProductIdRoute
   B2bAccountRoute: typeof B2bAccountRoute
+  B2bIndexRoute: typeof B2bIndexRoute
   B2bOrdersOrderIdRoute: typeof B2bOrdersOrderIdRoute
   B2bCartIndexRoute: typeof B2bCartIndexRoute
   B2bOrdersIndexRoute: typeof B2bOrdersIndexRoute
@@ -891,6 +930,7 @@ interface B2bRouteChildren {
 const B2bRouteChildren: B2bRouteChildren = {
   B2bProductIdRoute: B2bProductIdRoute,
   B2bAccountRoute: B2bAccountRoute,
+  B2bIndexRoute: B2bIndexRoute,
   B2bOrdersOrderIdRoute: B2bOrdersOrderIdRoute,
   B2bCartIndexRoute: B2bCartIndexRoute,
   B2bOrdersIndexRoute: B2bOrdersIndexRoute,

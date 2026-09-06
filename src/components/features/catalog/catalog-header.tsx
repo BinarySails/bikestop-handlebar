@@ -1,12 +1,14 @@
 import { useNavigate } from "@tanstack/react-router";
-import { Package, ShoppingCart, UserRound } from "lucide-react";
+import { LogOut, Package, ShoppingCart, UserRound } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useLogout } from "@/lib/auth/use-logout";
 import { useGetCart } from "@/lib/cart/use-cart";
 
 export function CatalogHeader() {
   const navigate = useNavigate();
+  const { logout, isLoggingOut } = useLogout();
   const { data: cartRes } = useGetCart();
 
   const cartItemCount = cartRes?.status === 200 ? cartRes.data.item_count : 0;
@@ -47,6 +49,19 @@ export function CatalogHeader() {
           >
             <UserRound className="size-4" />
             <span className="ml-2 hidden sm:inline">Mi Perfil</span>
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={logout}
+            disabled={isLoggingOut}
+            aria-label="Cerrar sesión"
+            title="Cerrar sesión"
+            className="hover:text-destructive"
+          >
+            <LogOut className="size-4" />
+            <span className="ml-2 hidden sm:inline">Cerrar sesión</span>
           </Button>
 
           <Button

@@ -2,12 +2,13 @@ import { createFileRoute, Outlet } from "@tanstack/react-router";
 
 import { AppFooter } from "@/components/features/layout/app-footer";
 import { AppSidebar } from "@/components/features/layout/app-sidebar";
-import { requireAuth } from "@/lib/auth/require-auth";
+import { requireAuth, requirePolicy } from "@/lib/auth/require-auth";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
 export const Route = createFileRoute("/admin")({
   beforeLoad: async ({ location }) => {
     await requireAuth({ location, navigateTo: "/login" });
+    requirePolicy("panel:view");
   },
   pendingComponent: () => (
     <div className="flex h-screen items-center justify-center">

@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
-import { Plus, Trash2, WarehouseIcon } from "lucide-react";
+import { Plus, Printer, Trash2, WarehouseIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { CustomerCombobox } from "@/components/features/sales/customer-combobox";
 import { ProductCombobox } from "@/components/features/sales/product-combobox";
 import { ProductLineThumbnail } from "@/components/features/sales/product-line-thumbnail";
+import { SalesOrderPrintDocument } from "@/components/features/sales/sales-order-print-document";
 import { OrderTagsSelect } from "@/components/features/sales/tags/order-tags-select";
 import {
   VariantCombobox,
@@ -1145,7 +1146,24 @@ export function CreateSalesOrderForm({
             {order?.status === "quote" ? "Cancelar cotización" : "Cancelar"}
           </Button>
         )}
+
+        {isDetail && order && (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => window.print()}
+          >
+            <Printer className="size-4" />
+            Imprimir
+          </Button>
+        )}
       </div>
+
+      {isDetail && order && (
+        <div className="print-document hidden print:block">
+          <SalesOrderPrintDocument order={order} />
+        </div>
+      )}
 
       <Dialog
         open={confirmation !== null}

@@ -104,11 +104,13 @@ export function requirePolicy(requiredPolicy: string) {
 
   if (isInDev) return;
 
-  if (actor?.policies?.includes("manage:all")) return;
+  if (actor?.policies.includes("*")) {
+    return;
+  }
 
   if (!actor?.policies?.includes(requiredPolicy)) {
     throw redirect({
-      to: "/admin/dashboard",
+      to: "/",
     });
   }
 }
