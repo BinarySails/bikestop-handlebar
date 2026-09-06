@@ -15,7 +15,9 @@ import {
   type Variant,
   type VariantPrice,
 } from "@/lib/api/schemas";
+import { pickMainImageUrl } from "@/components/features/sales/product-line-thumbnail";
 import { centsToPesos } from "@/lib/money";
+import { cn } from "@/lib/utils";
 
 const EMPTY_VARIANTS: Variant[] = [];
 
@@ -67,7 +69,8 @@ export function VariantCombobox({
   }, [all, value]);
 
   const selected = value;
-  const selectedImage = selected?.images[0]?.image_url;
+  const selectedImage = pickMainImageUrl(selected?.images);
+  const hasImageOverlay = selectedImage !== null || Boolean(selected);
 
   return (
     <Combobox
@@ -93,16 +96,16 @@ export function VariantCombobox({
               : "Selecciona un producto primero"
           }
           showClear
-          className="w-full"
+          className={cn("w-full", hasImageOverlay && "[&_input]:pl-9")}
         />
         {selectedImage ? (
           <img
             src={selectedImage}
             alt={selected?.display_name ?? ""}
-            className="pointer-events-none absolute top-1/2 left-2 size-6 -translate-y-1/2 rounded object-cover"
+            className="pointer-events-none absolute top-1/2 left-2.5 size-6 -translate-y-1/2 rounded object-cover"
           />
         ) : selected ? (
-          <div className="pointer-events-none absolute top-1/2 left-2 flex size-6 -translate-y-1/2 items-center justify-center rounded bg-muted text-muted-foreground">
+          <div className="pointer-events-none absolute top-1/2 left-2.5 flex size-6 -translate-y-1/2 items-center justify-center rounded bg-muted text-muted-foreground">
             <ImageOff className="size-3.5" />
           </div>
         ) : null}
@@ -118,13 +121,14 @@ export function VariantCombobox({
         <ComboboxList>
           {(variant: Variant) => {
             const price = findActiveRegularPrice(variant);
+            const itemImage = pickMainImageUrl(variant.images);
             return (
               <ComboboxItem key={variant.id} value={variant}>
                 <div className="flex w-full items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
-                    {variant.images[0]?.image_url && (
+                    {itemImage && (
                       <img
-                        src={variant.images[0].image_url}
+                        src={itemImage}
                         alt={variant.display_name}
                         className="size-10 rounded-md object-cover"
                       />
