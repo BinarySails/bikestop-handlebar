@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import { CustomerCombobox } from "@/components/features/sales/customer-combobox";
 import { ProductCombobox } from "@/components/features/sales/product-combobox";
+import { ProductLineThumbnail } from "@/components/features/sales/product-line-thumbnail";
 import { OrderTagsSelect } from "@/components/features/sales/tags/order-tags-select";
 import {
   VariantCombobox,
@@ -403,6 +404,9 @@ function valuesFromOrder(order: SalesOrder): SalesOrderFormValues {
       email: null,
       tax_id: "",
       username: "",
+      // The order snapshot carries no status; a persisted order implies an
+      // active customer. Replaced wholesale when the combobox selection changes.
+      status: "enable",
     },
     billing: addressValues(order.billing_address),
     shipping_same_as_billing: sameAddress(
@@ -1967,6 +1971,13 @@ export function CreateSalesOrderForm({
                               Imagen de la variante
                             </span>
                           </div>
+                          <ProductLineThumbnail
+                            productId={line.product?.id ?? null}
+                            variantId={line.variant?.id ?? null}
+                            embeddedImages={line.variant?.images}
+                            alt={line.description || "Producto"}
+                          />
+
                           <form.Field name={`lines[${index}].product`}>
                             {(subField) => (
                               <div className="grid flex-1 gap-1.5">

@@ -135,17 +135,19 @@ function CheckoutForm({ onDone }: { onDone?: () => void }) {
       ? (addresses.find((a) => a.id === selectedShippingId) ?? null)
       : null;
 
+  const defaultValues: CheckoutFormValues = {
+    billing: selectedBillingAddr
+      ? addressToFormValues(selectedBillingAddr)
+      : emptyAddress,
+    shipping_same_as_billing: true,
+    shipping: selectedShippingAddr
+      ? addressToFormValues(selectedShippingAddr)
+      : emptyAddress,
+    comments: "",
+  };
+
   const form = useForm({
-    defaultValues: {
-      billing: selectedBillingAddr
-        ? addressToFormValues(selectedBillingAddr)
-        : emptyAddress,
-      shipping_same_as_billing: true,
-      shipping: selectedShippingAddr
-        ? addressToFormValues(selectedShippingAddr)
-        : emptyAddress,
-      comments: "",
-    } satisfies CheckoutFormValues,
+    defaultValues,
     onSubmit: async ({ value }) => {
       const billingAddress = selectedBillingAddr
         ? {

@@ -133,3 +133,27 @@
     @apply font-sans;
   }
 }
+
+@media print {
+  /* Print only the order document (`.print-document`): hide the storefront
+     chrome (header/footer/cart drawer) and any on-screen-only controls. */
+  body * {
+    visibility: hidden;
+  }
+  .print-document,
+  .print-document * {
+    visibility: visible;
+  }
+  .print-document {
+    position: absolute;
+    inset: 0;
+    max-width: none;
+    padding: 0;
+  }
+  .no-print {
+    display: none !important;
+  }
+  @page {
+    margin: 16mm;
+  }
+}
