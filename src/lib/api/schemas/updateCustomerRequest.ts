@@ -17,5 +17,5 @@ export interface UpdateCustomerRequest {
   tax_id?: string | null;
   user_id?: null | UserId;
   /** @nullable */
-  vendor_user_id?: null | UserId;
+  vendedor_user_id?: null | UserId;
 }

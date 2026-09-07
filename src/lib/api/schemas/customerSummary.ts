@@ -19,7 +19,9 @@ export interface CustomerSummary {
   /** @nullable */
   username?: string | null;
   /** @nullable */
-  vendor_name?: string | null;
+  vendedor_display_name?: string | null;
   /** @nullable */
-  vendor_user_id?: null | UserId;
+  vendedor_username?: string | null;
+  /** @nullable */
+  vendedor_user_id?: null | UserId;
 }

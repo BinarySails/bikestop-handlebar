@@ -161,15 +161,15 @@ export function ClientsTableCard({
       header: "Vendedor",
       className: "w-44",
       cell: (client) => {
-        if (client.vendor_user_id) {
-          const name = vendorNameById.get(client.vendor_user_id);
+        if (client.vendedor_user_id) {
+          const name = vendorNameById.get(client.vendedor_user_id);
           if (name) return <span className="text-gray-600">{name}</span>;
           return (
             <span
               className="text-xs text-muted-foreground"
-              title={client.vendor_user_id}
+              title={client.vendedor_user_id}
             >
-              {client.vendor_user_id.slice(0, 8)}
+              {client.vendedor_user_id.slice(0, 8)}
             </span>
           );
         }

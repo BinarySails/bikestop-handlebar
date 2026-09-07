@@ -94,7 +94,7 @@ export function CreateClientDialog({ onCreated }: { onCreated?: () => void }) {
         phone: value.phone || null,
         email: value.email || null,
         user_id: userId,
-        vendor_user_id: value.vendorUserId,
+        vendedor_user_id: value.vendorUserId,
       });
 
       if (customerResult.status === 201) {

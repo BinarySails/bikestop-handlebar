@@ -62,7 +62,7 @@ export function EditClientDialog({
         tax_id: value.taxId || null,
         phone: value.phone || null,
         email: value.email || null,
-        vendor_user_id:
+        vendedor_user_id:
           value.vendorUserId === "" ? null : value.vendorUserId || null,
       });
 
@@ -82,7 +82,7 @@ export function EditClientDialog({
       form.setFieldValue("taxId", customer.tax_id ?? "");
       form.setFieldValue("phone", customer.phone ?? "");
       form.setFieldValue("email", customer.email ?? "");
-      form.setFieldValue("vendorUserId", customer.vendor_user_id ?? "");
+      form.setFieldValue("vendorUserId", customer.vendedor_user_id ?? "");
     }
   }, [customer, open, form]);
 

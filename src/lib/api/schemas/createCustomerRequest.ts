@@ -16,5 +16,5 @@ export interface CreateCustomerRequest {
   tax_id?: string | null;
   user_id?: null | UserId;
   /** @nullable */
-  vendor_user_id?: null | UserId;
+  vendedor_user_id?: null | UserId;
 }
