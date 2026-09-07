@@ -3,6 +3,7 @@ import { useForm } from "@tanstack/react-form";
 import { toast } from "sonner";
 
 import { useGetCustomerRequest, useUpdateCustomerRequest } from "@/lib/api/api";
+import { useVendorOptions } from "@/components/features/clients/vendor-lookup";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -15,6 +16,13 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface EditClientDialogProps {
   customerId: string;
@@ -22,6 +30,8 @@ interface EditClientDialogProps {
   onOpenChange: (open: boolean) => void;
   onUpdated: () => void;
 }
+
+const UNASSIGNED_VALUE = "__unassigned__";
 
 export function EditClientDialog({
   customerId,
@@ -34,6 +44,7 @@ export function EditClientDialog({
   });
   const { trigger: updateCustomer, isMutating } =
     useUpdateCustomerRequest(customerId);
+  const vendorOptionsQuery = useVendorOptions();
 
   const customer = customerRes?.status === 200 ? customerRes.data : undefined;
 
@@ -43,6 +54,7 @@ export function EditClientDialog({
       taxId: "",
       phone: "",
       email: "",
+      vendorUserId: "",
     },
     onSubmit: async ({ value }) => {
       const result = await updateCustomer({
@@ -50,6 +62,8 @@ export function EditClientDialog({
         tax_id: value.taxId || null,
         phone: value.phone || null,
         email: value.email || null,
+        vendor_user_id:
+          value.vendorUserId === "" ? null : value.vendorUserId || null,
       });
 
       if (result.status === 200) {
@@ -68,6 +82,7 @@ export function EditClientDialog({
       form.setFieldValue("taxId", customer.tax_id ?? "");
       form.setFieldValue("phone", customer.phone ?? "");
       form.setFieldValue("email", customer.email ?? "");
+      form.setFieldValue("vendorUserId", customer.vendor_user_id ?? "");
     }
   }, [customer, open, form]);
 
@@ -174,6 +189,56 @@ export function EditClientDialog({
                     onChange={(e) => field.handleChange(e.target.value)}
                     placeholder="empresa@example.com"
                   />
+                </div>
+              )}
+            </form.Field>
+
+            <form.Field name="vendorUserId">
+              {(field) => (
+                <div className="grid gap-2">
+                  <Label htmlFor={field.name}>Vendedor</Label>
+                  <Select
+                    value={field.state.value || UNASSIGNED_VALUE}
+                    onValueChange={(value) => {
+                      const next =
+                        value === null || value === UNASSIGNED_VALUE
+                          ? ""
+                          : value;
+                      field.handleChange(next);
+                    }}
+                    disabled={
+                      vendorOptionsQuery.isLoading ||
+                      vendorOptionsQuery.roleMissing
+                    }
+                  >
+                    <SelectTrigger id={field.name} className="w-full">
+                      <SelectValue
+                        placeholder={
+                          vendorOptionsQuery.roleMissing
+                            ? "No se encontró el rol de vendedor"
+                            : vendorOptionsQuery.isLoading
+                              ? "Cargando vendedores..."
+                              : "Selecciona un vendedor"
+                        }
+                      >
+                        {field.state.value
+                          ? (vendorOptionsQuery.options.find(
+                              (option) => option.id === field.state.value
+                            )?.name ?? field.state.value)
+                          : "Sin asignar"}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={UNASSIGNED_VALUE}>
+                        Sin asignar
+                      </SelectItem>
+                      {vendorOptionsQuery.options.map((option) => (
+                        <SelectItem key={option.id} value={option.id}>
+                          {option.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               )}
             </form.Field>

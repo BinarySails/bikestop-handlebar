@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { CreateClientDialog } from "@/components/features/clients/create-client-modal";
 import { EditClientDialog } from "@/components/features/clients/edit-client-dialog";
 import { AssignUserDialog } from "@/components/features/clients/assign-user-dialog";
+import { useVendorOptions } from "@/components/features/clients/vendor-lookup";
 import { SiteHeader } from "@/components/features/layout/site-header";
 import { EntityCardTitle } from "@/components/features/entity/entity-card-title";
 import {
@@ -75,6 +76,11 @@ export function ClientsTableCard({
       limit,
     },
     { swr: { keepPreviousData: true } }
+  );
+
+  const vendorOptionsQuery = useVendorOptions();
+  const vendorNameById = new Map(
+    vendorOptionsQuery.options.map((option) => [option.id, option.name])
   );
 
   useEffect(() => {
@@ -150,6 +156,27 @@ export function ClientsTableCard({
         ) : (
           <span className="text-xs text-muted-foreground">Sin usuario</span>
         ),
+    },
+    {
+      header: "Vendedor",
+      className: "w-44",
+      cell: (client) => {
+        if (client.vendor_user_id) {
+          const name = vendorNameById.get(client.vendor_user_id);
+          if (name) return <span className="text-gray-600">{name}</span>;
+          return (
+            <span
+              className="text-xs text-muted-foreground"
+              title={client.vendor_user_id}
+            >
+              {client.vendor_user_id.slice(0, 8)}
+            </span>
+          );
+        }
+        return (
+          <span className="text-xs text-muted-foreground">Sin asignar</span>
+        );
+      },
     },
     {
       header: "Estado",
@@ -301,8 +328,8 @@ export function ClientsTableCard({
               type="search"
               value={searchInput}
               onChange={(event) => setSearchInput(event.target.value)}
-              placeholder="Buscar por empresa, RFC, email o usuario"
-              aria-label="Buscar por empresa, RFC, email o usuario"
+              placeholder="Buscar por empresa, RFC, email, usuario o vendedor"
+              aria-label="Buscar por empresa, RFC, email, usuario o vendedor"
             />
           </InputGroup>
         }

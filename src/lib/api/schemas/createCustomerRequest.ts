@@ -15,4 +15,6 @@ export interface CreateCustomerRequest {
   /** @nullable */
   tax_id?: string | null;
   user_id?: null | UserId;
+  /** @nullable */
+  vendor_user_id?: null | UserId;
 }

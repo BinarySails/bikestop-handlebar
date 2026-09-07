@@ -6,6 +6,7 @@
  */
 import type { CustomerId } from './customerId.ts';
 import type { CustomerStatus } from './customerStatus.ts';
+import type { UserId } from './userId.ts';
 
 export interface CustomerSummary {
   company_name: string;
@@ -17,4 +18,8 @@ export interface CustomerSummary {
   tax_id?: string | null;
   /** @nullable */
   username?: string | null;
+  /** @nullable */
+  vendor_name?: string | null;
+  /** @nullable */
+  vendor_user_id?: null | UserId;
 }
