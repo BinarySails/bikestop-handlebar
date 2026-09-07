@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
+import { useSWRConfig } from "swr";
 import { z } from "zod";
 import { toast } from "sonner";
 
@@ -8,6 +9,7 @@ import {
   CountrySelect,
   DEFAULT_COUNTRY,
 } from "@/components/features/locations/country-select";
+import { LocalitySelect } from "@/components/features/locations/locality-select";
 import { StateSelect } from "@/components/features/locations/state-select";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -31,8 +33,16 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuthStore } from "@/lib/auth/use-auth-store";
-import { useListCustomerAddressesRequest, useMeHandler } from "@/lib/api/api";
-import type { CustomerAddressWithAddressRow } from "@/lib/api/schemas";
+import {
+  getListCustomerAddressesRequestKey,
+  setDefaultBillingAddressRequest,
+  setDefaultShippingAddressRequest,
+  useCreateCustomerAddressRequest,
+  useListCustomerAddressesRequest,
+  useListStatesRequest,
+  useMeHandler,
+} from "@/lib/api/api";
+import type { CustomerAddressWithAddressRow, State } from "@/lib/api/schemas";
 import { useCheckoutCart } from "@/lib/cart/use-cart";
 
 const addressSnapshotSchema = z.object({
@@ -50,6 +60,8 @@ const CheckoutPayloadSchema = z.object({
 });
 
 type AddressFormValues = {
+  contact_name: string;
+  phone: string;
   country: string;
   state: string;
   city: string;
@@ -64,6 +76,11 @@ type CheckoutFormValues = {
   comments: string;
 };
 
+type SelectedStates = {
+  billing: State | null;
+  shipping: State | null;
+};
+
 function validateRequired(
   value: string,
   label: string,
@@ -76,7 +93,27 @@ function validateRequired(
   return undefined;
 }
 
+function validatePhone(value: string): string | undefined {
+  const trimmed = value.trim();
+  if (!trimmed) return "El teléfono es obligatorio.";
+  if (trimmed.length < 10 || trimmed.length > 15) {
+    return "El teléfono debe tener entre 10 y 15 dígitos.";
+  }
+  return undefined;
+}
+
+function getApiErrorMessage(data: unknown, fallback: string): string {
+  if (!data || typeof data !== "object") return fallback;
+  const error = data as { message?: unknown };
+  if (typeof error.message !== "string" || !error.message.trim()) {
+    return fallback;
+  }
+  return error.message;
+}
+
 const emptyAddress: AddressFormValues = {
+  contact_name: "",
+  phone: "",
   country: DEFAULT_COUNTRY,
   state: "",
   city: "",
@@ -92,6 +129,8 @@ function addressToFormValues(
   addr: CustomerAddressWithAddressRow
 ): AddressFormValues {
   return {
+    contact_name: addr.contact_name,
+    phone: addr.phone,
     country: addr.country,
     state: addr.state,
     city: addr.city,
@@ -111,10 +150,15 @@ function CheckoutForm({ onDone }: { onDone?: () => void }) {
   const { data: addressesRes } = useListCustomerAddressesRequest(userId, {
     swr: { enabled: Boolean(userId) },
   });
+  const { data: statesRes } = useListStatesRequest();
+  const { mutate: revalidateAddresses } = useSWRConfig();
 
   const allAddresses =
     addressesRes?.status === 200 ? (addressesRes.data ?? []) : [];
   const addresses = allAddresses.filter((a) => a.status === "enable");
+
+  const states =
+    statesRes?.status === 200 ? (statesRes.data ?? []) : ([] as State[]);
 
   const defaultBilling = addresses.find((a) => a.is_default_billing);
   const defaultShipping = addresses.find((a) => a.is_default_shipping);
@@ -125,6 +169,11 @@ function CheckoutForm({ onDone }: { onDone?: () => void }) {
   const [selectedShippingId, setSelectedShippingId] = useState<string | "new">(
     defaultShipping ? defaultShipping.id : "new"
   );
+
+  const [selectedStates, setSelectedStates] = useState<SelectedStates>({
+    billing: null,
+    shipping: null,
+  });
 
   const selectedBillingAddr =
     selectedBillingId !== "new"
@@ -146,66 +195,135 @@ function CheckoutForm({ onDone }: { onDone?: () => void }) {
     comments: "",
   };
 
+  const { trigger: createAddressTrigger } =
+    useCreateCustomerAddressRequest(userId);
+
   const form = useForm({
     defaultValues,
     onSubmit: async ({ value }) => {
-      const billingAddress = selectedBillingAddr
-        ? {
-            country: selectedBillingAddr.country.trim(),
-            state: selectedBillingAddr.state.trim(),
-            city: selectedBillingAddr.city.trim(),
-            postal_code: selectedBillingAddr.postal_code.trim(),
-            address: selectedBillingAddr.street_address.trim(),
-          }
-        : {
-            country: value.billing.country.trim(),
-            state: value.billing.state.trim(),
-            city: value.billing.city.trim(),
-            postal_code: value.billing.postal_code.trim(),
-            address: value.billing.address.trim(),
-          };
+      const formBilling = value.billing;
+      const formShipping = value.shipping;
 
-      let shippingAddress: {
-        country: string;
-        state: string;
-        city: string;
-        postal_code: string;
-        address: string;
-      };
+      const billingIsNew = selectedBillingAddr === null;
+      const shippingIsNew =
+        !value.shipping_same_as_billing && selectedShippingAddr === null;
 
-      if (value.shipping_same_as_billing) {
-        shippingAddress = billingAddress;
-      } else if (selectedShippingAddr) {
-        shippingAddress = {
-          country: selectedShippingAddr.country.trim(),
-          state: selectedShippingAddr.state.trim(),
-          city: selectedShippingAddr.city.trim(),
-          postal_code: selectedShippingAddr.postal_code.trim(),
-          address: selectedShippingAddr.street_address.trim(),
-        };
-      } else {
-        shippingAddress = {
-          country: value.shipping.country.trim(),
-          state: value.shipping.state.trim(),
-          city: value.shipping.city.trim(),
-          postal_code: value.shipping.postal_code.trim(),
-          address: value.shipping.address.trim(),
-        };
-      }
+      const wasFirstAddress = addresses.length === 0;
 
-      const payload = {
-        billing_address: billingAddress,
-        shipping_address: shippingAddress,
-        comments: value.comments.trim() || null,
-      };
-
-      const parseResult = await CheckoutPayloadSchema.safeParseAsync(payload);
-      if (!parseResult.success) {
-        toast.error(parseResult.error.issues[0]?.message ?? "Datos inválidos.");
-        return;
+      async function persistAddress(
+        addr: AddressFormValues
+      ): Promise<string | null> {
+        if (!userId) return null;
+        const result = await createAddressTrigger({
+          contact_name: addr.contact_name.trim(),
+          phone: addr.phone.trim(),
+          country: addr.country.trim(),
+          state: addr.state.trim(),
+          city: addr.city.trim(),
+          postal_code: addr.postal_code.trim(),
+          address: addr.address.trim(),
+        });
+        const status = Number(result.status);
+        if (status === 201 && "id" in result.data) {
+          const newId = result.data.id as string;
+          void revalidateAddresses(getListCustomerAddressesRequestKey(userId));
+          return newId;
+        }
+        const fallback = "No se pudo registrar la nueva dirección.";
+        throw new Error(getApiErrorMessage(result.data, fallback));
       }
 
       try {
+        let newBillingId: string | null = null;
+        if (billingIsNew) {
+          newBillingId = await persistAddress(formBilling);
+        }
+
+        let newShippingId: string | null = null;
+        if (shippingIsNew) {
+          newShippingId = await persistAddress(formShipping);
+        }
+
+        if (wasFirstAddress) {
+          if (newBillingId) {
+            try {
+              await setDefaultBillingAddressRequest(userId, newBillingId);
+            } catch {
+              // address created; ignore default-setting failure
+            }
+          }
+          if (newShippingId) {
+            try {
+              await setDefaultShippingAddressRequest(userId, newShippingId);
+            } catch {
+              // address created; ignore default-setting failure
+            }
+          }
+          if (newBillingId || newShippingId) {
+            void revalidateAddresses(
+              getListCustomerAddressesRequestKey(userId)
+            );
+          }
+        }
+
+        const billingSnapshot = billingIsNew
+          ? {
+              country: formBilling.country.trim(),
+              state: formBilling.state.trim(),
+              city: formBilling.city.trim(),
+              postal_code: formBilling.postal_code.trim(),
+              address: formBilling.address.trim(),
+            }
+          : {
+              country: selectedBillingAddr!.country.trim(),
+              state: selectedBillingAddr!.state.trim(),
+              city: selectedBillingAddr!.city.trim(),
+              postal_code: selectedBillingAddr!.postal_code.trim(),
+              address: selectedBillingAddr!.street_address.trim(),
+            };
+
+        let shippingSnapshot: {
+          country: string;
+          state: string;
+          city: string;
+          postal_code: string;
+          address: string;
+        };
+
+        if (value.shipping_same_as_billing) {
+          shippingSnapshot = billingSnapshot;
+        } else if (!shippingIsNew && selectedShippingAddr) {
+          shippingSnapshot = {
+            country: selectedShippingAddr.country.trim(),
+            state: selectedShippingAddr.state.trim(),
+            city: selectedShippingAddr.city.trim(),
+            postal_code: selectedShippingAddr.postal_code.trim(),
+            address: selectedShippingAddr.street_address.trim(),
+          };
+        } else {
+          shippingSnapshot = {
+            country: formShipping.country.trim(),
+            state: formShipping.state.trim(),
+            city: formShipping.city.trim(),
+            postal_code: formShipping.postal_code.trim(),
+            address: formShipping.address.trim(),
+          };
+        }
+
+        const payload = {
+          billing_address: billingSnapshot,
+          shipping_address: shippingSnapshot,
+          comments: value.comments.trim() || null,
+        };
+
+        const parseResult = await CheckoutPayloadSchema.safeParseAsync(payload);
+        if (!parseResult.success) {
+          toast.error(
+            parseResult.error.issues[0]?.message ?? "Datos inválidos."
+          );
+          return;
+        }
+
         const result = await checkoutCart(parseResult.data);
 
         if (result.status === 201) {
@@ -225,8 +343,12 @@ function CheckoutForm({ onDone }: { onDone?: () => void }) {
               : undefined;
           toast.error(errorData ?? "Error al crear la orden.");
         }
-      } catch {
-        toast.error("Error al crear la orden.");
+      } catch (error) {
+        if (error instanceof Error) {
+          toast.error(error.message);
+        } else {
+          toast.error("Error al procesar la dirección.");
+        }
       }
     },
   });
@@ -237,6 +359,61 @@ function CheckoutForm({ onDone }: { onDone?: () => void }) {
   ) {
     return (
       <div className="grid gap-3 sm:grid-cols-2">
+        <form.Field
+          name={`${prefix}.contact_name`}
+          validators={{
+            onSubmit: ({ value }) =>
+              validateRequired(value, "El nombre de contacto", 2),
+          }}
+        >
+          {(field) => (
+            <div className="grid gap-1.5 sm:col-span-2">
+              <Label htmlFor={field.name}>Nombre de contacto</Label>
+              <Input
+                id={field.name}
+                value={field.state.value}
+                onChange={(event) => field.handleChange(event.target.value)}
+                onBlur={field.handleBlur}
+                placeholder="Juan Pérez"
+                disabled={disabled}
+                aria-invalid={field.state.meta.errors.length > 0}
+              />
+              {field.state.meta.errors[0] && (
+                <p className="text-xs text-destructive">
+                  {field.state.meta.errors[0]}
+                </p>
+              )}
+            </div>
+          )}
+        </form.Field>
+
+        <form.Field
+          name={`${prefix}.phone`}
+          validators={{
+            onSubmit: ({ value }) => validatePhone(value),
+          }}
+        >
+          {(field) => (
+            <div className="grid gap-1.5 sm:col-span-2">
+              <Label htmlFor={field.name}>Teléfono</Label>
+              <Input
+                id={field.name}
+                value={field.state.value}
+                onChange={(event) => field.handleChange(event.target.value)}
+                onBlur={field.handleBlur}
+                placeholder="Ej. 5512345678"
+                disabled={disabled}
+                aria-invalid={field.state.meta.errors.length > 0}
+              />
+              {field.state.meta.errors[0] && (
+                <p className="text-xs text-destructive">
+                  {field.state.meta.errors[0]}
+                </p>
+              )}
+            </div>
+          )}
+        </form.Field>
+
         <form.Field
           name={`${prefix}.country`}
           validators={{
@@ -274,7 +451,17 @@ function CheckoutForm({ onDone }: { onDone?: () => void }) {
               <StateSelect
                 id={field.name}
                 value={field.state.value}
-                onValueChange={(value) => field.handleChange(value ?? "")}
+                onValueChange={(value) => {
+                  if (!value) return;
+                  field.handleChange(value);
+                  setSelectedStates((prev) => ({
+                    ...prev,
+                    [prefix]:
+                      states.find((state) => state.display_name === value) ??
+                      null,
+                  }));
+                  form.setFieldValue(`${prefix}.city`, "");
+                }}
                 disabled={disabled}
                 aria-invalid={field.state.meta.errors.length > 0}
               />
@@ -296,12 +483,11 @@ function CheckoutForm({ onDone }: { onDone?: () => void }) {
           {(field) => (
             <div className="grid gap-1.5">
               <Label htmlFor={field.name}>Ciudad</Label>
-              <Input
+              <LocalitySelect
                 id={field.name}
+                stateId={selectedStates[prefix]?.id ?? null}
                 value={field.state.value}
-                onChange={(event) => field.handleChange(event.target.value)}
-                onBlur={field.handleBlur}
-                placeholder="Guadalajara"
+                onValueChange={(value) => field.handleChange(value ?? "")}
                 disabled={disabled}
                 aria-invalid={field.state.meta.errors.length > 0}
               />
@@ -387,50 +573,47 @@ function CheckoutForm({ onDone }: { onDone?: () => void }) {
             <CardTitle>Dirección de facturación</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {addresses.length > 0 && (
-              <div className="grid gap-1.5">
-                <Label>Seleccionar dirección</Label>
-                <Select
-                  value={selectedBillingId}
-                  onValueChange={(v) =>
-                    setSelectedBillingId(v as string | "new")
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Seleccionar dirección">
-                      {(value) =>
-                        value === "new"
-                          ? "Ingresar nueva dirección"
-                          : addresses.find((a) => a.id === value)
-                            ? formatAddressRow(
-                                addresses.find((a) => a.id === value)!
-                              )
-                            : "Seleccionar dirección"
-                      }
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {addresses.map((addr) => (
-                      <SelectItem
-                        key={addr.id}
-                        value={addr.id}
-                        label={formatAddressRow(addr)}
-                      >
-                        {formatAddressRow(addr)}
-                        {addr.is_default_billing && (
-                          <Badge className="ml-2 text-[10px]">
-                            Predeterminada
-                          </Badge>
-                        )}
-                      </SelectItem>
-                    ))}
-                    <SelectItem value="new" label="Ingresar nueva dirección">
-                      Ingresar nueva dirección
+            <div className="grid gap-1.5">
+              <Label>Seleccionar dirección</Label>
+              <Select
+                value={selectedBillingId}
+                onValueChange={(v) => setSelectedBillingId(v as string | "new")}
+                disabled={addresses.length === 0}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Seleccionar dirección">
+                    {(value) =>
+                      value === "new"
+                        ? "Ingresar nueva dirección"
+                        : addresses.find((a) => a.id === value)
+                          ? formatAddressRow(
+                              addresses.find((a) => a.id === value)!
+                            )
+                          : "Seleccionar dirección"
+                    }
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {addresses.map((addr) => (
+                    <SelectItem
+                      key={addr.id}
+                      value={addr.id}
+                      label={formatAddressRow(addr)}
+                    >
+                      {formatAddressRow(addr)}
+                      {addr.is_default_billing && (
+                        <Badge className="ml-2 text-[10px]">
+                          Predeterminada
+                        </Badge>
+                      )}
                     </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+                  ))}
+                  <SelectItem value="new" label="Ingresar nueva dirección">
+                    Ingresar nueva dirección
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             {selectedBillingAddr ? (
               <div className="grid gap-3 rounded-lg border p-4 sm:grid-cols-2">
                 <div className="grid gap-1.5">
@@ -495,53 +678,52 @@ function CheckoutForm({ onDone }: { onDone?: () => void }) {
                   </p>
                 ) : (
                   <>
-                    {addresses.length > 0 && (
-                      <div className="grid gap-1.5">
-                        <Label>Seleccionar dirección</Label>
-                        <Select
-                          value={selectedShippingId}
-                          onValueChange={(v) =>
-                            setSelectedShippingId(v as string | "new")
-                          }
-                        >
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Seleccionar dirección">
-                              {(value) =>
-                                value === "new"
-                                  ? "Ingresar nueva dirección"
-                                  : addresses.find((a) => a.id === value)
-                                    ? formatAddressRow(
-                                        addresses.find((a) => a.id === value)!
-                                      )
-                                    : "Seleccionar dirección"
-                              }
-                            </SelectValue>
-                          </SelectTrigger>
-                          <SelectContent>
-                            {addresses.map((addr) => (
-                              <SelectItem
-                                key={addr.id}
-                                value={addr.id}
-                                label={formatAddressRow(addr)}
-                              >
-                                {formatAddressRow(addr)}
-                                {addr.is_default_shipping && (
-                                  <Badge className="ml-2 text-[10px]">
-                                    Predeterminada
-                                  </Badge>
-                                )}
-                              </SelectItem>
-                            ))}
+                    <div className="grid gap-1.5">
+                      <Label>Seleccionar dirección</Label>
+                      <Select
+                        value={selectedShippingId}
+                        onValueChange={(v) =>
+                          setSelectedShippingId(v as string | "new")
+                        }
+                        disabled={addresses.length === 0}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Seleccionar dirección">
+                            {(value) =>
+                              value === "new"
+                                ? "Ingresar nueva dirección"
+                                : addresses.find((a) => a.id === value)
+                                  ? formatAddressRow(
+                                      addresses.find((a) => a.id === value)!
+                                    )
+                                  : "Seleccionar dirección"
+                            }
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {addresses.map((addr) => (
                             <SelectItem
-                              value="new"
-                              label="Ingresar nueva dirección"
+                              key={addr.id}
+                              value={addr.id}
+                              label={formatAddressRow(addr)}
                             >
-                              Ingresar nueva dirección
+                              {formatAddressRow(addr)}
+                              {addr.is_default_shipping && (
+                                <Badge className="ml-2 text-[10px]">
+                                  Predeterminada
+                                </Badge>
+                              )}
                             </SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    )}
+                          ))}
+                          <SelectItem
+                            value="new"
+                            label="Ingresar nueva dirección"
+                          >
+                            Ingresar nueva dirección
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                     {selectedShippingAddr ? (
                       <div className="grid gap-3 rounded-lg border p-4 sm:grid-cols-2">
                         <div className="grid gap-1.5">
