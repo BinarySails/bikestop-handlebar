@@ -9,6 +9,7 @@ import {
 import { CreateUserRequestBody } from "@/lib/api/zods";
 
 import { EntityCreateButton } from "@/components/features/entity/entity-create-button";
+import { useVendorOptions } from "@/components/features/clients/vendor-lookup";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -21,6 +22,13 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 
 export function CreateClientDialog({ onCreated }: { onCreated?: () => void }) {
@@ -29,6 +37,7 @@ export function CreateClientDialog({ onCreated }: { onCreated?: () => void }) {
   const { trigger: createUserRequest } = useCreateUserRequest();
   const { trigger: createCustomer } = useCreateCustomerRequest();
   const rolesQuery = useListRolesHandler();
+  const vendorOptionsQuery = useVendorOptions();
 
   const clientRoleId =
     rolesQuery.data?.status === 200
@@ -46,6 +55,7 @@ export function CreateClientDialog({ onCreated }: { onCreated?: () => void }) {
       companyName: "",
       taxId: "",
       phone: "",
+      vendorUserId: "",
     },
     onSubmit: async ({ value }) => {
       let userId: string | null = null;
@@ -84,6 +94,7 @@ export function CreateClientDialog({ onCreated }: { onCreated?: () => void }) {
         phone: value.phone || null,
         email: value.email || null,
         user_id: userId,
+        vendedor_user_id: value.vendorUserId,
       });
 
       if (customerResult.status === 201) {
@@ -343,6 +354,71 @@ export function CreateClientDialog({ onCreated }: { onCreated?: () => void }) {
               Datos de la empresa
             </Label>
           </div>
+
+          <form.Field
+            name="vendorUserId"
+            validators={{
+              onChange: ({ value }) =>
+                value ? undefined : "Vendedor es requerido",
+              onSubmit: ({ value }) =>
+                value ? undefined : "Vendedor es requerido",
+            }}
+          >
+            {(field) => (
+              <div className="grid gap-2">
+                <Label htmlFor={field.name}>Vendedor</Label>
+                <Select
+                  value={field.state.value}
+                  onValueChange={(value) => {
+                    if (value) field.handleChange(value);
+                  }}
+                  disabled={
+                    vendorOptionsQuery.isLoading ||
+                    vendorOptionsQuery.roleMissing
+                  }
+                >
+                  <SelectTrigger
+                    id={field.name}
+                    className="w-full"
+                    aria-invalid={
+                      field.state.meta.isTouched &&
+                      field.state.meta.errors.length > 0
+                        ? "true"
+                        : undefined
+                    }
+                  >
+                    <SelectValue
+                      placeholder={
+                        vendorOptionsQuery.roleMissing
+                          ? "No se encontró el rol de vendedor"
+                          : vendorOptionsQuery.isLoading
+                            ? "Cargando vendedores..."
+                            : "Selecciona un vendedor"
+                      }
+                    >
+                      {field.state.value
+                        ? (vendorOptionsQuery.options.find(
+                            (option) => option.id === field.state.value
+                          )?.name ?? field.state.value)
+                        : null}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {vendorOptionsQuery.options.map((option) => (
+                      <SelectItem key={option.id} value={option.id}>
+                        {option.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {field.state.meta.errors?.[0] && (
+                  <p className="text-sm text-red-500">
+                    {field.state.meta.errors[0]}
+                  </p>
+                )}
+              </div>
+            )}
+          </form.Field>
 
           <form.Field
             name="companyName"
