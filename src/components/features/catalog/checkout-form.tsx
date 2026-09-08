@@ -9,7 +9,6 @@ import {
   CountrySelect,
   DEFAULT_COUNTRY,
 } from "@/components/features/locations/country-select";
-import { LocalitySelect } from "@/components/features/locations/locality-select";
 import { StateSelect } from "@/components/features/locations/state-select";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -39,10 +38,9 @@ import {
   setDefaultShippingAddressRequest,
   useCreateCustomerAddressRequest,
   useListCustomerAddressesRequest,
-  useListStatesRequest,
   useMeHandler,
 } from "@/lib/api/api";
-import type { CustomerAddressWithAddressRow, State } from "@/lib/api/schemas";
+import type { CustomerAddressWithAddressRow } from "@/lib/api/schemas";
 import { useCheckoutCart } from "@/lib/cart/use-cart";
 
 const addressSnapshotSchema = z.object({
@@ -74,11 +72,6 @@ type CheckoutFormValues = {
   shipping_same_as_billing: boolean;
   shipping: AddressFormValues;
   comments: string;
-};
-
-type SelectedStates = {
-  billing: State | null;
-  shipping: State | null;
 };
 
 function validateRequired(
@@ -150,15 +143,11 @@ function CheckoutForm({ onDone }: { onDone?: () => void }) {
   const { data: addressesRes } = useListCustomerAddressesRequest(userId, {
     swr: { enabled: Boolean(userId) },
   });
-  const { data: statesRes } = useListStatesRequest();
   const { mutate: revalidateAddresses } = useSWRConfig();
 
   const allAddresses =
     addressesRes?.status === 200 ? (addressesRes.data ?? []) : [];
   const addresses = allAddresses.filter((a) => a.status === "enable");
-
-  const states =
-    statesRes?.status === 200 ? (statesRes.data ?? []) : ([] as State[]);
 
   const defaultBilling = addresses.find((a) => a.is_default_billing);
   const defaultShipping = addresses.find((a) => a.is_default_shipping);
@@ -169,11 +158,6 @@ function CheckoutForm({ onDone }: { onDone?: () => void }) {
   const [selectedShippingId, setSelectedShippingId] = useState<string | "new">(
     defaultShipping ? defaultShipping.id : "new"
   );
-
-  const [selectedStates, setSelectedStates] = useState<SelectedStates>({
-    billing: null,
-    shipping: null,
-  });
 
   const selectedBillingAddr =
     selectedBillingId !== "new"
@@ -454,13 +438,6 @@ function CheckoutForm({ onDone }: { onDone?: () => void }) {
                 onValueChange={(value) => {
                   if (!value) return;
                   field.handleChange(value);
-                  setSelectedStates((prev) => ({
-                    ...prev,
-                    [prefix]:
-                      states.find((state) => state.display_name === value) ??
-                      null,
-                  }));
-                  form.setFieldValue(`${prefix}.city`, "");
                 }}
                 disabled={disabled}
                 aria-invalid={field.state.meta.errors.length > 0}
@@ -483,11 +460,12 @@ function CheckoutForm({ onDone }: { onDone?: () => void }) {
           {(field) => (
             <div className="grid gap-1.5">
               <Label htmlFor={field.name}>Ciudad</Label>
-              <LocalitySelect
+              <Input
                 id={field.name}
-                stateId={selectedStates[prefix]?.id ?? null}
                 value={field.state.value}
-                onValueChange={(value) => field.handleChange(value ?? "")}
+                onChange={(event) => field.handleChange(event.target.value)}
+                onBlur={field.handleBlur}
+                placeholder="Guadalajara"
                 disabled={disabled}
                 aria-invalid={field.state.meta.errors.length > 0}
               />
