@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
 import { Plus, Printer, Trash2, WarehouseIcon } from "lucide-react";
@@ -47,9 +47,12 @@ import {
 import {
   listInventoryRequest,
   useCreateSalesOrderRequest,
+  useGetCustomerRequest,
+  useListCustomerAddressesRequest,
   useListInventoryRequest,
 } from "@/lib/api/api";
 import {
+  type CustomerAddressWithAddressRow,
   type OrderTagId,
   type PaginatedCustomerSummaryDataItem,
   type CreateSalesOrderRequest,
@@ -337,6 +340,22 @@ function addressValues(
   };
 }
 
+function formatAddressRow(addr: CustomerAddressWithAddressRow): string {
+  return `${addr.street_address}, ${addr.city}, ${addr.state}, ${addr.postal_code}, ${addr.country}`;
+}
+
+function customerAddressToFormValues(
+  addr: CustomerAddressWithAddressRow
+): AddressFormValues {
+  return {
+    country: addr.country,
+    state: addr.state,
+    city: addr.city,
+    postal_code: addr.postal_code,
+    address: addr.street_address,
+  };
+}
+
 function sameAddress(
   first: SalesOrder["billing_address"],
   second: SalesOrder["shipping_address"]
@@ -492,6 +511,57 @@ export function CreateSalesOrderForm({
     .map((comment) => comment.trim())
     .filter(Boolean);
 
+  const [customerIdForFetch, setCustomerIdForFetch] = useState<string>("");
+  const { data: customerRes } = useGetCustomerRequest(customerIdForFetch, {
+    swr: { enabled: customerIdForFetch !== "" },
+  });
+  const customerUserId =
+    customerRes?.status === 200 && customerRes.data.user_id
+      ? customerRes.data.user_id
+      : "";
+  const { data: addressesRes } = useListCustomerAddressesRequest(
+    customerUserId,
+    { swr: { enabled: customerUserId !== "" } }
+  );
+  const allCustomerAddresses =
+    addressesRes?.status === 200 ? (addressesRes.data ?? []) : [];
+  const customerAddresses = allCustomerAddresses.filter(
+    (a) => a.status === "enable"
+  );
+  const defaultBillingAddr = customerAddresses.find(
+    (a) => a.is_default_billing
+  );
+  const defaultShippingAddr = customerAddresses.find(
+    (a) => a.is_default_shipping
+  );
+
+  const [selectedBillingAddressId, setSelectedBillingAddressId] = useState<
+    string | "new"
+  >(defaultBillingAddr ? defaultBillingAddr.id : "new");
+  const [selectedShippingAddressId, setSelectedShippingAddressId] = useState<
+    string | "new"
+  >(defaultShippingAddr ? defaultShippingAddr.id : "new");
+
+  useEffect(() => {
+    setSelectedBillingAddressId(
+      defaultBillingAddr ? defaultBillingAddr.id : "new"
+    );
+    setSelectedShippingAddressId(
+      defaultShippingAddr ? defaultShippingAddr.id : "new"
+    );
+  }, [customerIdForFetch, defaultBillingAddr, defaultShippingAddr]);
+
+  const selectedBillingAddress =
+    selectedBillingAddressId !== "new"
+      ? (customerAddresses.find((a) => a.id === selectedBillingAddressId) ??
+        null)
+      : null;
+  const selectedShippingAddress =
+    selectedShippingAddressId !== "new"
+      ? (customerAddresses.find((a) => a.id === selectedShippingAddressId) ??
+        null)
+      : null;
+
   async function addComment() {
     const comment = newComment.trim();
     if (!comment || !onAddComment) return;
@@ -577,23 +647,27 @@ export function CreateSalesOrderForm({
         return;
       }
 
-      const billingAddress = {
-        country: value.billing.country.trim(),
-        state: value.billing.state.trim(),
-        city: value.billing.city.trim(),
-        postal_code: value.billing.postal_code.trim(),
-        address: value.billing.address.trim(),
-      };
+      const billingAddress = selectedBillingAddress
+        ? customerAddressToFormValues(selectedBillingAddress)
+        : {
+            country: value.billing.country.trim(),
+            state: value.billing.state.trim(),
+            city: value.billing.city.trim(),
+            postal_code: value.billing.postal_code.trim(),
+            address: value.billing.address.trim(),
+          };
 
       const shippingAddress = value.shipping_same_as_billing
         ? billingAddress
-        : {
-            country: value.shipping.country.trim(),
-            state: value.shipping.state.trim(),
-            city: value.shipping.city.trim(),
-            postal_code: value.shipping.postal_code.trim(),
-            address: value.shipping.address.trim(),
-          };
+        : selectedShippingAddress
+          ? customerAddressToFormValues(selectedShippingAddress)
+          : {
+              country: value.shipping.country.trim(),
+              state: value.shipping.state.trim(),
+              city: value.shipping.city.trim(),
+              postal_code: value.shipping.postal_code.trim(),
+              address: value.shipping.address.trim(),
+            };
 
       const payload = {
         customer_id: value.customer.id,
@@ -911,6 +985,105 @@ export function CreateSalesOrderForm({
     setAllocationLineIndex(null);
     setAllocationVariantId(null);
     setAllocationDraft([]);
+  }
+
+  function renderAddressSection(prefix: "billing" | "shipping") {
+    const isBilling = prefix === "billing";
+    const selected = isBilling
+      ? selectedBillingAddress
+      : selectedShippingAddress;
+    const selectedId = isBilling
+      ? selectedBillingAddressId
+      : selectedShippingAddressId;
+    const onSelectChange = (value: string | null) => {
+      if (!value) return;
+      if (isBilling) {
+        setSelectedBillingAddressId(value as string | "new");
+      } else {
+        setSelectedShippingAddressId(value as string | "new");
+      }
+    };
+    const showSelect = customerIdForFetch !== "";
+
+    return (
+      <div className="space-y-4">
+        {showSelect && (
+          <div className="grid gap-1.5">
+            <Label>Seleccionar dirección</Label>
+            <Select
+              value={selectedId}
+              onValueChange={onSelectChange}
+              disabled={!editable || customerAddresses.length === 0}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Seleccionar dirección">
+                  {(value) =>
+                    value === "new"
+                      ? "Ingresar nueva dirección"
+                      : customerAddresses.find((a) => a.id === value)
+                        ? formatAddressRow(
+                            customerAddresses.find((a) => a.id === value)!
+                          )
+                        : "Seleccionar dirección"
+                  }
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {customerAddresses.map((addr) => (
+                  <SelectItem
+                    key={addr.id}
+                    value={addr.id}
+                    label={formatAddressRow(addr)}
+                  >
+                    {formatAddressRow(addr)}
+                    {isBilling
+                      ? addr.is_default_billing && (
+                          <Badge className="ml-2 text-[10px]">
+                            Predeterminada
+                          </Badge>
+                        )
+                      : addr.is_default_shipping && (
+                          <Badge className="ml-2 text-[10px]">
+                            Predeterminada
+                          </Badge>
+                        )}
+                  </SelectItem>
+                ))}
+                <SelectItem value="new" label="Ingresar nueva dirección">
+                  Ingresar nueva dirección
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+        {selected ? (
+          <div className="grid gap-3 rounded-lg border p-4 sm:grid-cols-2">
+            <div className="grid gap-1.5">
+              <Label>País</Label>
+              <p className="text-sm">{selected.country}</p>
+            </div>
+            <div className="grid gap-1.5">
+              <Label>Estado</Label>
+              <p className="text-sm">{selected.state}</p>
+            </div>
+            <div className="grid gap-1.5">
+              <Label>Ciudad</Label>
+              <p className="text-sm">{selected.city}</p>
+            </div>
+            <div className="grid gap-1.5">
+              <Label>Código postal</Label>
+              <p className="text-sm">{selected.postal_code}</p>
+            </div>
+            <div className="grid gap-1.5 sm:col-span-2">
+              <Label>Dirección</Label>
+              <p className="text-sm">{selected.street_address}</p>
+            </div>
+          </div>
+        ) : (
+          renderAddressFields(prefix)
+        )}
+      </div>
+    );
   }
 
   function renderAddressFields(
@@ -1662,7 +1835,10 @@ export function CreateSalesOrderForm({
                   <CustomerCombobox
                     id={field.name}
                     value={field.state.value}
-                    onChange={(customer) => field.handleChange(customer)}
+                    onChange={(customer) => {
+                      field.handleChange(customer);
+                      setCustomerIdForFetch(customer?.id ?? "");
+                    }}
                   />
                   {field.state.meta.errors[0] && (
                     <p className="text-xs text-destructive">
@@ -1680,7 +1856,7 @@ export function CreateSalesOrderForm({
             <CardHeader>
               <CardTitle>Dirección de facturación</CardTitle>
             </CardHeader>
-            <CardContent>{renderAddressFields("billing")}</CardContent>
+            <CardContent>{renderAddressSection("billing")}</CardContent>
           </Card>
 
           <Card>
@@ -1715,7 +1891,7 @@ export function CreateSalesOrderForm({
                       Se usará la misma dirección para el envío.
                     </p>
                   ) : (
-                    renderAddressFields("shipping")
+                    renderAddressSection("shipping")
                   )
                 }
               </form.Subscribe>
