@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { format, parseISO } from "date-fns";
 import { ChevronDown, Funnel, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -123,10 +124,8 @@ function FilterEditor({
     return (
       <div className="flex flex-col gap-2.5">
         <DatePicker
-          value={draft ? new Date(draft) : undefined}
-          onChange={(date) =>
-            setDraft(date ? date.toISOString().split("T")[0] : "")
-          }
+          value={draft ? parseISO(draft) : undefined}
+          onChange={(date) => setDraft(date ? format(date, "yyyy-MM-dd") : "")}
           className="w-full"
         />
         <div className="flex justify-end gap-2">

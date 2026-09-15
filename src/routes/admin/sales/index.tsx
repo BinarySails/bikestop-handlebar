@@ -1,7 +1,7 @@
 /* oxlint-disable react/no-unstable-nested-components -- column cells are render callbacks, not components */
 import { useState } from "react";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
-import { format } from "date-fns";
+import { format, parseISO, startOfDay, endOfDay } from "date-fns";
 import { es } from "date-fns/locale";
 import { Eye, MoreVertical, ShoppingCart } from "lucide-react";
 import { z } from "zod";
@@ -90,20 +90,12 @@ const currencyFormatter = new Intl.NumberFormat("es-MX", {
   currency: "MXN",
 });
 
-function parseISODate(value: string): Date {
-  return new Date(value);
-}
-
 function toStartOfDayISO(value: string): string {
-  const date = parseISODate(value);
-  date.setUTCHours(0, 0, 0, 0);
-  return date.toISOString();
+  return startOfDay(parseISO(value)).toISOString();
 }
 
 function toEndOfDayISO(value: string): string {
-  const date = parseISODate(value);
-  date.setUTCHours(23, 59, 59, 999);
-  return date.toISOString();
+  return endOfDay(parseISO(value)).toISOString();
 }
 
 export const Route = createFileRoute("/admin/sales/")({
@@ -161,14 +153,14 @@ const filterDefinitions: FilterDefinition[] = [
     label: "Fecha desde",
     type: "date",
     valueFormatter: (value) =>
-      format(parseISODate(value), "dd/MM/yyyy", { locale: es }),
+      format(parseISO(value), "dd/MM/yyyy", { locale: es }),
   },
   {
     key: "order_date_to",
     label: "Fecha hasta",
     type: "date",
     valueFormatter: (value) =>
-      format(parseISODate(value), "dd/MM/yyyy", { locale: es }),
+      format(parseISO(value), "dd/MM/yyyy", { locale: es }),
   },
   {
     key: "grand_total_max",
