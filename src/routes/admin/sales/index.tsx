@@ -47,12 +47,6 @@ const salesSearchSchema = z.object({
   customer_company_name: z.string().trim().min(1).optional().catch(undefined),
   order_date_from: z.string().optional().catch(undefined),
   order_date_to: z.string().optional().catch(undefined),
-  grand_total_min: z.coerce
-    .number()
-    .int()
-    .nonnegative()
-    .optional()
-    .catch(undefined),
   grand_total_max: z.coerce
     .number()
     .int()
@@ -177,12 +171,6 @@ const filterDefinitions: FilterDefinition[] = [
       format(parseISODate(value), "dd/MM/yyyy", { locale: es }),
   },
   {
-    key: "grand_total_min",
-    label: "Total mínimo",
-    type: "number",
-    placeholder: "0",
-  },
-  {
     key: "grand_total_max",
     label: "Total máximo",
     type: "number",
@@ -204,7 +192,6 @@ function SalesOrdersPage() {
     shipping_country: filters.shipping_country,
     order_date_from: filters.order_date_from,
     order_date_to: filters.order_date_to,
-    grand_total_min: filters.grand_total_min?.toString(),
     grand_total_max: filters.grand_total_max?.toString(),
   };
 
@@ -234,7 +221,6 @@ function SalesOrdersPage() {
     order_date_to: filters.order_date_to
       ? toEndOfDayISO(filters.order_date_to)
       : undefined,
-    grand_total_min: filters.grand_total_min,
     grand_total_max: filters.grand_total_max,
     shipping_state: filters.shipping_state,
     shipping_country: filters.shipping_country,
@@ -253,7 +239,7 @@ function SalesOrdersPage() {
 
   function handleFilterChange(key: string, value: string | undefined) {
     const parsed =
-      key === "grand_total_min" || key === "grand_total_max"
+      key === "grand_total_max"
         ? value === undefined || value === "" || Number(value) < 0
           ? undefined
           : Number(value)
@@ -447,7 +433,6 @@ function SalesOrdersPage() {
                 "status",
                 "order_date_from",
                 "order_date_to",
-                "grand_total_min",
                 "grand_total_max",
               ]}
               onChange={handleFilterChange}
