@@ -20,6 +20,17 @@ import { useAuthStore } from "@/lib/auth/use-auth-store";
 import type { UpdateUserProfileRequest, UserResponse } from "@/lib/api/schemas";
 
 export const Route = createFileRoute("/b2b/account")({
+  beforeLoad: () => {
+    const { actor, isInDev } = useAuthStore.getState();
+    if (isInDev) return;
+
+    const isAdmin = actor?.roles?.some(
+      (role) => role.slug === "admin" || role.slug === "super_admin"
+    );
+    if (isAdmin) {
+      throw new Error("Admin users cannot access customer account pages.");
+    }
+  },
   component: AccountPage,
 });
 
