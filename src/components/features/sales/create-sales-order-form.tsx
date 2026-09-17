@@ -830,7 +830,10 @@ export function CreateSalesOrderForm({
 
         if (result.status === 201) {
           toast.success(`Orden ${result.data.order_number} creada.`);
-          navigate({ to: "/admin/sales" });
+          navigate({
+            to: "/admin/sales/$orderId",
+            params: { orderId: result.data.id },
+          });
         } else {
           const errorData =
             "data" in result &&

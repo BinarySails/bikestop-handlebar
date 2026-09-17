@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useForm } from "@tanstack/react-form";
+import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import {
   useCreateProductRequest,
@@ -37,6 +38,7 @@ export function CreateProductDialog({
   onSuccess?: () => Promise<unknown>;
 }) {
   const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
   const { trigger } = useCreateProductRequest();
   const { data: brandsRes, isLoading: brandsLoading } = useListBrandsRequest();
   const { data: categoriesRes, isLoading: categoriesLoading } =
@@ -73,6 +75,10 @@ export function CreateProductDialog({
         form.reset();
         setOpen(false);
         await onSuccess?.();
+        await navigate({
+          to: "/admin/products/$productId",
+          params: { productId: result.data.id },
+        });
       } else {
         toast.error(errorData?.message ?? "Error al crear producto");
       }

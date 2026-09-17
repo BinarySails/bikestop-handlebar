@@ -113,6 +113,10 @@ export function BrandsCatalog({
         return mutationErrors(result.status, result.data);
       toast.success("Marca creada correctamente.");
       await listQuery.mutate();
+      await navigate({
+        to: "/admin/brands/$brandId/edit",
+        params: { brandId: result.data.id },
+      });
     } catch {
       return mutationErrors(0);
     }

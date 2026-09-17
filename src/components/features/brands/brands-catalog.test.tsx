@@ -122,6 +122,10 @@ describe("BrandsCatalog", () => {
       })
     );
     expect(api.listMutate).toHaveBeenCalled();
+    expect(api.navigate).toHaveBeenCalledWith({
+      to: "/admin/brands/$brandId/edit",
+      params: { brandId: brandFixtures[0].id },
+    });
   });
 
   it("maps a duplicate-name conflict to the name field", async () => {
