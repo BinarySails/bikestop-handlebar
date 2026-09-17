@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import useSwr, { useSWRConfig } from "swr";
 
 import {
@@ -68,6 +68,10 @@ export function useCartMutate() {
 export function useUpdateCartItem() {
   const [isMutating, setIsMutating] = useState(false);
   const cartMutate = useCartMutate();
+  const cartMutateRef = useRef(cartMutate);
+  useEffect(() => {
+    cartMutateRef.current = cartMutate;
+  }, [cartMutate]);
 
   const trigger = useCallback(
     async ({ itemId, quantity }: { itemId: string; quantity: number }) => {
@@ -77,13 +81,13 @@ export function useUpdateCartItem() {
         if (res.status !== 200) {
           throw new Error("Error al actualizar el carrito.");
         }
-        cartMutate();
+        cartMutateRef.current();
         return res;
       } finally {
         setIsMutating(false);
       }
     },
-    [cartMutate]
+    []
   );
 
   return { trigger, isMutating };
@@ -92,23 +96,24 @@ export function useUpdateCartItem() {
 export function useDeleteCartItem() {
   const [isMutating, setIsMutating] = useState(false);
   const cartMutate = useCartMutate();
+  const cartMutateRef = useRef(cartMutate);
+  useEffect(() => {
+    cartMutateRef.current = cartMutate;
+  }, [cartMutate]);
 
-  const trigger = useCallback(
-    async ({ itemId }: { itemId: string }) => {
-      setIsMutating(true);
-      try {
-        const res = await removeCartItemHandler(itemId);
-        if (res.status !== 204) {
-          throw new Error("Error al eliminar del carrito.");
-        }
-        cartMutate();
-        return res;
-      } finally {
-        setIsMutating(false);
+  const trigger = useCallback(async ({ itemId }: { itemId: string }) => {
+    setIsMutating(true);
+    try {
+      const res = await removeCartItemHandler(itemId);
+      if (res.status !== 204) {
+        throw new Error("Error al eliminar del carrito.");
       }
-    },
-    [cartMutate]
-  );
+      cartMutateRef.current();
+      return res;
+    } finally {
+      setIsMutating(false);
+    }
+  }, []);
 
   return { trigger, isMutating };
 }
@@ -116,6 +121,10 @@ export function useDeleteCartItem() {
 export function useAddToCart() {
   const [isMutating, setIsMutating] = useState(false);
   const cartMutate = useCartMutate();
+  const cartMutateRef = useRef(cartMutate);
+  useEffect(() => {
+    cartMutateRef.current = cartMutate;
+  }, [cartMutate]);
 
   const trigger = useCallback(
     async ({
@@ -134,13 +143,13 @@ export function useAddToCart() {
         if (res.status !== 201) {
           throw new Error("Error al agregar al carrito.");
         }
-        cartMutate();
+        cartMutateRef.current();
         return res;
       } finally {
         setIsMutating(false);
       }
     },
-    [cartMutate]
+    []
   );
 
   return { trigger, isMutating };
@@ -149,6 +158,10 @@ export function useAddToCart() {
 export function useClearCart() {
   const [isMutating, setIsMutating] = useState(false);
   const cartMutate = useCartMutate();
+  const cartMutateRef = useRef(cartMutate);
+  useEffect(() => {
+    cartMutateRef.current = cartMutate;
+  }, [cartMutate]);
 
   const trigger = useCallback(async () => {
     setIsMutating(true);
@@ -157,12 +170,12 @@ export function useClearCart() {
       if (res.status !== 204) {
         throw new Error("Error al vaciar el carrito.");
       }
-      cartMutate();
+      cartMutateRef.current();
       return res;
     } finally {
       setIsMutating(false);
     }
-  }, [cartMutate]);
+  }, []);
 
   return { trigger, isMutating };
 }
@@ -170,25 +183,26 @@ export function useClearCart() {
 export function useCheckoutCart() {
   const [isMutating, setIsMutating] = useState(false);
   const cartMutate = useCartMutate();
+  const cartMutateRef = useRef(cartMutate);
+  useEffect(() => {
+    cartMutateRef.current = cartMutate;
+  }, [cartMutate]);
 
-  const trigger = useCallback(
-    async (payload: CheckoutCartPayload) => {
-      setIsMutating(true);
-      try {
-        const res = await checkoutCartHandler(payload);
-        if (res.status === 201) {
-          cartMutate({
-            status: 404,
-            data: undefined,
-          } as getCartHandlerResponse);
-        }
-        return res;
-      } finally {
-        setIsMutating(false);
+  const trigger = useCallback(async (payload: CheckoutCartPayload) => {
+    setIsMutating(true);
+    try {
+      const res = await checkoutCartHandler(payload);
+      if (res.status === 201) {
+        cartMutateRef.current({
+          status: 404,
+          data: undefined,
+        } as getCartHandlerResponse);
       }
-    },
-    [cartMutate]
-  );
+      return res;
+    } finally {
+      setIsMutating(false);
+    }
+  }, []);
 
   return { trigger, isMutating };
 }

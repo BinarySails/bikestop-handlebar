@@ -27,22 +27,6 @@ vi.mock("@/lib/api/api", () => ({
     },
     isLoading: false,
   }),
-  useListLocalitiesRequest: () => ({
-    data: {
-      status: 200,
-      data: {
-        data: [
-          {
-            id: "locality-1",
-            state_id: "state-1",
-            display_name: "Guadalajara",
-            created_at: "",
-          },
-        ],
-      },
-    },
-    isLoading: false,
-  }),
 }));
 
 vi.mock("sonner", () => {
@@ -81,7 +65,9 @@ async function fillValidForm() {
     target: { value: "5512345678" },
   });
   await chooseOption("Estado", "Jalisco");
-  await chooseOption("Ciudad", "Guadalajara");
+  fireEvent.change(screen.getByLabelText("Ciudad"), {
+    target: { value: "Guadalajara" },
+  });
 
   fireEvent.change(screen.getByLabelText("Código postal"), {
     target: { value: "44100" },

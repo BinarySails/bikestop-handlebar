@@ -18,7 +18,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
   return (
     <Link
-      to="/$productId"
+      to="/b2b/$productId"
       params={{ productId: product.id }}
       className="group block"
     >

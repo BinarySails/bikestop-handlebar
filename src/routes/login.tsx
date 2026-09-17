@@ -51,7 +51,7 @@ export const Route = createFileRoute("/login")({
 
     if (isAuthenticated && checkSession()) {
       throw redirect({
-        to: search.next || "/dashboard",
+        to: search.next || "/admin/dashboard",
       });
     }
 
@@ -87,7 +87,7 @@ export const Route = createFileRoute("/login")({
         );
 
         throw redirect({
-          to: search.next || "/dashboard",
+          to: search.next || "/admin/dashboard",
         });
       } else {
         clearAuth();
@@ -144,7 +144,7 @@ function LoginPage() {
       );
 
       toast.success("Sesión iniciada.");
-      await navigate({ to: search.next || "/dashboard" });
+      await navigate({ to: search.next || "/admin/dashboard" });
       return;
     }
 

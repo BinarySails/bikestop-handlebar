@@ -18,11 +18,13 @@ export function ProductCombobox({
   id,
   value,
   onChange,
+  onClear,
   disabled,
 }: {
   id?: string;
   value: Product | null;
   onChange: (product: Product | null) => void;
+  onClear?: () => void;
   disabled?: boolean;
 }) {
   const [search, setSearch] = useState("");
@@ -32,7 +34,7 @@ export function ProductCombobox({
     {
       status: ProductStatus.enable,
       search: debouncedSearch || undefined,
-      limit: 20,
+      limit: 100,
     },
     { swr: { keepPreviousData: true } }
   );
@@ -52,6 +54,11 @@ export function ProductCombobox({
       items={items}
       value={value}
       onValueChange={(product: Product | null) => {
+        if (!product) {
+          onClear?.();
+          return;
+        }
+
         onChange(product);
         setSearch("");
       }}

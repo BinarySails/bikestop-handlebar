@@ -46,7 +46,7 @@ function RoleFormDialog({
   const form = useForm({
     defaultValues: {
       displayName: role?.display_name ?? "",
-      isActive: role?.status === "active",
+      isActive: role?.status === "enable",
     },
     onSubmit: async ({ value }) => {
       const slug = value.displayName.toLowerCase().replace(/\s+/g, "-");
@@ -55,7 +55,7 @@ function RoleFormDialog({
         const result = await updateTrigger({
           display_name: value.displayName,
           slug,
-          status: value.isActive ? "active" : "inactive",
+          status: value.isActive ? "enable" : "disable",
         });
         if (result?.status === 200) {
           toast.success(`Rol "${value.displayName}" actualizado.`);
@@ -223,7 +223,7 @@ function DeleteRoleDialog({
           <DialogDescription>
             ¿Estás seguro de eliminar el rol{" "}
             <strong>{role.display_name}</strong>?
-            {role.status === "active" && (
+            {role.status === "enable" && (
               <span className="mt-2 block text-destructive">
                 Este rol está activo. Si tiene usuarios asignados no se podrá
                 eliminar.
@@ -336,7 +336,7 @@ export function ManageRolesDialog() {
               </p>
             ) : (
               data?.data?.roles
-                ?.filter((r) => r.status !== "deleted")
+                ?.filter((r) => r.status !== "archive")
                 .map((role) => (
                   <div
                     key={role.id}
@@ -353,16 +353,16 @@ export function ManageRolesDialog() {
                       </div>
                       <Badge
                         variant={
-                          role.status === "active" ? "default" : "secondary"
+                          role.status === "enable" ? "default" : "secondary"
                         }
                         className="gap-1"
                       >
-                        {role.status === "active" ? (
+                        {role.status === "enable" ? (
                           <CircleCheck className="size-3" />
                         ) : (
                           <CircleX className="size-3" />
                         )}
-                        {role.status === "active" ? "Activo" : "Inactivo"}
+                        {role.status === "enable" ? "Activo" : "Inactivo"}
                       </Badge>
                     </div>
                     <div className="flex gap-1">

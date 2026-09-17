@@ -30,7 +30,6 @@ export interface CatalogProduct {
   id: VariantId;
   images: VariantImage[];
   is_available: boolean;
-  prices: VariantPrice[];
   product_id: ProductId;
   properties: VariantProperty[];
   sku: string;

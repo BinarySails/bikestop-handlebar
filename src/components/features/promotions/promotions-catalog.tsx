@@ -1,3 +1,4 @@
+/* oxlint-disable react/no-unstable-nested-components -- entity-index-page cell renderers are callbacks, not components */
 import { useState } from "react";
 import { BadgePercent } from "lucide-react";
 

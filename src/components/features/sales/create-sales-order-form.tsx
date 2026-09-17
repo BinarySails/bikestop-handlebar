@@ -1,11 +1,13 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
-import { Plus, Trash2, WarehouseIcon } from "lucide-react";
+import { Plus, Printer, Trash2, WarehouseIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { CustomerCombobox } from "@/components/features/sales/customer-combobox";
 import { ProductCombobox } from "@/components/features/sales/product-combobox";
+import { ProductLineThumbnail } from "@/components/features/sales/product-line-thumbnail";
+import { SalesOrderPrintDocument } from "@/components/features/sales/sales-order-print-document";
 import { OrderTagsSelect } from "@/components/features/sales/tags/order-tags-select";
 import {
   VariantCombobox,
@@ -45,9 +47,12 @@ import {
 import {
   listInventoryRequest,
   useCreateSalesOrderRequest,
+  useGetCustomerRequest,
+  useListCustomerAddressesRequest,
   useListInventoryRequest,
 } from "@/lib/api/api";
 import {
+  type CustomerAddressWithAddressRow,
   type OrderTagId,
   type PaginatedCustomerSummaryDataItem,
   type CreateSalesOrderRequest,
@@ -115,6 +120,7 @@ type SalesOrderFormValues = {
   comments: string;
   tag_ids: OrderTagId[];
   lines: LineFormValues[];
+  initial_status: "draft" | "quote" | "confirmed";
 };
 
 function countDecimals(value: string): number {
@@ -319,6 +325,7 @@ const defaultValues: SalesOrderFormValues = {
   comments: "",
   tag_ids: [],
   lines: [],
+  initial_status: "draft",
 };
 
 function addressValues(
@@ -330,6 +337,22 @@ function addressValues(
     city: address.city,
     postal_code: address.postal_code,
     address: address.address,
+  };
+}
+
+function formatAddressRow(addr: CustomerAddressWithAddressRow): string {
+  return `${addr.street_address}, ${addr.city}, ${addr.state}, ${addr.postal_code}, ${addr.country}`;
+}
+
+function customerAddressToFormValues(
+  addr: CustomerAddressWithAddressRow
+): AddressFormValues {
+  return {
+    country: addr.country,
+    state: addr.state,
+    city: addr.city,
+    postal_code: addr.postal_code,
+    address: addr.street_address,
   };
 }
 
@@ -354,6 +377,9 @@ function valuesFromOrder(order: SalesOrder): SalesOrderFormValues {
       email: null,
       tax_id: "",
       username: "",
+      // The order snapshot carries no status; a persisted order implies an
+      // active customer. Replaced wholesale when the combobox selection changes.
+      status: "enable",
     },
     billing: addressValues(order.billing_address),
     shipping_same_as_billing: sameAddress(
@@ -365,6 +391,7 @@ function valuesFromOrder(order: SalesOrder): SalesOrderFormValues {
     payment_term: order.payment_term ?? null,
     comments: order.comments ?? "",
     tag_ids: order.tags.map((tag) => tag.id),
+    initial_status: order.status as "draft" | "quote" | "confirmed",
     lines: order.lines.map((line) => ({
       id: line.id,
       product: {
@@ -386,6 +413,7 @@ function valuesFromOrder(order: SalesOrder): SalesOrderFormValues {
         images: [],
         created_at: order.created_at,
         updated_at: order.updated_at,
+        total_inventory: 0,
       } as Variant,
       description: line.description,
       quantity: String(line.quantity),
@@ -407,6 +435,7 @@ export function CreateSalesOrderForm({
   onAddComment,
   onSaveOrder,
   onAdvance,
+  onConfirm,
   onCancel,
   onDispatchLine,
 }: {
@@ -415,6 +444,7 @@ export function CreateSalesOrderForm({
   onAddComment?: (comment: string) => Promise<void>;
   onSaveOrder?: (payload: CreateSalesOrderRequest) => Promise<void>;
   onAdvance?: () => Promise<void>;
+  onConfirm?: () => Promise<void>;
   onCancel?: () => Promise<void>;
   onDispatchLine?: (
     lineId: SalesOrderLineId,
@@ -428,6 +458,7 @@ export function CreateSalesOrderForm({
   const editable =
     !order || order.status === "draft" || order.status === "quote";
   const canAdvance = order?.status === "draft" || order?.status === "quote";
+  const canConfirm = order?.status === "draft";
   const canCancel =
     order?.status === "draft" ||
     order?.status === "quote" ||
@@ -444,7 +475,7 @@ export function CreateSalesOrderForm({
   const [newComment, setNewComment] = useState("");
   const [isAddingComment, setIsAddingComment] = useState(false);
   const [confirmation, setConfirmation] = useState<
-    "advance" | "cancel" | "save-quote" | null
+    "advance" | "confirm" | "cancel" | "save-quote" | null
   >(null);
   const [isChangingStatus, setIsChangingStatus] = useState(false);
   const [dispatchLineId, setDispatchLineId] = useState<SalesOrderLineId | null>(
@@ -480,6 +511,57 @@ export function CreateSalesOrderForm({
     .map((comment) => comment.trim())
     .filter(Boolean);
 
+  const [customerIdForFetch, setCustomerIdForFetch] = useState<string>("");
+  const { data: customerRes } = useGetCustomerRequest(customerIdForFetch, {
+    swr: { enabled: customerIdForFetch !== "" },
+  });
+  const customerUserId =
+    customerRes?.status === 200 && customerRes.data.user_id
+      ? customerRes.data.user_id
+      : "";
+  const { data: addressesRes } = useListCustomerAddressesRequest(
+    customerUserId,
+    { swr: { enabled: customerUserId !== "" } }
+  );
+  const allCustomerAddresses =
+    addressesRes?.status === 200 ? (addressesRes.data ?? []) : [];
+  const customerAddresses = allCustomerAddresses.filter(
+    (a) => a.status === "enable"
+  );
+  const defaultBillingAddr = customerAddresses.find(
+    (a) => a.is_default_billing
+  );
+  const defaultShippingAddr = customerAddresses.find(
+    (a) => a.is_default_shipping
+  );
+
+  const [selectedBillingAddressId, setSelectedBillingAddressId] = useState<
+    string | "new"
+  >(defaultBillingAddr ? defaultBillingAddr.id : "new");
+  const [selectedShippingAddressId, setSelectedShippingAddressId] = useState<
+    string | "new"
+  >(defaultShippingAddr ? defaultShippingAddr.id : "new");
+
+  useEffect(() => {
+    setSelectedBillingAddressId(
+      defaultBillingAddr ? defaultBillingAddr.id : "new"
+    );
+    setSelectedShippingAddressId(
+      defaultShippingAddr ? defaultShippingAddr.id : "new"
+    );
+  }, [customerIdForFetch, defaultBillingAddr, defaultShippingAddr]);
+
+  const selectedBillingAddress =
+    selectedBillingAddressId !== "new"
+      ? (customerAddresses.find((a) => a.id === selectedBillingAddressId) ??
+        null)
+      : null;
+  const selectedShippingAddress =
+    selectedShippingAddressId !== "new"
+      ? (customerAddresses.find((a) => a.id === selectedShippingAddressId) ??
+        null)
+      : null;
+
   async function addComment() {
     const comment = newComment.trim();
     if (!comment || !onAddComment) return;
@@ -508,6 +590,9 @@ export function CreateSalesOrderForm({
             ? "El borrador se convirtió en cotización"
             : "La cotización fue confirmada"
         );
+      } else if (confirmation === "confirm") {
+        await onConfirm?.();
+        toast.success("La orden fue confirmada");
       } else {
         await onCancel?.();
         toast.success("La orden fue cancelada");
@@ -519,7 +604,9 @@ export function CreateSalesOrderForm({
           ? error.message
           : confirmation === "advance"
             ? "No se pudo cambiar el estado de la orden"
-            : "No se pudo cancelar la orden"
+            : confirmation === "confirm"
+              ? "No se pudo confirmar la orden"
+              : "No se pudo cancelar la orden"
       );
     } finally {
       setIsChangingStatus(false);
@@ -560,23 +647,27 @@ export function CreateSalesOrderForm({
         return;
       }
 
-      const billingAddress = {
-        country: value.billing.country.trim(),
-        state: value.billing.state.trim(),
-        city: value.billing.city.trim(),
-        postal_code: value.billing.postal_code.trim(),
-        address: value.billing.address.trim(),
-      };
+      const billingAddress = selectedBillingAddress
+        ? customerAddressToFormValues(selectedBillingAddress)
+        : {
+            country: value.billing.country.trim(),
+            state: value.billing.state.trim(),
+            city: value.billing.city.trim(),
+            postal_code: value.billing.postal_code.trim(),
+            address: value.billing.address.trim(),
+          };
 
       const shippingAddress = value.shipping_same_as_billing
         ? billingAddress
-        : {
-            country: value.shipping.country.trim(),
-            state: value.shipping.state.trim(),
-            city: value.shipping.city.trim(),
-            postal_code: value.shipping.postal_code.trim(),
-            address: value.shipping.address.trim(),
-          };
+        : selectedShippingAddress
+          ? customerAddressToFormValues(selectedShippingAddress)
+          : {
+              country: value.shipping.country.trim(),
+              state: value.shipping.state.trim(),
+              city: value.shipping.city.trim(),
+              postal_code: value.shipping.postal_code.trim(),
+              address: value.shipping.address.trim(),
+            };
 
       const payload = {
         customer_id: value.customer.id,
@@ -586,6 +677,7 @@ export function CreateSalesOrderForm({
         payment_term_id: value.payment_term?.id,
         comments: value.comments.trim() || null,
         tag_ids: value.tag_ids.length > 0 ? value.tag_ids : null,
+        initial_status: order ? null : value.initial_status,
         lines: completeLines.map((line) => ({
           line_id: line.id ?? null,
           variant_id: line.variant.id,
@@ -614,15 +706,114 @@ export function CreateSalesOrderForm({
           (order.status === "draft" || order.status === "quote") &&
           onSaveOrder
         ) {
+          const originalBilling = addressValues(order.billing_address);
+          const billingChanged =
+            originalBilling.country !== billingAddress.country ||
+            originalBilling.state !== billingAddress.state ||
+            originalBilling.city !== billingAddress.city ||
+            originalBilling.postal_code !== billingAddress.postal_code ||
+            originalBilling.address !== billingAddress.address;
+
+          const originalShipping = addressValues(order.shipping_address);
+          const shippingChanged = value.shipping_same_as_billing
+            ? false
+            : originalShipping.country !== shippingAddress.country ||
+              originalShipping.state !== shippingAddress.state ||
+              originalShipping.city !== shippingAddress.city ||
+              originalShipping.postal_code !== shippingAddress.postal_code ||
+              originalShipping.address !== shippingAddress.address;
+
+          const paymentTermChanged =
+            order.payment_term?.id !== value.payment_term?.id;
+
+          const commentsChanged =
+            (order.comments ?? "").trim() !== value.comments.trim();
+
+          const originalTagIds = [...order.tags.map((tag) => tag.id)].sort();
+          const valueTagIds = [...value.tag_ids].sort();
+          const tagsChanged =
+            originalTagIds.length !== valueTagIds.length ||
+            originalTagIds.some((id, index) => id !== valueTagIds[index]);
+
+          const customerChanged =
+            order.customer.customer_id !== value.customer?.id;
+
+          const orderDateChanged =
+            new Date(order.order_date).getTime() !== value.order_date.getTime();
+
+          const sortAllocations = <T extends { warehouse_id: string }>(
+            items: T[]
+          ) =>
+            [...items].sort((a, b) =>
+              a.warehouse_id.localeCompare(b.warehouse_id)
+            );
+
+          const originalLineSignature = JSON.stringify(
+            order.lines.map((line) => ({
+              id: line.id,
+              variant_id: line.variant_id,
+              description: line.description.trim(),
+              quantity: line.quantity,
+              unit_price: line.unit_price,
+              tax_rate: line.tax_rate,
+              allocations: sortAllocations(
+                line.warehouse_allocations.map((a) => ({
+                  warehouse_id: a.warehouse_id,
+                  quantity: a.quantity,
+                }))
+              ),
+            }))
+          );
+
+          const valueLineSignature = JSON.stringify(
+            completeLines.map((line) => ({
+              id: line.id ?? null,
+              variant_id: line.variant.id,
+              description: line.description.trim(),
+              quantity: Number(line.quantity),
+              unit_price: pesosToCents(Number(line.unit_price)),
+              tax_rate: percentToBasisPoints(line.tax_rate),
+              allocations: sortAllocations(
+                line.warehouse_allocations.map((a) => ({
+                  warehouse_id: a.warehouse_id,
+                  quantity: Number(a.quantity),
+                }))
+              ),
+            }))
+          );
+
+          const linesChanged = originalLineSignature !== valueLineSignature;
+
+          const onlyAddressOrPaymentChanged =
+            (billingChanged || paymentTermChanged || shippingChanged) &&
+            !linesChanged &&
+            !commentsChanged &&
+            !tagsChanged &&
+            !customerChanged &&
+            !orderDateChanged;
+
           try {
             await onSaveOrder(parseResult.data);
             form.reset(value);
             setConfirmation(null);
-            toast.success(
-              order.status === "quote"
-                ? "Nueva cotización creada"
-                : "Cambios guardados"
-            );
+
+            if (onlyAddressOrPaymentChanged) {
+              if (billingChanged) {
+                toast.success("Dirección de facturación actualizada");
+              }
+              if (shippingChanged) {
+                toast.success("Dirección de envío actualizada");
+              }
+              if (paymentTermChanged) {
+                toast.success("Término de pago actualizado");
+              }
+            } else {
+              toast.success(
+                order.status === "quote"
+                  ? "Nueva cotización creada"
+                  : "Cambios guardados"
+              );
+            }
           } catch (error) {
             toast.error(
               error instanceof Error
@@ -639,7 +830,7 @@ export function CreateSalesOrderForm({
 
         if (result.status === 201) {
           toast.success(`Orden ${result.data.order_number} creada.`);
-          navigate({ to: "/sales" });
+          navigate({ to: "/admin/sales" });
         } else {
           const errorData =
             "data" in result &&
@@ -794,6 +985,105 @@ export function CreateSalesOrderForm({
     setAllocationLineIndex(null);
     setAllocationVariantId(null);
     setAllocationDraft([]);
+  }
+
+  function renderAddressSection(prefix: "billing" | "shipping") {
+    const isBilling = prefix === "billing";
+    const selected = isBilling
+      ? selectedBillingAddress
+      : selectedShippingAddress;
+    const selectedId = isBilling
+      ? selectedBillingAddressId
+      : selectedShippingAddressId;
+    const onSelectChange = (value: string | null) => {
+      if (!value) return;
+      if (isBilling) {
+        setSelectedBillingAddressId(value as string | "new");
+      } else {
+        setSelectedShippingAddressId(value as string | "new");
+      }
+    };
+    const showSelect = customerIdForFetch !== "";
+
+    return (
+      <div className="space-y-4">
+        {showSelect && (
+          <div className="grid gap-1.5">
+            <Label>Seleccionar dirección</Label>
+            <Select
+              value={selectedId}
+              onValueChange={onSelectChange}
+              disabled={!editable || customerAddresses.length === 0}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Seleccionar dirección">
+                  {(value) =>
+                    value === "new"
+                      ? "Ingresar nueva dirección"
+                      : customerAddresses.find((a) => a.id === value)
+                        ? formatAddressRow(
+                            customerAddresses.find((a) => a.id === value)!
+                          )
+                        : "Seleccionar dirección"
+                  }
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {customerAddresses.map((addr) => (
+                  <SelectItem
+                    key={addr.id}
+                    value={addr.id}
+                    label={formatAddressRow(addr)}
+                  >
+                    {formatAddressRow(addr)}
+                    {isBilling
+                      ? addr.is_default_billing && (
+                          <Badge className="ml-2 text-[10px]">
+                            Predeterminada
+                          </Badge>
+                        )
+                      : addr.is_default_shipping && (
+                          <Badge className="ml-2 text-[10px]">
+                            Predeterminada
+                          </Badge>
+                        )}
+                  </SelectItem>
+                ))}
+                <SelectItem value="new" label="Ingresar nueva dirección">
+                  Ingresar nueva dirección
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+        {selected ? (
+          <div className="grid gap-3 rounded-lg border p-4 sm:grid-cols-2">
+            <div className="grid gap-1.5">
+              <Label>País</Label>
+              <p className="text-sm">{selected.country}</p>
+            </div>
+            <div className="grid gap-1.5">
+              <Label>Estado</Label>
+              <p className="text-sm">{selected.state}</p>
+            </div>
+            <div className="grid gap-1.5">
+              <Label>Ciudad</Label>
+              <p className="text-sm">{selected.city}</p>
+            </div>
+            <div className="grid gap-1.5">
+              <Label>Código postal</Label>
+              <p className="text-sm">{selected.postal_code}</p>
+            </div>
+            <div className="grid gap-1.5 sm:col-span-2">
+              <Label>Dirección</Label>
+              <p className="text-sm">{selected.street_address}</p>
+            </div>
+          </div>
+        ) : (
+          renderAddressFields(prefix)
+        )}
+      </div>
+    );
   }
 
   function renderAddressFields(
@@ -1008,6 +1298,17 @@ export function CreateSalesOrderForm({
           </Button>
         )}
 
+        {canConfirm && (
+          <Button
+            type="button"
+            variant="default"
+            disabled={isChangingStatus}
+            onClick={() => setConfirmation("confirm")}
+          >
+            Confirmar orden
+          </Button>
+        )}
+
         {canCancel && (
           <Button
             type="button"
@@ -1018,7 +1319,24 @@ export function CreateSalesOrderForm({
             {order?.status === "quote" ? "Cancelar cotización" : "Cancelar"}
           </Button>
         )}
+
+        {isDetail && order && (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => window.print()}
+          >
+            <Printer className="size-4" />
+            Imprimir
+          </Button>
+        )}
       </div>
+
+      {isDetail && order && (
+        <div className="print-document hidden print:block">
+          <SalesOrderPrintDocument order={order} />
+        </div>
+      )}
 
       <Dialog
         open={confirmation !== null}
@@ -1038,9 +1356,11 @@ export function CreateSalesOrderForm({
                 ? "Al guardar los cambios se creará una nueva cotización y la cotización actual será cancelada."
                 : confirmation === "cancel"
                   ? "¿Deseas cancelar esta orden? Esta acción no se puede deshacer."
-                  : order?.status === "draft"
-                    ? "¿Deseas convertir este borrador en cotización?"
-                    : "¿Deseas confirmar esta cotización?"}
+                  : confirmation === "confirm"
+                    ? "¿Deseas confirmar esta orden directamente? Se saltará el paso de cotización."
+                    : order?.status === "draft"
+                      ? "¿Deseas convertir este borrador en cotización?"
+                      : "¿Deseas confirmar esta cotización?"}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -1071,7 +1391,9 @@ export function CreateSalesOrderForm({
                   ? "Crear nueva cotización"
                   : confirmation === "cancel"
                     ? "Cancelar orden"
-                    : "Continuar"}
+                    : confirmation === "confirm"
+                      ? "Confirmar orden"
+                      : "Continuar"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1342,11 +1664,6 @@ export function CreateSalesOrderForm({
             const selectedAllocation = line?.warehouse_allocations.find(
               (item) => item.warehouse_id === dispatchWarehouseId
             );
-            const pendingAllocations =
-              line?.warehouse_allocations.filter(
-                (allocation) =>
-                  allocation.quantity > allocation.dispatched_quantity
-              ) ?? [];
             const remaining = selectedAllocation
               ? selectedAllocation.quantity -
                 selectedAllocation.dispatched_quantity
@@ -1355,44 +1672,37 @@ export function CreateSalesOrderForm({
               <div className="space-y-4">
                 <div className="grid gap-1.5">
                   <Label>Almacén</Label>
-                  {pendingAllocations.length === 1 ? (
-                    <div className="flex h-8 items-center rounded-lg border border-input px-2.5 text-sm">
-                      <WarehouseName
-                        variantId={line?.variant_id}
-                        warehouseId={pendingAllocations[0].warehouse_id}
-                      />
-                    </div>
-                  ) : (
-                    <Select
-                      value={dispatchWarehouseId ?? undefined}
-                      onValueChange={(warehouseId) => {
-                        if (!warehouseId) return;
-                        setDispatchWarehouseId(warehouseId);
-                        const selected = line?.warehouse_allocations.find(
-                          (item) => item.warehouse_id === warehouseId
-                        );
-                        setDispatchQuantity(
-                          selected
-                            ? String(
-                                selected.quantity - selected.dispatched_quantity
-                              )
-                            : ""
-                        );
-                      }}
-                      disabled={dispatchingLineId !== null}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Seleccionar almacén">
-                          {dispatchWarehouseId ? (
-                            <WarehouseName
-                              variantId={line?.variant_id}
-                              warehouseId={dispatchWarehouseId}
-                            />
-                          ) : null}
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent>
-                        {pendingAllocations.map((allocation) => (
+                  <Select
+                    value={dispatchWarehouseId ?? undefined}
+                    onValueChange={(warehouseId) => {
+                      if (!warehouseId) return;
+                      setDispatchWarehouseId(warehouseId);
+                      const selected = line?.warehouse_allocations.find(
+                        (item) => item.warehouse_id === warehouseId
+                      );
+                      setDispatchQuantity(
+                        selected
+                          ? String(
+                              selected.quantity - selected.dispatched_quantity
+                            )
+                          : ""
+                      );
+                    }}
+                    disabled={dispatchingLineId !== null}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Seleccionar almacén">
+                        {dispatchWarehouseId ? (
+                          <WarehouseName
+                            variantId={line?.variant_id}
+                            warehouseId={dispatchWarehouseId}
+                          />
+                        ) : null}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {line?.warehouse_allocations.map((allocation) => {
+                        return (
                           <SelectItem
                             key={allocation.warehouse_id}
                             value={allocation.warehouse_id}
@@ -1406,10 +1716,10 @@ export function CreateSalesOrderForm({
                               allocation.dispatched_quantity}{" "}
                             pendientes
                           </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="grid gap-1.5">
                   <Label htmlFor="dispatch-quantity">
@@ -1460,6 +1770,51 @@ export function CreateSalesOrderForm({
       </Dialog>
 
       <fieldset disabled={!editable} className="space-y-6">
+        {!isDetail && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Estado inicial</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form.Field name="initial_status">
+                {(field) => (
+                  <div className="grid gap-1.5">
+                    <Label htmlFor={field.name}>Estado</Label>
+                    <Select
+                      value={field.state.value}
+                      onValueChange={(val) =>
+                        field.handleChange(
+                          val as "draft" | "quote" | "confirmed"
+                        )
+                      }
+                      itemToStringLabel={(e) => {
+                        if (e === "draft") {
+                          return "Borrador";
+                        } else if (e === "quote") {
+                          return "Cotización";
+                        } else if (e === "confirmed") {
+                          return "Confirmada";
+                        }
+
+                        return "?";
+                      }}
+                    >
+                      <SelectTrigger id={field.name}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="draft">Borrador</SelectItem>
+                        <SelectItem value="quote">Cotización</SelectItem>
+                        <SelectItem value="confirmed">Confirmada</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </form.Field>
+            </CardContent>
+          </Card>
+        )}
+
         <Card>
           <CardHeader>
             <CardTitle>Cliente</CardTitle>
@@ -1480,7 +1835,10 @@ export function CreateSalesOrderForm({
                   <CustomerCombobox
                     id={field.name}
                     value={field.state.value}
-                    onChange={(customer) => field.handleChange(customer)}
+                    onChange={(customer) => {
+                      field.handleChange(customer);
+                      setCustomerIdForFetch(customer?.id ?? "");
+                    }}
                   />
                   {field.state.meta.errors[0] && (
                     <p className="text-xs text-destructive">
@@ -1498,7 +1856,7 @@ export function CreateSalesOrderForm({
             <CardHeader>
               <CardTitle>Dirección de facturación</CardTitle>
             </CardHeader>
-            <CardContent>{renderAddressFields("billing")}</CardContent>
+            <CardContent>{renderAddressSection("billing")}</CardContent>
           </Card>
 
           <Card>
@@ -1533,7 +1891,7 @@ export function CreateSalesOrderForm({
                       Se usará la misma dirección para el envío.
                     </p>
                   ) : (
-                    renderAddressFields("shipping")
+                    renderAddressSection("shipping")
                   )
                 }
               </form.Subscribe>
@@ -1710,6 +2068,30 @@ export function CreateSalesOrderForm({
                   )}
 
                   {field.state.value.map((_, index) => {
+                    function clearProductLine() {
+                      form.setFieldValue(`lines[${index}].product`, null);
+                      form.setFieldValue(`lines[${index}].variant`, null);
+                      form.setFieldValue(`lines[${index}].description`, "");
+                      form.setFieldValue(`lines[${index}].quantity`, "1");
+                      form.setFieldValue(`lines[${index}].unit_price`, "");
+                      form.setFieldValue(
+                        `lines[${index}].tax_rate`,
+                        DEFAULT_TAX_PERCENT
+                      );
+                      form.setFieldValue(
+                        `lines[${index}].warehouse_allocations`,
+                        []
+                      );
+                      form.setFieldValue(
+                        `lines[${index}].warehouse_allocation_manual`,
+                        false
+                      );
+                      form.setFieldValue(
+                        `lines[${index}].warehouse_error`,
+                        undefined
+                      );
+                    }
+
                     const line = field.state.value[index];
                     const totals = computeLineTotals(line);
                     const warehouseError = line.variant
@@ -1726,6 +2108,13 @@ export function CreateSalesOrderForm({
                         className="space-y-3 rounded-lg border p-4"
                       >
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+                          <ProductLineThumbnail
+                            productId={line.product?.id ?? null}
+                            variantId={line.variant?.id ?? null}
+                            embeddedImages={line.variant?.images}
+                            alt={line.description || "Producto"}
+                          />
+
                           <form.Field name={`lines[${index}].product`}>
                             {(subField) => (
                               <div className="grid flex-1 gap-1.5">
@@ -1734,6 +2123,7 @@ export function CreateSalesOrderForm({
                                   id={subField.name}
                                   value={subField.state.value}
                                   disabled={!editable}
+                                  onClear={clearProductLine}
                                   onChange={(product) => {
                                     subField.handleChange(product);
                                     form.setFieldValue(
@@ -1808,6 +2198,7 @@ export function CreateSalesOrderForm({
                                       );
                                     }
                                   }}
+                                  onClear={clearProductLine}
                                   disabled={!editable || !line.product}
                                 />
                                 {subField.state.meta.errors[0] && (
@@ -1931,7 +2322,7 @@ export function CreateSalesOrderForm({
                               <Input
                                 id={subField.name}
                                 value={subField.state.value}
-                                disabled={!editable}
+                                disabled
                                 onChange={(event) =>
                                   subField.handleChange(event.target.value)
                                 }
@@ -2020,7 +2411,7 @@ export function CreateSalesOrderForm({
                                   min={0}
                                   step="0.01"
                                   value={subField.state.value}
-                                  disabled={!editable}
+                                  disabled
                                   onChange={(event) =>
                                     subField.handleChange(event.target.value)
                                   }
@@ -2056,7 +2447,7 @@ export function CreateSalesOrderForm({
                                   max={100}
                                   step="0.01"
                                   value={subField.state.value}
-                                  disabled={!editable}
+                                  disabled
                                   onChange={(event) =>
                                     subField.handleChange(event.target.value)
                                   }

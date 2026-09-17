@@ -48,7 +48,7 @@ export function CreateSaleOrderTagDialog({
   const form = useForm({
     defaultValues: {
       displayName: tag?.display_name ?? "",
-      isActive: tag ? tag.status === "active" : true,
+      isActive: tag ? tag.status === "enable" : true,
     },
     onSubmit: async ({ value }) => {
       const slug = value.displayName.toLowerCase().replace(/\s+/g, "-");
@@ -59,7 +59,7 @@ export function CreateSaleOrderTagDialog({
             display_name: value.displayName,
             slug,
             color: selectedColor || null,
-            status: value.isActive ? "active" : "inactive",
+            status: value.isActive ? "enable" : "disable",
           });
           if (result.status !== 200) throw result;
           toast.success(`Etiqueta "${value.displayName}" actualizada.`);

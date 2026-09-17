@@ -19,11 +19,13 @@ export function WarehouseCombobox({
   value,
   onChange,
   disabled,
+  excludeId,
 }: {
   id?: string;
   value: WarehouseResponse | null;
   onChange: (warehouse: WarehouseResponse | null) => void;
   disabled?: boolean;
+  excludeId?: string;
 }) {
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebouncedValue(search.trim());
@@ -45,15 +47,19 @@ export function WarehouseCombobox({
         )
       : results;
 
+    const excluded = excludeId
+      ? filtered.filter((warehouse) => warehouse.id !== excludeId)
+      : filtered;
+
     if (
       !value ||
-      filtered.some((warehouse) => warehouse.id === value.id) ||
+      excluded.some((warehouse) => warehouse.id === value.id) ||
       results.some((warehouse) => warehouse.id === value.id)
     ) {
-      return filtered;
+      return excluded;
     }
-    return [...filtered, value];
-  }, [results, value, debouncedSearch]);
+    return [...excluded, value];
+  }, [results, value, debouncedSearch, excludeId]);
 
   return (
     <Combobox

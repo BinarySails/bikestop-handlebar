@@ -9,6 +9,7 @@ export type OrderTagStatus = typeof OrderTagStatus[keyof typeof OrderTagStatus];
 
 
 export const OrderTagStatus = {
-  active: 'active',
-  inactive: 'inactive',
+  enable: 'enable',
+  disable: 'disable',
+  archive: 'archive',
 } as const;

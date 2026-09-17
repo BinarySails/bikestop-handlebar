@@ -1,18 +1,21 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ImageOff } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
 type BrandImageProps = {
-  src: string;
+  src: string | null | undefined;
   alt: string;
   className?: string;
 };
 
 export function BrandImage({ src, alt, className }: BrandImageProps) {
   const [failed, setFailed] = useState(false);
-
-  useEffect(() => setFailed(false), [src]);
+  const [prevSrc, setPrevSrc] = useState(src);
+  if (src !== prevSrc) {
+    setPrevSrc(src);
+    setFailed(false);
+  }
 
   return (
     <div

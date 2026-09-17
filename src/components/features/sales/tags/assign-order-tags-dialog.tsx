@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 
 import { useListTagsRequest, updateSalesOrderTagsRequest } from "@/lib/api/api";
@@ -49,16 +49,16 @@ export function AssignOrderTagsDialog({
   const [saving, setSaving] = useState(false);
 
   const { data, isLoading } = useListTagsRequest(
-    open ? { status: "active" } : undefined
+    open ? { status: "enable" } : undefined
   );
   const tags = data?.status === 200 ? data.data.tags : [];
 
-  useEffect(() => {
-    setSelectedIds(order?.tags.map((tag) => tag.id) ?? []);
-  }, [order]);
-
   function handleOpenChange(next: boolean) {
-    if (!next) setSelectedIds([]);
+    if (next) {
+      setSelectedIds(order?.tags.map((tag) => tag.id) ?? []);
+    } else {
+      setSelectedIds([]);
+    }
     onOpenChange(next);
   }
 

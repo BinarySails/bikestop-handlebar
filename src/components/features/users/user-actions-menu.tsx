@@ -58,7 +58,7 @@ export function UserActionsMenu({
         <DropdownMenuItem
           onClick={() =>
             navigate({
-              to: "/users/$userId",
+              to: "/admin/users/$userId",
               params: { userId: user.id },
               search: { roles: user.roles.map((role) => role.id) },
             })

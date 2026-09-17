@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { ImageOff } from "lucide-react";
 
 import {
   Combobox,
@@ -14,7 +15,9 @@ import {
   type Variant,
   type VariantPrice,
 } from "@/lib/api/schemas";
+import { pickMainImageUrl } from "@/components/features/sales/product-line-thumbnail";
 import { centsToPesos } from "@/lib/money";
+import { cn } from "@/lib/utils";
 
 const EMPTY_VARIANTS: Variant[] = [];
 
@@ -32,12 +35,14 @@ export function VariantCombobox({
   productId,
   value,
   onChange,
+  onClear,
   disabled,
 }: {
   id?: string;
   productId: string | null;
   value: Variant | null;
   onChange: (variant: Variant | null) => void;
+  onClear?: () => void;
   disabled?: boolean;
 }) {
   const { data: res, isLoading } = useListVariantsRequest(
@@ -64,26 +69,47 @@ export function VariantCombobox({
   }, [all, value]);
 
   const selected = value;
+  const selectedImage = pickMainImageUrl(selected?.images);
+  const hasImageOverlay = selectedImage !== null || Boolean(selected);
 
   return (
     <Combobox
       items={items}
       value={selected}
       onValueChange={(variant: Variant | null) => {
+        if (!variant) {
+          onClear?.();
+          return;
+        }
         onChange(variant);
       }}
       itemToStringLabel={(variant: Variant) => `${variant.display_name}`}
       isItemEqualToValue={(a: Variant, b: Variant) => a.id === b.id}
       disabled={disabled || !productId}
     >
-      <ComboboxInput
-        id={id}
-        placeholder={
-          productId ? "Seleccionar variante" : "Selecciona un producto primero"
-        }
-        showClear
-        className="w-full"
-      />
+      <div className="relative w-full">
+        <ComboboxInput
+          id={id}
+          placeholder={
+            productId
+              ? "Seleccionar variante"
+              : "Selecciona un producto primero"
+          }
+          showClear
+          className={cn("w-full", hasImageOverlay && "[&_input]:pl-9")}
+        />
+        {selectedImage ? (
+          <img
+            src={selectedImage}
+            alt={selected?.display_name ?? ""}
+            className="pointer-events-none absolute top-1/2 left-2.5 size-6 -translate-y-1/2 rounded object-cover"
+          />
+        ) : selected ? (
+          <div className="pointer-events-none absolute top-1/2 left-2.5 flex size-6 -translate-y-1/2 items-center justify-center rounded bg-muted text-muted-foreground">
+            <ImageOff className="size-3.5" />
+          </div>
+        ) : null}
+      </div>
       <ComboboxContent>
         <ComboboxEmpty>
           {isLoading
@@ -95,13 +121,14 @@ export function VariantCombobox({
         <ComboboxList>
           {(variant: Variant) => {
             const price = findActiveRegularPrice(variant);
+            const itemImage = pickMainImageUrl(variant.images);
             return (
               <ComboboxItem key={variant.id} value={variant}>
                 <div className="flex w-full items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
-                    {variant.images[0]?.image_url && (
+                    {itemImage && (
                       <img
-                        src={variant.images[0].image_url}
+                        src={itemImage}
                         alt={variant.display_name}
                         className="size-10 rounded-md object-cover"
                       />
@@ -109,6 +136,9 @@ export function VariantCombobox({
                     <div className="flex flex-col">
                       <span className="font-medium">
                         {variant.display_name}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        C.: {variant.total_inventory}
                       </span>
                       <span className="text-xs text-muted-foreground">
                         SKU: {variant.sku}

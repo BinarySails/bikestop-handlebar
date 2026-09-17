@@ -100,7 +100,7 @@ function ViewVariantMenuItem({
     <DropdownMenuItem
       onClick={() =>
         navigate({
-          to: "/products/$productId/variants/$variantId",
+          to: "/admin/products/$productId/variants/$variantId",
           params: { productId, variantId },
         })
       }
@@ -302,7 +302,7 @@ export function ProductVariantsSection({ productId }: { productId: string }) {
   return (
     <section id="variants" className="scroll-mt-4 space-y-6">
       <EntityIndexPage<Variant>
-        className="max-w-none p-0"
+        className="max-w-none p-0 sm:p-[unset]"
         ariaLabel="Variantes del producto"
         cardTitle={
           <EntityCardTitle icon={Boxes}>Catálogo de variantes</EntityCardTitle>

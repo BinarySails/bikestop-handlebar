@@ -108,7 +108,7 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
                   className="w-full bg-amber-500 text-black hover:bg-amber-600"
                   onClick={() => {
                     onOpenChange(false);
-                    navigate({ to: "/cart" });
+                    navigate({ to: "/b2b/cart" });
                   }}
                 >
                   Ver carrito completo

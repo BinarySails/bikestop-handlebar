@@ -325,17 +325,7 @@ export function CreateVariantDialog({
             )}
           </form.Field>
 
-          <form.Field
-            name="properties"
-            validators={{
-              onSubmit: ({ value }) => {
-                if (value.length === 0) {
-                  return "Debe haber al menos una propiedad.";
-                }
-                return undefined;
-              },
-            }}
-          >
+          <form.Field name="properties">
             {(field) => (
               <div className="grid gap-3">
                 <div className="flex items-center justify-between">

@@ -21,4 +21,5 @@ export interface Customer {
   tax_id?: string | null;
   updated_at: string;
   user_id?: null | UserId;
+  vendedor_user_id?: null | UserId;
 }

@@ -1,4 +1,4 @@
-import { useForm } from "@tanstack/react-form";
+import { useForm, type ReactFormExtendedApi } from "@tanstack/react-form";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -48,6 +48,96 @@ function validateQuantity(value: string): string | undefined {
   return undefined;
 }
 
+type TransactionFormData = {
+  productId: string;
+  variantId: string;
+  warehouseId: string;
+  sourceWarehouseId: string;
+  destinationWarehouseId: string;
+  quantity: string;
+  transactionType:
+    | "correction_addition"
+    | "correction_substraction"
+    | "available"
+    | "in_transit";
+};
+
+type TransactionForm = ReactFormExtendedApi<
+  TransactionFormData,
+  any,
+  any,
+  any,
+  any,
+  any,
+  any,
+  any,
+  any,
+  any,
+  any,
+  any
+>;
+
+function VariantField({
+  form,
+  effectiveProductId,
+  show,
+}: {
+  form: TransactionForm;
+  effectiveProductId: string;
+  show: boolean;
+}) {
+  const { data: variantsResponse } = useListVariantsRequest(
+    effectiveProductId,
+    undefined,
+    {
+      swr: {
+        revalidateOnFocus: false,
+        enabled: !!effectiveProductId,
+      },
+    }
+  );
+
+  const variants =
+    variantsResponse?.status === 200 ? variantsResponse.data : [];
+
+  if (!show) return null;
+
+  return (
+    <form.Field
+      name="variantId"
+      validators={{
+        onSubmit: ({ value }) => {
+          if (!value) return "La variante es obligatoria.";
+          return undefined;
+        },
+      }}
+    >
+      {(field) => (
+        <div className="grid gap-2">
+          <Label htmlFor={field.name}>Variante</Label>
+          <VariantCombobox
+            id={field.name}
+            productId={effectiveProductId ?? null}
+            value={
+              variants.find((variant) => variant.id === field.state.value) ??
+              null
+            }
+            onChange={(variant) => {
+              field.handleChange(variant?.id ?? "");
+            }}
+            disabled={!effectiveProductId}
+          />
+          {field.state.meta.errors?.[0] && (
+            <p className="text-sm text-destructive">
+              {field.state.meta.errors[0]}
+            </p>
+          )}
+        </div>
+      )}
+    </form.Field>
+  );
+}
+
 export function CreateInventoryTransactionDialog({
   warehouses,
   products,
@@ -70,23 +160,18 @@ export function CreateInventoryTransactionDialog({
       productId: preselectedProductId ?? "",
       variantId: preselectedVariantId ?? "",
       warehouseId: "",
+      sourceWarehouseId: "",
+      destinationWarehouseId: "",
       quantity: "",
       transactionType: "correction_addition" as
         | "correction_addition"
         | "correction_substraction"
-        | "available",
+        | "available"
+        | "in_transit",
     },
     onSubmit: async ({ value }) => {
       if (warehouses.length === 0) {
         toast.error("No hay almacenes disponibles.");
-        return;
-      }
-
-      const selectedWarehouse = warehouses.find(
-        (w) => w.id === value.warehouseId
-      );
-      if (!selectedWarehouse) {
-        toast.error("Selecciona un almacén válido.");
         return;
       }
 
@@ -104,33 +189,90 @@ export function CreateInventoryTransactionDialog({
 
       const quantity = Number(value.quantity);
 
-      const result = await trigger({
-        variant_id: variantId,
-        warehouse_id: selectedWarehouse.id,
-        quantity,
-        transaction_type: value.transactionType,
-      });
+      if (value.transactionType === "in_transit") {
+        const sourceWarehouse = warehouses.find(
+          (w) => w.id === value.sourceWarehouseId
+        );
+        const destinationWarehouse = warehouses.find(
+          (w) => w.id === value.destinationWarehouseId
+        );
 
-      if (result.status === 201) {
-        const successMessage =
-          value.transactionType === "correction_addition"
-            ? "Corrección aplicada: stock agregado."
-            : value.transactionType === "correction_substraction"
-              ? "Corrección aplicada: stock restado."
-              : "Inventario nuevo ingresado.";
-        toast.success(successMessage);
-        form.reset();
-        setOpen(false);
-        await onSuccess?.();
+        if (!sourceWarehouse) {
+          toast.error("Selecciona un almacén de origen válido.");
+          return;
+        }
+        if (!destinationWarehouse) {
+          toast.error("Selecciona un almacén de destino válido.");
+          return;
+        }
+        if (sourceWarehouse.id === destinationWarehouse.id) {
+          toast.error("El almacén de destino debe ser diferente al de origen.");
+          return;
+        }
+
+        const result = await trigger({
+          variant_id: variantId,
+          warehouse_id: sourceWarehouse.id,
+          quantity,
+          transaction_type: value.transactionType,
+          source_type: "warehouse",
+          source_id: sourceWarehouse.id,
+          destination_type: "warehouse",
+          destination_id: destinationWarehouse.id,
+        });
+
+        if (result.status === 201) {
+          toast.success("Transferencia entre almacenes registrada.");
+          form.reset();
+          setOpen(false);
+          await onSuccess?.();
+        } else {
+          const errorMessage =
+            "data" in result &&
+            typeof result.data === "object" &&
+            result.data !== null &&
+            "message" in result.data
+              ? (result.data as { message?: string }).message
+              : undefined;
+          toast.error(errorMessage ?? "Error al crear transacción.");
+        }
       } else {
-        const errorMessage =
-          "data" in result &&
-          typeof result.data === "object" &&
-          result.data !== null &&
-          "message" in result.data
-            ? (result.data as { message?: string }).message
-            : undefined;
-        toast.error(errorMessage ?? "Error al crear transacción.");
+        const selectedWarehouse = warehouses.find(
+          (w) => w.id === value.warehouseId
+        );
+        if (!selectedWarehouse) {
+          toast.error("Selecciona un almacén válido.");
+          return;
+        }
+
+        const result = await trigger({
+          variant_id: variantId,
+          warehouse_id: selectedWarehouse.id,
+          quantity,
+          transaction_type: value.transactionType,
+        });
+
+        if (result.status === 201) {
+          const successMessage =
+            value.transactionType === "correction_addition"
+              ? "Corrección aplicada: stock agregado."
+              : value.transactionType === "correction_substraction"
+                ? "Corrección aplicada: stock restado."
+                : "Inventario nuevo ingresado.";
+          toast.success(successMessage);
+          form.reset();
+          setOpen(false);
+          await onSuccess?.();
+        } else {
+          const errorMessage =
+            "data" in result &&
+            typeof result.data === "object" &&
+            result.data !== null &&
+            "message" in result.data
+              ? (result.data as { message?: string }).message
+              : undefined;
+          toast.error(errorMessage ?? "Error al crear transacción.");
+        }
       }
     },
   });
@@ -203,54 +345,12 @@ export function CreateInventoryTransactionDialog({
               {(selectedProductId) => {
                 const effectiveProductId =
                   preselectedProductId ?? selectedProductId;
-                const { data: variantsResponse } = useListVariantsRequest(
-                  effectiveProductId,
-                  undefined,
-                  {
-                    swr: {
-                      revalidateOnFocus: false,
-                      enabled: !!effectiveProductId,
-                    },
-                  }
-                );
-
-                const variants =
-                  variantsResponse?.status === 200 ? variantsResponse.data : [];
-
                 return (
-                  <form.Field
-                    name="variantId"
-                    validators={{
-                      onSubmit: ({ value }) => {
-                        if (!value) return "La variante es obligatoria.";
-                        return undefined;
-                      },
-                    }}
-                  >
-                    {(field) => (
-                      <div className="grid gap-2">
-                        <Label htmlFor={field.name}>Variante</Label>
-                        <VariantCombobox
-                          id={field.name}
-                          productId={effectiveProductId ?? null}
-                          value={
-                            variants.find(
-                              (variant) => variant.id === field.state.value
-                            ) ?? null
-                          }
-                          onChange={(variant) => {
-                            field.handleChange(variant?.id ?? "");
-                          }}
-                          disabled={!effectiveProductId}
-                        />
-                        {field.state.meta.errors?.[0] && (
-                          <p className="text-sm text-destructive">
-                            {field.state.meta.errors[0]}
-                          </p>
-                        )}
-                      </div>
-                    )}
-                  </form.Field>
+                  <VariantField
+                    form={form}
+                    effectiveProductId={effectiveProductId}
+                    show
+                  />
                 );
               }}
             </form.Subscribe>
@@ -262,14 +362,21 @@ export function CreateInventoryTransactionDialog({
                 <Label htmlFor={field.name}>Tipo de transacción</Label>
                 <Select
                   value={field.state.value}
-                  onValueChange={(val) =>
+                  onValueChange={(val) => {
                     field.handleChange(
                       val as
                         | "correction_addition"
                         | "correction_substraction"
                         | "available"
-                    )
-                  }
+                        | "in_transit"
+                    );
+                    if (val === "in_transit") {
+                      form.setFieldValue("warehouseId", "");
+                    } else {
+                      form.setFieldValue("sourceWarehouseId", "");
+                      form.setFieldValue("destinationWarehouseId", "");
+                    }
+                  }}
                 >
                   <SelectTrigger id={field.name} className="w-full">
                     <SelectValue>
@@ -277,7 +384,9 @@ export function CreateInventoryTransactionDialog({
                         ? "Corrección: agregar stock"
                         : field.state.value === "correction_substraction"
                           ? "Corrección: restar stock"
-                          : "Ingreso de inventario nuevo"}
+                          : field.state.value === "in_transit"
+                            ? "Transacción entre almacenes"
+                            : "Ingreso de inventario nuevo"}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
@@ -290,43 +399,135 @@ export function CreateInventoryTransactionDialog({
                     <SelectItem value="available">
                       Ingreso de inventario nuevo
                     </SelectItem>
+                    <SelectItem value="in_transit">
+                      Transacción entre almacenes
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             )}
           </form.Field>
 
-          <form.Field
-            name="warehouseId"
-            validators={{
-              onSubmit: ({ value }) => {
-                if (!value) return "El almacén es obligatorio.";
-                return undefined;
-              },
-            }}
-          >
-            {(field) => (
-              <div className="grid gap-2">
-                <Label htmlFor={field.name}>Almacén</Label>
-                <WarehouseCombobox
-                  id={field.name}
-                  value={
-                    warehouses.find(
-                      (warehouse) => warehouse.id === field.state.value
-                    ) ?? null
-                  }
-                  onChange={(warehouse) => {
-                    field.handleChange(warehouse?.id ?? "");
+          <form.Subscribe selector={(state) => state.values.transactionType}>
+            {(transactionType) =>
+              transactionType === "in_transit" ? (
+                <>
+                  <form.Field
+                    name="sourceWarehouseId"
+                    validators={{
+                      onSubmit: ({ value }) => {
+                        if (!value)
+                          return "El almacén de origen es obligatorio.";
+                        return undefined;
+                      },
+                    }}
+                  >
+                    {(field) => (
+                      <div className="grid gap-2">
+                        <Label htmlFor={field.name}>Almacén de origen</Label>
+                        <WarehouseCombobox
+                          id={field.name}
+                          value={
+                            warehouses.find(
+                              (warehouse) => warehouse.id === field.state.value
+                            ) ?? null
+                          }
+                          onChange={(warehouse) => {
+                            field.handleChange(warehouse?.id ?? "");
+                            const currentDest =
+                              form.state.values.destinationWarehouseId;
+                            if (warehouse && currentDest === warehouse.id) {
+                              form.setFieldValue("destinationWarehouseId", "");
+                            }
+                          }}
+                        />
+                        {field.state.meta.errors?.[0] && (
+                          <p className="text-sm text-destructive">
+                            {field.state.meta.errors[0]}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </form.Field>
+
+                  <form.Subscribe
+                    selector={(state) => state.values.sourceWarehouseId}
+                  >
+                    {(sourceWarehouseId) => (
+                      <form.Field
+                        name="destinationWarehouseId"
+                        validators={{
+                          onSubmit: ({ value }) => {
+                            if (!value)
+                              return "El almacén de destino es obligatorio.";
+                            return undefined;
+                          },
+                        }}
+                      >
+                        {(field) => (
+                          <div className="grid gap-2">
+                            <Label htmlFor={field.name}>
+                              Almacén de destino
+                            </Label>
+                            <WarehouseCombobox
+                              id={field.name}
+                              excludeId={sourceWarehouseId || undefined}
+                              value={
+                                warehouses.find(
+                                  (warehouse) =>
+                                    warehouse.id === field.state.value
+                                ) ?? null
+                              }
+                              onChange={(warehouse) => {
+                                field.handleChange(warehouse?.id ?? "");
+                              }}
+                            />
+                            {field.state.meta.errors?.[0] && (
+                              <p className="text-sm text-destructive">
+                                {field.state.meta.errors[0]}
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </form.Field>
+                    )}
+                  </form.Subscribe>
+                </>
+              ) : (
+                <form.Field
+                  name="warehouseId"
+                  validators={{
+                    onSubmit: ({ value }) => {
+                      if (!value) return "El almacén es obligatorio.";
+                      return undefined;
+                    },
                   }}
-                />
-                {field.state.meta.errors?.[0] && (
-                  <p className="text-sm text-destructive">
-                    {field.state.meta.errors[0]}
-                  </p>
-                )}
-              </div>
-            )}
-          </form.Field>
+                >
+                  {(field) => (
+                    <div className="grid gap-2">
+                      <Label htmlFor={field.name}>Almacén</Label>
+                      <WarehouseCombobox
+                        id={field.name}
+                        value={
+                          warehouses.find(
+                            (warehouse) => warehouse.id === field.state.value
+                          ) ?? null
+                        }
+                        onChange={(warehouse) => {
+                          field.handleChange(warehouse?.id ?? "");
+                        }}
+                      />
+                      {field.state.meta.errors?.[0] && (
+                        <p className="text-sm text-destructive">
+                          {field.state.meta.errors[0]}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </form.Field>
+              )
+            }
+          </form.Subscribe>
 
           <form.Field
             name="quantity"

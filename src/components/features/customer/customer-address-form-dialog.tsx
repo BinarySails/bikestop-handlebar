@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useForm } from "@tanstack/react-form";
 import { toast } from "sonner";
 
-import { LocalitySelect } from "@/components/features/locations/locality-select";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -95,13 +94,6 @@ export function CustomerAddressFormDialog({
   onSuccess,
 }: CustomerAddressFormDialogProps) {
   const [open, setOpen] = useState(false);
-  const { data: statesResponse, isLoading: isLoadingStates } =
-    useListStatesRequest();
-  const states =
-    statesResponse?.status === 200
-      ? (statesResponse.data ?? EMPTY_STATES)
-      : EMPTY_STATES;
-  const statesReady = statesResponse?.status === 200;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -119,24 +111,16 @@ export function CustomerAddressFormDialog({
           </DialogDescription>
         </DialogHeader>
 
-        {mode === "create" || statesReady ? (
-          <CustomerAddressForm
-            userId={userId}
-            mode={mode}
-            address={address}
-            states={states}
-            isLoadingStates={isLoadingStates}
-            onDone={() => {
-              setOpen(false);
-              onSuccess?.();
-            }}
-            onCancel={() => setOpen(false)}
-          />
-        ) : (
-          <p className="py-6 text-center text-sm text-muted-foreground">
-            Cargando estados...
-          </p>
-        )}
+        <CustomerAddressForm
+          userId={userId}
+          mode={mode}
+          address={address}
+          onDone={() => {
+            setOpen(false);
+            onSuccess?.();
+          }}
+          onCancel={() => setOpen(false)}
+        />
       </DialogContent>
     </Dialog>
   );
@@ -146,16 +130,12 @@ function CustomerAddressForm({
   userId,
   mode,
   address,
-  states,
-  isLoadingStates,
   onDone,
   onCancel,
 }: {
   userId: string;
   mode: "create" | "edit";
   address?: CustomerAddressWithAddressRow;
-  states: State[];
-  isLoadingStates: boolean;
   onDone: () => void;
   onCancel: () => void;
 }) {
@@ -165,9 +145,12 @@ function CustomerAddressForm({
     address?.id ?? ""
   );
 
-  const [selectedState, setSelectedState] = useState<State | null>(
-    () => states.find((state) => state.display_name === address?.state) ?? null
-  );
+  const { data: statesResponse, isLoading: isLoadingStates } =
+    useListStatesRequest();
+  const states =
+    statesResponse?.status === 200
+      ? (statesResponse.data ?? EMPTY_STATES)
+      : EMPTY_STATES;
 
   const form = useForm({
     defaultValues: {
@@ -182,6 +165,11 @@ function CustomerAddressForm({
       is_default_billing: false as boolean,
     } satisfies FormValues,
     onSubmit: async ({ value }) => {
+      if (!userId) {
+        toast.error("No se pudo identificar tu usuario. Recarga la página.");
+        return;
+      }
+
       const payload = {
         contact_name: value.contact_name.trim(),
         phone: value.phone.trim(),
@@ -341,10 +329,6 @@ function CustomerAddressForm({
                 onValueChange={(value) => {
                   if (!value) return;
                   field.handleChange(value);
-                  setSelectedState(
-                    states.find((state) => state.display_name === value) ?? null
-                  );
-                  form.setFieldValue("city", "");
                 }}
                 disabled={isLoadingStates}
               >
@@ -388,11 +372,12 @@ function CustomerAddressForm({
           {(field) => (
             <div className="grid gap-2">
               <Label htmlFor={field.name}>Ciudad</Label>
-              <LocalitySelect
+              <Input
                 id={field.name}
-                stateId={selectedState?.id ?? null}
+                name={field.name}
                 value={field.state.value}
-                onValueChange={(value) => field.handleChange(value ?? "")}
+                onChange={(event) => field.handleChange(event.target.value)}
+                placeholder="Guadalajara"
                 aria-invalid={Boolean(field.state.meta.errors[0])}
               />
               {field.state.meta.errors[0] && (

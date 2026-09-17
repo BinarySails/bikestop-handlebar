@@ -1,5 +1,6 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import {
+  Contact,
   LayoutDashboard,
   LogOut,
   MapPin,
@@ -33,22 +34,23 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { logoutHandler } from "@/lib/api/api";
 import { useAuthStore } from "@/lib/auth/use-auth-store";
+import { useLogout } from "@/lib/auth/use-logout";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 const navigationItems = [
-  { label: "Dashboard", icon: LayoutDashboard, to: "/dashboard" },
-  { label: "Productos", icon: Package, to: "/products" },
-  { label: "Ventas", icon: ShoppingCart, to: "/sales" },
-  { label: "Inventario", icon: Package, to: "/inventory" },
-  { label: "Categorías", icon: Shapes, to: "/categories" },
-  { label: "Marcas", icon: Tags, to: "/brands" },
-  { label: "Promociones", icon: BadgePercent, to: "/promotions" },
-  { label: "Locaciones", icon: MapPin, to: "/locations" },
-  { label: "Usuarios", icon: Users, to: "/users" },
-  { label: "Roles", icon: Shield, to: "/roles" },
-  { label: "Almacenes", icon: Warehouse, to: "/warehouses" },
+  { label: "Dashboard", icon: LayoutDashboard, to: "/admin/dashboard" },
+  { label: "Productos", icon: Package, to: "/admin/products" },
+  { label: "Ventas", icon: ShoppingCart, to: "/admin/sales" },
+  { label: "Inventario", icon: Package, to: "/admin/inventory" },
+  { label: "Categorías", icon: Shapes, to: "/admin/categories" },
+  { label: "Marcas", icon: Tags, to: "/admin/brands" },
+  { label: "Promociones", icon: BadgePercent, to: "/admin/promotions" },
+  { label: "Locaciones", icon: MapPin, to: "/admin/locations" },
+  { label: "Usuarios", icon: Users, to: "/admin/users" },
+  { label: "Clientes", icon: Contact, to: "/admin/clients" },
+  { label: "Roles", icon: Shield, to: "/admin/roles" },
+  { label: "Almacenes", icon: Warehouse, to: "/admin/warehouses" },
 ] as const;
 
 function getInitials(name: string): string {
@@ -64,6 +66,7 @@ export function AppSidebar() {
   const navigate = useNavigate();
   const pathname = useLocation({ select: (location) => location.pathname });
   const actor = useAuthStore((state) => state.actor);
+  const { logout: handleLogout } = useLogout();
 
   const displayName =
     actor && "name" in actor && actor.name
@@ -75,16 +78,6 @@ export function AppSidebar() {
       ? actor.name
       : (actor?.username ?? "U")
   );
-
-  async function handleLogout() {
-    try {
-      await logoutHandler();
-    } catch {
-      // clear the local session regardless of the server response
-    }
-    useAuthStore.getState().clearAuth();
-    navigate({ to: "/login" });
-  }
 
   return (
     <Sidebar collapsible="icon" variant="inset">
@@ -149,7 +142,9 @@ export function AppSidebar() {
                 }
               />
               <DropdownMenuContent align="start" side="top" className="w-52">
-                <DropdownMenuItem onClick={() => navigate({ to: "/profile" })}>
+                <DropdownMenuItem
+                  onClick={() => navigate({ to: "/admin/profile" })}
+                >
                   <UserRound className="size-4" aria-hidden="true" />
                   Perfil
                 </DropdownMenuItem>
