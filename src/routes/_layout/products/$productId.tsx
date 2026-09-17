@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { EntityDetailHeader } from "@/components/features/entity/entity-detail-header";
 import { ProductInventoryTable } from "@/components/features/products/product-inventory-table";
 import { ProductVariantsSection } from "@/components/features/products/product-variants-section";
+import { getSelectableCategories } from "@/components/features/products/selectable-categories";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -129,8 +130,9 @@ function ProductDetailView({
     });
 
   const brands: Brand[] = brandsRes?.status === 200 ? brandsRes.data.data : [];
-  const categories: Category[] =
-    categoriesRes?.status === 200 ? categoriesRes.data.categories : [];
+  const categories: Category[] = getSelectableCategories(
+    categoriesRes?.status === 200 ? categoriesRes.data.categories : []
+  );
   const variants: Variant[] =
     variantsRes?.status === 200 ? variantsRes.data : [];
   const warehouses: WarehouseResponse[] =
@@ -329,7 +331,10 @@ function ProductDetailView({
                             <span>
                               {categories.find(
                                 (category) => category.id === field.state.value
-                              )?.display_name ?? "Selecciona una categoría"}
+                              )?.display_name ??
+                                (product.category.id === field.state.value
+                                  ? product.category.display_name
+                                  : "Selecciona una categoría")}
                             </span>
                           )}
                         />
