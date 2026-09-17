@@ -1,7 +1,7 @@
 /* oxlint-disable react/no-unstable-nested-components -- column cells are render callbacks, not components */
 import { useState } from "react";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
-import { format } from "date-fns";
+import { format, parseISO, startOfDay, endOfDay } from "date-fns";
 import { es } from "date-fns/locale";
 import { Eye, MoreVertical, ShoppingCart } from "lucide-react";
 import { z } from "zod";
@@ -47,12 +47,6 @@ const salesSearchSchema = z.object({
   customer_company_name: z.string().trim().min(1).optional().catch(undefined),
   order_date_from: z.string().optional().catch(undefined),
   order_date_to: z.string().optional().catch(undefined),
-  grand_total_min: z.coerce
-    .number()
-    .int()
-    .nonnegative()
-    .optional()
-    .catch(undefined),
   grand_total_max: z.coerce
     .number()
     .int()
@@ -96,20 +90,12 @@ const currencyFormatter = new Intl.NumberFormat("es-MX", {
   currency: "MXN",
 });
 
-function parseISODate(value: string): Date {
-  return new Date(value);
-}
-
 function toStartOfDayISO(value: string): string {
-  const date = parseISODate(value);
-  date.setUTCHours(0, 0, 0, 0);
-  return date.toISOString();
+  return startOfDay(parseISO(value)).toISOString();
 }
 
 function toEndOfDayISO(value: string): string {
-  const date = parseISODate(value);
-  date.setUTCHours(23, 59, 59, 999);
-  return date.toISOString();
+  return endOfDay(parseISO(value)).toISOString();
 }
 
 export const Route = createFileRoute("/admin/sales/")({
@@ -167,20 +153,14 @@ const filterDefinitions: FilterDefinition[] = [
     label: "Fecha desde",
     type: "date",
     valueFormatter: (value) =>
-      format(parseISODate(value), "dd/MM/yyyy", { locale: es }),
+      format(parseISO(value), "dd/MM/yyyy", { locale: es }),
   },
   {
     key: "order_date_to",
     label: "Fecha hasta",
     type: "date",
     valueFormatter: (value) =>
-      format(parseISODate(value), "dd/MM/yyyy", { locale: es }),
-  },
-  {
-    key: "grand_total_min",
-    label: "Total mínimo",
-    type: "number",
-    placeholder: "0",
+      format(parseISO(value), "dd/MM/yyyy", { locale: es }),
   },
   {
     key: "grand_total_max",
@@ -204,7 +184,6 @@ function SalesOrdersPage() {
     shipping_country: filters.shipping_country,
     order_date_from: filters.order_date_from,
     order_date_to: filters.order_date_to,
-    grand_total_min: filters.grand_total_min?.toString(),
     grand_total_max: filters.grand_total_max?.toString(),
   };
 
@@ -234,7 +213,6 @@ function SalesOrdersPage() {
     order_date_to: filters.order_date_to
       ? toEndOfDayISO(filters.order_date_to)
       : undefined,
-    grand_total_min: filters.grand_total_min,
     grand_total_max: filters.grand_total_max,
     shipping_state: filters.shipping_state,
     shipping_country: filters.shipping_country,
@@ -253,7 +231,7 @@ function SalesOrdersPage() {
 
   function handleFilterChange(key: string, value: string | undefined) {
     const parsed =
-      key === "grand_total_min" || key === "grand_total_max"
+      key === "grand_total_max"
         ? value === undefined || value === "" || Number(value) < 0
           ? undefined
           : Number(value)
@@ -447,7 +425,6 @@ function SalesOrdersPage() {
                 "status",
                 "order_date_from",
                 "order_date_to",
-                "grand_total_min",
                 "grand_total_max",
               ]}
               onChange={handleFilterChange}

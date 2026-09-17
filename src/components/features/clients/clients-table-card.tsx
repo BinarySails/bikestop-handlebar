@@ -35,10 +35,15 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group";
 import {
+  getCustomerRequest,
+  updateUserRequest,
   useListCustomersRequest,
   useUpdateCustomerStatusRequest,
 } from "@/lib/api/api";
-import type { PaginatedCustomerSummaryDataItem } from "@/lib/api/schemas";
+import {
+  type PaginatedCustomerSummaryDataItem,
+  UserStatus,
+} from "@/lib/api/schemas";
 
 type ClientsTableCardProps = {
   search: string | undefined;
@@ -109,19 +114,51 @@ export function ClientsTableCard({
     if (!client) return;
 
     const newStatus = client.status === "enable" ? "disable" : "enable";
+
+    let linkedUserId: string | null = null;
     try {
-      const result = await updateStatus({ status: newStatus });
-      if (result.status === 200) {
-        toast.success(
-          newStatus === "disable" ? "Cliente desactivado." : "Cliente activado."
-        );
-        setStatusCustomerId(null);
-        query.mutate();
-      } else {
-        toast.error("Error al cambiar el estado del cliente.");
+      const detail = await getCustomerRequest(client.id);
+      if (detail.status === 200) {
+        linkedUserId = detail.data.user_id ?? null;
       }
     } catch {
+      // proceed without cascading to the user
+    }
+
+    try {
+      const result = await updateStatus({ status: newStatus });
+      if (result.status !== 200) {
+        toast.error("Error al cambiar el estado del cliente.");
+        return;
+      }
+      toast.success(
+        newStatus === "disable" ? "Cliente desactivado." : "Cliente activado."
+      );
+      setStatusCustomerId(null);
+      query.mutate();
+    } catch {
       toast.error("Error al cambiar el estado del cliente.");
+      return;
+    }
+
+    if (!linkedUserId) return;
+
+    const userStatus =
+      newStatus === "enable" ? UserStatus.enable : UserStatus.disable;
+
+    try {
+      const userResult = await updateUserRequest(linkedUserId, {
+        status: userStatus,
+      });
+      if (userResult.status !== 200) {
+        toast.warning(
+          "Cliente actualizado, pero no se pudo actualizar el usuario asociado."
+        );
+      }
+    } catch {
+      toast.warning(
+        "Cliente actualizado, pero no se pudo actualizar el usuario asociado."
+      );
     }
   }
 

@@ -1,11 +1,7 @@
 import { useState } from "react";
 import { useForm } from "@tanstack/react-form";
 import { toast } from "sonner";
-import {
-  useCreateProductRequest,
-  useGetCategoriesRequest,
-  useListBrandsRequest,
-} from "@/lib/api/api";
+import { useCreateProductRequest } from "@/lib/api/api";
 import { CreateProductRequestBody } from "@/lib/api/zods";
 
 import { Button } from "@/components/ui/button";
@@ -21,14 +17,9 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { BrandCombobox } from "@/components/features/brands/brand-combobox";
+import { CategoryCombobox } from "@/components/features/categories/category-combobox";
 import type { Brand, Category } from "@/lib/api/schemas";
 
 export function CreateProductDialog({
@@ -38,13 +29,6 @@ export function CreateProductDialog({
 }) {
   const [open, setOpen] = useState(false);
   const { trigger } = useCreateProductRequest();
-  const { data: brandsRes, isLoading: brandsLoading } = useListBrandsRequest();
-  const { data: categoriesRes, isLoading: categoriesLoading } =
-    useGetCategoriesRequest();
-
-  const brands: Brand[] = brandsRes?.status === 200 ? brandsRes.data.data : [];
-  const categories: Category[] =
-    categoriesRes?.status === 200 ? categoriesRes.data.categories : [];
 
   const form = useForm({
     defaultValues: {
@@ -154,32 +138,11 @@ export function CreateProductDialog({
             {(field) => (
               <div className="grid gap-2">
                 <Label htmlFor={field.name}>Marca</Label>
-                <Select
+                <BrandCombobox
+                  id={field.name}
                   value={field.state.value}
-                  onValueChange={(value) => field.handleChange(value)}
-                  itemToStringLabel={(value) => value.display_name}
-                >
-                  <SelectTrigger id={field.name} className="w-full">
-                    <SelectValue placeholder="Selecciona una marca" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {brandsLoading ? (
-                      <SelectItem value="loading" disabled>
-                        Cargando marcas...
-                      </SelectItem>
-                    ) : brands.length === 0 ? (
-                      <SelectItem value="empty" disabled>
-                        No hay marcas registradas
-                      </SelectItem>
-                    ) : (
-                      brands.map((brand) => (
-                        <SelectItem key={brand.id} value={brand}>
-                          {brand.display_name}
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
+                  onChange={(brand) => field.handleChange(brand)}
+                />
                 {field.state.meta.errors?.[0] && (
                   <p className="text-sm text-red-500">
                     {field.state.meta.errors[0]}
@@ -206,32 +169,11 @@ export function CreateProductDialog({
             {(field) => (
               <div className="grid gap-2">
                 <Label htmlFor={field.name}>Categoría</Label>
-                <Select
+                <CategoryCombobox
+                  id={field.name}
                   value={field.state.value}
-                  onValueChange={(value) => field.handleChange(value)}
-                  itemToStringLabel={(value) => value.display_name}
-                >
-                  <SelectTrigger id={field.name} className="w-full">
-                    <SelectValue placeholder="Selecciona una categoría" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categoriesLoading ? (
-                      <SelectItem value="loading" disabled>
-                        Cargando categorías...
-                      </SelectItem>
-                    ) : categories.length === 0 ? (
-                      <SelectItem value="empty" disabled>
-                        No hay categorías registradas
-                      </SelectItem>
-                    ) : (
-                      categories.map((category) => (
-                        <SelectItem key={category.id} value={category}>
-                          {category.display_name}
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
+                  onChange={(category) => field.handleChange(category)}
+                />
                 {field.state.meta.errors?.[0] && (
                   <p className="text-sm text-red-500">
                     {field.state.meta.errors[0]}
