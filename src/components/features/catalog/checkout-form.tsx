@@ -313,7 +313,10 @@ function CheckoutForm({ onDone }: { onDone?: () => void }) {
         if (result.status === 201) {
           toast.success(`Orden ${result.data.order_number} creada.`);
           onDone?.();
-          navigate({ to: "/" });
+          navigate({
+            to: "/b2b/orders/$orderId",
+            params: { orderId: result.data.id },
+          });
         } else if (result.status === 404) {
           toast.error("No hay carrito activo.");
           onDone?.();

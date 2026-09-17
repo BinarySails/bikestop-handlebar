@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useForm } from "@tanstack/react-form";
+import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { useCreateWarehouseRequest, useListStatesRequest } from "@/lib/api/api";
 import { CreateWarehouseRequestBody } from "@/lib/api/zods";
@@ -32,13 +33,14 @@ const requiredMessage = (label: string, value: string) => {
 };
 
 type CreateWarehouseDialogProps = {
-  onSuccess?: () => void;
+  onSuccess?: () => void | Promise<unknown>;
 };
 
 export function CreateWarehouseDialog({
   onSuccess,
 }: CreateWarehouseDialogProps) {
   const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
   const { trigger } = useCreateWarehouseRequest();
   const { data: statesResponse, isLoading: isLoadingStates } =
     useListStatesRequest();
@@ -76,7 +78,11 @@ export function CreateWarehouseDialog({
         toast.success(`Almacén "${value.name}" creado correctamente`);
         form.reset();
         setOpen(false);
-        onSuccess?.();
+        await onSuccess?.();
+        await navigate({
+          to: "/admin/warehouses/$warehouseId",
+          params: { warehouseId: result.data.id },
+        });
       } else {
         toast.error(errorData?.message ?? "No se pudo crear el almacén");
       }

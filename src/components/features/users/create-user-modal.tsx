@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useForm } from "@tanstack/react-form";
+import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { useCreateUserRequest, useListRolesHandler } from "@/lib/api/api";
 import { CreateUserRequestBody } from "@/lib/api/zods";
@@ -19,9 +20,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-export function CreateUserDialog({ onCreated }: { onCreated?: () => void }) {
+export function CreateUserDialog({
+  onCreated,
+}: {
+  onCreated?: () => void | Promise<unknown>;
+}) {
   const [open, setOpen] = useState(false);
   const [roleIds, setRoleIds] = useState<string[]>([]);
+  const navigate = useNavigate();
   const { trigger } = useCreateUserRequest();
   const rolesQuery = useListRolesHandler();
   const roles =
@@ -59,7 +65,11 @@ export function CreateUserDialog({ onCreated }: { onCreated?: () => void }) {
         form.reset();
         setRoleIds([]);
         setOpen(false);
-        onCreated?.();
+        await onCreated?.();
+        await navigate({
+          to: "/admin/users/$userId",
+          params: { userId: result.data.id },
+        });
       } else {
         toast.error(errorData?.message ?? "Error al crear usuario.");
       }
