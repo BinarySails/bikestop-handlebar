@@ -61,6 +61,7 @@ import type {
   CustomerAddress,
   CustomerAddressId,
   CustomerAddressWithAddressRow,
+  CustomerDetail,
   CustomerId,
   DeleteCategoryResponse,
   DeleteFileRequestParams,
@@ -79,9 +80,7 @@ import type {
   GetDownloadUrlRequestParams,
   GetDownloadUrlResponse,
   GetLocalityByIdResponse,
-  GetOrderFunnelRequestParams,
   GetPaymentTermByIdResponse,
-  GetSalesKpisRequestParams,
   GetSalesSummaryRequestParams,
   GetStateByIdResponse,
   GetUserPermissionsResponse,
@@ -112,7 +111,6 @@ import type {
   LocalityId,
   LoginRequest,
   LoginResponse,
-  OrderFunnel,
   OrderTagId,
   OrderTagResponse,
   PaginatedAuditEventResponse,
@@ -130,7 +128,6 @@ import type {
   RemovePermissionsResponse,
   RemoveUserRoleResponse,
   RoleId,
-  SalesKpis,
   SalesOrder,
   SalesOrderId,
   SalesOrderLineId,
@@ -1335,7 +1332,7 @@ export const useCreateCustomerRequest = <TError = Promise<ErrorResponse>>(
 }
 
 export type getCustomerByUserRequestResponse200 = {
-  data: Customer
+  data: CustomerDetail
   status: 200
 }
 
@@ -1997,7 +1994,7 @@ export const useSetDefaultShippingAddressRequest = <TError = Promise<ErrorRespon
 }
 
 export type getCustomerRequestResponse200 = {
-  data: Customer
+  data: CustomerDetail
   status: 200
 }
 
@@ -8007,170 +8004,6 @@ export const useUpdateSalesOrderTagsRequest = <TError = Promise<ErrorResponse>>(
   const swrFn = getUpdateSalesOrderTagsRequestMutationFetcher(id, fetchOptions);
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions)
-
-  return {
-    swrKey,
-    ...query
-  }
-}
-
-export type getOrderFunnelRequestResponse200 = {
-  data: OrderFunnel
-  status: 200
-}
-
-export type getOrderFunnelRequestResponse400 = {
-  data: ErrorResponse
-  status: 400
-}
-
-export type getOrderFunnelRequestResponse500 = {
-  data: ErrorResponse
-  status: 500
-}
-
-export type getOrderFunnelRequestResponseSuccess = (getOrderFunnelRequestResponse200) & {
-  headers: Headers;
-};
-export type getOrderFunnelRequestResponseError = (getOrderFunnelRequestResponse400 | getOrderFunnelRequestResponse500) & {
-  headers: Headers;
-};
-
-export type getOrderFunnelRequestResponse = (getOrderFunnelRequestResponseSuccess | getOrderFunnelRequestResponseError)
-
-export const getGetOrderFunnelRequestUrl = (params?: GetOrderFunnelRequestParams,) => {
-  const normalizedParams = new URLSearchParams();
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : String(value))
-    }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0 ? `http://localhost:8080/api/v1/statistics/order-funnel?${stringifiedParams}` : `http://localhost:8080/api/v1/statistics/order-funnel`
-}
-
-export const getOrderFunnelRequest = async (params?: GetOrderFunnelRequestParams, options?: RequestInit): Promise<getOrderFunnelRequestResponse> => {
-
-  const res = await fetch(getGetOrderFunnelRequestUrl(params),
-  {
-      credentials: 'include',
-    ...options,
-    method: 'GET'
-
-
-  }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: getOrderFunnelRequestResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as getOrderFunnelRequestResponse
-}
-
-
-
-
-export const getGetOrderFunnelRequestKey = (params?: GetOrderFunnelRequestParams,) => [`http://localhost:8080/api/v1/statistics/order-funnel`, ...(params ? [params]: [])] as const;
-
-export type GetOrderFunnelRequestQueryResult = NonNullable<Awaited<ReturnType<typeof getOrderFunnelRequest>>>
-
-export const useGetOrderFunnelRequest = <TError = Promise<ErrorResponse>>(
-  params?: GetOrderFunnelRequestParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getOrderFunnelRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
-) => {
-  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
-
-  const isEnabled = swrOptions?.enabled !== false
-  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetOrderFunnelRequestKey(params) : null);
-  const swrFn = () => getOrderFunnelRequest(params, fetchOptions)
-
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
-
-  return {
-    swrKey,
-    ...query
-  }
-}
-
-export type getSalesKpisRequestResponse200 = {
-  data: SalesKpis
-  status: 200
-}
-
-export type getSalesKpisRequestResponse400 = {
-  data: ErrorResponse
-  status: 400
-}
-
-export type getSalesKpisRequestResponse500 = {
-  data: ErrorResponse
-  status: 500
-}
-
-export type getSalesKpisRequestResponseSuccess = (getSalesKpisRequestResponse200) & {
-  headers: Headers;
-};
-export type getSalesKpisRequestResponseError = (getSalesKpisRequestResponse400 | getSalesKpisRequestResponse500) & {
-  headers: Headers;
-};
-
-export type getSalesKpisRequestResponse = (getSalesKpisRequestResponseSuccess | getSalesKpisRequestResponseError)
-
-export const getGetSalesKpisRequestUrl = (params?: GetSalesKpisRequestParams,) => {
-  const normalizedParams = new URLSearchParams();
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : String(value))
-    }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0 ? `http://localhost:8080/api/v1/statistics/sales-kpis?${stringifiedParams}` : `http://localhost:8080/api/v1/statistics/sales-kpis`
-}
-
-export const getSalesKpisRequest = async (params?: GetSalesKpisRequestParams, options?: RequestInit): Promise<getSalesKpisRequestResponse> => {
-
-  const res = await fetch(getGetSalesKpisRequestUrl(params),
-  {
-      credentials: 'include',
-    ...options,
-    method: 'GET'
-
-
-  }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: getSalesKpisRequestResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as getSalesKpisRequestResponse
-}
-
-
-
-
-export const getGetSalesKpisRequestKey = (params?: GetSalesKpisRequestParams,) => [`http://localhost:8080/api/v1/statistics/sales-kpis`, ...(params ? [params]: [])] as const;
-
-export type GetSalesKpisRequestQueryResult = NonNullable<Awaited<ReturnType<typeof getSalesKpisRequest>>>
-
-export const useGetSalesKpisRequest = <TError = Promise<ErrorResponse>>(
-  params?: GetSalesKpisRequestParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getSalesKpisRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
-) => {
-  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
-
-  const isEnabled = swrOptions?.enabled !== false
-  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetSalesKpisRequestKey(params) : null);
-  const swrFn = () => getSalesKpisRequest(params, fetchOptions)
-
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,

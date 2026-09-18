@@ -6,7 +6,6 @@
  */
 import type { CategorySalesSummary } from './categorySalesSummary.ts';
 import type { CustomerSalesSummary } from './customerSalesSummary.ts';
-import type { DiscountBreakdown } from './discountBreakdown.ts';
 import type { ProductSalesSummary } from './productSalesSummary.ts';
 import type { SellerSalesSummary } from './sellerSalesSummary.ts';
 import type { UnassignedSalesSummary } from './unassignedSalesSummary.ts';
@@ -15,7 +14,6 @@ export interface SalesSummary {
   cancelled_after_confirmation_order_count: number;
   categories: CategorySalesSummary[];
   customers: CustomerSalesSummary[];
-  discount_breakdown: DiscountBreakdown;
   discount_total: number;
   from: string;
   order_count: number;

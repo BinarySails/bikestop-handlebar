@@ -20,8 +20,7 @@ export interface CustomerSummary {
   username?: string | null;
   /** @nullable */
   vendedor_display_name?: string | null;
+  vendedor_user_id?: null | UserId;
   /** @nullable */
   vendedor_username?: string | null;
-  /** @nullable */
-  vendedor_user_id?: null | UserId;
 }

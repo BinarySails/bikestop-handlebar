@@ -8,19 +8,22 @@ import type { CustomerId } from './customerId.ts';
 import type { CustomerStatus } from './customerStatus.ts';
 import type { UserId } from './userId.ts';
 
-export type PaginatedCustomerSummaryDataItem = {
+export interface CustomerDetail {
   company_name: string;
+  created_at: string;
   /** @nullable */
   email?: string | null;
   id: CustomerId;
+  /** @nullable */
+  phone?: string | null;
   status: CustomerStatus;
   /** @nullable */
   tax_id?: string | null;
-  /** @nullable */
-  username?: string | null;
+  updated_at: string;
+  user_id?: null | UserId;
   /** @nullable */
   vendedor_display_name?: string | null;
   vendedor_user_id?: null | UserId;
   /** @nullable */
   vendedor_username?: string | null;
-};
+}
