@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
-import { Plus, Printer, Trash2, WarehouseIcon } from "lucide-react";
+import { Plus, Printer, Tag, Trash2, WarehouseIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { CustomerCombobox } from "@/components/features/sales/customer-combobox";
@@ -438,6 +438,7 @@ export function CreateSalesOrderForm({
   onConfirm,
   onCancel,
   onDispatchLine,
+  onApplyPromotions,
 }: {
   order?: SalesOrder;
   commentAuthor?: string;
@@ -451,6 +452,7 @@ export function CreateSalesOrderForm({
     warehouseId: WarehouseId,
     quantity: number
   ) => Promise<void>;
+  onApplyPromotions?: () => void;
 } = {}) {
   const navigate = useNavigate();
   const { trigger } = useCreateSalesOrderRequest();
@@ -472,6 +474,19 @@ export function CreateSalesOrderForm({
       "partially_fulfilled",
       "fulfilled",
     ].includes(order?.status ?? "");
+  const appliedPromotionCodes: string[] = order
+    ? [
+        ...new Set(
+          order.lines.flatMap((line) =>
+            line.adjustments.flatMap((adjustment) =>
+              "Promotion" in adjustment.source
+                ? [adjustment.source.Promotion.code]
+                : []
+            )
+          )
+        ),
+      ]
+    : [];
   const [newComment, setNewComment] = useState("");
   const [isAddingComment, setIsAddingComment] = useState(false);
   const [confirmation, setConfirmation] = useState<
@@ -1317,6 +1332,13 @@ export function CreateSalesOrderForm({
             onClick={() => setConfirmation("cancel")}
           >
             {order?.status === "quote" ? "Cancelar cotización" : "Cancelar"}
+          </Button>
+        )}
+
+        {isDetail && order?.status === "draft" && onApplyPromotions && (
+          <Button type="button" variant="outline" onClick={onApplyPromotions}>
+            <Tag className="size-4" />
+            Aplicar promoción
           </Button>
         )}
 
@@ -2530,6 +2552,20 @@ export function CreateSalesOrderForm({
                     <span>Total</span>
                     <span>{currencyFormatter.format(total / 100)}</span>
                   </div>
+                  {isDetail && appliedPromotionCodes.length > 0 && (
+                    <div className="border-t pt-2">
+                      <span className="text-xs text-muted-foreground">
+                        Promociones aplicadas
+                      </span>
+                      <div className="mt-1 flex flex-wrap gap-1.5">
+                        {appliedPromotionCodes.map((code) => (
+                          <Badge key={code} variant="outline">
+                            {code}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>

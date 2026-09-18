@@ -473,7 +473,10 @@ export const ListCustomersRequestResponse = zod.object({
   "id": zod.uuid(),
   "status": zod.enum(['enable', 'disable', 'archive']),
   "tax_id": zod.string().nullish(),
-  "username": zod.string().nullish()
+  "username": zod.string().nullish(),
+  "vendedor_display_name": zod.string().nullish(),
+  "vendedor_user_id": zod.union([zod.null(),zod.uuid()]).optional(),
+  "vendedor_username": zod.string().nullish()
 })),
   "limit": zod.int(),
   "page": zod.int(),
@@ -486,7 +489,8 @@ export const CreateCustomerRequestBody = zod.object({
   "email": zod.string().nullish(),
   "phone": zod.string().nullish(),
   "tax_id": zod.string().nullish(),
-  "user_id": zod.union([zod.null(),zod.uuid()]).optional()
+  "user_id": zod.union([zod.null(),zod.uuid()]).optional(),
+  "vendedor_user_id": zod.union([zod.null(),zod.uuid()]).optional()
 })
 
 export const CreateCustomerRequestResponse = zod.object({
@@ -498,7 +502,8 @@ export const CreateCustomerRequestResponse = zod.object({
   "status": zod.enum(['enable', 'disable', 'archive']),
   "tax_id": zod.string().nullish(),
   "updated_at": zod.iso.datetime({"offset":true}),
-  "user_id": zod.union([zod.null(),zod.uuid()]).optional()
+  "user_id": zod.union([zod.null(),zod.uuid()]).optional(),
+  "vendedor_user_id": zod.union([zod.null(),zod.uuid()]).optional()
 })
 
 
@@ -515,7 +520,10 @@ export const GetCustomerByUserRequestResponse = zod.object({
   "status": zod.enum(['enable', 'disable', 'archive']),
   "tax_id": zod.string().nullish(),
   "updated_at": zod.iso.datetime({"offset":true}),
-  "user_id": zod.union([zod.null(),zod.uuid()]).optional()
+  "user_id": zod.union([zod.null(),zod.uuid()]).optional(),
+  "vendedor_display_name": zod.string().nullish(),
+  "vendedor_user_id": zod.union([zod.null(),zod.uuid()]).optional(),
+  "vendedor_username": zod.string().nullish()
 })
 
 
@@ -695,7 +703,10 @@ export const GetCustomerRequestResponse = zod.object({
   "status": zod.enum(['enable', 'disable', 'archive']),
   "tax_id": zod.string().nullish(),
   "updated_at": zod.iso.datetime({"offset":true}),
-  "user_id": zod.union([zod.null(),zod.uuid()]).optional()
+  "user_id": zod.union([zod.null(),zod.uuid()]).optional(),
+  "vendedor_display_name": zod.string().nullish(),
+  "vendedor_user_id": zod.union([zod.null(),zod.uuid()]).optional(),
+  "vendedor_username": zod.string().nullish()
 })
 
 
@@ -708,7 +719,8 @@ export const UpdateCustomerRequestBody = zod.object({
   "email": zod.string().nullish(),
   "phone": zod.string().nullish(),
   "tax_id": zod.string().nullish(),
-  "user_id": zod.union([zod.null(),zod.uuid()]).optional()
+  "user_id": zod.union([zod.null(),zod.uuid()]).optional(),
+  "vendedor_user_id": zod.union([zod.null(),zod.uuid()]).optional()
 })
 
 export const UpdateCustomerRequestResponse = zod.object({
@@ -720,7 +732,8 @@ export const UpdateCustomerRequestResponse = zod.object({
   "status": zod.enum(['enable', 'disable', 'archive']),
   "tax_id": zod.string().nullish(),
   "updated_at": zod.iso.datetime({"offset":true}),
-  "user_id": zod.union([zod.null(),zod.uuid()]).optional()
+  "user_id": zod.union([zod.null(),zod.uuid()]).optional(),
+  "vendedor_user_id": zod.union([zod.null(),zod.uuid()]).optional()
 })
 
 
@@ -741,7 +754,8 @@ export const UpdateCustomerStatusRequestResponse = zod.object({
   "status": zod.enum(['enable', 'disable', 'archive']),
   "tax_id": zod.string().nullish(),
   "updated_at": zod.iso.datetime({"offset":true}),
-  "user_id": zod.union([zod.null(),zod.uuid()]).optional()
+  "user_id": zod.union([zod.null(),zod.uuid()]).optional(),
+  "vendedor_user_id": zod.union([zod.null(),zod.uuid()]).optional()
 })
 
 
