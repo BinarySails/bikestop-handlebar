@@ -473,7 +473,10 @@ export const ListCustomersRequestResponse = zod.object({
   "id": zod.uuid(),
   "status": zod.enum(['enable', 'disable', 'archive']),
   "tax_id": zod.string().nullish(),
-  "username": zod.string().nullish()
+  "username": zod.string().nullish(),
+  "vendedor_display_name": zod.string().nullish(),
+  "vendedor_user_id": zod.union([zod.null(),zod.uuid()]).optional(),
+  "vendedor_username": zod.string().nullish()
 })),
   "limit": zod.int(),
   "page": zod.int(),
@@ -486,7 +489,8 @@ export const CreateCustomerRequestBody = zod.object({
   "email": zod.string().nullish(),
   "phone": zod.string().nullish(),
   "tax_id": zod.string().nullish(),
-  "user_id": zod.union([zod.null(),zod.uuid()]).optional()
+  "user_id": zod.union([zod.null(),zod.uuid()]).optional(),
+  "vendedor_user_id": zod.union([zod.null(),zod.uuid()]).optional()
 })
 
 export const CreateCustomerRequestResponse = zod.object({
@@ -498,7 +502,8 @@ export const CreateCustomerRequestResponse = zod.object({
   "status": zod.enum(['enable', 'disable', 'archive']),
   "tax_id": zod.string().nullish(),
   "updated_at": zod.iso.datetime({"offset":true}),
-  "user_id": zod.union([zod.null(),zod.uuid()]).optional()
+  "user_id": zod.union([zod.null(),zod.uuid()]).optional(),
+  "vendedor_user_id": zod.union([zod.null(),zod.uuid()]).optional()
 })
 
 
@@ -515,7 +520,10 @@ export const GetCustomerByUserRequestResponse = zod.object({
   "status": zod.enum(['enable', 'disable', 'archive']),
   "tax_id": zod.string().nullish(),
   "updated_at": zod.iso.datetime({"offset":true}),
-  "user_id": zod.union([zod.null(),zod.uuid()]).optional()
+  "user_id": zod.union([zod.null(),zod.uuid()]).optional(),
+  "vendedor_display_name": zod.string().nullish(),
+  "vendedor_user_id": zod.union([zod.null(),zod.uuid()]).optional(),
+  "vendedor_username": zod.string().nullish()
 })
 
 
@@ -695,7 +703,10 @@ export const GetCustomerRequestResponse = zod.object({
   "status": zod.enum(['enable', 'disable', 'archive']),
   "tax_id": zod.string().nullish(),
   "updated_at": zod.iso.datetime({"offset":true}),
-  "user_id": zod.union([zod.null(),zod.uuid()]).optional()
+  "user_id": zod.union([zod.null(),zod.uuid()]).optional(),
+  "vendedor_display_name": zod.string().nullish(),
+  "vendedor_user_id": zod.union([zod.null(),zod.uuid()]).optional(),
+  "vendedor_username": zod.string().nullish()
 })
 
 
@@ -708,7 +719,8 @@ export const UpdateCustomerRequestBody = zod.object({
   "email": zod.string().nullish(),
   "phone": zod.string().nullish(),
   "tax_id": zod.string().nullish(),
-  "user_id": zod.union([zod.null(),zod.uuid()]).optional()
+  "user_id": zod.union([zod.null(),zod.uuid()]).optional(),
+  "vendedor_user_id": zod.union([zod.null(),zod.uuid()]).optional()
 })
 
 export const UpdateCustomerRequestResponse = zod.object({
@@ -720,7 +732,8 @@ export const UpdateCustomerRequestResponse = zod.object({
   "status": zod.enum(['enable', 'disable', 'archive']),
   "tax_id": zod.string().nullish(),
   "updated_at": zod.iso.datetime({"offset":true}),
-  "user_id": zod.union([zod.null(),zod.uuid()]).optional()
+  "user_id": zod.union([zod.null(),zod.uuid()]).optional(),
+  "vendedor_user_id": zod.union([zod.null(),zod.uuid()]).optional()
 })
 
 
@@ -741,7 +754,8 @@ export const UpdateCustomerStatusRequestResponse = zod.object({
   "status": zod.enum(['enable', 'disable', 'archive']),
   "tax_id": zod.string().nullish(),
   "updated_at": zod.iso.datetime({"offset":true}),
-  "user_id": zod.union([zod.null(),zod.uuid()]).optional()
+  "user_id": zod.union([zod.null(),zod.uuid()]).optional(),
+  "vendedor_user_id": zod.union([zod.null(),zod.uuid()]).optional()
 })
 
 
@@ -3565,143 +3579,6 @@ export const UpdateSalesOrderTagsRequestResponse = zod.object({
 })
 
 
-export const GetOrderFunnelRequestQueryParams = zod.object({
-  "from": zod.string().optional(),
-  "to": zod.string().optional()
-})
-
-export const GetOrderFunnelRequestResponse = zod.object({
-  "cancellations": zod.object({
-  "from_confirmed": zod.int(),
-  "from_draft": zod.int(),
-  "from_quote": zod.int(),
-  "total": zod.int()
-}),
-  "conversions": zod.object({
-  "confirmed_to_closed": zod.object({
-  "cohort_count": zod.int(),
-  "converted_count": zod.int(),
-  "rate": zod.number()
-}),
-  "confirmed_to_fulfilled": zod.object({
-  "cohort_count": zod.int(),
-  "converted_count": zod.int(),
-  "rate": zod.number()
-}),
-  "fulfilled_to_closed": zod.object({
-  "cohort_count": zod.int(),
-  "converted_count": zod.int(),
-  "rate": zod.number()
-}),
-  "quote_to_confirmed": zod.object({
-  "cohort_count": zod.int(),
-  "converted_count": zod.int(),
-  "rate": zod.number()
-})
-}),
-  "cycle_times": zod.object({
-  "confirmed_to_closed": zod.object({
-  "average_seconds": zod.number().nullish(),
-  "median_seconds": zod.number().nullish(),
-  "p75_seconds": zod.number().nullish(),
-  "p90_seconds": zod.number().nullish(),
-  "sample_size": zod.int()
-}),
-  "confirmed_to_fulfilled": zod.object({
-  "average_seconds": zod.number().nullish(),
-  "median_seconds": zod.number().nullish(),
-  "p75_seconds": zod.number().nullish(),
-  "p90_seconds": zod.number().nullish(),
-  "sample_size": zod.int()
-}),
-  "fulfilled_to_closed": zod.object({
-  "average_seconds": zod.number().nullish(),
-  "median_seconds": zod.number().nullish(),
-  "p75_seconds": zod.number().nullish(),
-  "p90_seconds": zod.number().nullish(),
-  "sample_size": zod.int()
-}),
-  "quote_to_confirmed": zod.object({
-  "average_seconds": zod.number().nullish(),
-  "median_seconds": zod.number().nullish(),
-  "p75_seconds": zod.number().nullish(),
-  "p90_seconds": zod.number().nullish(),
-  "sample_size": zod.int()
-})
-}),
-  "date_basis": zod.string(),
-  "from": zod.string(),
-  "status_entries": zod.object({
-  "cancelled": zod.int(),
-  "closed": zod.int(),
-  "confirmed": zod.int(),
-  "draft": zod.int(),
-  "fulfilled": zod.int(),
-  "partially_fulfilled": zod.int(),
-  "quote": zod.int()
-}),
-  "timezone": zod.string(),
-  "to": zod.string()
-})
-
-
-export const GetSalesKpisRequestQueryParams = zod.object({
-  "from": zod.string().optional(),
-  "to": zod.string().optional()
-})
-
-export const GetSalesKpisRequestResponse = zod.object({
-  "average_lines_per_order": zod.number(),
-  "average_net_unit_price": zod.int(),
-  "average_order_value": zod.int(),
-  "average_units_per_order": zod.number(),
-  "brands": zod.array(zod.object({
-  "brand_id": zod.uuid(),
-  "name": zod.string(),
-  "order_count": zod.int(),
-  "sales_total": zod.int(),
-  "units_sold": zod.int()
-})),
-  "customer_concentration": zod.object({
-  "top_10_sales_share": zod.number(),
-  "top_10_sales_total": zod.int(),
-  "top_5_sales_share": zod.number(),
-  "top_5_sales_total": zod.int()
-}),
-  "customers": zod.object({
-  "new": zod.int(),
-  "repeat_purchase_rate": zod.number(),
-  "returning": zod.int(),
-  "total": zod.int()
-}),
-  "discount_rate": zod.number(),
-  "from": zod.string(),
-  "line_count": zod.int(),
-  "order_count": zod.int(),
-  "payment_terms": zod.array(zod.object({
-  "name": zod.string(),
-  "order_count": zod.int(),
-  "payment_term_id": zod.uuid(),
-  "sales_share": zod.number(),
-  "sales_total": zod.int()
-})),
-  "sales_total": zod.int(),
-  "tax_rate": zod.number(),
-  "timezone": zod.string(),
-  "to": zod.string(),
-  "units_sold": zod.int(),
-  "variants": zod.array(zod.object({
-  "order_count": zod.int(),
-  "product_name": zod.string(),
-  "sales_total": zod.int(),
-  "sku": zod.string(),
-  "units_sold": zod.int(),
-  "variant_id": zod.uuid(),
-  "variant_name": zod.string()
-}))
-})
-
-
 export const GetSalesSummaryRequestQueryParams = zod.object({
   "from": zod.string().optional().describe('First included business date, formatted as YYYY-MM-DD.'),
   "to": zod.string().optional().describe('Last included business date, formatted as YYYY-MM-DD.')
@@ -3723,29 +3600,6 @@ export const GetSalesSummaryRequestResponse = zod.object({
   "sales_total": zod.int(),
   "snapshot_name": zod.string().nullish()
 })),
-  "discount_breakdown": zod.object({
-  "attributed_total": zod.int(),
-  "by_source": zod.array(zod.object({
-  "adjustment_count": zod.int(),
-  "amount": zod.int(),
-  "line_count": zod.int(),
-  "order_count": zod.int(),
-  "source": zod.enum(['promotion', 'manual', 'unknown'])
-})),
-  "promotions": zod.array(zod.object({
-  "adjustment_count": zod.int(),
-  "amount": zod.int(),
-  "current_code": zod.string().nullish(),
-  "current_status": zod.string().nullish(),
-  "line_count": zod.int(),
-  "order_count": zod.int(),
-  "promotion_code": zod.string().nullish(),
-  "promotion_deleted": zod.boolean(),
-  "promotion_id": zod.union([zod.null(),zod.uuid()]).optional()
-})),
-  "reconciled": zod.boolean(),
-  "unattributed_total": zod.int()
-}),
   "discount_total": zod.int(),
   "from": zod.string(),
   "order_count": zod.int(),
