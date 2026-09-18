@@ -61,6 +61,7 @@ import type {
   CustomerAddress,
   CustomerAddressId,
   CustomerAddressWithAddressRow,
+  CustomerDetail,
   CustomerId,
   DeleteCategoryResponse,
   DeleteFileRequestParams,
@@ -1335,7 +1336,7 @@ export const useCreateCustomerRequest = <TError = Promise<ErrorResponse>>(
 }
 
 export type getCustomerByUserRequestResponse200 = {
-  data: Customer
+  data: CustomerDetail
   status: 200
 }
 
@@ -1997,7 +1998,7 @@ export const useSetDefaultShippingAddressRequest = <TError = Promise<ErrorRespon
 }
 
 export type getCustomerRequestResponse200 = {
-  data: Customer
+  data: CustomerDetail
   status: 200
 }
 

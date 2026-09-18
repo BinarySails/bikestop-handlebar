@@ -85,6 +85,7 @@ export * from './customerAddressId.ts';
 export * from './customerAddressStatus.ts';
 export * from './customerAddressWithAddressRow.ts';
 export * from './customerConcentration.ts';
+export * from './customerDetail.ts';
 export * from './customerId.ts';
 export * from './customerKpis.ts';
 export * from './customerSalesSummary.ts';

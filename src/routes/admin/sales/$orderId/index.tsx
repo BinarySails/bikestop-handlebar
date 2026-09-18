@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ChevronLeft } from "lucide-react";
 import { useSWRConfig } from "swr";
 
+import { ApplyPromotionsDialog } from "@/components/features/sales/apply-promotions-dialog";
 import { CreateSalesOrderForm } from "@/components/features/sales/create-sales-order-form";
 import { SalesOrderAuditLog } from "@/components/features/sales/sales-order-audit-log";
 import { Badge } from "@/components/ui/badge";
@@ -58,6 +60,7 @@ export const Route = createFileRoute("/admin/sales/$orderId/")({
 function OrderDetailPage() {
   const { orderId } = Route.useParams();
   const navigate = useNavigate();
+  const [applyPromotionsOpen, setApplyPromotionsOpen] = useState(false);
   const { data: sessionResponse } = useMeHandler();
   const {
     data: response,
@@ -213,6 +216,17 @@ function OrderDetailPage() {
               result.data.message ?? "No se pudo despachar la línea"
             );
           }
+          await mutate();
+          revalidateAudit();
+        }}
+        onApplyPromotions={() => setApplyPromotionsOpen(true)}
+      />
+
+      <ApplyPromotionsDialog
+        order={order}
+        open={applyPromotionsOpen}
+        onOpenChange={setApplyPromotionsOpen}
+        onApplied={async () => {
           await mutate();
           revalidateAudit();
         }}
