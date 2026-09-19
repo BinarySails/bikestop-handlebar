@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useForm } from "@tanstack/react-form";
+import { useNavigate } from "@tanstack/react-router";
 import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -96,6 +97,7 @@ export function CreateVariantDialog({
   onSuccess?: () => Promise<unknown>;
 }) {
   const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
   const { trigger } = useCreateVariantRequest(productId);
 
   const form = useForm({
@@ -159,6 +161,10 @@ export function CreateVariantDialog({
           form.reset();
           setOpen(false);
           await onSuccess?.();
+          await navigate({
+            to: "/admin/products/$productId/variants/$variantId",
+            params: { productId, variantId: result.data.id },
+          });
         } else {
           const errorData =
             "data" in result &&

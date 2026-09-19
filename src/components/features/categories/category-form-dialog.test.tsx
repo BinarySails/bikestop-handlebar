@@ -18,6 +18,11 @@ const api = vi.hoisted(() => ({
   create: vi.fn<(...args: unknown[]) => Promise<unknown>>(),
   update: vi.fn<(...args: unknown[]) => Promise<unknown>>(),
   saved: vi.fn<() => Promise<void>>(),
+  navigate: vi.fn<(...args: unknown[]) => Promise<void>>(),
+}));
+
+vi.mock("@tanstack/react-router", () => ({
+  useNavigate: () => api.navigate,
 }));
 
 vi.mock("@/lib/api/api", () => ({
@@ -61,6 +66,7 @@ describe("CategoryFormDialog", () => {
     api.create.mockResolvedValue({ status: 201, data: root });
     api.update.mockResolvedValue({ status: 200, data: { category: root } });
     api.saved.mockResolvedValue();
+    api.navigate.mockResolvedValue();
   });
   afterEach(cleanup);
 
@@ -99,6 +105,10 @@ describe("CategoryFormDialog", () => {
         })
       );
       expect(api.saved).toHaveBeenCalled();
+      expect(api.navigate).toHaveBeenCalledWith({
+        to: "/admin/categories/$categoryId",
+        params: { categoryId: root.id },
+      });
     }
   );
 

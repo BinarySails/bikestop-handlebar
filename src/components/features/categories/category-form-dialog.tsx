@@ -1,4 +1,5 @@
 import { useForm } from "@tanstack/react-form";
+import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -51,6 +52,7 @@ export function CategoryFormDialog({
   presentation = "dialog",
   onSaved,
 }: CategoryFormDialogProps) {
+  const navigate = useNavigate();
   const isEditing = Boolean(category);
   const blockedParentIds = category
     ? getDescendantIds(categories, category.id)
@@ -77,6 +79,7 @@ export function CategoryFormDialog({
       };
 
       try {
+        let createdCategoryId: string | undefined;
         if (category) {
           const result = await updateCategoryRequest(category.id, input);
           if (result.status !== 200) {
@@ -94,11 +97,18 @@ export function CategoryFormDialog({
             );
             return;
           }
+          createdCategoryId = result.data.id;
           toast.success("Categoría creada correctamente.");
         }
         await onSaved?.();
         onOpenChange(false);
         form.reset();
+        if (createdCategoryId) {
+          await navigate({
+            to: "/admin/categories/$categoryId",
+            params: { categoryId: createdCategoryId },
+          });
+        }
       } catch {
         toast.error(
           `No se pudo ${category ? "actualizar" : "crear"} la categoría.`
