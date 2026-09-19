@@ -32,6 +32,8 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import type { Brand, Category } from "@/lib/api/schemas";
 
+import { getSelectableCategories } from "./selectable-categories";
+
 export function CreateProductDialog({
   onSuccess,
 }: {
@@ -45,8 +47,9 @@ export function CreateProductDialog({
     useGetCategoriesRequest();
 
   const brands: Brand[] = brandsRes?.status === 200 ? brandsRes.data.data : [];
-  const categories: Category[] =
-    categoriesRes?.status === 200 ? categoriesRes.data.categories : [];
+  const categories: Category[] = getSelectableCategories(
+    categoriesRes?.status === 200 ? categoriesRes.data.categories : []
+  );
 
   const form = useForm({
     defaultValues: {
