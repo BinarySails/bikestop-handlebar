@@ -25,7 +25,7 @@ export const Route = createFileRoute("/b2b/account")({
     if (isInDev) return;
 
     const isAdmin = actor?.roles?.some(
-      (role) => role.slug === "admin" || role.slug === "super_admin"
+      (role) => role.slug === "admin" || role.slug === "super-admin"
     );
     if (isAdmin) {
       throw new Error("Admin users cannot access customer account pages.");
