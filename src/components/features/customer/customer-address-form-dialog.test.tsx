@@ -18,8 +18,8 @@ const createTriggerMock = vi.fn<(...args: unknown[]) => unknown>();
 const updateTriggerMock = vi.fn<(...args: unknown[]) => unknown>();
 
 vi.mock("@/lib/api/api", () => ({
-  useCreateCustomerAddressRequest: () => ({ trigger: createTriggerMock }),
-  useUpdateCustomerAddressRequest: () => ({ trigger: updateTriggerMock }),
+  useCreateMyAddressRequest: () => ({ trigger: createTriggerMock }),
+  useUpdateMyAddressRequest: () => ({ trigger: updateTriggerMock }),
   useListStatesRequest: () => ({
     data: {
       status: 200,
@@ -43,7 +43,6 @@ const notifications = {
 function openDialog() {
   render(
     <CustomerAddressFormDialog
-      userId="user-1"
       mode="create"
       trigger={<button type="button">Agregar dirección</button>}
     />

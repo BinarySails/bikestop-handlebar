@@ -26,15 +26,15 @@ const setDefaultShippingTriggerMock = vi.fn<(...args: unknown[]) => unknown>();
 const setDefaultBillingTriggerMock = vi.fn<(...args: unknown[]) => unknown>();
 
 vi.mock("@/lib/api/api", () => ({
-  useDeleteCustomerAddressRequest: () => ({ trigger: deleteTriggerMock }),
-  useSetDefaultShippingAddressRequest: () => ({
+  useDeleteMyAddressRequest: () => ({ trigger: deleteTriggerMock }),
+  useSetMyDefaultShippingRequest: () => ({
     trigger: setDefaultShippingTriggerMock,
   }),
-  useSetDefaultBillingAddressRequest: () => ({
+  useSetMyDefaultBillingRequest: () => ({
     trigger: setDefaultBillingTriggerMock,
   }),
-  useCreateCustomerAddressRequest: () => ({ trigger: vi.fn() }),
-  useUpdateCustomerAddressRequest: () => ({ trigger: vi.fn() }),
+  useCreateMyAddressRequest: () => ({ trigger: vi.fn() }),
+  useUpdateMyAddressRequest: () => ({ trigger: vi.fn() }),
   useListStatesRequest: () => ({
     data: { status: 200, data: [] },
     isLoading: false,
@@ -78,9 +78,7 @@ describe("CustomerAddressList", () => {
   });
 
   it("shows an empty state when there are no addresses", () => {
-    render(
-      <CustomerAddressList userId="user-1" addresses={[]} onChanged={vi.fn()} />
-    );
+    render(<CustomerAddressList addresses={[]} onChanged={vi.fn()} />);
     expect(
       screen.getByText("Aún no tienes direcciones registradas.")
     ).toBeTruthy();
@@ -89,7 +87,6 @@ describe("CustomerAddressList", () => {
   it("renders the address details and default badges", () => {
     render(
       <CustomerAddressList
-        userId="user-1"
         addresses={[address({ is_default_shipping: true })]}
         onChanged={vi.fn()}
       />
@@ -107,7 +104,6 @@ describe("CustomerAddressList", () => {
   it("keeps the default badges in place but disabled once active", () => {
     render(
       <CustomerAddressList
-        userId="user-1"
         addresses={[address({ is_default_shipping: true })]}
         onChanged={vi.fn()}
       />
@@ -131,11 +127,7 @@ describe("CustomerAddressList", () => {
     });
     const onChanged = vi.fn();
     render(
-      <CustomerAddressList
-        userId="user-1"
-        addresses={[address()]}
-        onChanged={onChanged}
-      />
+      <CustomerAddressList addresses={[address()]} onChanged={onChanged} />
     );
 
     fireEvent.click(
@@ -155,11 +147,7 @@ describe("CustomerAddressList", () => {
     deleteTriggerMock.mockResolvedValue({ status: 200, data: address() });
     const onChanged = vi.fn();
     render(
-      <CustomerAddressList
-        userId="user-1"
-        addresses={[address()]}
-        onChanged={onChanged}
-      />
+      <CustomerAddressList addresses={[address()]} onChanged={onChanged} />
     );
 
     fireEvent.click(screen.getByRole("button", { name: "Eliminar dirección" }));
@@ -177,8 +165,7 @@ describe("CustomerAddressList", () => {
     });
     render(
       <CustomerAddressList
-        userId="user-1"
-        addresses={[address()]}
+        addresses={[address({ is_default_shipping: true })]}
         onChanged={vi.fn()}
       />
     );

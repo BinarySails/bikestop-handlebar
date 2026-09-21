@@ -12,7 +12,7 @@ import {
 } from "@/components/features/profile/profile-settings-card";
 import { Button } from "@/components/ui/button";
 import {
-  useListCustomerAddressesRequest,
+  useListMyAddressesRequest,
   useMeHandler,
   useUpdateUserProfileRequest,
 } from "@/lib/api/api";
@@ -20,17 +20,6 @@ import { useAuthStore } from "@/lib/auth/use-auth-store";
 import type { UpdateUserProfileRequest, UserResponse } from "@/lib/api/schemas";
 
 export const Route = createFileRoute("/b2b/account")({
-  beforeLoad: () => {
-    const { actor, isInDev } = useAuthStore.getState();
-    if (isInDev) return;
-
-    const isAdmin = actor?.roles?.some(
-      (role) => role.slug === "admin" || role.slug === "super_admin"
-    );
-    if (isAdmin) {
-      throw new Error("Admin users cannot access customer account pages.");
-    }
-  },
   component: AccountPage,
 });
 
@@ -49,9 +38,7 @@ function AccountPage() {
   const { trigger: updateProfile } = useUpdateUserProfileRequest(userId);
 
   const { data: addressesRes, mutate: mutateAddresses } =
-    useListCustomerAddressesRequest(userId, {
-      swr: { enabled: Boolean(userId) },
-    });
+    useListMyAddressesRequest();
   const addresses = addressesRes?.status === 200 ? addressesRes.data : [];
 
   async function handleUpdateProfileField(field: ProfileField, value: string) {
@@ -113,7 +100,6 @@ function AccountPage() {
             Mis Direcciones
           </h2>
           <CustomerAddressFormDialog
-            userId={userId}
             mode="create"
             onSuccess={() => mutateAddresses()}
             trigger={<EntityCreateButton>Agregar dirección</EntityCreateButton>}
@@ -122,7 +108,6 @@ function AccountPage() {
 
         <div className="mt-3">
           <CustomerAddressList
-            userId={userId}
             addresses={addresses}
             onChanged={() => mutateAddresses()}
           />
