@@ -15,9 +15,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  useDeleteCustomerAddressRequest,
-  useSetDefaultBillingAddressRequest,
-  useSetDefaultShippingAddressRequest,
+  useDeleteMyAddressRequest,
+  useSetMyDefaultBillingRequest,
+  useSetMyDefaultShippingRequest,
 } from "@/lib/api/api";
 import type { CustomerAddressWithAddressRow } from "@/lib/api/schemas";
 
@@ -38,13 +38,11 @@ function getErrorMessage(data: unknown, fallback: string) {
 }
 
 type CustomerAddressListProps = {
-  userId: string;
   addresses: CustomerAddressWithAddressRow[];
   onChanged: () => void;
 };
 
 export function CustomerAddressList({
-  userId,
   addresses,
   onChanged,
 }: CustomerAddressListProps) {
@@ -61,7 +59,6 @@ export function CustomerAddressList({
       {addresses.map((address) => (
         <CustomerAddressCard
           key={address.id}
-          userId={userId}
           address={address}
           onChanged={onChanged}
         />
@@ -71,27 +68,20 @@ export function CustomerAddressList({
 }
 
 function CustomerAddressCard({
-  userId,
   address,
   onChanged,
 }: {
-  userId: string;
   address: CustomerAddressWithAddressRow;
   onChanged: () => void;
 }) {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [pending, setPending] = useState(false);
 
-  const { trigger: deleteAddress } = useDeleteCustomerAddressRequest(
-    userId,
+  const { trigger: deleteAddress } = useDeleteMyAddressRequest(address.id);
+  const { trigger: setDefaultShipping } = useSetMyDefaultShippingRequest(
     address.id
   );
-  const { trigger: setDefaultShipping } = useSetDefaultShippingAddressRequest(
-    userId,
-    address.id
-  );
-  const { trigger: setDefaultBilling } = useSetDefaultBillingAddressRequest(
-    userId,
+  const { trigger: setDefaultBilling } = useSetMyDefaultBillingRequest(
     address.id
   );
 
@@ -203,7 +193,6 @@ function CustomerAddressCard({
 
         <div className="flex shrink-0 items-center gap-2">
           <CustomerAddressFormDialog
-            userId={userId}
             mode="edit"
             address={address}
             onSuccess={onChanged}

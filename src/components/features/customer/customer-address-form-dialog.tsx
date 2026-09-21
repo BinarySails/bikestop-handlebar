@@ -23,11 +23,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  useCreateCustomerAddressRequest,
+  useCreateMyAddressRequest,
   useListStatesRequest,
-  useUpdateCustomerAddressRequest,
-  setDefaultShippingAddressRequest,
-  setDefaultBillingAddressRequest,
+  useUpdateMyAddressRequest,
+  setMyDefaultShippingRequest,
+  setMyDefaultBillingRequest,
 } from "@/lib/api/api";
 import type { CustomerAddressWithAddressRow, State } from "@/lib/api/schemas";
 
@@ -79,7 +79,6 @@ type FormValues = {
 };
 
 type CustomerAddressFormDialogProps = {
-  userId: string;
   mode: "create" | "edit";
   address?: CustomerAddressWithAddressRow;
   trigger: React.ReactElement;
@@ -87,7 +86,6 @@ type CustomerAddressFormDialogProps = {
 };
 
 export function CustomerAddressFormDialog({
-  userId,
   mode,
   address,
   trigger,
@@ -112,7 +110,6 @@ export function CustomerAddressFormDialog({
         </DialogHeader>
 
         <CustomerAddressForm
-          userId={userId}
           mode={mode}
           address={address}
           onDone={() => {
@@ -127,21 +124,18 @@ export function CustomerAddressFormDialog({
 }
 
 function CustomerAddressForm({
-  userId,
   mode,
   address,
   onDone,
   onCancel,
 }: {
-  userId: string;
   mode: "create" | "edit";
   address?: CustomerAddressWithAddressRow;
   onDone: () => void;
   onCancel: () => void;
 }) {
-  const { trigger: createAddress } = useCreateCustomerAddressRequest(userId);
-  const { trigger: updateAddress } = useUpdateCustomerAddressRequest(
-    userId,
+  const { trigger: createAddress } = useCreateMyAddressRequest();
+  const { trigger: updateAddress } = useUpdateMyAddressRequest(
     address?.id ?? ""
   );
 
@@ -165,11 +159,6 @@ function CustomerAddressForm({
       is_default_billing: false as boolean,
     } satisfies FormValues,
     onSubmit: async ({ value }) => {
-      if (!userId) {
-        toast.error("No se pudo identificar tu usuario. Recarga la página.");
-        return;
-      }
-
       const payload = {
         contact_name: value.contact_name.trim(),
         phone: value.phone.trim(),
@@ -191,14 +180,14 @@ function CustomerAddressForm({
           const newAddressId = result.data.id;
           if (value.is_default_shipping) {
             try {
-              await setDefaultShippingAddressRequest(userId, newAddressId);
+              await setMyDefaultShippingRequest(newAddressId);
             } catch {
               // silently ignore - address was created successfully
             }
           }
           if (value.is_default_billing) {
             try {
-              await setDefaultBillingAddressRequest(userId, newAddressId);
+              await setMyDefaultBillingRequest(newAddressId);
             } catch {
               // silently ignore - address was created successfully
             }

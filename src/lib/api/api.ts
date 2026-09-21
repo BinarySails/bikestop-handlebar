@@ -1996,6 +1996,145 @@ export const useSetDefaultShippingAddressRequest = <TError = Promise<ErrorRespon
   }
 }
 
+// ---------------------------------------------------------------------------
+// /me/addresses — session-based, no userId required
+// ---------------------------------------------------------------------------
+
+const ME_ADDRESSES_BASE = `http://localhost:8080/api/v1/customers/me/addresses`;
+
+export const listMyAddressesRequest = async (options?: RequestInit): Promise<{data: CustomerAddressWithAddressRow[]; status: number; headers: Headers}> => {
+  const res = await fetch(ME_ADDRESSES_BASE, { credentials: 'include', ...options, method: 'GET' });
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+  const data = body ? JSON.parse(body) : {};
+  return { data, status: res.status, headers: res.headers };
+};
+
+export const useListMyAddressesRequest = <TError = Promise<ErrorResponse>>(
+  options?: { swr?: SWRConfiguration<Awaited<ReturnType<typeof listMyAddressesRequest>>, TError> & { swrKey?: Key; enabled?: boolean }; fetch?: RequestInit }
+) => {
+  const { swr: swrOptions, fetch: fetchOptions } = options ?? {};
+  const swrKey = swrOptions?.swrKey ?? ME_ADDRESSES_BASE;
+  const swrFn = () => listMyAddressesRequest(fetchOptions);
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions);
+  return { swrKey, ...query };
+};
+
+export const createMyAddressRequest = async (
+  payload: CreateCustomerAddressRequest,
+  options?: RequestInit
+): Promise<{data: CustomerAddressWithAddressRow; status: number; headers: Headers}> => {
+  const res = await fetch(ME_ADDRESSES_BASE, {
+    credentials: 'include', ...options, method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(payload),
+  });
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+  const data = body ? JSON.parse(body) : {};
+  return { data, status: res.status, headers: res.headers };
+};
+
+export const useCreateMyAddressRequest = <TError = Promise<ErrorResponse>>(
+  options?: { swr?: SWRMutationConfiguration<Awaited<ReturnType<typeof createMyAddressRequest>>, TError, Key, CreateCustomerAddressRequest, Awaited<ReturnType<typeof createMyAddressRequest>>>; fetch?: RequestInit }
+) => {
+  const { swr: swrOptions, fetch: fetchOptions } = options ?? {};
+  const swrFn = (_: Key, { arg }: { arg: CreateCustomerAddressRequest }) => createMyAddressRequest(arg, fetchOptions);
+  const query = useSWRMutation(ME_ADDRESSES_BASE, swrFn, swrOptions);
+  return { swrKey: ME_ADDRESSES_BASE, ...query };
+};
+
+export const updateMyAddressRequest = async (
+  addressId: CustomerAddressId,
+  payload: UpdateCustomerAddressRequest,
+  options?: RequestInit
+): Promise<{data: CustomerAddressWithAddressRow; status: number; headers: Headers}> => {
+  const res = await fetch(`${ME_ADDRESSES_BASE}/${addressId}`, {
+    credentials: 'include', ...options, method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(payload),
+  });
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+  const data = body ? JSON.parse(body) : {};
+  return { data, status: res.status, headers: res.headers };
+};
+
+export const useUpdateMyAddressRequest = <TError = Promise<ErrorResponse>>(
+  addressId: CustomerAddressId,
+  options?: { swr?: SWRMutationConfiguration<Awaited<ReturnType<typeof updateMyAddressRequest>>, TError, Key, UpdateCustomerAddressRequest, Awaited<ReturnType<typeof updateMyAddressRequest>>>; fetch?: RequestInit }
+) => {
+  const { swr: swrOptions, fetch: fetchOptions } = options ?? {};
+  const swrKey = `${ME_ADDRESSES_BASE}/${addressId}`;
+  const swrFn = (_: Key, { arg }: { arg: UpdateCustomerAddressRequest }) => updateMyAddressRequest(addressId, arg, fetchOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  return { swrKey, ...query };
+};
+
+export const deleteMyAddressRequest = async (
+  addressId: CustomerAddressId,
+  options?: RequestInit
+): Promise<{data: CustomerAddress; status: number; headers: Headers}> => {
+  const res = await fetch(`${ME_ADDRESSES_BASE}/${addressId}`, { credentials: 'include', ...options, method: 'DELETE' });
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+  const data = body ? JSON.parse(body) : {};
+  return { data, status: res.status, headers: res.headers };
+};
+
+export const useDeleteMyAddressRequest = <TError = Promise<ErrorResponse>>(
+  addressId: CustomerAddressId,
+  options?: { swr?: SWRMutationConfiguration<Awaited<ReturnType<typeof deleteMyAddressRequest>>, TError, Key, Arguments, Awaited<ReturnType<typeof deleteMyAddressRequest>>>; fetch?: RequestInit }
+) => {
+  const { swr: swrOptions, fetch: fetchOptions } = options ?? {};
+  const swrKey = `${ME_ADDRESSES_BASE}/${addressId}`;
+  const swrFn = () => deleteMyAddressRequest(addressId, fetchOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  return { swrKey, ...query };
+};
+
+export const setMyDefaultShippingRequest = async (
+  addressId: CustomerAddressId,
+  options?: RequestInit
+): Promise<{data: CustomerAddressWithAddressRow; status: number; headers: Headers}> => {
+  const res = await fetch(`${ME_ADDRESSES_BASE}/${addressId}/default-shipping`, { credentials: 'include', ...options, method: 'PATCH' });
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+  const data = body ? JSON.parse(body) : {};
+  return { data, status: res.status, headers: res.headers };
+};
+
+export const useSetMyDefaultShippingRequest = <TError = Promise<ErrorResponse>>(
+  addressId: CustomerAddressId,
+  options?: { swr?: SWRMutationConfiguration<Awaited<ReturnType<typeof setMyDefaultShippingRequest>>, TError, Key, Arguments, Awaited<ReturnType<typeof setMyDefaultShippingRequest>>>; fetch?: RequestInit }
+) => {
+  const { swr: swrOptions, fetch: fetchOptions } = options ?? {};
+  const swrKey = `${ME_ADDRESSES_BASE}/${addressId}/default-shipping`;
+  const swrFn = () => setMyDefaultShippingRequest(addressId, fetchOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  return { swrKey, ...query };
+};
+
+export const setMyDefaultBillingRequest = async (
+  addressId: CustomerAddressId,
+  options?: RequestInit
+): Promise<{data: CustomerAddressWithAddressRow; status: number; headers: Headers}> => {
+  const res = await fetch(`${ME_ADDRESSES_BASE}/${addressId}/default-billing`, { credentials: 'include', ...options, method: 'PATCH' });
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+  const data = body ? JSON.parse(body) : {};
+  return { data, status: res.status, headers: res.headers };
+};
+
+export const useSetMyDefaultBillingRequest = <TError = Promise<ErrorResponse>>(
+  addressId: CustomerAddressId,
+  options?: { swr?: SWRMutationConfiguration<Awaited<ReturnType<typeof setMyDefaultBillingRequest>>, TError, Key, Arguments, Awaited<ReturnType<typeof setMyDefaultBillingRequest>>>; fetch?: RequestInit }
+) => {
+  const { swr: swrOptions, fetch: fetchOptions } = options ?? {};
+  const swrKey = `${ME_ADDRESSES_BASE}/${addressId}/default-billing`;
+  const swrFn = () => setMyDefaultBillingRequest(addressId, fetchOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  return { swrKey, ...query };
+};
+
+// ---------------------------------------------------------------------------
+// /customers (admin)
+// ---------------------------------------------------------------------------
+
 export type getCustomerRequestResponse200 = {
   data: Customer
   status: 200
