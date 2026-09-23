@@ -11,6 +11,7 @@ import {
   type EntityColumn,
 } from "@/components/features/entity/entity-index-page";
 import { CreateProductDialog } from "@/components/features/products/create-product-modal";
+import { ProductThumbnail } from "@/components/features/products/product-thumbnail";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -184,7 +185,10 @@ function ProductsListPage() {
     {
       header: "Nombre",
       cell: (product) => (
-        <span className="font-medium">{product.display_name}</span>
+        <div className="flex items-center gap-3">
+          <ProductThumbnail productId={product.id} alt={product.display_name} />
+          <span className="font-medium">{product.display_name}</span>
+        </div>
       ),
     },
     {

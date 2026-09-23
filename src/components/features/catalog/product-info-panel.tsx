@@ -68,12 +68,6 @@ export function ProductInfoPanel({ product }: ProductInfoPanelProps) {
         </p>
       )}
 
-      {product.description && (
-        <p className="line-clamp-2 text-sm text-muted-foreground">
-          {product.description}
-        </p>
-      )}
-
       {product.properties.length > 0 && (
         <ul className="space-y-1">
           {product.properties.map((property) => (
@@ -125,6 +119,10 @@ export function ProductInfoPanel({ product }: ProductInfoPanelProps) {
       </div>
 
       <Separator />
+
+      {product.description && (
+        <p className="text-sm text-foreground">{product.description}</p>
+      )}
 
       <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
         <dt className="text-muted-foreground">Marca</dt>
