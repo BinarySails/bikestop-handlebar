@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 
+import { formatPaymentTermName } from "@/components/features/sales/payment-term-label";
 import {
   Select,
   SelectContent,
@@ -53,8 +54,12 @@ export function PaymentTermSelect({
           </SelectItem>
         ) : null}
         {terms.map((term) => (
-          <SelectItem key={term.id} value={term} label={term.name}>
-            {term.name}
+          <SelectItem
+            key={term.id}
+            value={term}
+            label={formatPaymentTermName(term.name)}
+          >
+            {formatPaymentTermName(term.name)}
           </SelectItem>
         ))}
       </SelectContent>
