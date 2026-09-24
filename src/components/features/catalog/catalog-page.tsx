@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { Search } from "lucide-react";
+import { toast } from "sonner";
 
 import { CatalogProductGrid } from "@/components/features/catalog/catalog-product-grid";
 import { CatalogSidebar } from "@/components/features/catalog/catalog-sidebar";
@@ -14,6 +16,7 @@ import {
 } from "@/components/ui/pagination";
 import { Input } from "@/components/ui/input";
 import {
+  listCatalogProductsRequest,
   useGetCategoriesRequest,
   useListBrandsRequest,
   useListCatalogProductsRequest,
@@ -117,9 +120,11 @@ export function matchesCatalogProductSearch(
 }
 
 export function CatalogPage() {
+  const navigate = useNavigate();
   const [page, setPage] = useState(0);
   const [search, setSearch] = useState("");
   const [appliedSearch, setAppliedSearch] = useState("");
+  const [isSkuSearching, setIsSkuSearching] = useState(false);
   const [sortBy, setSortBy] = useState<SortOption>("name_asc");
   const [availability, setAvailability] = useState<AvailabilityOption>("all");
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
@@ -208,6 +213,52 @@ export function CatalogPage() {
     setPage(0);
   }
 
+  function handleSearchKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
+    if (event.key === "Enter") {
+      const trimmed = search.trim();
+      if (trimmed && !isSkuSearching) {
+        event.preventDefault();
+        void lookupBySku(trimmed);
+      }
+    }
+  }
+
+  async function lookupBySku(sku: string) {
+    const normalizedSku = sku.trim().toLowerCase();
+    if (!normalizedSku) {
+      return;
+    }
+
+    setIsSkuSearching(true);
+    try {
+      const res = await listCatalogProductsRequest({ page: 1, limit: 500 });
+      if (res.status !== 200) {
+        toast.error("No se pudo buscar el SKU.");
+        return;
+      }
+
+      const match = res.data.data.find(
+        (product) => product.sku?.trim().toLowerCase() === normalizedSku
+      );
+
+      if (match) {
+        setSearch("");
+        setAppliedSearch("");
+        void navigate({
+          to: "/b2b/$productId",
+          params: { productId: match.id },
+        });
+      } else {
+        toast.error(`No se encontró ningún producto con SKU "${sku}".`);
+      }
+    } catch (error) {
+      console.error("SKU lookup failed", error);
+      toast.error("Error al buscar el SKU.");
+    } finally {
+      setIsSkuSearching(false);
+    }
+  }
+
   return (
     <div className="px-4 py-4 sm:px-6">
       <div className="flex items-start gap-6">
@@ -233,6 +284,7 @@ export function CatalogPage() {
                 placeholder="Buscar..."
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
+                onKeyDown={handleSearchKeyDown}
                 className="w-full pl-9"
                 aria-label="Buscar productos"
               />
