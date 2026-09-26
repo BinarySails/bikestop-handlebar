@@ -206,7 +206,7 @@ function PaymentTermField({
         </p>
       ) : selected?.type === "due_on_receipt" ? (
         <p className="text-xs text-muted-foreground">
-          Vencimiento inmediato al recibir la factura.
+          Pago de contado al recibir la factura.
         </p>
       ) : null}
     </div>
@@ -369,6 +369,16 @@ function sameAddress(
   );
 }
 
+function isSameAddress(a: AddressFormValues, b: AddressFormValues): boolean {
+  return (
+    a.country.trim().toLowerCase() === b.country.trim().toLowerCase() &&
+    a.state.trim().toLowerCase() === b.state.trim().toLowerCase() &&
+    a.city.trim().toLowerCase() === b.city.trim().toLowerCase() &&
+    a.postal_code.trim() === b.postal_code.trim() &&
+    a.address.trim().toLowerCase() === b.address.trim().toLowerCase()
+  );
+}
+
 function valuesFromOrder(order: SalesOrder): SalesOrderFormValues {
   return {
     customer: {
@@ -526,7 +536,9 @@ export function CreateSalesOrderForm({
     .map((comment) => comment.trim())
     .filter(Boolean);
 
-  const [customerIdForFetch, setCustomerIdForFetch] = useState<string>("");
+  const [customerIdForFetch, setCustomerIdForFetch] = useState<string>(
+    order ? order.customer.customer_id : ""
+  );
   const { data: customerRes } = useGetCustomerRequest(customerIdForFetch, {
     swr: { enabled: customerIdForFetch !== "" },
   });
@@ -558,13 +570,33 @@ export function CreateSalesOrderForm({
   >(defaultShippingAddr ? defaultShippingAddr.id : "new");
 
   useEffect(() => {
-    setSelectedBillingAddressId(
-      defaultBillingAddr ? defaultBillingAddr.id : "new"
+    if (!order) {
+      setSelectedBillingAddressId(
+        defaultBillingAddr ? defaultBillingAddr.id : "new"
+      );
+      setSelectedShippingAddressId(
+        defaultShippingAddr ? defaultShippingAddr.id : "new"
+      );
+    }
+  }, [customerIdForFetch, defaultBillingAddr, defaultShippingAddr, order]);
+
+  useEffect(() => {
+    if (!order || customerAddresses.length === 0) {
+      return;
+    }
+    const orderBilling = addressValues(order.billing_address);
+    const orderShipping = addressValues(order.shipping_address);
+    const matchingBilling = customerAddresses.find((addr) =>
+      isSameAddress(customerAddressToFormValues(addr), orderBilling)
     );
+    const matchingShipping = customerAddresses.find((addr) =>
+      isSameAddress(customerAddressToFormValues(addr), orderShipping)
+    );
+    setSelectedBillingAddressId(matchingBilling ? matchingBilling.id : "new");
     setSelectedShippingAddressId(
-      defaultShippingAddr ? defaultShippingAddr.id : "new"
+      matchingShipping ? matchingShipping.id : "new"
     );
-  }, [customerIdForFetch, defaultBillingAddr, defaultShippingAddr]);
+  }, [customerAddresses, order]);
 
   const selectedBillingAddress =
     selectedBillingAddressId !== "new"
@@ -1035,15 +1067,15 @@ export function CreateSalesOrderForm({
             >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Seleccionar dirección">
-                  {(value) =>
-                    value === "new"
-                      ? "Ingresar nueva dirección"
-                      : customerAddresses.find((a) => a.id === value)
-                        ? formatAddressRow(
-                            customerAddresses.find((a) => a.id === value)!
-                          )
-                        : "Seleccionar dirección"
-                  }
+                  {(value) => {
+                    if (value === "new") return "Ingresar nueva dirección";
+                    const matched = customerAddresses.find(
+                      (a) => a.id === value
+                    );
+                    return matched
+                      ? formatAddressRow(matched)
+                      : "Seleccionar dirección";
+                  }}
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
@@ -1054,17 +1086,6 @@ export function CreateSalesOrderForm({
                     label={formatAddressRow(addr)}
                   >
                     {formatAddressRow(addr)}
-                    {isBilling
-                      ? addr.is_default_billing && (
-                          <Badge className="ml-2 text-[10px]">
-                            Predeterminada
-                          </Badge>
-                        )
-                      : addr.is_default_shipping && (
-                          <Badge className="ml-2 text-[10px]">
-                            Predeterminada
-                          </Badge>
-                        )}
                   </SelectItem>
                 ))}
                 <SelectItem value="new" label="Ingresar nueva dirección">

@@ -2,7 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, Printer } from "lucide-react";
 
 import { ProductLineThumbnail } from "@/components/features/sales/product-line-thumbnail";
-import { formatPaymentTermName } from "@/components/features/sales/payment-term-label";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -136,7 +135,7 @@ function OrderDetailPage() {
             <SummaryRow label="Unidades" value={String(totalUnits)} />
             <SummaryRow
               label="Término de pago"
-              value={formatPaymentTermName(order.payment_term.name)}
+              value={order.payment_term.name}
             />
             {dueDate && (
               <SummaryRow label="Vence el" value={formatDueDate(dueDate)} />

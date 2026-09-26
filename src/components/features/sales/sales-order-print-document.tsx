@@ -5,7 +5,6 @@ import type {
 } from "@/lib/api/schemas";
 import { computeDueDate, formatDueDate } from "@/lib/dates";
 import { centsToPesos } from "@/lib/money";
-import { formatPaymentTermName } from "@/components/features/sales/payment-term-label";
 
 const statusLabel: Record<SalesOrderStatus, string> = {
   draft: "Borrador",
@@ -79,9 +78,7 @@ export function SalesOrderPrintDocument({ order }: { order: SalesOrder }) {
         <Meta label="Fecha del pedido">
           {dateFormatter.format(new Date(order.order_date))}
         </Meta>
-        <Meta label="Término de pago">
-          {formatPaymentTermName(order.payment_term.name)}
-        </Meta>
+        <Meta label="Término de pago">{order.payment_term.name}</Meta>
         {dueDate && <Meta label="Vence el">{formatDueDate(dueDate)}</Meta>}
         <Meta label="Unidades">{String(totalUnits)}</Meta>
       </section>

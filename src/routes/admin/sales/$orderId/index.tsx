@@ -5,7 +5,6 @@ import { useSWRConfig } from "swr";
 
 import { ApplyPromotionsDialog } from "@/components/features/sales/apply-promotions-dialog";
 import { CreateSalesOrderForm } from "@/components/features/sales/create-sales-order-form";
-import { formatPaymentTermName } from "@/components/features/sales/payment-term-label";
 import { SalesOrderAuditLog } from "@/components/features/sales/sales-order-audit-log";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -248,7 +247,7 @@ function PaymentTermSummary({ order }: { order: SalesOrder }) {
     <p className="mt-1 text-sm text-muted-foreground">
       Término de pago:{" "}
       <span className="font-medium text-foreground">
-        {formatPaymentTermName(order.payment_term.name)}
+        {order.payment_term.name}
       </span>
       {dueDate ? <span> · Vence el {formatDueDate(dueDate)}</span> : null}
     </p>
