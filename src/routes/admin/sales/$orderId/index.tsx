@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Package } from "lucide-react";
 import { useSWRConfig } from "swr";
+import { toast } from "sonner";
 
 import { ApplyPromotionsDialog } from "@/components/features/sales/apply-promotions-dialog";
 import { CreateSalesOrderForm } from "@/components/features/sales/create-sales-order-form";
@@ -14,6 +15,8 @@ import {
   useAddSalesOrderCommentRequest,
   useGetSaleOrderRequest,
   useMeHandler,
+  usePickFulfillmentOrderRequest,
+  useReleaseFulfillmentRequest,
 } from "@/lib/api/api";
 import {
   cancelSalesOrderRequest,
@@ -22,11 +25,12 @@ import {
   updateSalesOrderStatusRequest,
 } from "@/lib/api/sales-order-actions";
 import { updateSalesOrderRequest } from "@/lib/api/update-sales-order";
-import type {
-  SalesOrder,
-  SalesOrderLineId,
+import {
+  FulfillState,
   SalesOrderStatus,
-  WarehouseId,
+  type SalesOrder,
+  type SalesOrderLineId,
+  type WarehouseId,
 } from "@/lib/api/schemas";
 import { computeDueDate, formatDueDate } from "@/lib/dates";
 
@@ -77,6 +81,10 @@ function OrderDetailPage() {
   const revalidateAudit = () => {
     void swrMutate(auditKey);
   };
+  const { trigger: pickOrder, isMutating: isPickingOrder } =
+    usePickFulfillmentOrderRequest();
+  const { trigger: releaseOrder, isMutating: isReleasingOrder } =
+    useReleaseFulfillmentRequest(orderId);
 
   if (isLoading) {
     return (
@@ -99,6 +107,7 @@ function OrderDetailPage() {
     );
   }
 
+  const currentOrderId = order.id;
   const sessionUser =
     sessionResponse?.status === 200 ? sessionResponse.data : null;
   const commentAuthor = sessionUser
@@ -110,6 +119,38 @@ function OrderDetailPage() {
         .filter(Boolean)
         .join(" ")
     : "Usuario";
+
+  const currentUserId = sessionUser?.id;
+  const isOrderPicked = order.fulfill_state === FulfillState.picked;
+  const isPickedByCurrentUser = isOrderPicked && order.fulfilling_user_id === currentUserId;
+  const canPickOrder =
+    !isOrderPicked &&
+    (order.status === SalesOrderStatus.confirmed ||
+      order.status === SalesOrderStatus.partially_fulfilled);
+
+  async function handlePickOrder() {
+    const result = await pickOrder({ order_id: orderId });
+    if (result?.status === 200) {
+      toast.success(`Orden ${result.data.order_number} seleccionada para despacho.`);
+      await mutate();
+    } else if (result?.status === 404) {
+      toast.error("No hay órdenes disponibles para despacho.");
+    } else if (result?.status === 409) {
+      toast.error("Ya tienes una orden seleccionada para despacho.");
+    } else {
+      toast.error("Error al seleccionar la orden.");
+    }
+  }
+
+  async function handleReleaseOrder() {
+    const result = await releaseOrder(currentOrderId);
+    if (result?.status === 200) {
+      toast.success("Orden liberada.");
+      await mutate();
+    } else {
+      toast.error("Error al liberar la orden.");
+    }
+  }
 
   return (
     <section className="mx-auto flex w-full max-w-7xl flex-col gap-6 p-6">
@@ -130,6 +171,33 @@ function OrderDetailPage() {
           </div>
           <PaymentTermSummary order={order} />
         </div>
+        {isOrderPicked && isPickedByCurrentUser && (
+          <>
+            <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300">
+              <Package className="size-3 mr-1" />
+              Tu orden para despachar
+            </Badge>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleReleaseOrder}
+              disabled={isReleasingOrder}
+            >
+              Liberar
+            </Button>
+          </>
+        )}
+        {!isOrderPicked && canPickOrder && (
+          <Button
+            size="sm"
+            onClick={handlePickOrder}
+            disabled={isPickingOrder}
+            className="bg-green-600 hover:bg-green-700 text-white"
+          >
+            <Package className="size-4 mr-1" />
+            Despachar este pedido
+          </Button>
+        )}
       </div>
 
       <CreateSalesOrderForm

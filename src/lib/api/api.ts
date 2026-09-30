@@ -45,6 +45,7 @@ import type {
   CreateFileResponse,
   CreateInventoryTransactionRequest,
   CreateLocalityRequest,
+  CreateMyAddressRequest,
   CreatePermissionRequest,
   CreatePermissionResponse,
   CreateProductRequest,
@@ -131,6 +132,7 @@ import type {
   SalesOrder,
   SalesOrderId,
   SalesOrderLineId,
+  SalesOrderSummaryView,
   SalesSummary,
   State,
   StateId,
@@ -142,6 +144,7 @@ import type {
   UpdateCustomerAddressRequest,
   UpdateCustomerRequest,
   UpdateCustomerStatusRequest,
+  UpdateMyAddressRequest,
   UpdatePermissionRequest,
   UpdatePermissionResponse,
   UpdateProductRequest,
@@ -1322,6 +1325,532 @@ export const useCreateCustomerRequest = <TError = Promise<ErrorResponse>>(
 
   const swrKey = swrOptions?.swrKey ?? getCreateCustomerRequestMutationKey();
   const swrFn = getCreateCustomerRequestMutationFetcher(fetchOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type listMyAddressesResponse200 = {
+  data: CustomerAddressWithAddressRow[]
+  status: 200
+}
+
+export type listMyAddressesResponse401 = {
+  data: ErrorResponse
+  status: 401
+}
+
+export type listMyAddressesResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type listMyAddressesResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type listMyAddressesResponseSuccess = (listMyAddressesResponse200) & {
+  headers: Headers;
+};
+export type listMyAddressesResponseError = (listMyAddressesResponse401 | listMyAddressesResponse404 | listMyAddressesResponse500) & {
+  headers: Headers;
+};
+
+export type listMyAddressesResponse = (listMyAddressesResponseSuccess | listMyAddressesResponseError)
+
+export const getListMyAddressesUrl = () => {
+
+
+
+
+  return `http://localhost:8080/api/v1/customers/me/addresses`
+}
+
+export const listMyAddresses = async ( options?: RequestInit): Promise<listMyAddressesResponse> => {
+
+  const res = await fetch(getListMyAddressesUrl(),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'GET'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: listMyAddressesResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as listMyAddressesResponse
+}
+
+
+
+
+export const getListMyAddressesKey = () => [`http://localhost:8080/api/v1/customers/me/addresses`] as const;
+
+export type ListMyAddressesQueryResult = NonNullable<Awaited<ReturnType<typeof listMyAddresses>>>
+
+export const useListMyAddresses = <TError = Promise<ErrorResponse>>(
+   options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof listMyAddresses>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
+) => {
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getListMyAddressesKey() : null);
+  const swrFn = () => listMyAddresses(fetchOptions)
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type createMyAddressResponse201 = {
+  data: CustomerAddressWithAddressRow
+  status: 201
+}
+
+export type createMyAddressResponse400 = {
+  data: ErrorResponse
+  status: 400
+}
+
+export type createMyAddressResponse401 = {
+  data: ErrorResponse
+  status: 401
+}
+
+export type createMyAddressResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type createMyAddressResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type createMyAddressResponseSuccess = (createMyAddressResponse201) & {
+  headers: Headers;
+};
+export type createMyAddressResponseError = (createMyAddressResponse400 | createMyAddressResponse401 | createMyAddressResponse404 | createMyAddressResponse500) & {
+  headers: Headers;
+};
+
+export type createMyAddressResponse = (createMyAddressResponseSuccess | createMyAddressResponseError)
+
+export const getCreateMyAddressUrl = () => {
+
+
+
+
+  return `http://localhost:8080/api/v1/customers/me/addresses`
+}
+
+export const createMyAddress = async (createMyAddressRequest: CreateMyAddressRequest, options?: RequestInit): Promise<createMyAddressResponse> => {
+
+  const res = await fetch(getCreateMyAddressUrl(),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(createMyAddressRequest)
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: createMyAddressResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as createMyAddressResponse
+}
+
+
+
+
+export const getCreateMyAddressMutationFetcher = ( options?: RequestInit) => {
+  return (_: Key, { arg }: { arg: CreateMyAddressRequest }) => {
+    return createMyAddress(arg, options);
+  }
+}
+export const getCreateMyAddressMutationKey = () => [`http://localhost:8080/api/v1/customers/me/addresses`] as const;
+
+export type CreateMyAddressMutationResult = NonNullable<Awaited<ReturnType<typeof createMyAddress>>>
+
+export const useCreateMyAddress = <TError = Promise<ErrorResponse>>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof createMyAddress>>, TError, Key, CreateMyAddressRequest, Awaited<ReturnType<typeof createMyAddress>>> & { swrKey?: string }, fetch?: RequestInit}
+) => {
+
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getCreateMyAddressMutationKey();
+  const swrFn = getCreateMyAddressMutationFetcher(fetchOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type deleteMyAddressResponse200 = {
+  data: CustomerAddress
+  status: 200
+}
+
+export type deleteMyAddressResponse401 = {
+  data: ErrorResponse
+  status: 401
+}
+
+export type deleteMyAddressResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type deleteMyAddressResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type deleteMyAddressResponseSuccess = (deleteMyAddressResponse200) & {
+  headers: Headers;
+};
+export type deleteMyAddressResponseError = (deleteMyAddressResponse401 | deleteMyAddressResponse404 | deleteMyAddressResponse500) & {
+  headers: Headers;
+};
+
+export type deleteMyAddressResponse = (deleteMyAddressResponseSuccess | deleteMyAddressResponseError)
+
+export const getDeleteMyAddressUrl = (addressId: CustomerAddressId,) => {
+
+
+
+
+  return `http://localhost:8080/api/v1/customers/me/addresses/${addressId}`
+}
+
+export const deleteMyAddress = async (addressId: CustomerAddressId, options?: RequestInit): Promise<deleteMyAddressResponse> => {
+
+  const res = await fetch(getDeleteMyAddressUrl(addressId),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'DELETE'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: deleteMyAddressResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as deleteMyAddressResponse
+}
+
+
+
+
+export const getDeleteMyAddressMutationFetcher = (addressId: CustomerAddressId, options?: RequestInit) => {
+  return (_: Key, __: { arg: Arguments }) => {
+    return deleteMyAddress(addressId, options);
+  }
+}
+export const getDeleteMyAddressMutationKey = (addressId: CustomerAddressId,) => [`http://localhost:8080/api/v1/customers/me/addresses/${addressId}`] as const;
+
+export type DeleteMyAddressMutationResult = NonNullable<Awaited<ReturnType<typeof deleteMyAddress>>>
+
+export const useDeleteMyAddress = <TError = Promise<ErrorResponse>>(
+  addressId: CustomerAddressId, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof deleteMyAddress>>, TError, Key, Arguments, Awaited<ReturnType<typeof deleteMyAddress>>> & { swrKey?: string }, fetch?: RequestInit}
+) => {
+
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getDeleteMyAddressMutationKey(addressId);
+  const swrFn = getDeleteMyAddressMutationFetcher(addressId, fetchOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type updateMyAddressResponse200 = {
+  data: CustomerAddressWithAddressRow
+  status: 200
+}
+
+export type updateMyAddressResponse400 = {
+  data: ErrorResponse
+  status: 400
+}
+
+export type updateMyAddressResponse401 = {
+  data: ErrorResponse
+  status: 401
+}
+
+export type updateMyAddressResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type updateMyAddressResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type updateMyAddressResponseSuccess = (updateMyAddressResponse200) & {
+  headers: Headers;
+};
+export type updateMyAddressResponseError = (updateMyAddressResponse400 | updateMyAddressResponse401 | updateMyAddressResponse404 | updateMyAddressResponse500) & {
+  headers: Headers;
+};
+
+export type updateMyAddressResponse = (updateMyAddressResponseSuccess | updateMyAddressResponseError)
+
+export const getUpdateMyAddressUrl = (addressId: CustomerAddressId,) => {
+
+
+
+
+  return `http://localhost:8080/api/v1/customers/me/addresses/${addressId}`
+}
+
+export const updateMyAddress = async (addressId: CustomerAddressId,
+    updateMyAddressRequest: UpdateMyAddressRequest, options?: RequestInit): Promise<updateMyAddressResponse> => {
+
+  const res = await fetch(getUpdateMyAddressUrl(addressId),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(updateMyAddressRequest)
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: updateMyAddressResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as updateMyAddressResponse
+}
+
+
+
+
+export const getUpdateMyAddressMutationFetcher = (addressId: CustomerAddressId, options?: RequestInit) => {
+  return (_: Key, { arg }: { arg: UpdateMyAddressRequest }) => {
+    return updateMyAddress(addressId, arg, options);
+  }
+}
+export const getUpdateMyAddressMutationKey = (addressId: CustomerAddressId,) => [`http://localhost:8080/api/v1/customers/me/addresses/${addressId}`] as const;
+
+export type UpdateMyAddressMutationResult = NonNullable<Awaited<ReturnType<typeof updateMyAddress>>>
+
+export const useUpdateMyAddress = <TError = Promise<ErrorResponse>>(
+  addressId: CustomerAddressId, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof updateMyAddress>>, TError, Key, UpdateMyAddressRequest, Awaited<ReturnType<typeof updateMyAddress>>> & { swrKey?: string }, fetch?: RequestInit}
+) => {
+
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getUpdateMyAddressMutationKey(addressId);
+  const swrFn = getUpdateMyAddressMutationFetcher(addressId, fetchOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type setMyDefaultBillingResponse200 = {
+  data: CustomerAddressWithAddressRow
+  status: 200
+}
+
+export type setMyDefaultBillingResponse401 = {
+  data: ErrorResponse
+  status: 401
+}
+
+export type setMyDefaultBillingResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type setMyDefaultBillingResponse409 = {
+  data: ErrorResponse
+  status: 409
+}
+
+export type setMyDefaultBillingResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type setMyDefaultBillingResponseSuccess = (setMyDefaultBillingResponse200) & {
+  headers: Headers;
+};
+export type setMyDefaultBillingResponseError = (setMyDefaultBillingResponse401 | setMyDefaultBillingResponse404 | setMyDefaultBillingResponse409 | setMyDefaultBillingResponse500) & {
+  headers: Headers;
+};
+
+export type setMyDefaultBillingResponse = (setMyDefaultBillingResponseSuccess | setMyDefaultBillingResponseError)
+
+export const getSetMyDefaultBillingUrl = (addressId: CustomerAddressId,) => {
+
+
+
+
+  return `http://localhost:8080/api/v1/customers/me/addresses/${addressId}/default-billing`
+}
+
+export const setMyDefaultBilling = async (addressId: CustomerAddressId, options?: RequestInit): Promise<setMyDefaultBillingResponse> => {
+
+  const res = await fetch(getSetMyDefaultBillingUrl(addressId),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'PATCH'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: setMyDefaultBillingResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as setMyDefaultBillingResponse
+}
+
+
+
+
+export const getSetMyDefaultBillingMutationFetcher = (addressId: CustomerAddressId, options?: RequestInit) => {
+  return (_: Key, __: { arg: Arguments }) => {
+    return setMyDefaultBilling(addressId, options);
+  }
+}
+export const getSetMyDefaultBillingMutationKey = (addressId: CustomerAddressId,) => [`http://localhost:8080/api/v1/customers/me/addresses/${addressId}/default-billing`] as const;
+
+export type SetMyDefaultBillingMutationResult = NonNullable<Awaited<ReturnType<typeof setMyDefaultBilling>>>
+
+export const useSetMyDefaultBilling = <TError = Promise<ErrorResponse>>(
+  addressId: CustomerAddressId, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof setMyDefaultBilling>>, TError, Key, Arguments, Awaited<ReturnType<typeof setMyDefaultBilling>>> & { swrKey?: string }, fetch?: RequestInit}
+) => {
+
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getSetMyDefaultBillingMutationKey(addressId);
+  const swrFn = getSetMyDefaultBillingMutationFetcher(addressId, fetchOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type setMyDefaultShippingResponse200 = {
+  data: CustomerAddressWithAddressRow
+  status: 200
+}
+
+export type setMyDefaultShippingResponse401 = {
+  data: ErrorResponse
+  status: 401
+}
+
+export type setMyDefaultShippingResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type setMyDefaultShippingResponse409 = {
+  data: ErrorResponse
+  status: 409
+}
+
+export type setMyDefaultShippingResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type setMyDefaultShippingResponseSuccess = (setMyDefaultShippingResponse200) & {
+  headers: Headers;
+};
+export type setMyDefaultShippingResponseError = (setMyDefaultShippingResponse401 | setMyDefaultShippingResponse404 | setMyDefaultShippingResponse409 | setMyDefaultShippingResponse500) & {
+  headers: Headers;
+};
+
+export type setMyDefaultShippingResponse = (setMyDefaultShippingResponseSuccess | setMyDefaultShippingResponseError)
+
+export const getSetMyDefaultShippingUrl = (addressId: CustomerAddressId,) => {
+
+
+
+
+  return `http://localhost:8080/api/v1/customers/me/addresses/${addressId}/default-shipping`
+}
+
+export const setMyDefaultShipping = async (addressId: CustomerAddressId, options?: RequestInit): Promise<setMyDefaultShippingResponse> => {
+
+  const res = await fetch(getSetMyDefaultShippingUrl(addressId),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'PATCH'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: setMyDefaultShippingResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as setMyDefaultShippingResponse
+}
+
+
+
+
+export const getSetMyDefaultShippingMutationFetcher = (addressId: CustomerAddressId, options?: RequestInit) => {
+  return (_: Key, __: { arg: Arguments }) => {
+    return setMyDefaultShipping(addressId, options);
+  }
+}
+export const getSetMyDefaultShippingMutationKey = (addressId: CustomerAddressId,) => [`http://localhost:8080/api/v1/customers/me/addresses/${addressId}/default-shipping`] as const;
+
+export type SetMyDefaultShippingMutationResult = NonNullable<Awaited<ReturnType<typeof setMyDefaultShipping>>>
+
+export const useSetMyDefaultShipping = <TError = Promise<ErrorResponse>>(
+  addressId: CustomerAddressId, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof setMyDefaultShipping>>, TError, Key, Arguments, Awaited<ReturnType<typeof setMyDefaultShipping>>> & { swrKey?: string }, fetch?: RequestInit}
+) => {
+
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getSetMyDefaultShippingMutationKey(addressId);
+  const swrFn = getSetMyDefaultShippingMutationFetcher(addressId, fetchOptions);
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
@@ -7055,6 +7584,86 @@ export const useListMySalesOrdersRequest = <TError = Promise<ErrorResponse>>(
   }
 }
 
+export type getMyPickedOrderRequestResponse200 = {
+  data: SalesOrderSummaryView
+  status: 200
+}
+
+export type getMyPickedOrderRequestResponse401 = {
+  data: ErrorResponse
+  status: 401
+}
+
+export type getMyPickedOrderRequestResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type getMyPickedOrderRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type getMyPickedOrderRequestResponseSuccess = (getMyPickedOrderRequestResponse200) & {
+  headers: Headers;
+};
+export type getMyPickedOrderRequestResponseError = (getMyPickedOrderRequestResponse401 | getMyPickedOrderRequestResponse404 | getMyPickedOrderRequestResponse500) & {
+  headers: Headers;
+};
+
+export type getMyPickedOrderRequestResponse = (getMyPickedOrderRequestResponseSuccess | getMyPickedOrderRequestResponseError)
+
+export const getGetMyPickedOrderRequestUrl = () => {
+
+
+
+
+  return `http://localhost:8080/api/v1/sales-orders/me/picked-order`
+}
+
+export const getMyPickedOrderRequest = async ( options?: RequestInit): Promise<getMyPickedOrderRequestResponse> => {
+
+  const res = await fetch(getGetMyPickedOrderRequestUrl(),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'GET'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: getMyPickedOrderRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as getMyPickedOrderRequestResponse
+}
+
+
+
+
+export const getGetMyPickedOrderRequestKey = () => [`http://localhost:8080/api/v1/sales-orders/me/picked-order`] as const;
+
+export type GetMyPickedOrderRequestQueryResult = NonNullable<Awaited<ReturnType<typeof getMyPickedOrderRequest>>>
+
+export const useGetMyPickedOrderRequest = <TError = Promise<ErrorResponse>>(
+   options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getMyPickedOrderRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
+) => {
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetMyPickedOrderRequestKey() : null);
+  const swrFn = () => getMyPickedOrderRequest(fetchOptions)
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
 export type getMySaleOrderRequestResponse200 = {
   data: SalesOrder
   status: 200
@@ -7128,6 +7737,103 @@ export const useGetMySaleOrderRequest = <TError = Promise<ErrorResponse>>(
   const swrFn = () => getMySaleOrderRequest(id, fetchOptions)
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type pickFulfillmentOrderRequestResponse200 = {
+  data: SalesOrder
+  status: 200
+}
+
+export type pickFulfillmentOrderRequestResponse401 = {
+  data: ErrorResponse
+  status: 401
+}
+
+export type pickFulfillmentOrderRequestResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type pickFulfillmentOrderRequestResponse409 = {
+  data: ErrorResponse
+  status: 409
+}
+
+export type pickFulfillmentOrderRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type pickFulfillmentOrderRequestResponseSuccess = (pickFulfillmentOrderRequestResponse200) & {
+  headers: Headers;
+};
+export type PickFulfillmentOrderRequestRequest = {
+  order_id?: SalesOrderId;
+}
+
+export type pickFulfillmentOrderRequestResponseError = (pickFulfillmentOrderRequestResponse401 | pickFulfillmentOrderRequestResponse404 | pickFulfillmentOrderRequestResponse409 | pickFulfillmentOrderRequestResponse500) & {
+  headers: Headers;
+};
+
+export type pickFulfillmentOrderRequestResponse = (pickFulfillmentOrderRequestResponseSuccess | pickFulfillmentOrderRequestResponseError)
+
+export const getPickFulfillmentOrderRequestUrl = () => {
+
+
+
+  return `http://localhost:8080/api/v1/sales-orders/pick`
+}
+
+export const pickFulfillmentOrderRequest = async (pickRequest: PickFulfillmentOrderRequestRequest, options?: RequestInit): Promise<pickFulfillmentOrderRequestResponse> => {
+
+  const res = await fetch(getPickFulfillmentOrderRequestUrl(),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(pickRequest),
+
+  }
+ )
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: pickFulfillmentOrderRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as pickFulfillmentOrderRequestResponse
+}
+
+
+
+
+
+export const getPickFulfillmentOrderRequestMutationFetcher = (options?: RequestInit) => {
+  return (_: Key, { arg }: { arg: PickFulfillmentOrderRequestRequest }) => {
+    return pickFulfillmentOrderRequest(arg, options);
+  }
+}
+export const getPickFulfillmentOrderRequestMutationKey = () => [`http://localhost:8080/api/v1/sales-orders/pick`] as const;
+
+export type PickFulfillmentOrderRequestMutationResult = NonNullable<Awaited<ReturnType<typeof pickFulfillmentOrderRequest>>>
+
+export const usePickFulfillmentOrderRequest = <TError = Promise<ErrorResponse>>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof pickFulfillmentOrderRequest>>, TError, Key, PickFulfillmentOrderRequestRequest, Awaited<ReturnType<typeof pickFulfillmentOrderRequest>>> & { swrKey?: string }, fetch?: RequestInit}
+) => {
+
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getPickFulfillmentOrderRequestMutationKey();
+  const swrFn = getPickFulfillmentOrderRequestMutationFetcher(fetchOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
@@ -7829,6 +8535,106 @@ export const useConfirmSalesOrderRequest = <TError = Promise<ErrorResponse>>(
   }
 }
 
+export type fulfillOrderRequestResponse200 = {
+  data: SalesOrder
+  status: 200
+}
+
+export type fulfillOrderRequestResponse401 = {
+  data: ErrorResponse
+  status: 401
+}
+
+export type fulfillOrderRequestResponse403 = {
+  data: ErrorResponse
+  status: 403
+}
+
+export type fulfillOrderRequestResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type fulfillOrderRequestResponse409 = {
+  data: ErrorResponse
+  status: 409
+}
+
+export type fulfillOrderRequestResponse410 = {
+  data: ErrorResponse
+  status: 410
+}
+
+export type fulfillOrderRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type fulfillOrderRequestResponseSuccess = (fulfillOrderRequestResponse200) & {
+  headers: Headers;
+};
+export type fulfillOrderRequestResponseError = (fulfillOrderRequestResponse401 | fulfillOrderRequestResponse403 | fulfillOrderRequestResponse404 | fulfillOrderRequestResponse409 | fulfillOrderRequestResponse410 | fulfillOrderRequestResponse500) & {
+  headers: Headers;
+};
+
+export type fulfillOrderRequestResponse = (fulfillOrderRequestResponseSuccess | fulfillOrderRequestResponseError)
+
+export const getFulfillOrderRequestUrl = (id: SalesOrderId,) => {
+
+
+
+
+  return `http://localhost:8080/api/v1/sales-orders/${id}/fulfill`
+}
+
+export const fulfillOrderRequest = async (id: SalesOrderId, options?: RequestInit): Promise<fulfillOrderRequestResponse> => {
+
+  const res = await fetch(getFulfillOrderRequestUrl(id),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'POST'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: fulfillOrderRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as fulfillOrderRequestResponse
+}
+
+
+
+
+export const getFulfillOrderRequestMutationFetcher = (id: SalesOrderId, options?: RequestInit) => {
+  return (_: Key, __: { arg: Arguments }) => {
+    return fulfillOrderRequest(id, options);
+  }
+}
+export const getFulfillOrderRequestMutationKey = (id: SalesOrderId,) => [`http://localhost:8080/api/v1/sales-orders/${id}/fulfill`] as const;
+
+export type FulfillOrderRequestMutationResult = NonNullable<Awaited<ReturnType<typeof fulfillOrderRequest>>>
+
+export const useFulfillOrderRequest = <TError = Promise<ErrorResponse>>(
+  id: SalesOrderId, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof fulfillOrderRequest>>, TError, Key, Arguments, Awaited<ReturnType<typeof fulfillOrderRequest>>> & { swrKey?: string }, fetch?: RequestInit}
+) => {
+
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getFulfillOrderRequestMutationKey(id);
+  const swrFn = getFulfillOrderRequestMutationFetcher(id, fetchOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
 export type dispatchSalesOrderLineRequestResponse201 = {
   data: DispatchSalesOrderLineResult
   status: 201
@@ -7916,6 +8722,96 @@ export const useDispatchSalesOrderLineRequest = <TError = Promise<ErrorResponse>
 
   const swrKey = swrOptions?.swrKey ?? getDispatchSalesOrderLineRequestMutationKey(id,lineId);
   const swrFn = getDispatchSalesOrderLineRequestMutationFetcher(id,lineId, fetchOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type releaseFulfillmentRequestResponse200 = {
+  data: SalesOrder
+  status: 200
+}
+
+export type releaseFulfillmentRequestResponse401 = {
+  data: ErrorResponse
+  status: 401
+}
+
+export type releaseFulfillmentRequestResponse403 = {
+  data: ErrorResponse
+  status: 403
+}
+
+export type releaseFulfillmentRequestResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type releaseFulfillmentRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type releaseFulfillmentRequestResponseSuccess = (releaseFulfillmentRequestResponse200) & {
+  headers: Headers;
+};
+export type releaseFulfillmentRequestResponseError = (releaseFulfillmentRequestResponse401 | releaseFulfillmentRequestResponse403 | releaseFulfillmentRequestResponse404 | releaseFulfillmentRequestResponse500) & {
+  headers: Headers;
+};
+
+export type releaseFulfillmentRequestResponse = (releaseFulfillmentRequestResponseSuccess | releaseFulfillmentRequestResponseError)
+
+export const getReleaseFulfillmentRequestUrl = (id: SalesOrderId,) => {
+
+
+
+
+  return `http://localhost:8080/api/v1/sales-orders/${id}/release`
+}
+
+export const releaseFulfillmentRequest = async (id: SalesOrderId, options?: RequestInit): Promise<releaseFulfillmentRequestResponse> => {
+
+  const res = await fetch(getReleaseFulfillmentRequestUrl(id),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'PATCH'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: releaseFulfillmentRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as releaseFulfillmentRequestResponse
+}
+
+
+
+
+export const getReleaseFulfillmentRequestMutationFetcher = (id: SalesOrderId, options?: RequestInit) => {
+  return (_: Key, __: { arg: Arguments }) => {
+    return releaseFulfillmentRequest(id, options);
+  }
+}
+export const getReleaseFulfillmentRequestMutationKey = (id: SalesOrderId,) => [`http://localhost:8080/api/v1/sales-orders/${id}/release`] as const;
+
+export type ReleaseFulfillmentRequestMutationResult = NonNullable<Awaited<ReturnType<typeof releaseFulfillmentRequest>>>
+
+export const useReleaseFulfillmentRequest = <TError = Promise<ErrorResponse>>(
+  id: SalesOrderId, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof releaseFulfillmentRequest>>, TError, Key, Arguments, Awaited<ReturnType<typeof releaseFulfillmentRequest>>> & { swrKey?: string }, fetch?: RequestInit}
+) => {
+
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getReleaseFulfillmentRequestMutationKey(id);
+  const swrFn = getReleaseFulfillmentRequestMutationFetcher(id, fetchOptions);
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions)
 

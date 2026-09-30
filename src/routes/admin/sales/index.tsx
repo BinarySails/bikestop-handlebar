@@ -3,7 +3,8 @@ import { useState } from "react";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { format, parseISO, startOfDay, endOfDay } from "date-fns";
 import { es } from "date-fns/locale";
-import { Eye, MoreVertical, ShoppingCart } from "lucide-react";
+import { Eye, MoreVertical, Package, ShoppingCart } from "lucide-react";
+import { toast } from "sonner";
 import { z } from "zod";
 
 import {
@@ -28,8 +29,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
-import { useListSalesOrdersRequest } from "@/lib/api/api";
 import {
+  useGetMyPickedOrderRequest,
+  useListSalesOrdersRequest,
+  usePickFulfillmentOrderRequest,
+} from "@/lib/api/api";
+import {
+  FulfillState,
   SalesOrderStatus,
   type SalesOrderSummaryView,
 } from "@/lib/api/schemas";
@@ -218,6 +224,36 @@ function SalesOrdersPage() {
     shipping_country: filters.shipping_country,
   });
 
+  const { data: myPickedOrder } = useGetMyPickedOrderRequest();
+  const hasPickedOrder = myPickedOrder?.status === 200;
+
+  const { trigger: pickOrder, isMutating: isPickingOrder } =
+    usePickFulfillmentOrderRequest();
+
+  async function handlePickOrder() {
+    try {
+      const result = await pickOrder({});
+      if (result?.status === 200) {
+        toast.success(
+          `Orden ${result.data.order_number} seleccionada para despacho.`
+        );
+        mutate();
+        navigate({
+          to: "/admin/sales/$orderId",
+          params: { orderId: result.data.id },
+        });
+      } else if (result?.status === 404) {
+        toast.error("No hay órdenes disponibles para despacho.");
+      } else if (result?.status === 409) {
+        toast.error("Ya tienes una orden seleccionada para despacho.");
+      } else {
+        toast.error("Error al seleccionar la orden.");
+      }
+    } catch {
+      toast.error("Error al seleccionar la orden.");
+    }
+  }
+
   const orders = res?.status === 200 ? res.data.data : [];
   const total = res?.status === 200 ? res.data.total : 0;
   const hasError = Boolean(error) || Boolean(res && res.status !== 200);
@@ -313,6 +349,29 @@ function SalesOrdersPage() {
       },
     },
     {
+      header: "Despacho",
+      cell: (order) => {
+        if (order.fulfill_state === FulfillState.picked) {
+          return (
+            <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300">
+              Picking
+            </Badge>
+          );
+        }
+        if (
+          order.status === SalesOrderStatus.confirmed ||
+          order.status === SalesOrderStatus.partially_fulfilled
+        ) {
+          return (
+            <Badge variant="outline" className="text-green-600 border-green-600">
+              Disponible
+            </Badge>
+          );
+        }
+        return <span className="text-muted-foreground">—</span>;
+      },
+    },
+    {
       header: "Etiquetas",
       cell: (order) =>
         order.tags.length === 0 ? (
@@ -389,6 +448,14 @@ function SalesOrdersPage() {
             >
               Administrar etiquetas
             </Button>
+            <Button
+              onClick={handlePickOrder}
+              disabled={isPickingOrder || hasPickedOrder}
+              className="bg-green-600 text-white hover:bg-green-700"
+            >
+              <Package data-icon="inline-start" />
+              {hasPickedOrder ? "Orden en proceso" : "Despachar un pedido"}
+            </Button>
             <EntityCreateButton render={<Link to="/admin/sales/new" />}>
               Crear orden
             </EntityCreateButton>
@@ -435,6 +502,9 @@ function SalesOrdersPage() {
         columns={columns}
         rows={orders}
         rowKey={(order) => order.id}
+        rowClassName={(order) =>
+          order.fulfill_state === FulfillState.picked ? "bg-yellow-50" : undefined
+        }
         loading={isLoading}
         validating={isValidating && Boolean(res)}
         hasError={hasError}

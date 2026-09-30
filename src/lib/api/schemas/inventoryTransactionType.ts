@@ -11,6 +11,7 @@ export type InventoryTransactionType = typeof InventoryTransactionType[keyof typ
 export const InventoryTransactionType = {
   available: 'available',
   reserved: 'reserved',
+  reservation_released: 'reservation_released',
   blocked: 'blocked',
   in_transit: 'in_transit',
   correction_addition: 'correction_addition',
