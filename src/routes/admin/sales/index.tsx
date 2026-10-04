@@ -353,7 +353,7 @@ function SalesOrdersPage() {
       cell: (order) => {
         if (order.fulfill_state === FulfillState.picked) {
           return (
-            <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300">
+            <Badge className="border-yellow-300 bg-yellow-100 text-yellow-800">
               Picking
             </Badge>
           );
@@ -363,7 +363,10 @@ function SalesOrdersPage() {
           order.status === SalesOrderStatus.partially_fulfilled
         ) {
           return (
-            <Badge variant="outline" className="text-green-600 border-green-600">
+            <Badge
+              variant="outline"
+              className="border-green-600 text-green-600"
+            >
               Disponible
             </Badge>
           );
@@ -503,7 +506,9 @@ function SalesOrdersPage() {
         rows={orders}
         rowKey={(order) => order.id}
         rowClassName={(order) =>
-          order.fulfill_state === FulfillState.picked ? "bg-yellow-50" : undefined
+          order.fulfill_state === FulfillState.picked
+            ? "bg-yellow-50"
+            : undefined
         }
         loading={isLoading}
         validating={isValidating && Boolean(res)}

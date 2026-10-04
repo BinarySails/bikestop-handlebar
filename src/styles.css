@@ -135,16 +135,38 @@
 }
 
 @media print {
-  /* Print only the order document (`.print-document`): hide the storefront
-     chrome (header/footer/cart drawer) and any on-screen-only controls. */
-  body * {
-    visibility: hidden;
+  /* Print only the order document (`.print-document`).
+
+     When the document is portaled directly to <body> (in-place printing from
+     the order form), sibling slots (the app root, dialogs) are removed from
+     layout with `display: none`, so they occupy no space and produce no blank
+     or shifted pages. */
+  body > *:not(.print-document) {
+    display: none !important;
   }
-  .print-document,
-  .print-document * {
+  body > .print-document {
+    display: block !important;
+    position: static;
+    max-width: none;
+    padding: 0;
     visibility: visible;
   }
-  .print-document {
+  body > .print-document,
+  body > .print-document * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  /* Dedicated print routes render the document nested in the app tree; keep
+     only the document visible there (the portal rules above take precedence
+     for portal-mounted documents). */
+  body:not(:has(> .print-document)) * {
+    visibility: hidden;
+  }
+  body:not(:has(> .print-document)) .print-document,
+  body:not(:has(> .print-document)) .print-document * {
+    visibility: visible;
+  }
+  body:not(:has(> .print-document)) .print-document {
     position: absolute;
     inset: 0;
     max-width: none;

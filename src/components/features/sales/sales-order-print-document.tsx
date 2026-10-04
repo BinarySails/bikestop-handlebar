@@ -96,7 +96,7 @@ export function SalesOrderPrintDocument({ order }: { order: SalesOrder }) {
         </thead>
         <tbody>
           {order.lines.map((line) => (
-            <tr key={line.id} className="border-b align-top">
+            <tr key={line.id} className="break-inside-avoid border-b align-top">
               <td className="py-2 pr-2 text-muted-foreground">
                 {line.line_number}
               </td>

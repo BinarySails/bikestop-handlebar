@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
 import { Plus, Printer, Tag, Trash2, WarehouseIcon } from "lucide-react";
@@ -1357,11 +1358,14 @@ export function CreateSalesOrderForm({
         )}
       </div>
 
-      {isDetail && order && (
-        <div className="print-document hidden print:block">
-          <SalesOrderPrintDocument order={order} />
-        </div>
-      )}
+      {isDetail &&
+        order &&
+        createPortal(
+          <div className="print-document hidden print:block">
+            <SalesOrderPrintDocument order={order} />
+          </div>,
+          document.body
+        )}
 
       <Dialog
         open={confirmation !== null}
