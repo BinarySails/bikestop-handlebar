@@ -42,6 +42,15 @@ vi.mock("sonner", () => {
   };
 });
 
+// The create trigger is policy-gated; grant `location:create` so it renders.
+vi.mock("@/lib/auth/use-auth-store", () => ({
+  useAuthStore: (selector: (state: unknown) => unknown) =>
+    selector({
+      actor: { policies: ["location:create"] },
+      isInDev: false,
+    }),
+}));
+
 const api = {
   createLocality: vi.mocked(createLocalityRequest as Mock),
   createState: vi.mocked(useCreateStateRequest().trigger as Mock),

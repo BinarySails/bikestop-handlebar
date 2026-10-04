@@ -5,8 +5,16 @@ import { EntityDetailHeader } from "@/components/features/entity/entity-detail-h
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGetCategoriesRequest, useGetCategoryRequest } from "@/lib/api/api";
+import { PERMISSIONS } from "@/lib/auth/permissions";
+import { requirePolicy } from "@/lib/auth/require-auth";
 
 export const Route = createFileRoute("/admin/categories/$categoryId_/edit")({
+  beforeLoad: async ({ location }) => {
+    await requirePolicy(PERMISSIONS.categoryUpdate, {
+      from: location.href,
+      navigateTo: "/login",
+    });
+  },
   component: CategoryEditPage,
 });
 

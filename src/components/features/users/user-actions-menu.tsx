@@ -17,6 +17,9 @@ import {
 import { useUpdateUserRequest } from "@/lib/api/api";
 import type { UserWithRolesResponse } from "@/lib/api/schemas";
 
+import { Can } from "@/components/features/entity/can";
+import { PERMISSIONS } from "@/lib/auth/permissions";
+
 type UserActionsMenuProps = {
   user: UserWithRolesResponse;
   archived: boolean;
@@ -66,14 +69,16 @@ export function UserActionsMenu({
         >
           <EyeIcon /> Ver
         </DropdownMenuItem>
-        <DropdownMenuItem
-          variant={archived ? "default" : "destructive"}
-          disabled={isMutating}
-          onClick={changeArchiveStatus}
-        >
-          {archived ? <RotateCcwIcon /> : <ArchiveIcon />}
-          {archived ? "Reactivar" : "Archivar"}
-        </DropdownMenuItem>
+        <Can policy={PERMISSIONS.userUpdate}>
+          <DropdownMenuItem
+            variant={archived ? "default" : "destructive"}
+            disabled={isMutating}
+            onClick={changeArchiveStatus}
+          >
+            {archived ? <RotateCcwIcon /> : <ArchiveIcon />}
+            {archived ? "Reactivar" : "Archivar"}
+          </DropdownMenuItem>
+        </Can>
       </DropdownMenuContent>
     </DropdownMenu>
   );

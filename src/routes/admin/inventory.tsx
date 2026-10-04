@@ -8,8 +8,16 @@ import {
 } from "@/lib/api/api";
 import { useInventory } from "@/lib/api/use-inventory";
 import type { Product, WarehouseResponse } from "@/lib/api/schemas";
+import { PERMISSIONS } from "@/lib/auth/permissions";
+import { requirePolicy } from "@/lib/auth/require-auth";
 
 export const Route = createFileRoute("/admin/inventory")({
+  beforeLoad: async ({ location }) => {
+    await requirePolicy(PERMISSIONS.inventoryView, {
+      from: location.href,
+      navigateTo: "/login",
+    });
+  },
   component: InventoryPage,
 });
 

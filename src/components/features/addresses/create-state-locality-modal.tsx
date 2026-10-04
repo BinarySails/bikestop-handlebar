@@ -33,6 +33,7 @@ import {
   CreateLocalityRequestBody,
   CreateStateRequestBody,
 } from "@/lib/api/zods";
+import { PERMISSIONS } from "@/lib/auth/permissions";
 
 function validateDisplayName(value: string) {
   const displayName = value.trim();
@@ -208,7 +209,9 @@ export function CreateStateLocalityDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger
         render={
-          <EntityCreateButton>Nuevo estado / localidad</EntityCreateButton>
+          <EntityCreateButton policy={PERMISSIONS.locationCreate}>
+            Nuevo estado / localidad
+          </EntityCreateButton>
         }
       />
 

@@ -12,8 +12,16 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { updateBrandRequest, useGetBrandRequest } from "@/lib/api/api";
 import type { Brand } from "@/lib/api/schemas";
+import { PERMISSIONS } from "@/lib/auth/permissions";
+import { requirePolicy } from "@/lib/auth/require-auth";
 
 export const Route = createFileRoute("/admin/brands/$brandId/edit")({
+  beforeLoad: async ({ location }) => {
+    await requirePolicy(PERMISSIONS.brandUpdate, {
+      from: location.href,
+      navigateTo: "/login",
+    });
+  },
   component: BrandEditPage,
 });
 

@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as B2bRouteImport } from './routes/b2b'
+import { Route as ForbiddenRouteImport } from './routes/forbidden'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AdminCustomerRouteImport } from './routes/admin/customer'
 import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
@@ -64,6 +65,11 @@ const AdminRoute = AdminRouteImport.update({
 const B2bRoute = B2bRouteImport.update({
   id: '/b2b',
   path: '/b2b',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForbiddenRoute = ForbiddenRouteImport.update({
+  id: '/forbidden',
+  path: '/forbidden',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -266,6 +272,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/b2b': typeof B2bRouteWithChildren
+  '/forbidden': typeof ForbiddenRoute
   '/login': typeof LoginRoute
   '/admin/sales': typeof AdminSalesRouteRouteWithChildren
   '/admin/customer': typeof AdminCustomerRoute
@@ -308,6 +315,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
+  '/forbidden': typeof ForbiddenRoute
   '/login': typeof LoginRoute
   '/admin/customer': typeof AdminCustomerRoute
   '/admin/dashboard': typeof AdminDashboardRoute
@@ -349,6 +357,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/b2b': typeof B2bRouteWithChildren
+  '/forbidden': typeof ForbiddenRoute
   '/login': typeof LoginRoute
   '/admin/sales': typeof AdminSalesRouteRouteWithChildren
   '/admin/customer': typeof AdminCustomerRoute
@@ -394,6 +403,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/b2b'
+    | '/forbidden'
     | '/login'
     | '/admin/sales'
     | '/admin/customer'
@@ -436,6 +446,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/admin'
+    | '/forbidden'
     | '/login'
     | '/admin/customer'
     | '/admin/dashboard'
@@ -476,6 +487,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/b2b'
+    | '/forbidden'
     | '/login'
     | '/admin/sales'
     | '/admin/customer'
@@ -520,6 +532,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRouteWithChildren
   B2bRoute: typeof B2bRouteWithChildren
+  ForbiddenRoute: typeof ForbiddenRoute
   LoginRoute: typeof LoginRoute
 }
 
@@ -544,6 +557,13 @@ declare module '@tanstack/react-router' {
       path: '/b2b'
       fullPath: '/b2b'
       preLoaderRoute: typeof B2bRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forbidden': {
+      id: '/forbidden'
+      path: '/forbidden'
+      fullPath: '/forbidden'
+      preLoaderRoute: typeof ForbiddenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -943,6 +963,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
   B2bRoute: B2bRouteWithChildren,
+  ForbiddenRoute: ForbiddenRoute,
   LoginRoute: LoginRoute,
 }
 export const routeTree = rootRouteImport

@@ -25,6 +25,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useCreateVariantRequest } from "@/lib/api/api";
 import { pesosToCents } from "@/lib/money";
 import { CreateVariantRequestBody } from "@/lib/api/zods";
+import { PERMISSIONS } from "@/lib/auth/permissions";
 
 const MAX_PRICE_DECIMALS = 2;
 
@@ -184,7 +185,11 @@ export function CreateVariantDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger
-        render={<EntityCreateButton>Crear Variante</EntityCreateButton>}
+        render={
+          <EntityCreateButton policy={PERMISSIONS.productCreate}>
+            Crear Variante
+          </EntityCreateButton>
+        }
       />
 
       <DialogContent className="sm:max-w-xl">

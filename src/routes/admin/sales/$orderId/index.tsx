@@ -33,6 +33,8 @@ import {
   type WarehouseId,
 } from "@/lib/api/schemas";
 import { computeDueDate, formatDueDate } from "@/lib/dates";
+import { PERMISSIONS, useHasPolicy } from "@/lib/auth/permissions";
+import { requirePolicy } from "@/lib/auth/require-auth";
 
 const statusLabel: Record<SalesOrderStatus, string> = {
   draft: "Borrador",
@@ -58,6 +60,12 @@ const statusVariant: Record<
 };
 
 export const Route = createFileRoute("/admin/sales/$orderId/")({
+  beforeLoad: async ({ location }) => {
+    await requirePolicy(PERMISSIONS.salesOrderView, {
+      from: location.href,
+      navigateTo: "/login",
+    });
+  },
   component: OrderDetailPage,
 });
 
@@ -65,6 +73,7 @@ function OrderDetailPage() {
   const { orderId } = Route.useParams();
   const navigate = useNavigate();
   const [applyPromotionsOpen, setApplyPromotionsOpen] = useState(false);
+  const canUpdateOrder = useHasPolicy(PERMISSIONS.salesOrderUpdate);
   const { data: sessionResponse } = useMeHandler();
   const {
     data: response,
@@ -122,7 +131,8 @@ function OrderDetailPage() {
 
   const currentUserId = sessionUser?.id;
   const isOrderPicked = order.fulfill_state === FulfillState.picked;
-  const isPickedByCurrentUser = isOrderPicked && order.fulfilling_user_id === currentUserId;
+  const isPickedByCurrentUser =
+    isOrderPicked && order.fulfilling_user_id === currentUserId;
   const canPickOrder =
     !isOrderPicked &&
     (order.status === SalesOrderStatus.confirmed ||
@@ -131,7 +141,9 @@ function OrderDetailPage() {
   async function handlePickOrder() {
     const result = await pickOrder({ order_id: orderId });
     if (result?.status === 200) {
-      toast.success(`Orden ${result.data.order_number} seleccionada para despacho.`);
+      toast.success(
+        `Orden ${result.data.order_number} seleccionada para despacho.`
+      );
       await mutate();
     } else if (result?.status === 404) {
       toast.error("No hay órdenes disponibles para despacho.");
@@ -171,10 +183,10 @@ function OrderDetailPage() {
           </div>
           <PaymentTermSummary order={order} />
         </div>
-        {isOrderPicked && isPickedByCurrentUser && (
+        {isOrderPicked && isPickedByCurrentUser && canUpdateOrder && (
           <>
-            <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300">
-              <Package className="size-3 mr-1" />
+            <Badge className="border-yellow-300 bg-yellow-100 text-yellow-800">
+              <Package className="mr-1 size-3" />
               Tu orden para despachar
             </Badge>
             <Button
@@ -187,14 +199,14 @@ function OrderDetailPage() {
             </Button>
           </>
         )}
-        {!isOrderPicked && canPickOrder && (
+        {!isOrderPicked && canPickOrder && canUpdateOrder && (
           <Button
             size="sm"
             onClick={handlePickOrder}
             disabled={isPickingOrder}
-            className="bg-green-600 hover:bg-green-700 text-white"
+            className="bg-green-600 text-white hover:bg-green-700"
           >
-            <Package className="size-4 mr-1" />
+            <Package className="mr-1 size-4" />
             Despachar este pedido
           </Button>
         )}

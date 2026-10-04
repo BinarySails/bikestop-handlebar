@@ -24,6 +24,7 @@ import {
 import { SiteHeader } from "@/components/features/layout/site-header";
 import { EntityCardTitle } from "@/components/features/entity/entity-card-title";
 import { EntityCreateButton } from "@/components/features/entity/entity-create-button";
+import { Can } from "@/components/features/entity/can";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -54,6 +55,7 @@ import { cn } from "@/lib/utils";
 
 import { CategoryDeleteDialog } from "./category-delete-dialog";
 import { CategoryFormDialog } from "./category-form-dialog";
+import { PERMISSIONS } from "@/lib/auth/permissions";
 
 export type CategoryCatalogFilters = {
   display_name?: string;
@@ -322,23 +324,29 @@ export function CategoriesCatalog({
                 >
                   <Eye className="size-4" /> Ver
                 </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() =>
-                    navigate({
-                      to: "/admin/categories/$categoryId/edit",
-                      params: { categoryId: category.id },
-                    })
-                  }
-                >
-                  <Pencil className="size-4" /> Editar
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  variant="destructive"
-                  onClick={() => setDeletingCategory(category)}
-                >
-                  <Trash2 className="size-4" /> Eliminar
-                </DropdownMenuItem>
+                <Can policy={PERMISSIONS.categoryUpdate}>
+                  <DropdownMenuItem
+                    onClick={() =>
+                      navigate({
+                        to: "/admin/categories/$categoryId/edit",
+                        params: { categoryId: category.id },
+                      })
+                    }
+                  >
+                    <Pencil className="size-4" /> Editar
+                  </DropdownMenuItem>
+                </Can>
+                <Can policy={PERMISSIONS.categoryDelete}>
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      variant="destructive"
+                      onClick={() => setDeletingCategory(category)}
+                    >
+                      <Trash2 className="size-4" /> Eliminar
+                    </DropdownMenuItem>
+                  </>
+                </Can>
               </DropdownMenuContent>
             </DropdownMenu>
           );
@@ -370,7 +378,10 @@ export function CategoriesCatalog({
         title="Categorías"
         description="Administra el catálogo y la jerarquía de categorías de productos."
         actions={
-          <EntityCreateButton onClick={() => setFormOpen(true)}>
+          <EntityCreateButton
+            policy={PERMISSIONS.categoryCreate}
+            onClick={() => setFormOpen(true)}
+          >
             Nueva categoría
           </EntityCreateButton>
         }

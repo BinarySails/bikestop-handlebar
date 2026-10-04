@@ -8,6 +8,7 @@ import { EditClientDialog } from "@/components/features/clients/edit-client-dial
 import { AssignUserDialog } from "@/components/features/clients/assign-user-dialog";
 import { useVendorOptions } from "@/components/features/clients/vendor-lookup";
 import { SiteHeader } from "@/components/features/layout/site-header";
+import { Can } from "@/components/features/entity/can";
 import { EntityCardTitle } from "@/components/features/entity/entity-card-title";
 import {
   EntityIndexPage,
@@ -44,6 +45,7 @@ import {
   type PaginatedCustomerSummaryDataItem,
   UserStatus,
 } from "@/lib/api/schemas";
+import { PERMISSIONS } from "@/lib/auth/permissions";
 
 type ClientsTableCardProps = {
   search: string | undefined;
@@ -241,12 +243,14 @@ export function ClientsTableCard({
             <MoreVerticalIcon className="size-5" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => setEditCustomerId(client.id)}>
-              Editar
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setStatusCustomerId(client.id)}>
-              {client.status === "enable" ? "Desactivar" : "Activar"}
-            </DropdownMenuItem>
+            <Can policy={PERMISSIONS.customerUpdate}>
+              <DropdownMenuItem onClick={() => setEditCustomerId(client.id)}>
+                Editar
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setStatusCustomerId(client.id)}>
+                {client.status === "enable" ? "Desactivar" : "Activar"}
+              </DropdownMenuItem>
+            </Can>
             {!client.username && (
               <DropdownMenuItem onClick={() => setAssignCustomerId(client.id)}>
                 Asignar usuario

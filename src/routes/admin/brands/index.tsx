@@ -5,6 +5,8 @@ import {
   BrandsCatalog,
   type BrandCatalogFilters,
 } from "@/components/features/brands/brands-catalog";
+import { PERMISSIONS } from "@/lib/auth/permissions";
+import { requirePolicy } from "@/lib/auth/require-auth";
 
 const brandSearchSchema = z.object({
   page: z.coerce.number().int().nonnegative().optional().catch(undefined),
@@ -12,6 +14,12 @@ const brandSearchSchema = z.object({
 });
 
 export const Route = createFileRoute("/admin/brands/")({
+  beforeLoad: async ({ location }) => {
+    await requirePolicy(PERMISSIONS.brandView, {
+      from: location.href,
+      navigateTo: "/login",
+    });
+  },
   validateSearch: brandSearchSchema,
   component: BrandsPage,
 });

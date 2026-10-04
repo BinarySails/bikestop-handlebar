@@ -41,6 +41,9 @@ import {
 } from "@/lib/api/schemas";
 import { centsToPesos } from "@/lib/money";
 import { computeDueDate, formatDueDate } from "@/lib/dates";
+import { PERMISSIONS } from "@/lib/auth/permissions";
+import { Can } from "@/components/features/entity/can";
+import { requirePolicy } from "@/lib/auth/require-auth";
 
 const PAGE_SIZE = 50;
 
@@ -105,6 +108,12 @@ function toEndOfDayISO(value: string): string {
 }
 
 export const Route = createFileRoute("/admin/sales/")({
+  beforeLoad: async ({ location }) => {
+    await requirePolicy(PERMISSIONS.salesOrderView, {
+      from: location.href,
+      navigateTo: "/login",
+    });
+  },
   validateSearch: salesSearchSchema,
   component: SalesOrdersPage,
 });
@@ -353,7 +362,7 @@ function SalesOrdersPage() {
       cell: (order) => {
         if (order.fulfill_state === FulfillState.picked) {
           return (
-            <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300">
+            <Badge className="border-yellow-300 bg-yellow-100 text-yellow-800">
               Picking
             </Badge>
           );
@@ -363,7 +372,10 @@ function SalesOrdersPage() {
           order.status === SalesOrderStatus.partially_fulfilled
         ) {
           return (
-            <Badge variant="outline" className="text-green-600 border-green-600">
+            <Badge
+              variant="outline"
+              className="border-green-600 text-green-600"
+            >
               Disponible
             </Badge>
           );
@@ -426,9 +438,11 @@ function SalesOrdersPage() {
               <Eye />
               Ver
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setAssignOrder(order)}>
-              Editar etiqueta
-            </DropdownMenuItem>
+            <Can policy={PERMISSIONS.orderTagManage}>
+              <DropdownMenuItem onClick={() => setAssignOrder(order)}>
+                Editar etiqueta
+              </DropdownMenuItem>
+            </Can>
           </DropdownMenuContent>
         </DropdownMenu>
       ),
@@ -442,21 +456,28 @@ function SalesOrdersPage() {
         description="Consulta todas tus ordenes de venta pedientes."
         actions={
           <>
-            <Button
-              render={<Link to="/admin/sales/tags" />}
-              className="bg-gray-900 text-white hover:bg-gray-800"
+            <Can policy={PERMISSIONS.orderTagManage}>
+              <Button
+                render={<Link to="/admin/sales/tags" />}
+                className="bg-gray-900 text-white hover:bg-gray-800"
+              >
+                Administrar etiquetas
+              </Button>
+            </Can>
+            <Can policy={PERMISSIONS.salesOrderUpdate}>
+              <Button
+                onClick={handlePickOrder}
+                disabled={isPickingOrder || hasPickedOrder}
+                className="bg-green-600 text-white hover:bg-green-700"
+              >
+                <Package data-icon="inline-start" />
+                {hasPickedOrder ? "Orden en proceso" : "Despachar un pedido"}
+              </Button>
+            </Can>
+            <EntityCreateButton
+              policy={PERMISSIONS.salesOrderCreate}
+              render={<Link to="/admin/sales/new" />}
             >
-              Administrar etiquetas
-            </Button>
-            <Button
-              onClick={handlePickOrder}
-              disabled={isPickingOrder || hasPickedOrder}
-              className="bg-green-600 text-white hover:bg-green-700"
-            >
-              <Package data-icon="inline-start" />
-              {hasPickedOrder ? "Orden en proceso" : "Despachar un pedido"}
-            </Button>
-            <EntityCreateButton render={<Link to="/admin/sales/new" />}>
               Crear orden
             </EntityCreateButton>
           </>
@@ -503,7 +524,9 @@ function SalesOrdersPage() {
         rows={orders}
         rowKey={(order) => order.id}
         rowClassName={(order) =>
-          order.fulfill_state === FulfillState.picked ? "bg-yellow-50" : undefined
+          order.fulfill_state === FulfillState.picked
+            ? "bg-yellow-50"
+            : undefined
         }
         loading={isLoading}
         validating={isValidating && Boolean(res)}

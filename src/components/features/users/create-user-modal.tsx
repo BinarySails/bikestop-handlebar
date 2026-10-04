@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PERMISSIONS } from "@/lib/auth/permissions";
 
 export function CreateUserDialog({
   onCreated,
@@ -69,6 +70,7 @@ export function CreateUserDialog({
         await navigate({
           to: "/admin/users/$userId",
           params: { userId: result.data.id },
+          search: { roles: [] },
         });
       } else {
         toast.error(errorData?.message ?? "Error al crear usuario.");
@@ -106,7 +108,11 @@ export function CreateUserDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger
-        render={<EntityCreateButton>Crear Usuario</EntityCreateButton>}
+        render={
+          <EntityCreateButton policy={PERMISSIONS.userCreate}>
+            Crear Usuario
+          </EntityCreateButton>
+        }
       />
 
       <DialogContent className="sm:max-w-lg">
