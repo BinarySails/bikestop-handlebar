@@ -106,7 +106,6 @@ export * from './fileAssociationId.ts';
 export * from './fileId.ts';
 export * from './fileStatus.ts';
 export * from './fileType.ts';
-export * from './fulfillState.ts';
 export * from './getCartResponse.ts';
 export * from './getCategoriesRequestOrder.ts';
 export * from './getCategoriesRequestParams.ts';

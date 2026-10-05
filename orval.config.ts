@@ -46,7 +46,19 @@ export default defineConfig({
     },
   },
   cicloZod: {
-    input: SOURCE_INPUT_URL[env] + "/docs/openapi.json",
+    input: {
+      target: SOURCE_INPUT_URL[env] + "/docs/openapi.json",
+      parserOptions: {
+        headers: [
+          {
+            domains: ["localhost"],
+            headers: {
+              Authorization: `Basic ${auth}`,
+            },
+          },
+        ],
+      },
+    },
     output: {
       target: "./src/lib/api/zods.ts",
       client: "zod",

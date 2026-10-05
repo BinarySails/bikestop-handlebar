@@ -6,7 +6,6 @@
  */
 import type { AddressSnapshot } from './addressSnapshot.ts';
 import type { CustomerSnapshot } from './customerSnapshot.ts';
-import type { FulfillState } from './fulfillState.ts';
 import type { OrderTag } from './orderTag.ts';
 import type { PaymentTerm } from './paymentTerm.ts';
 import type { SalesOrderId } from './salesOrderId.ts';
@@ -22,10 +21,6 @@ export interface SalesOrder {
   created_by?: null | UserId;
   customer: CustomerSnapshot;
   discount_total: number;
-  fulfill_state?: null | FulfillState;
-  /** @nullable */
-  fulfill_state_changed_at?: string | null;
-  fulfilling_user_id?: null | UserId;
   grand_total: number;
   id: SalesOrderId;
   lines: SalesOrderLine[];
