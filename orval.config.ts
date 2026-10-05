@@ -24,7 +24,7 @@ export default defineConfig({
       parserOptions: {
         headers: [
           {
-            domains: ["localhost"],
+            domains: ["localhost", "ciclo.binarysails.com"],
             headers: {
               Authorization: `Basic ${auth}`,
             },
@@ -51,7 +51,7 @@ export default defineConfig({
       parserOptions: {
         headers: [
           {
-            domains: ["localhost"],
+            domains: ["localhost", "ciclo.binarysails.com"],
             headers: {
               Authorization: `Basic ${auth}`,
             },

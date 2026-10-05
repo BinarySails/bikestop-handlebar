@@ -202,7 +202,7 @@ export const getListAuditEventsRequestUrl = (params?: ListAuditEventsRequestPara
 
   const stringifiedParams = normalizedParams.toString();
 
-  return stringifiedParams.length > 0 ? `http://localhost:8080/api/v1/audit-log?${stringifiedParams}` : `http://localhost:8080/api/v1/audit-log`
+  return stringifiedParams.length > 0 ? `https://ciclo.binarysails.com/api/v1/audit-log?${stringifiedParams}` : `https://ciclo.binarysails.com/api/v1/audit-log`
 }
 
 export const listAuditEventsRequest = async (params?: ListAuditEventsRequestParams, options?: RequestInit): Promise<listAuditEventsRequestResponse> => {
@@ -227,7 +227,7 @@ export const listAuditEventsRequest = async (params?: ListAuditEventsRequestPara
 
 
 
-export const getListAuditEventsRequestKey = (params?: ListAuditEventsRequestParams,) => [`http://localhost:8080/api/v1/audit-log`, ...(params ? [params]: [])] as const;
+export const getListAuditEventsRequestKey = (params?: ListAuditEventsRequestParams,) => [`https://ciclo.binarysails.com/api/v1/audit-log`, ...(params ? [params]: [])] as const;
 
 export type ListAuditEventsRequestQueryResult = NonNullable<Awaited<ReturnType<typeof listAuditEventsRequest>>>
 
@@ -277,7 +277,7 @@ export const getLoginHandlerUrl = () => {
 
 
 
-  return `http://localhost:8080/api/v1/auth/login`
+  return `https://ciclo.binarysails.com/api/v1/auth/login`
 }
 
 export const loginHandler = async (loginRequest: LoginRequest, options?: RequestInit): Promise<loginHandlerResponse> => {
@@ -307,7 +307,7 @@ export const getLoginHandlerMutationFetcher = ( options?: RequestInit) => {
     return loginHandler(arg, options);
   }
 }
-export const getLoginHandlerMutationKey = () => [`http://localhost:8080/api/v1/auth/login`] as const;
+export const getLoginHandlerMutationKey = () => [`https://ciclo.binarysails.com/api/v1/auth/login`] as const;
 
 export type LoginHandlerMutationResult = NonNullable<Awaited<ReturnType<typeof loginHandler>>>
 
@@ -352,7 +352,7 @@ export const getLogoutHandlerUrl = () => {
 
 
 
-  return `http://localhost:8080/api/v1/auth/logout`
+  return `https://ciclo.binarysails.com/api/v1/auth/logout`
 }
 
 export const logoutHandler = async ( options?: RequestInit): Promise<logoutHandlerResponse> => {
@@ -382,7 +382,7 @@ export const getLogoutHandlerMutationFetcher = ( options?: RequestInit) => {
     return logoutHandler(options);
   }
 }
-export const getLogoutHandlerMutationKey = () => [`http://localhost:8080/api/v1/auth/logout`] as const;
+export const getLogoutHandlerMutationKey = () => [`https://ciclo.binarysails.com/api/v1/auth/logout`] as const;
 
 export type LogoutHandlerMutationResult = NonNullable<Awaited<ReturnType<typeof logoutHandler>>>
 
@@ -432,7 +432,7 @@ export const getMeHandlerUrl = () => {
 
 
 
-  return `http://localhost:8080/api/v1/auth/me`
+  return `https://ciclo.binarysails.com/api/v1/auth/me`
 }
 
 export const meHandler = async ( options?: RequestInit): Promise<meHandlerResponse> => {
@@ -457,7 +457,7 @@ export const meHandler = async ( options?: RequestInit): Promise<meHandlerRespon
 
 
 
-export const getMeHandlerKey = () => [`http://localhost:8080/api/v1/auth/me`] as const;
+export const getMeHandlerKey = () => [`https://ciclo.binarysails.com/api/v1/auth/me`] as const;
 
 export type MeHandlerQueryResult = NonNullable<Awaited<ReturnType<typeof meHandler>>>
 
@@ -512,7 +512,7 @@ export const getGetCartHandlerUrl = () => {
 
 
 
-  return `http://localhost:8080/api/v1/cart`
+  return `https://ciclo.binarysails.com/api/v1/cart`
 }
 
 export const getCartHandler = async ( options?: RequestInit): Promise<getCartHandlerResponse> => {
@@ -537,7 +537,7 @@ export const getCartHandler = async ( options?: RequestInit): Promise<getCartHan
 
 
 
-export const getGetCartHandlerKey = () => [`http://localhost:8080/api/v1/cart`] as const;
+export const getGetCartHandlerKey = () => [`https://ciclo.binarysails.com/api/v1/cart`] as const;
 
 export type GetCartHandlerQueryResult = NonNullable<Awaited<ReturnType<typeof getCartHandler>>>
 
@@ -592,7 +592,7 @@ export const getClearCartHandlerUrl = () => {
 
 
 
-  return `http://localhost:8080/api/v1/cart`
+  return `https://ciclo.binarysails.com/api/v1/cart`
 }
 
 export const clearCartHandler = async ( options?: RequestInit): Promise<clearCartHandlerResponse> => {
@@ -622,7 +622,7 @@ export const getClearCartHandlerMutationFetcher = ( options?: RequestInit) => {
     return clearCartHandler(options);
   }
 }
-export const getClearCartHandlerMutationKey = () => [`http://localhost:8080/api/v1/cart`] as const;
+export const getClearCartHandlerMutationKey = () => [`https://ciclo.binarysails.com/api/v1/cart`] as const;
 
 export type ClearCartHandlerMutationResult = NonNullable<Awaited<ReturnType<typeof clearCartHandler>>>
 
@@ -682,7 +682,7 @@ export const getCheckoutCartHandlerUrl = () => {
 
 
 
-  return `http://localhost:8080/api/v1/cart/checkout`
+  return `https://ciclo.binarysails.com/api/v1/cart/checkout`
 }
 
 export const checkoutCartHandler = async (checkoutCartRequest: CheckoutCartRequest, options?: RequestInit): Promise<checkoutCartHandlerResponse> => {
@@ -712,7 +712,7 @@ export const getCheckoutCartHandlerMutationFetcher = ( options?: RequestInit) =>
     return checkoutCartHandler(arg, options);
   }
 }
-export const getCheckoutCartHandlerMutationKey = () => [`http://localhost:8080/api/v1/cart/checkout`] as const;
+export const getCheckoutCartHandlerMutationKey = () => [`https://ciclo.binarysails.com/api/v1/cart/checkout`] as const;
 
 export type CheckoutCartHandlerMutationResult = NonNullable<Awaited<ReturnType<typeof checkoutCartHandler>>>
 
@@ -772,7 +772,7 @@ export const getAddToCartHandlerUrl = () => {
 
 
 
-  return `http://localhost:8080/api/v1/cart/items`
+  return `https://ciclo.binarysails.com/api/v1/cart/items`
 }
 
 export const addToCartHandler = async (addToCartRequest: AddToCartRequest, options?: RequestInit): Promise<addToCartHandlerResponse> => {
@@ -802,7 +802,7 @@ export const getAddToCartHandlerMutationFetcher = ( options?: RequestInit) => {
     return addToCartHandler(arg, options);
   }
 }
-export const getAddToCartHandlerMutationKey = () => [`http://localhost:8080/api/v1/cart/items`] as const;
+export const getAddToCartHandlerMutationKey = () => [`https://ciclo.binarysails.com/api/v1/cart/items`] as const;
 
 export type AddToCartHandlerMutationResult = NonNullable<Awaited<ReturnType<typeof addToCartHandler>>>
 
@@ -857,7 +857,7 @@ export const getRemoveCartItemHandlerUrl = (itemId: CartItemId,) => {
 
 
 
-  return `http://localhost:8080/api/v1/cart/items/${itemId}`
+  return `https://ciclo.binarysails.com/api/v1/cart/items/${itemId}`
 }
 
 export const removeCartItemHandler = async (itemId: CartItemId, options?: RequestInit): Promise<removeCartItemHandlerResponse> => {
@@ -887,7 +887,7 @@ export const getRemoveCartItemHandlerMutationFetcher = (itemId: CartItemId, opti
     return removeCartItemHandler(itemId, options);
   }
 }
-export const getRemoveCartItemHandlerMutationKey = (itemId: CartItemId,) => [`http://localhost:8080/api/v1/cart/items/${itemId}`] as const;
+export const getRemoveCartItemHandlerMutationKey = (itemId: CartItemId,) => [`https://ciclo.binarysails.com/api/v1/cart/items/${itemId}`] as const;
 
 export type RemoveCartItemHandlerMutationResult = NonNullable<Awaited<ReturnType<typeof removeCartItemHandler>>>
 
@@ -947,7 +947,7 @@ export const getUpdateCartItemHandlerUrl = (itemId: CartItemId,) => {
 
 
 
-  return `http://localhost:8080/api/v1/cart/items/${itemId}`
+  return `https://ciclo.binarysails.com/api/v1/cart/items/${itemId}`
 }
 
 export const updateCartItemHandler = async (itemId: CartItemId,
@@ -978,7 +978,7 @@ export const getUpdateCartItemHandlerMutationFetcher = (itemId: CartItemId, opti
     return updateCartItemHandler(itemId, arg, options);
   }
 }
-export const getUpdateCartItemHandlerMutationKey = (itemId: CartItemId,) => [`http://localhost:8080/api/v1/cart/items/${itemId}`] as const;
+export const getUpdateCartItemHandlerMutationKey = (itemId: CartItemId,) => [`https://ciclo.binarysails.com/api/v1/cart/items/${itemId}`] as const;
 
 export type UpdateCartItemHandlerMutationResult = NonNullable<Awaited<ReturnType<typeof updateCartItemHandler>>>
 
@@ -1035,7 +1035,7 @@ export const getListCatalogProductsRequestUrl = (params?: ListCatalogProductsReq
 
   const stringifiedParams = normalizedParams.toString();
 
-  return stringifiedParams.length > 0 ? `http://localhost:8080/api/v1/catalog/products?${stringifiedParams}` : `http://localhost:8080/api/v1/catalog/products`
+  return stringifiedParams.length > 0 ? `https://ciclo.binarysails.com/api/v1/catalog/products?${stringifiedParams}` : `https://ciclo.binarysails.com/api/v1/catalog/products`
 }
 
 export const listCatalogProductsRequest = async (params?: ListCatalogProductsRequestParams, options?: RequestInit): Promise<listCatalogProductsRequestResponse> => {
@@ -1060,7 +1060,7 @@ export const listCatalogProductsRequest = async (params?: ListCatalogProductsReq
 
 
 
-export const getListCatalogProductsRequestKey = (params?: ListCatalogProductsRequestParams,) => [`http://localhost:8080/api/v1/catalog/products`, ...(params ? [params]: [])] as const;
+export const getListCatalogProductsRequestKey = (params?: ListCatalogProductsRequestParams,) => [`https://ciclo.binarysails.com/api/v1/catalog/products`, ...(params ? [params]: [])] as const;
 
 export type ListCatalogProductsRequestQueryResult = NonNullable<Awaited<ReturnType<typeof listCatalogProductsRequest>>>
 
@@ -1110,7 +1110,7 @@ export const getGetCatalogProductRequestUrl = (id: VariantId,) => {
 
 
 
-  return `http://localhost:8080/api/v1/catalog/products/${id}`
+  return `https://ciclo.binarysails.com/api/v1/catalog/products/${id}`
 }
 
 export const getCatalogProductRequest = async (id: VariantId, options?: RequestInit): Promise<getCatalogProductRequestResponse> => {
@@ -1135,7 +1135,7 @@ export const getCatalogProductRequest = async (id: VariantId, options?: RequestI
 
 
 
-export const getGetCatalogProductRequestKey = (id: VariantId,) => [`http://localhost:8080/api/v1/catalog/products/${id}`] as const;
+export const getGetCatalogProductRequestKey = (id: VariantId,) => [`https://ciclo.binarysails.com/api/v1/catalog/products/${id}`] as const;
 
 export type GetCatalogProductRequestQueryResult = NonNullable<Awaited<ReturnType<typeof getCatalogProductRequest>>>
 
@@ -1197,7 +1197,7 @@ export const getListCustomersRequestUrl = (params?: ListCustomersRequestParams,)
 
   const stringifiedParams = normalizedParams.toString();
 
-  return stringifiedParams.length > 0 ? `http://localhost:8080/api/v1/customers?${stringifiedParams}` : `http://localhost:8080/api/v1/customers`
+  return stringifiedParams.length > 0 ? `https://ciclo.binarysails.com/api/v1/customers?${stringifiedParams}` : `https://ciclo.binarysails.com/api/v1/customers`
 }
 
 export const listCustomersRequest = async (params?: ListCustomersRequestParams, options?: RequestInit): Promise<listCustomersRequestResponse> => {
@@ -1222,7 +1222,7 @@ export const listCustomersRequest = async (params?: ListCustomersRequestParams, 
 
 
 
-export const getListCustomersRequestKey = (params?: ListCustomersRequestParams,) => [`http://localhost:8080/api/v1/customers`, ...(params ? [params]: [])] as const;
+export const getListCustomersRequestKey = (params?: ListCustomersRequestParams,) => [`https://ciclo.binarysails.com/api/v1/customers`, ...(params ? [params]: [])] as const;
 
 export type ListCustomersRequestQueryResult = NonNullable<Awaited<ReturnType<typeof listCustomersRequest>>>
 
@@ -1282,7 +1282,7 @@ export const getCreateCustomerRequestUrl = () => {
 
 
 
-  return `http://localhost:8080/api/v1/customers`
+  return `https://ciclo.binarysails.com/api/v1/customers`
 }
 
 export const createCustomerRequest = async (createCustomerRequest: CreateCustomerRequest, options?: RequestInit): Promise<createCustomerRequestResponse> => {
@@ -1312,7 +1312,7 @@ export const getCreateCustomerRequestMutationFetcher = ( options?: RequestInit) 
     return createCustomerRequest(arg, options);
   }
 }
-export const getCreateCustomerRequestMutationKey = () => [`http://localhost:8080/api/v1/customers`] as const;
+export const getCreateCustomerRequestMutationKey = () => [`https://ciclo.binarysails.com/api/v1/customers`] as const;
 
 export type CreateCustomerRequestMutationResult = NonNullable<Awaited<ReturnType<typeof createCustomerRequest>>>
 
@@ -1367,7 +1367,7 @@ export const getListMyAddressesUrl = () => {
 
 
 
-  return `http://localhost:8080/api/v1/customers/me/addresses`
+  return `https://ciclo.binarysails.com/api/v1/customers/me/addresses`
 }
 
 export const listMyAddresses = async ( options?: RequestInit): Promise<listMyAddressesResponse> => {
@@ -1392,7 +1392,7 @@ export const listMyAddresses = async ( options?: RequestInit): Promise<listMyAdd
 
 
 
-export const getListMyAddressesKey = () => [`http://localhost:8080/api/v1/customers/me/addresses`] as const;
+export const getListMyAddressesKey = () => [`https://ciclo.binarysails.com/api/v1/customers/me/addresses`] as const;
 
 export type ListMyAddressesQueryResult = NonNullable<Awaited<ReturnType<typeof listMyAddresses>>>
 
@@ -1452,7 +1452,7 @@ export const getCreateMyAddressUrl = () => {
 
 
 
-  return `http://localhost:8080/api/v1/customers/me/addresses`
+  return `https://ciclo.binarysails.com/api/v1/customers/me/addresses`
 }
 
 export const createMyAddress = async (createMyAddressRequest: CreateMyAddressRequest, options?: RequestInit): Promise<createMyAddressResponse> => {
@@ -1482,7 +1482,7 @@ export const getCreateMyAddressMutationFetcher = ( options?: RequestInit) => {
     return createMyAddress(arg, options);
   }
 }
-export const getCreateMyAddressMutationKey = () => [`http://localhost:8080/api/v1/customers/me/addresses`] as const;
+export const getCreateMyAddressMutationKey = () => [`https://ciclo.binarysails.com/api/v1/customers/me/addresses`] as const;
 
 export type CreateMyAddressMutationResult = NonNullable<Awaited<ReturnType<typeof createMyAddress>>>
 
@@ -1537,7 +1537,7 @@ export const getDeleteMyAddressUrl = (addressId: CustomerAddressId,) => {
 
 
 
-  return `http://localhost:8080/api/v1/customers/me/addresses/${addressId}`
+  return `https://ciclo.binarysails.com/api/v1/customers/me/addresses/${addressId}`
 }
 
 export const deleteMyAddress = async (addressId: CustomerAddressId, options?: RequestInit): Promise<deleteMyAddressResponse> => {
@@ -1567,7 +1567,7 @@ export const getDeleteMyAddressMutationFetcher = (addressId: CustomerAddressId, 
     return deleteMyAddress(addressId, options);
   }
 }
-export const getDeleteMyAddressMutationKey = (addressId: CustomerAddressId,) => [`http://localhost:8080/api/v1/customers/me/addresses/${addressId}`] as const;
+export const getDeleteMyAddressMutationKey = (addressId: CustomerAddressId,) => [`https://ciclo.binarysails.com/api/v1/customers/me/addresses/${addressId}`] as const;
 
 export type DeleteMyAddressMutationResult = NonNullable<Awaited<ReturnType<typeof deleteMyAddress>>>
 
@@ -1627,7 +1627,7 @@ export const getUpdateMyAddressUrl = (addressId: CustomerAddressId,) => {
 
 
 
-  return `http://localhost:8080/api/v1/customers/me/addresses/${addressId}`
+  return `https://ciclo.binarysails.com/api/v1/customers/me/addresses/${addressId}`
 }
 
 export const updateMyAddress = async (addressId: CustomerAddressId,
@@ -1658,7 +1658,7 @@ export const getUpdateMyAddressMutationFetcher = (addressId: CustomerAddressId, 
     return updateMyAddress(addressId, arg, options);
   }
 }
-export const getUpdateMyAddressMutationKey = (addressId: CustomerAddressId,) => [`http://localhost:8080/api/v1/customers/me/addresses/${addressId}`] as const;
+export const getUpdateMyAddressMutationKey = (addressId: CustomerAddressId,) => [`https://ciclo.binarysails.com/api/v1/customers/me/addresses/${addressId}`] as const;
 
 export type UpdateMyAddressMutationResult = NonNullable<Awaited<ReturnType<typeof updateMyAddress>>>
 
@@ -1718,7 +1718,7 @@ export const getSetMyDefaultBillingUrl = (addressId: CustomerAddressId,) => {
 
 
 
-  return `http://localhost:8080/api/v1/customers/me/addresses/${addressId}/default-billing`
+  return `https://ciclo.binarysails.com/api/v1/customers/me/addresses/${addressId}/default-billing`
 }
 
 export const setMyDefaultBilling = async (addressId: CustomerAddressId, options?: RequestInit): Promise<setMyDefaultBillingResponse> => {
@@ -1748,7 +1748,7 @@ export const getSetMyDefaultBillingMutationFetcher = (addressId: CustomerAddress
     return setMyDefaultBilling(addressId, options);
   }
 }
-export const getSetMyDefaultBillingMutationKey = (addressId: CustomerAddressId,) => [`http://localhost:8080/api/v1/customers/me/addresses/${addressId}/default-billing`] as const;
+export const getSetMyDefaultBillingMutationKey = (addressId: CustomerAddressId,) => [`https://ciclo.binarysails.com/api/v1/customers/me/addresses/${addressId}/default-billing`] as const;
 
 export type SetMyDefaultBillingMutationResult = NonNullable<Awaited<ReturnType<typeof setMyDefaultBilling>>>
 
@@ -1808,7 +1808,7 @@ export const getSetMyDefaultShippingUrl = (addressId: CustomerAddressId,) => {
 
 
 
-  return `http://localhost:8080/api/v1/customers/me/addresses/${addressId}/default-shipping`
+  return `https://ciclo.binarysails.com/api/v1/customers/me/addresses/${addressId}/default-shipping`
 }
 
 export const setMyDefaultShipping = async (addressId: CustomerAddressId, options?: RequestInit): Promise<setMyDefaultShippingResponse> => {
@@ -1838,7 +1838,7 @@ export const getSetMyDefaultShippingMutationFetcher = (addressId: CustomerAddres
     return setMyDefaultShipping(addressId, options);
   }
 }
-export const getSetMyDefaultShippingMutationKey = (addressId: CustomerAddressId,) => [`http://localhost:8080/api/v1/customers/me/addresses/${addressId}/default-shipping`] as const;
+export const getSetMyDefaultShippingMutationKey = (addressId: CustomerAddressId,) => [`https://ciclo.binarysails.com/api/v1/customers/me/addresses/${addressId}/default-shipping`] as const;
 
 export type SetMyDefaultShippingMutationResult = NonNullable<Awaited<ReturnType<typeof setMyDefaultShipping>>>
 
@@ -1898,7 +1898,7 @@ export const getGetCustomerByUserRequestUrl = (userId: UserId,) => {
 
 
 
-  return `http://localhost:8080/api/v1/customers/user/${userId}`
+  return `https://ciclo.binarysails.com/api/v1/customers/user/${userId}`
 }
 
 export const getCustomerByUserRequest = async (userId: UserId, options?: RequestInit): Promise<getCustomerByUserRequestResponse> => {
@@ -1923,7 +1923,7 @@ export const getCustomerByUserRequest = async (userId: UserId, options?: Request
 
 
 
-export const getGetCustomerByUserRequestKey = (userId: UserId,) => [`http://localhost:8080/api/v1/customers/user/${userId}`] as const;
+export const getGetCustomerByUserRequestKey = (userId: UserId,) => [`https://ciclo.binarysails.com/api/v1/customers/user/${userId}`] as const;
 
 export type GetCustomerByUserRequestQueryResult = NonNullable<Awaited<ReturnType<typeof getCustomerByUserRequest>>>
 
@@ -1983,7 +1983,7 @@ export const getListCustomerAddressesRequestUrl = (userId: UserId,) => {
 
 
 
-  return `http://localhost:8080/api/v1/customers/user/${userId}/addresses`
+  return `https://ciclo.binarysails.com/api/v1/customers/user/${userId}/addresses`
 }
 
 export const listCustomerAddressesRequest = async (userId: UserId, options?: RequestInit): Promise<listCustomerAddressesRequestResponse> => {
@@ -2008,7 +2008,7 @@ export const listCustomerAddressesRequest = async (userId: UserId, options?: Req
 
 
 
-export const getListCustomerAddressesRequestKey = (userId: UserId,) => [`http://localhost:8080/api/v1/customers/user/${userId}/addresses`] as const;
+export const getListCustomerAddressesRequestKey = (userId: UserId,) => [`https://ciclo.binarysails.com/api/v1/customers/user/${userId}/addresses`] as const;
 
 export type ListCustomerAddressesRequestQueryResult = NonNullable<Awaited<ReturnType<typeof listCustomerAddressesRequest>>>
 
@@ -2073,7 +2073,7 @@ export const getCreateCustomerAddressRequestUrl = (userId: UserId,) => {
 
 
 
-  return `http://localhost:8080/api/v1/customers/user/${userId}/addresses`
+  return `https://ciclo.binarysails.com/api/v1/customers/user/${userId}/addresses`
 }
 
 export const createCustomerAddressRequest = async (userId: UserId,
@@ -2104,7 +2104,7 @@ export const getCreateCustomerAddressRequestMutationFetcher = (userId: UserId, o
     return createCustomerAddressRequest(userId, arg, options);
   }
 }
-export const getCreateCustomerAddressRequestMutationKey = (userId: UserId,) => [`http://localhost:8080/api/v1/customers/user/${userId}/addresses`] as const;
+export const getCreateCustomerAddressRequestMutationKey = (userId: UserId,) => [`https://ciclo.binarysails.com/api/v1/customers/user/${userId}/addresses`] as const;
 
 export type CreateCustomerAddressRequestMutationResult = NonNullable<Awaited<ReturnType<typeof createCustomerAddressRequest>>>
 
@@ -2165,7 +2165,7 @@ export const getDeleteCustomerAddressRequestUrl = (userId: UserId,
 
 
 
-  return `http://localhost:8080/api/v1/customers/user/${userId}/addresses/${addressId}`
+  return `https://ciclo.binarysails.com/api/v1/customers/user/${userId}/addresses/${addressId}`
 }
 
 export const deleteCustomerAddressRequest = async (userId: UserId,
@@ -2198,7 +2198,7 @@ export const getDeleteCustomerAddressRequestMutationFetcher = (userId: UserId,
   }
 }
 export const getDeleteCustomerAddressRequestMutationKey = (userId: UserId,
-    addressId: CustomerAddressId,) => [`http://localhost:8080/api/v1/customers/user/${userId}/addresses/${addressId}`] as const;
+    addressId: CustomerAddressId,) => [`https://ciclo.binarysails.com/api/v1/customers/user/${userId}/addresses/${addressId}`] as const;
 
 export type DeleteCustomerAddressRequestMutationResult = NonNullable<Awaited<ReturnType<typeof deleteCustomerAddressRequest>>>
 
@@ -2265,7 +2265,7 @@ export const getUpdateCustomerAddressRequestUrl = (userId: UserId,
 
 
 
-  return `http://localhost:8080/api/v1/customers/user/${userId}/addresses/${addressId}`
+  return `https://ciclo.binarysails.com/api/v1/customers/user/${userId}/addresses/${addressId}`
 }
 
 export const updateCustomerAddressRequest = async (userId: UserId,
@@ -2299,7 +2299,7 @@ export const getUpdateCustomerAddressRequestMutationFetcher = (userId: UserId,
   }
 }
 export const getUpdateCustomerAddressRequestMutationKey = (userId: UserId,
-    addressId: CustomerAddressId,) => [`http://localhost:8080/api/v1/customers/user/${userId}/addresses/${addressId}`] as const;
+    addressId: CustomerAddressId,) => [`https://ciclo.binarysails.com/api/v1/customers/user/${userId}/addresses/${addressId}`] as const;
 
 export type UpdateCustomerAddressRequestMutationResult = NonNullable<Awaited<ReturnType<typeof updateCustomerAddressRequest>>>
 
@@ -2366,7 +2366,7 @@ export const getSetDefaultBillingAddressRequestUrl = (userId: UserId,
 
 
 
-  return `http://localhost:8080/api/v1/customers/user/${userId}/addresses/${addressId}/default-billing`
+  return `https://ciclo.binarysails.com/api/v1/customers/user/${userId}/addresses/${addressId}/default-billing`
 }
 
 export const setDefaultBillingAddressRequest = async (userId: UserId,
@@ -2399,7 +2399,7 @@ export const getSetDefaultBillingAddressRequestMutationFetcher = (userId: UserId
   }
 }
 export const getSetDefaultBillingAddressRequestMutationKey = (userId: UserId,
-    addressId: CustomerAddressId,) => [`http://localhost:8080/api/v1/customers/user/${userId}/addresses/${addressId}/default-billing`] as const;
+    addressId: CustomerAddressId,) => [`https://ciclo.binarysails.com/api/v1/customers/user/${userId}/addresses/${addressId}/default-billing`] as const;
 
 export type SetDefaultBillingAddressRequestMutationResult = NonNullable<Awaited<ReturnType<typeof setDefaultBillingAddressRequest>>>
 
@@ -2466,7 +2466,7 @@ export const getSetDefaultShippingAddressRequestUrl = (userId: UserId,
 
 
 
-  return `http://localhost:8080/api/v1/customers/user/${userId}/addresses/${addressId}/default-shipping`
+  return `https://ciclo.binarysails.com/api/v1/customers/user/${userId}/addresses/${addressId}/default-shipping`
 }
 
 export const setDefaultShippingAddressRequest = async (userId: UserId,
@@ -2499,7 +2499,7 @@ export const getSetDefaultShippingAddressRequestMutationFetcher = (userId: UserI
   }
 }
 export const getSetDefaultShippingAddressRequestMutationKey = (userId: UserId,
-    addressId: CustomerAddressId,) => [`http://localhost:8080/api/v1/customers/user/${userId}/addresses/${addressId}/default-shipping`] as const;
+    addressId: CustomerAddressId,) => [`https://ciclo.binarysails.com/api/v1/customers/user/${userId}/addresses/${addressId}/default-shipping`] as const;
 
 export type SetDefaultShippingAddressRequestMutationResult = NonNullable<Awaited<ReturnType<typeof setDefaultShippingAddressRequest>>>
 
@@ -2555,7 +2555,7 @@ export const getGetCustomerRequestUrl = (customerId: CustomerId,) => {
 
 
 
-  return `http://localhost:8080/api/v1/customers/${customerId}`
+  return `https://ciclo.binarysails.com/api/v1/customers/${customerId}`
 }
 
 export const getCustomerRequest = async (customerId: CustomerId, options?: RequestInit): Promise<getCustomerRequestResponse> => {
@@ -2580,7 +2580,7 @@ export const getCustomerRequest = async (customerId: CustomerId, options?: Reque
 
 
 
-export const getGetCustomerRequestKey = (customerId: CustomerId,) => [`http://localhost:8080/api/v1/customers/${customerId}`] as const;
+export const getGetCustomerRequestKey = (customerId: CustomerId,) => [`https://ciclo.binarysails.com/api/v1/customers/${customerId}`] as const;
 
 export type GetCustomerRequestQueryResult = NonNullable<Awaited<ReturnType<typeof getCustomerRequest>>>
 
@@ -2645,7 +2645,7 @@ export const getUpdateCustomerRequestUrl = (customerId: CustomerId,) => {
 
 
 
-  return `http://localhost:8080/api/v1/customers/${customerId}`
+  return `https://ciclo.binarysails.com/api/v1/customers/${customerId}`
 }
 
 export const updateCustomerRequest = async (customerId: CustomerId,
@@ -2676,7 +2676,7 @@ export const getUpdateCustomerRequestMutationFetcher = (customerId: CustomerId, 
     return updateCustomerRequest(customerId, arg, options);
   }
 }
-export const getUpdateCustomerRequestMutationKey = (customerId: CustomerId,) => [`http://localhost:8080/api/v1/customers/${customerId}`] as const;
+export const getUpdateCustomerRequestMutationKey = (customerId: CustomerId,) => [`https://ciclo.binarysails.com/api/v1/customers/${customerId}`] as const;
 
 export type UpdateCustomerRequestMutationResult = NonNullable<Awaited<ReturnType<typeof updateCustomerRequest>>>
 
@@ -2736,7 +2736,7 @@ export const getUpdateCustomerStatusRequestUrl = (customerId: CustomerId,) => {
 
 
 
-  return `http://localhost:8080/api/v1/customers/${customerId}/status`
+  return `https://ciclo.binarysails.com/api/v1/customers/${customerId}/status`
 }
 
 export const updateCustomerStatusRequest = async (customerId: CustomerId,
@@ -2767,7 +2767,7 @@ export const getUpdateCustomerStatusRequestMutationFetcher = (customerId: Custom
     return updateCustomerStatusRequest(customerId, arg, options);
   }
 }
-export const getUpdateCustomerStatusRequestMutationKey = (customerId: CustomerId,) => [`http://localhost:8080/api/v1/customers/${customerId}/status`] as const;
+export const getUpdateCustomerStatusRequestMutationKey = (customerId: CustomerId,) => [`https://ciclo.binarysails.com/api/v1/customers/${customerId}/status`] as const;
 
 export type UpdateCustomerStatusRequestMutationResult = NonNullable<Awaited<ReturnType<typeof updateCustomerStatusRequest>>>
 
@@ -2817,7 +2817,7 @@ export const getCreateFileRequestUrl = () => {
 
 
 
-  return `http://localhost:8080/api/v1/files`
+  return `https://ciclo.binarysails.com/api/v1/files`
 }
 
 export const createFileRequest = async (createFileRequest: CreateFileRequest, options?: RequestInit): Promise<createFileRequestResponse> => {
@@ -2847,7 +2847,7 @@ export const getCreateFileRequestMutationFetcher = ( options?: RequestInit) => {
     return createFileRequest(arg, options);
   }
 }
-export const getCreateFileRequestMutationKey = () => [`http://localhost:8080/api/v1/files`] as const;
+export const getCreateFileRequestMutationKey = () => [`https://ciclo.binarysails.com/api/v1/files`] as const;
 
 export type CreateFileRequestMutationResult = NonNullable<Awaited<ReturnType<typeof createFileRequest>>>
 
@@ -2902,7 +2902,7 @@ export const getAssociateFileRequestUrl = () => {
 
 
 
-  return `http://localhost:8080/api/v1/files/associations`
+  return `https://ciclo.binarysails.com/api/v1/files/associations`
 }
 
 export const associateFileRequest = async (associateFileRequest: AssociateFileRequest, options?: RequestInit): Promise<associateFileRequestResponse> => {
@@ -2932,7 +2932,7 @@ export const getAssociateFileRequestMutationFetcher = ( options?: RequestInit) =
     return associateFileRequest(arg, options);
   }
 }
-export const getAssociateFileRequestMutationKey = () => [`http://localhost:8080/api/v1/files/associations`] as const;
+export const getAssociateFileRequestMutationKey = () => [`https://ciclo.binarysails.com/api/v1/files/associations`] as const;
 
 export type AssociateFileRequestMutationResult = NonNullable<Awaited<ReturnType<typeof associateFileRequest>>>
 
@@ -2990,7 +2990,7 @@ export const getDeleteFileRequestUrl = (id: FileId,
 
   const stringifiedParams = normalizedParams.toString();
 
-  return stringifiedParams.length > 0 ? `http://localhost:8080/api/v1/files/${id}?${stringifiedParams}` : `http://localhost:8080/api/v1/files/${id}`
+  return stringifiedParams.length > 0 ? `https://ciclo.binarysails.com/api/v1/files/${id}?${stringifiedParams}` : `https://ciclo.binarysails.com/api/v1/files/${id}`
 }
 
 export const deleteFileRequest = async (id: FileId,
@@ -3023,7 +3023,7 @@ export const getDeleteFileRequestMutationFetcher = (id: FileId,
   }
 }
 export const getDeleteFileRequestMutationKey = (id: FileId,
-    params: DeleteFileRequestParams,) => [`http://localhost:8080/api/v1/files/${id}`, ...(params ? [params]: [])] as const;
+    params: DeleteFileRequestParams,) => [`https://ciclo.binarysails.com/api/v1/files/${id}`, ...(params ? [params]: [])] as const;
 
 export type DeleteFileRequestMutationResult = NonNullable<Awaited<ReturnType<typeof deleteFileRequest>>>
 
@@ -3082,7 +3082,7 @@ export const getGetDownloadUrlRequestUrl = (id: FileId,
 
   const stringifiedParams = normalizedParams.toString();
 
-  return stringifiedParams.length > 0 ? `http://localhost:8080/api/v1/files/${id}/download-url?${stringifiedParams}` : `http://localhost:8080/api/v1/files/${id}/download-url`
+  return stringifiedParams.length > 0 ? `https://ciclo.binarysails.com/api/v1/files/${id}/download-url?${stringifiedParams}` : `https://ciclo.binarysails.com/api/v1/files/${id}/download-url`
 }
 
 export const getDownloadUrlRequest = async (id: FileId,
@@ -3109,7 +3109,7 @@ export const getDownloadUrlRequest = async (id: FileId,
 
 
 export const getGetDownloadUrlRequestKey = (id: FileId,
-    params?: GetDownloadUrlRequestParams,) => [`http://localhost:8080/api/v1/files/${id}/download-url`, ...(params ? [params]: [])] as const;
+    params?: GetDownloadUrlRequestParams,) => [`https://ciclo.binarysails.com/api/v1/files/${id}/download-url`, ...(params ? [params]: [])] as const;
 
 export type GetDownloadUrlRequestQueryResult = NonNullable<Awaited<ReturnType<typeof getDownloadUrlRequest>>>
 
@@ -3162,7 +3162,7 @@ export const getListInventoryRequestUrl = (params?: ListInventoryRequestParams,)
 
   const stringifiedParams = normalizedParams.toString();
 
-  return stringifiedParams.length > 0 ? `http://localhost:8080/api/v1/inventory?${stringifiedParams}` : `http://localhost:8080/api/v1/inventory`
+  return stringifiedParams.length > 0 ? `https://ciclo.binarysails.com/api/v1/inventory?${stringifiedParams}` : `https://ciclo.binarysails.com/api/v1/inventory`
 }
 
 export const listInventoryRequest = async (params?: ListInventoryRequestParams, options?: RequestInit): Promise<listInventoryRequestResponse> => {
@@ -3187,7 +3187,7 @@ export const listInventoryRequest = async (params?: ListInventoryRequestParams, 
 
 
 
-export const getListInventoryRequestKey = (params?: ListInventoryRequestParams,) => [`http://localhost:8080/api/v1/inventory`, ...(params ? [params]: [])] as const;
+export const getListInventoryRequestKey = (params?: ListInventoryRequestParams,) => [`https://ciclo.binarysails.com/api/v1/inventory`, ...(params ? [params]: [])] as const;
 
 export type ListInventoryRequestQueryResult = NonNullable<Awaited<ReturnType<typeof listInventoryRequest>>>
 
@@ -3242,7 +3242,7 @@ export const getCreateInventoryTransactionRequestUrl = () => {
 
 
 
-  return `http://localhost:8080/api/v1/inventory`
+  return `https://ciclo.binarysails.com/api/v1/inventory`
 }
 
 export const createInventoryTransactionRequest = async (createInventoryTransactionRequest: CreateInventoryTransactionRequest, options?: RequestInit): Promise<createInventoryTransactionRequestResponse> => {
@@ -3272,7 +3272,7 @@ export const getCreateInventoryTransactionRequestMutationFetcher = ( options?: R
     return createInventoryTransactionRequest(arg, options);
   }
 }
-export const getCreateInventoryTransactionRequestMutationKey = () => [`http://localhost:8080/api/v1/inventory`] as const;
+export const getCreateInventoryTransactionRequestMutationKey = () => [`https://ciclo.binarysails.com/api/v1/inventory`] as const;
 
 export type CreateInventoryTransactionRequestMutationResult = NonNullable<Awaited<ReturnType<typeof createInventoryTransactionRequest>>>
 
@@ -3322,7 +3322,7 @@ export const getGetLocalityRequestUrl = (localityId: LocalityId,) => {
 
 
 
-  return `http://localhost:8080/api/v1/locations/localities/${localityId}`
+  return `https://ciclo.binarysails.com/api/v1/locations/localities/${localityId}`
 }
 
 export const getLocalityRequest = async (localityId: LocalityId, options?: RequestInit): Promise<getLocalityRequestResponse> => {
@@ -3347,7 +3347,7 @@ export const getLocalityRequest = async (localityId: LocalityId, options?: Reque
 
 
 
-export const getGetLocalityRequestKey = (localityId: LocalityId,) => [`http://localhost:8080/api/v1/locations/localities/${localityId}`] as const;
+export const getGetLocalityRequestKey = (localityId: LocalityId,) => [`https://ciclo.binarysails.com/api/v1/locations/localities/${localityId}`] as const;
 
 export type GetLocalityRequestQueryResult = NonNullable<Awaited<ReturnType<typeof getLocalityRequest>>>
 
@@ -3392,7 +3392,7 @@ export const getListStatesRequestUrl = () => {
 
 
 
-  return `http://localhost:8080/api/v1/locations/states`
+  return `https://ciclo.binarysails.com/api/v1/locations/states`
 }
 
 export const listStatesRequest = async ( options?: RequestInit): Promise<listStatesRequestResponse> => {
@@ -3417,7 +3417,7 @@ export const listStatesRequest = async ( options?: RequestInit): Promise<listSta
 
 
 
-export const getListStatesRequestKey = () => [`http://localhost:8080/api/v1/locations/states`] as const;
+export const getListStatesRequestKey = () => [`https://ciclo.binarysails.com/api/v1/locations/states`] as const;
 
 export type ListStatesRequestQueryResult = NonNullable<Awaited<ReturnType<typeof listStatesRequest>>>
 
@@ -3467,7 +3467,7 @@ export const getCreateStateRequestUrl = () => {
 
 
 
-  return `http://localhost:8080/api/v1/locations/states`
+  return `https://ciclo.binarysails.com/api/v1/locations/states`
 }
 
 export const createStateRequest = async (createStateRequest: CreateStateRequest, options?: RequestInit): Promise<createStateRequestResponse> => {
@@ -3497,7 +3497,7 @@ export const getCreateStateRequestMutationFetcher = ( options?: RequestInit) => 
     return createStateRequest(arg, options);
   }
 }
-export const getCreateStateRequestMutationKey = () => [`http://localhost:8080/api/v1/locations/states`] as const;
+export const getCreateStateRequestMutationKey = () => [`https://ciclo.binarysails.com/api/v1/locations/states`] as const;
 
 export type CreateStateRequestMutationResult = NonNullable<Awaited<ReturnType<typeof createStateRequest>>>
 
@@ -3547,7 +3547,7 @@ export const getGetStateRequestUrl = (stateId: StateId,) => {
 
 
 
-  return `http://localhost:8080/api/v1/locations/states/${stateId}`
+  return `https://ciclo.binarysails.com/api/v1/locations/states/${stateId}`
 }
 
 export const getStateRequest = async (stateId: StateId, options?: RequestInit): Promise<getStateRequestResponse> => {
@@ -3572,7 +3572,7 @@ export const getStateRequest = async (stateId: StateId, options?: RequestInit): 
 
 
 
-export const getGetStateRequestKey = (stateId: StateId,) => [`http://localhost:8080/api/v1/locations/states/${stateId}`] as const;
+export const getGetStateRequestKey = (stateId: StateId,) => [`https://ciclo.binarysails.com/api/v1/locations/states/${stateId}`] as const;
 
 export type GetStateRequestQueryResult = NonNullable<Awaited<ReturnType<typeof getStateRequest>>>
 
@@ -3617,7 +3617,7 @@ export const getListLocalitiesRequestUrl = (stateId: StateId,) => {
 
 
 
-  return `http://localhost:8080/api/v1/locations/states/${stateId}/localities`
+  return `https://ciclo.binarysails.com/api/v1/locations/states/${stateId}/localities`
 }
 
 export const listLocalitiesRequest = async (stateId: StateId, options?: RequestInit): Promise<listLocalitiesRequestResponse> => {
@@ -3642,7 +3642,7 @@ export const listLocalitiesRequest = async (stateId: StateId, options?: RequestI
 
 
 
-export const getListLocalitiesRequestKey = (stateId: StateId,) => [`http://localhost:8080/api/v1/locations/states/${stateId}/localities`] as const;
+export const getListLocalitiesRequestKey = (stateId: StateId,) => [`https://ciclo.binarysails.com/api/v1/locations/states/${stateId}/localities`] as const;
 
 export type ListLocalitiesRequestQueryResult = NonNullable<Awaited<ReturnType<typeof listLocalitiesRequest>>>
 
@@ -3702,7 +3702,7 @@ export const getCreateLocalityRequestUrl = (stateId: StateId,) => {
 
 
 
-  return `http://localhost:8080/api/v1/locations/states/${stateId}/localities`
+  return `https://ciclo.binarysails.com/api/v1/locations/states/${stateId}/localities`
 }
 
 export const createLocalityRequest = async (stateId: StateId,
@@ -3733,7 +3733,7 @@ export const getCreateLocalityRequestMutationFetcher = (stateId: StateId, option
     return createLocalityRequest(stateId, arg, options);
   }
 }
-export const getCreateLocalityRequestMutationKey = (stateId: StateId,) => [`http://localhost:8080/api/v1/locations/states/${stateId}/localities`] as const;
+export const getCreateLocalityRequestMutationKey = (stateId: StateId,) => [`https://ciclo.binarysails.com/api/v1/locations/states/${stateId}/localities`] as const;
 
 export type CreateLocalityRequestMutationResult = NonNullable<Awaited<ReturnType<typeof createLocalityRequest>>>
 
@@ -3778,7 +3778,7 @@ export const getListPaymentTermsRequestUrl = () => {
 
 
 
-  return `http://localhost:8080/api/v1/payment-terms`
+  return `https://ciclo.binarysails.com/api/v1/payment-terms`
 }
 
 export const listPaymentTermsRequest = async ( options?: RequestInit): Promise<listPaymentTermsRequestResponse> => {
@@ -3803,7 +3803,7 @@ export const listPaymentTermsRequest = async ( options?: RequestInit): Promise<l
 
 
 
-export const getListPaymentTermsRequestKey = () => [`http://localhost:8080/api/v1/payment-terms`] as const;
+export const getListPaymentTermsRequestKey = () => [`https://ciclo.binarysails.com/api/v1/payment-terms`] as const;
 
 export type ListPaymentTermsRequestQueryResult = NonNullable<Awaited<ReturnType<typeof listPaymentTermsRequest>>>
 
@@ -3853,7 +3853,7 @@ export const getGetPaymentTermRequestUrl = (paymentTermId: PaymentTermId,) => {
 
 
 
-  return `http://localhost:8080/api/v1/payment-terms/${paymentTermId}`
+  return `https://ciclo.binarysails.com/api/v1/payment-terms/${paymentTermId}`
 }
 
 export const getPaymentTermRequest = async (paymentTermId: PaymentTermId, options?: RequestInit): Promise<getPaymentTermRequestResponse> => {
@@ -3878,7 +3878,7 @@ export const getPaymentTermRequest = async (paymentTermId: PaymentTermId, option
 
 
 
-export const getGetPaymentTermRequestKey = (paymentTermId: PaymentTermId,) => [`http://localhost:8080/api/v1/payment-terms/${paymentTermId}`] as const;
+export const getGetPaymentTermRequestKey = (paymentTermId: PaymentTermId,) => [`https://ciclo.binarysails.com/api/v1/payment-terms/${paymentTermId}`] as const;
 
 export type GetPaymentTermRequestQueryResult = NonNullable<Awaited<ReturnType<typeof getPaymentTermRequest>>>
 
@@ -3935,7 +3935,7 @@ export const getListProductsRequestUrl = (params?: ListProductsRequestParams,) =
 
   const stringifiedParams = normalizedParams.toString();
 
-  return stringifiedParams.length > 0 ? `http://localhost:8080/api/v1/products?${stringifiedParams}` : `http://localhost:8080/api/v1/products`
+  return stringifiedParams.length > 0 ? `https://ciclo.binarysails.com/api/v1/products?${stringifiedParams}` : `https://ciclo.binarysails.com/api/v1/products`
 }
 
 export const listProductsRequest = async (params?: ListProductsRequestParams, options?: RequestInit): Promise<listProductsRequestResponse> => {
@@ -3960,7 +3960,7 @@ export const listProductsRequest = async (params?: ListProductsRequestParams, op
 
 
 
-export const getListProductsRequestKey = (params?: ListProductsRequestParams,) => [`http://localhost:8080/api/v1/products`, ...(params ? [params]: [])] as const;
+export const getListProductsRequestKey = (params?: ListProductsRequestParams,) => [`https://ciclo.binarysails.com/api/v1/products`, ...(params ? [params]: [])] as const;
 
 export type ListProductsRequestQueryResult = NonNullable<Awaited<ReturnType<typeof listProductsRequest>>>
 
@@ -4010,7 +4010,7 @@ export const getCreateProductRequestUrl = () => {
 
 
 
-  return `http://localhost:8080/api/v1/products`
+  return `https://ciclo.binarysails.com/api/v1/products`
 }
 
 export const createProductRequest = async (createProductRequest: CreateProductRequest, options?: RequestInit): Promise<createProductRequestResponse> => {
@@ -4040,7 +4040,7 @@ export const getCreateProductRequestMutationFetcher = ( options?: RequestInit) =
     return createProductRequest(arg, options);
   }
 }
-export const getCreateProductRequestMutationKey = () => [`http://localhost:8080/api/v1/products`] as const;
+export const getCreateProductRequestMutationKey = () => [`https://ciclo.binarysails.com/api/v1/products`] as const;
 
 export type CreateProductRequestMutationResult = NonNullable<Awaited<ReturnType<typeof createProductRequest>>>
 
@@ -4092,7 +4092,7 @@ export const getListBrandsRequestUrl = (params?: ListBrandsRequestParams,) => {
 
   const stringifiedParams = normalizedParams.toString();
 
-  return stringifiedParams.length > 0 ? `http://localhost:8080/api/v1/products/brands?${stringifiedParams}` : `http://localhost:8080/api/v1/products/brands`
+  return stringifiedParams.length > 0 ? `https://ciclo.binarysails.com/api/v1/products/brands?${stringifiedParams}` : `https://ciclo.binarysails.com/api/v1/products/brands`
 }
 
 export const listBrandsRequest = async (params?: ListBrandsRequestParams, options?: RequestInit): Promise<listBrandsRequestResponse> => {
@@ -4117,7 +4117,7 @@ export const listBrandsRequest = async (params?: ListBrandsRequestParams, option
 
 
 
-export const getListBrandsRequestKey = (params?: ListBrandsRequestParams,) => [`http://localhost:8080/api/v1/products/brands`, ...(params ? [params]: [])] as const;
+export const getListBrandsRequestKey = (params?: ListBrandsRequestParams,) => [`https://ciclo.binarysails.com/api/v1/products/brands`, ...(params ? [params]: [])] as const;
 
 export type ListBrandsRequestQueryResult = NonNullable<Awaited<ReturnType<typeof listBrandsRequest>>>
 
@@ -4167,7 +4167,7 @@ export const getCreateBrandRequestUrl = () => {
 
 
 
-  return `http://localhost:8080/api/v1/products/brands`
+  return `https://ciclo.binarysails.com/api/v1/products/brands`
 }
 
 export const createBrandRequest = async (createBrandRequest: CreateBrandRequest, options?: RequestInit): Promise<createBrandRequestResponse> => {
@@ -4197,7 +4197,7 @@ export const getCreateBrandRequestMutationFetcher = ( options?: RequestInit) => 
     return createBrandRequest(arg, options);
   }
 }
-export const getCreateBrandRequestMutationKey = () => [`http://localhost:8080/api/v1/products/brands`] as const;
+export const getCreateBrandRequestMutationKey = () => [`https://ciclo.binarysails.com/api/v1/products/brands`] as const;
 
 export type CreateBrandRequestMutationResult = NonNullable<Awaited<ReturnType<typeof createBrandRequest>>>
 
@@ -4247,7 +4247,7 @@ export const getGetBrandRequestUrl = (id: BrandId,) => {
 
 
 
-  return `http://localhost:8080/api/v1/products/brands/${id}`
+  return `https://ciclo.binarysails.com/api/v1/products/brands/${id}`
 }
 
 export const getBrandRequest = async (id: BrandId, options?: RequestInit): Promise<getBrandRequestResponse> => {
@@ -4272,7 +4272,7 @@ export const getBrandRequest = async (id: BrandId, options?: RequestInit): Promi
 
 
 
-export const getGetBrandRequestKey = (id: BrandId,) => [`http://localhost:8080/api/v1/products/brands/${id}`] as const;
+export const getGetBrandRequestKey = (id: BrandId,) => [`https://ciclo.binarysails.com/api/v1/products/brands/${id}`] as const;
 
 export type GetBrandRequestQueryResult = NonNullable<Awaited<ReturnType<typeof getBrandRequest>>>
 
@@ -4322,7 +4322,7 @@ export const getDeleteBrandRequestUrl = (id: BrandId,) => {
 
 
 
-  return `http://localhost:8080/api/v1/products/brands/${id}`
+  return `https://ciclo.binarysails.com/api/v1/products/brands/${id}`
 }
 
 export const deleteBrandRequest = async (id: BrandId, options?: RequestInit): Promise<deleteBrandRequestResponse> => {
@@ -4352,7 +4352,7 @@ export const getDeleteBrandRequestMutationFetcher = (id: BrandId, options?: Requ
     return deleteBrandRequest(id, options);
   }
 }
-export const getDeleteBrandRequestMutationKey = (id: BrandId,) => [`http://localhost:8080/api/v1/products/brands/${id}`] as const;
+export const getDeleteBrandRequestMutationKey = (id: BrandId,) => [`https://ciclo.binarysails.com/api/v1/products/brands/${id}`] as const;
 
 export type DeleteBrandRequestMutationResult = NonNullable<Awaited<ReturnType<typeof deleteBrandRequest>>>
 
@@ -4412,7 +4412,7 @@ export const getUpdateBrandRequestUrl = (id: BrandId,) => {
 
 
 
-  return `http://localhost:8080/api/v1/products/brands/${id}`
+  return `https://ciclo.binarysails.com/api/v1/products/brands/${id}`
 }
 
 export const updateBrandRequest = async (id: BrandId,
@@ -4443,7 +4443,7 @@ export const getUpdateBrandRequestMutationFetcher = (id: BrandId, options?: Requ
     return updateBrandRequest(id, arg, options);
   }
 }
-export const getUpdateBrandRequestMutationKey = (id: BrandId,) => [`http://localhost:8080/api/v1/products/brands/${id}`] as const;
+export const getUpdateBrandRequestMutationKey = (id: BrandId,) => [`https://ciclo.binarysails.com/api/v1/products/brands/${id}`] as const;
 
 export type UpdateBrandRequestMutationResult = NonNullable<Awaited<ReturnType<typeof updateBrandRequest>>>
 
@@ -4498,7 +4498,7 @@ export const getToggleBrandRequestUrl = (id: BrandId,) => {
 
 
 
-  return `http://localhost:8080/api/v1/products/brands/${id}/toggle`
+  return `https://ciclo.binarysails.com/api/v1/products/brands/${id}/toggle`
 }
 
 export const toggleBrandRequest = async (id: BrandId, options?: RequestInit): Promise<toggleBrandRequestResponse> => {
@@ -4528,7 +4528,7 @@ export const getToggleBrandRequestMutationFetcher = (id: BrandId, options?: Requ
     return toggleBrandRequest(id, options);
   }
 }
-export const getToggleBrandRequestMutationKey = (id: BrandId,) => [`http://localhost:8080/api/v1/products/brands/${id}/toggle`] as const;
+export const getToggleBrandRequestMutationKey = (id: BrandId,) => [`https://ciclo.binarysails.com/api/v1/products/brands/${id}/toggle`] as const;
 
 export type ToggleBrandRequestMutationResult = NonNullable<Awaited<ReturnType<typeof toggleBrandRequest>>>
 
@@ -4580,7 +4580,7 @@ export const getGetCategoriesRequestUrl = (params?: GetCategoriesRequestParams,)
 
   const stringifiedParams = normalizedParams.toString();
 
-  return stringifiedParams.length > 0 ? `http://localhost:8080/api/v1/products/categories?${stringifiedParams}` : `http://localhost:8080/api/v1/products/categories`
+  return stringifiedParams.length > 0 ? `https://ciclo.binarysails.com/api/v1/products/categories?${stringifiedParams}` : `https://ciclo.binarysails.com/api/v1/products/categories`
 }
 
 export const getCategoriesRequest = async (params?: GetCategoriesRequestParams, options?: RequestInit): Promise<getCategoriesRequestResponse> => {
@@ -4605,7 +4605,7 @@ export const getCategoriesRequest = async (params?: GetCategoriesRequestParams, 
 
 
 
-export const getGetCategoriesRequestKey = (params?: GetCategoriesRequestParams,) => [`http://localhost:8080/api/v1/products/categories`, ...(params ? [params]: [])] as const;
+export const getGetCategoriesRequestKey = (params?: GetCategoriesRequestParams,) => [`https://ciclo.binarysails.com/api/v1/products/categories`, ...(params ? [params]: [])] as const;
 
 export type GetCategoriesRequestQueryResult = NonNullable<Awaited<ReturnType<typeof getCategoriesRequest>>>
 
@@ -4655,7 +4655,7 @@ export const getCreateCategoryRequestUrl = () => {
 
 
 
-  return `http://localhost:8080/api/v1/products/categories`
+  return `https://ciclo.binarysails.com/api/v1/products/categories`
 }
 
 export const createCategoryRequest = async (createCategoryRequest: CreateCategoryRequest, options?: RequestInit): Promise<createCategoryRequestResponse> => {
@@ -4685,7 +4685,7 @@ export const getCreateCategoryRequestMutationFetcher = ( options?: RequestInit) 
     return createCategoryRequest(arg, options);
   }
 }
-export const getCreateCategoryRequestMutationKey = () => [`http://localhost:8080/api/v1/products/categories`] as const;
+export const getCreateCategoryRequestMutationKey = () => [`https://ciclo.binarysails.com/api/v1/products/categories`] as const;
 
 export type CreateCategoryRequestMutationResult = NonNullable<Awaited<ReturnType<typeof createCategoryRequest>>>
 
@@ -4735,7 +4735,7 @@ export const getGetCategoryRequestUrl = (id: CategoryId,) => {
 
 
 
-  return `http://localhost:8080/api/v1/products/categories/${id}`
+  return `https://ciclo.binarysails.com/api/v1/products/categories/${id}`
 }
 
 export const getCategoryRequest = async (id: CategoryId, options?: RequestInit): Promise<getCategoryRequestResponse> => {
@@ -4760,7 +4760,7 @@ export const getCategoryRequest = async (id: CategoryId, options?: RequestInit):
 
 
 
-export const getGetCategoryRequestKey = (id: CategoryId,) => [`http://localhost:8080/api/v1/products/categories/${id}`] as const;
+export const getGetCategoryRequestKey = (id: CategoryId,) => [`https://ciclo.binarysails.com/api/v1/products/categories/${id}`] as const;
 
 export type GetCategoryRequestQueryResult = NonNullable<Awaited<ReturnType<typeof getCategoryRequest>>>
 
@@ -4815,7 +4815,7 @@ export const getUpdateCategoryRequestUrl = (id: CategoryId,) => {
 
 
 
-  return `http://localhost:8080/api/v1/products/categories/${id}`
+  return `https://ciclo.binarysails.com/api/v1/products/categories/${id}`
 }
 
 export const updateCategoryRequest = async (id: CategoryId,
@@ -4846,7 +4846,7 @@ export const getUpdateCategoryRequestMutationFetcher = (id: CategoryId, options?
     return updateCategoryRequest(id, arg, options);
   }
 }
-export const getUpdateCategoryRequestMutationKey = (id: CategoryId,) => [`http://localhost:8080/api/v1/products/categories/${id}`] as const;
+export const getUpdateCategoryRequestMutationKey = (id: CategoryId,) => [`https://ciclo.binarysails.com/api/v1/products/categories/${id}`] as const;
 
 export type UpdateCategoryRequestMutationResult = NonNullable<Awaited<ReturnType<typeof updateCategoryRequest>>>
 
@@ -4896,7 +4896,7 @@ export const getDeleteCategoryRequestUrl = (id: CategoryId,) => {
 
 
 
-  return `http://localhost:8080/api/v1/products/categories/${id}`
+  return `https://ciclo.binarysails.com/api/v1/products/categories/${id}`
 }
 
 export const deleteCategoryRequest = async (id: CategoryId, options?: RequestInit): Promise<deleteCategoryRequestResponse> => {
@@ -4926,7 +4926,7 @@ export const getDeleteCategoryRequestMutationFetcher = (id: CategoryId, options?
     return deleteCategoryRequest(id, options);
   }
 }
-export const getDeleteCategoryRequestMutationKey = (id: CategoryId,) => [`http://localhost:8080/api/v1/products/categories/${id}`] as const;
+export const getDeleteCategoryRequestMutationKey = (id: CategoryId,) => [`https://ciclo.binarysails.com/api/v1/products/categories/${id}`] as const;
 
 export type DeleteCategoryRequestMutationResult = NonNullable<Awaited<ReturnType<typeof deleteCategoryRequest>>>
 
@@ -4976,7 +4976,7 @@ export const getGetProductRequestUrl = (id: ProductId,) => {
 
 
 
-  return `http://localhost:8080/api/v1/products/${id}`
+  return `https://ciclo.binarysails.com/api/v1/products/${id}`
 }
 
 export const getProductRequest = async (id: ProductId, options?: RequestInit): Promise<getProductRequestResponse> => {
@@ -5001,7 +5001,7 @@ export const getProductRequest = async (id: ProductId, options?: RequestInit): P
 
 
 
-export const getGetProductRequestKey = (id: ProductId,) => [`http://localhost:8080/api/v1/products/${id}`] as const;
+export const getGetProductRequestKey = (id: ProductId,) => [`https://ciclo.binarysails.com/api/v1/products/${id}`] as const;
 
 export type GetProductRequestQueryResult = NonNullable<Awaited<ReturnType<typeof getProductRequest>>>
 
@@ -5056,7 +5056,7 @@ export const getUpdateProductRequestUrl = (id: ProductId,) => {
 
 
 
-  return `http://localhost:8080/api/v1/products/${id}`
+  return `https://ciclo.binarysails.com/api/v1/products/${id}`
 }
 
 export const updateProductRequest = async (id: ProductId,
@@ -5087,7 +5087,7 @@ export const getUpdateProductRequestMutationFetcher = (id: ProductId, options?: 
     return updateProductRequest(id, arg, options);
   }
 }
-export const getUpdateProductRequestMutationKey = (id: ProductId,) => [`http://localhost:8080/api/v1/products/${id}`] as const;
+export const getUpdateProductRequestMutationKey = (id: ProductId,) => [`https://ciclo.binarysails.com/api/v1/products/${id}`] as const;
 
 export type UpdateProductRequestMutationResult = NonNullable<Awaited<ReturnType<typeof updateProductRequest>>>
 
@@ -5140,7 +5140,7 @@ export const getListVariantsRequestUrl = (productId: ProductId,
 
   const stringifiedParams = normalizedParams.toString();
 
-  return stringifiedParams.length > 0 ? `http://localhost:8080/api/v1/products/${productId}/variants?${stringifiedParams}` : `http://localhost:8080/api/v1/products/${productId}/variants`
+  return stringifiedParams.length > 0 ? `https://ciclo.binarysails.com/api/v1/products/${productId}/variants?${stringifiedParams}` : `https://ciclo.binarysails.com/api/v1/products/${productId}/variants`
 }
 
 export const listVariantsRequest = async (productId: ProductId,
@@ -5167,7 +5167,7 @@ export const listVariantsRequest = async (productId: ProductId,
 
 
 export const getListVariantsRequestKey = (productId: ProductId,
-    params?: ListVariantsRequestParams,) => [`http://localhost:8080/api/v1/products/${productId}/variants`, ...(params ? [params]: [])] as const;
+    params?: ListVariantsRequestParams,) => [`https://ciclo.binarysails.com/api/v1/products/${productId}/variants`, ...(params ? [params]: [])] as const;
 
 export type ListVariantsRequestQueryResult = NonNullable<Awaited<ReturnType<typeof listVariantsRequest>>>
 
@@ -5223,7 +5223,7 @@ export const getCreateVariantRequestUrl = (productId: ProductId,) => {
 
 
 
-  return `http://localhost:8080/api/v1/products/${productId}/variants`
+  return `https://ciclo.binarysails.com/api/v1/products/${productId}/variants`
 }
 
 export const createVariantRequest = async (productId: ProductId,
@@ -5254,7 +5254,7 @@ export const getCreateVariantRequestMutationFetcher = (productId: ProductId, opt
     return createVariantRequest(productId, arg, options);
   }
 }
-export const getCreateVariantRequestMutationKey = (productId: ProductId,) => [`http://localhost:8080/api/v1/products/${productId}/variants`] as const;
+export const getCreateVariantRequestMutationKey = (productId: ProductId,) => [`https://ciclo.binarysails.com/api/v1/products/${productId}/variants`] as const;
 
 export type CreateVariantRequestMutationResult = NonNullable<Awaited<ReturnType<typeof createVariantRequest>>>
 
@@ -5305,7 +5305,7 @@ export const getGetVariantRequestUrl = (productId: ProductId,
 
 
 
-  return `http://localhost:8080/api/v1/products/${productId}/variants/${id}`
+  return `https://ciclo.binarysails.com/api/v1/products/${productId}/variants/${id}`
 }
 
 export const getVariantRequest = async (productId: ProductId,
@@ -5332,7 +5332,7 @@ export const getVariantRequest = async (productId: ProductId,
 
 
 export const getGetVariantRequestKey = (productId: ProductId,
-    id: VariantId,) => [`http://localhost:8080/api/v1/products/${productId}/variants/${id}`] as const;
+    id: VariantId,) => [`https://ciclo.binarysails.com/api/v1/products/${productId}/variants/${id}`] as const;
 
 export type GetVariantRequestQueryResult = NonNullable<Awaited<ReturnType<typeof getVariantRequest>>>
 
@@ -5389,7 +5389,7 @@ export const getUpdateVariantRequestUrl = (productId: ProductId,
 
 
 
-  return `http://localhost:8080/api/v1/products/${productId}/variants/${id}`
+  return `https://ciclo.binarysails.com/api/v1/products/${productId}/variants/${id}`
 }
 
 export const updateVariantRequest = async (productId: ProductId,
@@ -5423,7 +5423,7 @@ export const getUpdateVariantRequestMutationFetcher = (productId: ProductId,
   }
 }
 export const getUpdateVariantRequestMutationKey = (productId: ProductId,
-    id: VariantId,) => [`http://localhost:8080/api/v1/products/${productId}/variants/${id}`] as const;
+    id: VariantId,) => [`https://ciclo.binarysails.com/api/v1/products/${productId}/variants/${id}`] as const;
 
 export type UpdateVariantRequestMutationResult = NonNullable<Awaited<ReturnType<typeof updateVariantRequest>>>
 
@@ -5479,7 +5479,7 @@ export const getCreatePromotionRequestUrl = () => {
 
 
 
-  return `http://localhost:8080/api/v1/promotions`
+  return `https://ciclo.binarysails.com/api/v1/promotions`
 }
 
 export const createPromotionRequest = async (createPromotionRequest: CreatePromotionRequest, options?: RequestInit): Promise<createPromotionRequestResponse> => {
@@ -5509,7 +5509,7 @@ export const getCreatePromotionRequestMutationFetcher = ( options?: RequestInit)
     return createPromotionRequest(arg, options);
   }
 }
-export const getCreatePromotionRequestMutationKey = () => [`http://localhost:8080/api/v1/promotions`] as const;
+export const getCreatePromotionRequestMutationKey = () => [`https://ciclo.binarysails.com/api/v1/promotions`] as const;
 
 export type CreatePromotionRequestMutationResult = NonNullable<Awaited<ReturnType<typeof createPromotionRequest>>>
 
@@ -5554,7 +5554,7 @@ export const getListActivePromotionsRequestUrl = () => {
 
 
 
-  return `http://localhost:8080/api/v1/promotions/active`
+  return `https://ciclo.binarysails.com/api/v1/promotions/active`
 }
 
 export const listActivePromotionsRequest = async ( options?: RequestInit): Promise<listActivePromotionsRequestResponse> => {
@@ -5579,7 +5579,7 @@ export const listActivePromotionsRequest = async ( options?: RequestInit): Promi
 
 
 
-export const getListActivePromotionsRequestKey = () => [`http://localhost:8080/api/v1/promotions/active`] as const;
+export const getListActivePromotionsRequestKey = () => [`https://ciclo.binarysails.com/api/v1/promotions/active`] as const;
 
 export type ListActivePromotionsRequestQueryResult = NonNullable<Awaited<ReturnType<typeof listActivePromotionsRequest>>>
 
@@ -5629,7 +5629,7 @@ export const getGetPromotionRequestUrl = (id: PromotionIdentifier,) => {
 
 
 
-  return `http://localhost:8080/api/v1/promotions/${id}`
+  return `https://ciclo.binarysails.com/api/v1/promotions/${id}`
 }
 
 export const getPromotionRequest = async (id: PromotionIdentifier, options?: RequestInit): Promise<getPromotionRequestResponse> => {
@@ -5654,7 +5654,7 @@ export const getPromotionRequest = async (id: PromotionIdentifier, options?: Req
 
 
 
-export const getGetPromotionRequestKey = (id: PromotionIdentifier,) => [`http://localhost:8080/api/v1/promotions/${id}`] as const;
+export const getGetPromotionRequestKey = (id: PromotionIdentifier,) => [`https://ciclo.binarysails.com/api/v1/promotions/${id}`] as const;
 
 export type GetPromotionRequestQueryResult = NonNullable<Awaited<ReturnType<typeof getPromotionRequest>>>
 
@@ -5699,7 +5699,7 @@ export const getListPermissionsHandlerUrl = () => {
 
 
 
-  return `http://localhost:8080/api/v1/rbac/permissions`
+  return `https://ciclo.binarysails.com/api/v1/rbac/permissions`
 }
 
 export const listPermissionsHandler = async ( options?: RequestInit): Promise<listPermissionsHandlerResponse> => {
@@ -5724,7 +5724,7 @@ export const listPermissionsHandler = async ( options?: RequestInit): Promise<li
 
 
 
-export const getListPermissionsHandlerKey = () => [`http://localhost:8080/api/v1/rbac/permissions`] as const;
+export const getListPermissionsHandlerKey = () => [`https://ciclo.binarysails.com/api/v1/rbac/permissions`] as const;
 
 export type ListPermissionsHandlerQueryResult = NonNullable<Awaited<ReturnType<typeof listPermissionsHandler>>>
 
@@ -5774,7 +5774,7 @@ export const getCreatePermissionHandlerUrl = () => {
 
 
 
-  return `http://localhost:8080/api/v1/rbac/permissions`
+  return `https://ciclo.binarysails.com/api/v1/rbac/permissions`
 }
 
 export const createPermissionHandler = async (createPermissionRequest: CreatePermissionRequest, options?: RequestInit): Promise<createPermissionHandlerResponse> => {
@@ -5804,7 +5804,7 @@ export const getCreatePermissionHandlerMutationFetcher = ( options?: RequestInit
     return createPermissionHandler(arg, options);
   }
 }
-export const getCreatePermissionHandlerMutationKey = () => [`http://localhost:8080/api/v1/rbac/permissions`] as const;
+export const getCreatePermissionHandlerMutationKey = () => [`https://ciclo.binarysails.com/api/v1/rbac/permissions`] as const;
 
 export type CreatePermissionHandlerMutationResult = NonNullable<Awaited<ReturnType<typeof createPermissionHandler>>>
 
@@ -5859,7 +5859,7 @@ export const getUpdatePermissionHandlerUrl = (permissionId: PermissionId,) => {
 
 
 
-  return `http://localhost:8080/api/v1/rbac/permissions/${permissionId}`
+  return `https://ciclo.binarysails.com/api/v1/rbac/permissions/${permissionId}`
 }
 
 export const updatePermissionHandler = async (permissionId: PermissionId,
@@ -5890,7 +5890,7 @@ export const getUpdatePermissionHandlerMutationFetcher = (permissionId: Permissi
     return updatePermissionHandler(permissionId, arg, options);
   }
 }
-export const getUpdatePermissionHandlerMutationKey = (permissionId: PermissionId,) => [`http://localhost:8080/api/v1/rbac/permissions/${permissionId}`] as const;
+export const getUpdatePermissionHandlerMutationKey = (permissionId: PermissionId,) => [`https://ciclo.binarysails.com/api/v1/rbac/permissions/${permissionId}`] as const;
 
 export type UpdatePermissionHandlerMutationResult = NonNullable<Awaited<ReturnType<typeof updatePermissionHandler>>>
 
@@ -5945,7 +5945,7 @@ export const getDeletePermissionHandlerUrl = (permissionId: PermissionId,) => {
 
 
 
-  return `http://localhost:8080/api/v1/rbac/permissions/${permissionId}`
+  return `https://ciclo.binarysails.com/api/v1/rbac/permissions/${permissionId}`
 }
 
 export const deletePermissionHandler = async (permissionId: PermissionId, options?: RequestInit): Promise<deletePermissionHandlerResponse> => {
@@ -5975,7 +5975,7 @@ export const getDeletePermissionHandlerMutationFetcher = (permissionId: Permissi
     return deletePermissionHandler(permissionId, options);
   }
 }
-export const getDeletePermissionHandlerMutationKey = (permissionId: PermissionId,) => [`http://localhost:8080/api/v1/rbac/permissions/${permissionId}`] as const;
+export const getDeletePermissionHandlerMutationKey = (permissionId: PermissionId,) => [`https://ciclo.binarysails.com/api/v1/rbac/permissions/${permissionId}`] as const;
 
 export type DeletePermissionHandlerMutationResult = NonNullable<Awaited<ReturnType<typeof deletePermissionHandler>>>
 
@@ -6020,7 +6020,7 @@ export const getListRolesHandlerUrl = () => {
 
 
 
-  return `http://localhost:8080/api/v1/rbac/roles`
+  return `https://ciclo.binarysails.com/api/v1/rbac/roles`
 }
 
 export const listRolesHandler = async ( options?: RequestInit): Promise<listRolesHandlerResponse> => {
@@ -6045,7 +6045,7 @@ export const listRolesHandler = async ( options?: RequestInit): Promise<listRole
 
 
 
-export const getListRolesHandlerKey = () => [`http://localhost:8080/api/v1/rbac/roles`] as const;
+export const getListRolesHandlerKey = () => [`https://ciclo.binarysails.com/api/v1/rbac/roles`] as const;
 
 export type ListRolesHandlerQueryResult = NonNullable<Awaited<ReturnType<typeof listRolesHandler>>>
 
@@ -6095,7 +6095,7 @@ export const getCreateRoleHandlerUrl = () => {
 
 
 
-  return `http://localhost:8080/api/v1/rbac/roles`
+  return `https://ciclo.binarysails.com/api/v1/rbac/roles`
 }
 
 export const createRoleHandler = async (createRoleRequest: CreateRoleRequest, options?: RequestInit): Promise<createRoleHandlerResponse> => {
@@ -6125,7 +6125,7 @@ export const getCreateRoleHandlerMutationFetcher = ( options?: RequestInit) => {
     return createRoleHandler(arg, options);
   }
 }
-export const getCreateRoleHandlerMutationKey = () => [`http://localhost:8080/api/v1/rbac/roles`] as const;
+export const getCreateRoleHandlerMutationKey = () => [`https://ciclo.binarysails.com/api/v1/rbac/roles`] as const;
 
 export type CreateRoleHandlerMutationResult = NonNullable<Awaited<ReturnType<typeof createRoleHandler>>>
 
@@ -6180,7 +6180,7 @@ export const getUpdateRoleHandlerUrl = (roleId: RoleId,) => {
 
 
 
-  return `http://localhost:8080/api/v1/rbac/roles/${roleId}`
+  return `https://ciclo.binarysails.com/api/v1/rbac/roles/${roleId}`
 }
 
 export const updateRoleHandler = async (roleId: RoleId,
@@ -6211,7 +6211,7 @@ export const getUpdateRoleHandlerMutationFetcher = (roleId: RoleId, options?: Re
     return updateRoleHandler(roleId, arg, options);
   }
 }
-export const getUpdateRoleHandlerMutationKey = (roleId: RoleId,) => [`http://localhost:8080/api/v1/rbac/roles/${roleId}`] as const;
+export const getUpdateRoleHandlerMutationKey = (roleId: RoleId,) => [`https://ciclo.binarysails.com/api/v1/rbac/roles/${roleId}`] as const;
 
 export type UpdateRoleHandlerMutationResult = NonNullable<Awaited<ReturnType<typeof updateRoleHandler>>>
 
@@ -6266,7 +6266,7 @@ export const getDeleteRoleHandlerUrl = (roleId: RoleId,) => {
 
 
 
-  return `http://localhost:8080/api/v1/rbac/roles/${roleId}`
+  return `https://ciclo.binarysails.com/api/v1/rbac/roles/${roleId}`
 }
 
 export const deleteRoleHandler = async (roleId: RoleId, options?: RequestInit): Promise<deleteRoleHandlerResponse> => {
@@ -6296,7 +6296,7 @@ export const getDeleteRoleHandlerMutationFetcher = (roleId: RoleId, options?: Re
     return deleteRoleHandler(roleId, options);
   }
 }
-export const getDeleteRoleHandlerMutationKey = (roleId: RoleId,) => [`http://localhost:8080/api/v1/rbac/roles/${roleId}`] as const;
+export const getDeleteRoleHandlerMutationKey = (roleId: RoleId,) => [`https://ciclo.binarysails.com/api/v1/rbac/roles/${roleId}`] as const;
 
 export type DeleteRoleHandlerMutationResult = NonNullable<Awaited<ReturnType<typeof deleteRoleHandler>>>
 
@@ -6341,7 +6341,7 @@ export const getListRolePermissionsHandlerUrl = (roleId: RoleId,) => {
 
 
 
-  return `http://localhost:8080/api/v1/rbac/roles/${roleId}/permissions`
+  return `https://ciclo.binarysails.com/api/v1/rbac/roles/${roleId}/permissions`
 }
 
 export const listRolePermissionsHandler = async (roleId: RoleId, options?: RequestInit): Promise<listRolePermissionsHandlerResponse> => {
@@ -6366,7 +6366,7 @@ export const listRolePermissionsHandler = async (roleId: RoleId, options?: Reque
 
 
 
-export const getListRolePermissionsHandlerKey = (roleId: RoleId,) => [`http://localhost:8080/api/v1/rbac/roles/${roleId}/permissions`] as const;
+export const getListRolePermissionsHandlerKey = (roleId: RoleId,) => [`https://ciclo.binarysails.com/api/v1/rbac/roles/${roleId}/permissions`] as const;
 
 export type ListRolePermissionsHandlerQueryResult = NonNullable<Awaited<ReturnType<typeof listRolePermissionsHandler>>>
 
@@ -6411,7 +6411,7 @@ export const getAssignPermissionsHandlerUrl = (roleId: RoleId,) => {
 
 
 
-  return `http://localhost:8080/api/v1/rbac/roles/${roleId}/permissions`
+  return `https://ciclo.binarysails.com/api/v1/rbac/roles/${roleId}/permissions`
 }
 
 export const assignPermissionsHandler = async (roleId: RoleId,
@@ -6442,7 +6442,7 @@ export const getAssignPermissionsHandlerMutationFetcher = (roleId: RoleId, optio
     return assignPermissionsHandler(roleId, arg, options);
   }
 }
-export const getAssignPermissionsHandlerMutationKey = (roleId: RoleId,) => [`http://localhost:8080/api/v1/rbac/roles/${roleId}/permissions`] as const;
+export const getAssignPermissionsHandlerMutationKey = (roleId: RoleId,) => [`https://ciclo.binarysails.com/api/v1/rbac/roles/${roleId}/permissions`] as const;
 
 export type AssignPermissionsHandlerMutationResult = NonNullable<Awaited<ReturnType<typeof assignPermissionsHandler>>>
 
@@ -6487,7 +6487,7 @@ export const getRemovePermissionsHandlerUrl = (roleId: RoleId,) => {
 
 
 
-  return `http://localhost:8080/api/v1/rbac/roles/${roleId}/permissions`
+  return `https://ciclo.binarysails.com/api/v1/rbac/roles/${roleId}/permissions`
 }
 
 export const removePermissionsHandler = async (roleId: RoleId,
@@ -6518,7 +6518,7 @@ export const getRemovePermissionsHandlerMutationFetcher = (roleId: RoleId, optio
     return removePermissionsHandler(roleId, arg, options);
   }
 }
-export const getRemovePermissionsHandlerMutationKey = (roleId: RoleId,) => [`http://localhost:8080/api/v1/rbac/roles/${roleId}/permissions`] as const;
+export const getRemovePermissionsHandlerMutationKey = (roleId: RoleId,) => [`https://ciclo.binarysails.com/api/v1/rbac/roles/${roleId}/permissions`] as const;
 
 export type RemovePermissionsHandlerMutationResult = NonNullable<Awaited<ReturnType<typeof removePermissionsHandler>>>
 
@@ -6573,7 +6573,7 @@ export const getChangeRoleStatusHandlerUrl = (roleId: RoleId,) => {
 
 
 
-  return `http://localhost:8080/api/v1/rbac/roles/${roleId}/status`
+  return `https://ciclo.binarysails.com/api/v1/rbac/roles/${roleId}/status`
 }
 
 export const changeRoleStatusHandler = async (roleId: RoleId,
@@ -6604,7 +6604,7 @@ export const getChangeRoleStatusHandlerMutationFetcher = (roleId: RoleId, option
     return changeRoleStatusHandler(roleId, arg, options);
   }
 }
-export const getChangeRoleStatusHandlerMutationKey = (roleId: RoleId,) => [`http://localhost:8080/api/v1/rbac/roles/${roleId}/status`] as const;
+export const getChangeRoleStatusHandlerMutationKey = (roleId: RoleId,) => [`https://ciclo.binarysails.com/api/v1/rbac/roles/${roleId}/status`] as const;
 
 export type ChangeRoleStatusHandlerMutationResult = NonNullable<Awaited<ReturnType<typeof changeRoleStatusHandler>>>
 
@@ -6649,7 +6649,7 @@ export const getGetUserPermissionsHandlerUrl = (userId: UserId,) => {
 
 
 
-  return `http://localhost:8080/api/v1/rbac/users/${userId}/permissions`
+  return `https://ciclo.binarysails.com/api/v1/rbac/users/${userId}/permissions`
 }
 
 export const getUserPermissionsHandler = async (userId: UserId, options?: RequestInit): Promise<getUserPermissionsHandlerResponse> => {
@@ -6674,7 +6674,7 @@ export const getUserPermissionsHandler = async (userId: UserId, options?: Reques
 
 
 
-export const getGetUserPermissionsHandlerKey = (userId: UserId,) => [`http://localhost:8080/api/v1/rbac/users/${userId}/permissions`] as const;
+export const getGetUserPermissionsHandlerKey = (userId: UserId,) => [`https://ciclo.binarysails.com/api/v1/rbac/users/${userId}/permissions`] as const;
 
 export type GetUserPermissionsHandlerQueryResult = NonNullable<Awaited<ReturnType<typeof getUserPermissionsHandler>>>
 
@@ -6719,7 +6719,7 @@ export const getListUserRolesHandlerUrl = (userId: UserId,) => {
 
 
 
-  return `http://localhost:8080/api/v1/rbac/users/${userId}/roles`
+  return `https://ciclo.binarysails.com/api/v1/rbac/users/${userId}/roles`
 }
 
 export const listUserRolesHandler = async (userId: UserId, options?: RequestInit): Promise<listUserRolesHandlerResponse> => {
@@ -6744,7 +6744,7 @@ export const listUserRolesHandler = async (userId: UserId, options?: RequestInit
 
 
 
-export const getListUserRolesHandlerKey = (userId: UserId,) => [`http://localhost:8080/api/v1/rbac/users/${userId}/roles`] as const;
+export const getListUserRolesHandlerKey = (userId: UserId,) => [`https://ciclo.binarysails.com/api/v1/rbac/users/${userId}/roles`] as const;
 
 export type ListUserRolesHandlerQueryResult = NonNullable<Awaited<ReturnType<typeof listUserRolesHandler>>>
 
@@ -6789,7 +6789,7 @@ export const getAssignRolesToUserHandlerUrl = (userId: UserId,) => {
 
 
 
-  return `http://localhost:8080/api/v1/rbac/users/${userId}/roles`
+  return `https://ciclo.binarysails.com/api/v1/rbac/users/${userId}/roles`
 }
 
 export const assignRolesToUserHandler = async (userId: UserId,
@@ -6820,7 +6820,7 @@ export const getAssignRolesToUserHandlerMutationFetcher = (userId: UserId, optio
     return assignRolesToUserHandler(userId, arg, options);
   }
 }
-export const getAssignRolesToUserHandlerMutationKey = (userId: UserId,) => [`http://localhost:8080/api/v1/rbac/users/${userId}/roles`] as const;
+export const getAssignRolesToUserHandlerMutationKey = (userId: UserId,) => [`https://ciclo.binarysails.com/api/v1/rbac/users/${userId}/roles`] as const;
 
 export type AssignRolesToUserHandlerMutationResult = NonNullable<Awaited<ReturnType<typeof assignRolesToUserHandler>>>
 
@@ -6866,7 +6866,7 @@ export const getRemoveUserRoleHandlerUrl = (userId: UserId,
 
 
 
-  return `http://localhost:8080/api/v1/rbac/users/${userId}/roles/${roleId}`
+  return `https://ciclo.binarysails.com/api/v1/rbac/users/${userId}/roles/${roleId}`
 }
 
 export const removeUserRoleHandler = async (userId: UserId,
@@ -6899,7 +6899,7 @@ export const getRemoveUserRoleHandlerMutationFetcher = (userId: UserId,
   }
 }
 export const getRemoveUserRoleHandlerMutationKey = (userId: UserId,
-    roleId: RoleId,) => [`http://localhost:8080/api/v1/rbac/users/${userId}/roles/${roleId}`] as const;
+    roleId: RoleId,) => [`https://ciclo.binarysails.com/api/v1/rbac/users/${userId}/roles/${roleId}`] as const;
 
 export type RemoveUserRoleHandlerMutationResult = NonNullable<Awaited<ReturnType<typeof removeUserRoleHandler>>>
 
@@ -6952,7 +6952,7 @@ export const getListTagsRequestUrl = (params?: ListTagsRequestParams,) => {
 
   const stringifiedParams = normalizedParams.toString();
 
-  return stringifiedParams.length > 0 ? `http://localhost:8080/api/v1/sale-order-tags?${stringifiedParams}` : `http://localhost:8080/api/v1/sale-order-tags`
+  return stringifiedParams.length > 0 ? `https://ciclo.binarysails.com/api/v1/sale-order-tags?${stringifiedParams}` : `https://ciclo.binarysails.com/api/v1/sale-order-tags`
 }
 
 export const listTagsRequest = async (params?: ListTagsRequestParams, options?: RequestInit): Promise<listTagsRequestResponse> => {
@@ -6977,7 +6977,7 @@ export const listTagsRequest = async (params?: ListTagsRequestParams, options?: 
 
 
 
-export const getListTagsRequestKey = (params?: ListTagsRequestParams,) => [`http://localhost:8080/api/v1/sale-order-tags`, ...(params ? [params]: [])] as const;
+export const getListTagsRequestKey = (params?: ListTagsRequestParams,) => [`https://ciclo.binarysails.com/api/v1/sale-order-tags`, ...(params ? [params]: [])] as const;
 
 export type ListTagsRequestQueryResult = NonNullable<Awaited<ReturnType<typeof listTagsRequest>>>
 
@@ -7027,7 +7027,7 @@ export const getCreateTagRequestUrl = () => {
 
 
 
-  return `http://localhost:8080/api/v1/sale-order-tags`
+  return `https://ciclo.binarysails.com/api/v1/sale-order-tags`
 }
 
 export const createTagRequest = async (createTagRequest: CreateTagRequest, options?: RequestInit): Promise<createTagRequestResponse> => {
@@ -7057,7 +7057,7 @@ export const getCreateTagRequestMutationFetcher = ( options?: RequestInit) => {
     return createTagRequest(arg, options);
   }
 }
-export const getCreateTagRequestMutationKey = () => [`http://localhost:8080/api/v1/sale-order-tags`] as const;
+export const getCreateTagRequestMutationKey = () => [`https://ciclo.binarysails.com/api/v1/sale-order-tags`] as const;
 
 export type CreateTagRequestMutationResult = NonNullable<Awaited<ReturnType<typeof createTagRequest>>>
 
@@ -7107,7 +7107,7 @@ export const getGetTagRequestUrl = (id: OrderTagId,) => {
 
 
 
-  return `http://localhost:8080/api/v1/sale-order-tags/${id}`
+  return `https://ciclo.binarysails.com/api/v1/sale-order-tags/${id}`
 }
 
 export const getTagRequest = async (id: OrderTagId, options?: RequestInit): Promise<getTagRequestResponse> => {
@@ -7132,7 +7132,7 @@ export const getTagRequest = async (id: OrderTagId, options?: RequestInit): Prom
 
 
 
-export const getGetTagRequestKey = (id: OrderTagId,) => [`http://localhost:8080/api/v1/sale-order-tags/${id}`] as const;
+export const getGetTagRequestKey = (id: OrderTagId,) => [`https://ciclo.binarysails.com/api/v1/sale-order-tags/${id}`] as const;
 
 export type GetTagRequestQueryResult = NonNullable<Awaited<ReturnType<typeof getTagRequest>>>
 
@@ -7182,7 +7182,7 @@ export const getDeleteTagRequestUrl = (id: OrderTagId,) => {
 
 
 
-  return `http://localhost:8080/api/v1/sale-order-tags/${id}`
+  return `https://ciclo.binarysails.com/api/v1/sale-order-tags/${id}`
 }
 
 export const deleteTagRequest = async (id: OrderTagId, options?: RequestInit): Promise<deleteTagRequestResponse> => {
@@ -7212,7 +7212,7 @@ export const getDeleteTagRequestMutationFetcher = (id: OrderTagId, options?: Req
     return deleteTagRequest(id, options);
   }
 }
-export const getDeleteTagRequestMutationKey = (id: OrderTagId,) => [`http://localhost:8080/api/v1/sale-order-tags/${id}`] as const;
+export const getDeleteTagRequestMutationKey = (id: OrderTagId,) => [`https://ciclo.binarysails.com/api/v1/sale-order-tags/${id}`] as const;
 
 export type DeleteTagRequestMutationResult = NonNullable<Awaited<ReturnType<typeof deleteTagRequest>>>
 
@@ -7267,7 +7267,7 @@ export const getUpdateTagRequestUrl = (id: OrderTagId,) => {
 
 
 
-  return `http://localhost:8080/api/v1/sale-order-tags/${id}`
+  return `https://ciclo.binarysails.com/api/v1/sale-order-tags/${id}`
 }
 
 export const updateTagRequest = async (id: OrderTagId,
@@ -7298,7 +7298,7 @@ export const getUpdateTagRequestMutationFetcher = (id: OrderTagId, options?: Req
     return updateTagRequest(id, arg, options);
   }
 }
-export const getUpdateTagRequestMutationKey = (id: OrderTagId,) => [`http://localhost:8080/api/v1/sale-order-tags/${id}`] as const;
+export const getUpdateTagRequestMutationKey = (id: OrderTagId,) => [`https://ciclo.binarysails.com/api/v1/sale-order-tags/${id}`] as const;
 
 export type UpdateTagRequestMutationResult = NonNullable<Awaited<ReturnType<typeof updateTagRequest>>>
 
@@ -7355,7 +7355,7 @@ export const getListSalesOrdersRequestUrl = (params?: ListSalesOrdersRequestPara
 
   const stringifiedParams = normalizedParams.toString();
 
-  return stringifiedParams.length > 0 ? `http://localhost:8080/api/v1/sales-orders?${stringifiedParams}` : `http://localhost:8080/api/v1/sales-orders`
+  return stringifiedParams.length > 0 ? `https://ciclo.binarysails.com/api/v1/sales-orders?${stringifiedParams}` : `https://ciclo.binarysails.com/api/v1/sales-orders`
 }
 
 export const listSalesOrdersRequest = async (params?: ListSalesOrdersRequestParams, options?: RequestInit): Promise<listSalesOrdersRequestResponse> => {
@@ -7380,7 +7380,7 @@ export const listSalesOrdersRequest = async (params?: ListSalesOrdersRequestPara
 
 
 
-export const getListSalesOrdersRequestKey = (params?: ListSalesOrdersRequestParams,) => [`http://localhost:8080/api/v1/sales-orders`, ...(params ? [params]: [])] as const;
+export const getListSalesOrdersRequestKey = (params?: ListSalesOrdersRequestParams,) => [`https://ciclo.binarysails.com/api/v1/sales-orders`, ...(params ? [params]: [])] as const;
 
 export type ListSalesOrdersRequestQueryResult = NonNullable<Awaited<ReturnType<typeof listSalesOrdersRequest>>>
 
@@ -7440,7 +7440,7 @@ export const getCreateSalesOrderRequestUrl = () => {
 
 
 
-  return `http://localhost:8080/api/v1/sales-orders`
+  return `https://ciclo.binarysails.com/api/v1/sales-orders`
 }
 
 export const createSalesOrderRequest = async (createSalesOrderRequest: CreateSalesOrderRequest, options?: RequestInit): Promise<createSalesOrderRequestResponse> => {
@@ -7470,7 +7470,7 @@ export const getCreateSalesOrderRequestMutationFetcher = ( options?: RequestInit
     return createSalesOrderRequest(arg, options);
   }
 }
-export const getCreateSalesOrderRequestMutationKey = () => [`http://localhost:8080/api/v1/sales-orders`] as const;
+export const getCreateSalesOrderRequestMutationKey = () => [`https://ciclo.binarysails.com/api/v1/sales-orders`] as const;
 
 export type CreateSalesOrderRequestMutationResult = NonNullable<Awaited<ReturnType<typeof createSalesOrderRequest>>>
 
@@ -7537,7 +7537,7 @@ export const getListMySalesOrdersRequestUrl = (params?: ListMySalesOrdersRequest
 
   const stringifiedParams = normalizedParams.toString();
 
-  return stringifiedParams.length > 0 ? `http://localhost:8080/api/v1/sales-orders/me?${stringifiedParams}` : `http://localhost:8080/api/v1/sales-orders/me`
+  return stringifiedParams.length > 0 ? `https://ciclo.binarysails.com/api/v1/sales-orders/me?${stringifiedParams}` : `https://ciclo.binarysails.com/api/v1/sales-orders/me`
 }
 
 export const listMySalesOrdersRequest = async (params?: ListMySalesOrdersRequestParams, options?: RequestInit): Promise<listMySalesOrdersRequestResponse> => {
@@ -7562,7 +7562,7 @@ export const listMySalesOrdersRequest = async (params?: ListMySalesOrdersRequest
 
 
 
-export const getListMySalesOrdersRequestKey = (params?: ListMySalesOrdersRequestParams,) => [`http://localhost:8080/api/v1/sales-orders/me`, ...(params ? [params]: [])] as const;
+export const getListMySalesOrdersRequestKey = (params?: ListMySalesOrdersRequestParams,) => [`https://ciclo.binarysails.com/api/v1/sales-orders/me`, ...(params ? [params]: [])] as const;
 
 export type ListMySalesOrdersRequestQueryResult = NonNullable<Awaited<ReturnType<typeof listMySalesOrdersRequest>>>
 
@@ -7617,7 +7617,7 @@ export const getGetMySaleOrderRequestUrl = (id: SalesOrderId,) => {
 
 
 
-  return `http://localhost:8080/api/v1/sales-orders/me/${id}`
+  return `https://ciclo.binarysails.com/api/v1/sales-orders/me/${id}`
 }
 
 export const getMySaleOrderRequest = async (id: SalesOrderId, options?: RequestInit): Promise<getMySaleOrderRequestResponse> => {
@@ -7642,7 +7642,7 @@ export const getMySaleOrderRequest = async (id: SalesOrderId, options?: RequestI
 
 
 
-export const getGetMySaleOrderRequestKey = (id: SalesOrderId,) => [`http://localhost:8080/api/v1/sales-orders/me/${id}`] as const;
+export const getGetMySaleOrderRequestKey = (id: SalesOrderId,) => [`https://ciclo.binarysails.com/api/v1/sales-orders/me/${id}`] as const;
 
 export type GetMySaleOrderRequestQueryResult = NonNullable<Awaited<ReturnType<typeof getMySaleOrderRequest>>>
 
@@ -7692,7 +7692,7 @@ export const getGetSaleOrderRequestUrl = (id: SalesOrderId,) => {
 
 
 
-  return `http://localhost:8080/api/v1/sales-orders/${id}`
+  return `https://ciclo.binarysails.com/api/v1/sales-orders/${id}`
 }
 
 export const getSaleOrderRequest = async (id: SalesOrderId, options?: RequestInit): Promise<getSaleOrderRequestResponse> => {
@@ -7717,7 +7717,7 @@ export const getSaleOrderRequest = async (id: SalesOrderId, options?: RequestIni
 
 
 
-export const getGetSaleOrderRequestKey = (id: SalesOrderId,) => [`http://localhost:8080/api/v1/sales-orders/${id}`] as const;
+export const getGetSaleOrderRequestKey = (id: SalesOrderId,) => [`https://ciclo.binarysails.com/api/v1/sales-orders/${id}`] as const;
 
 export type GetSaleOrderRequestQueryResult = NonNullable<Awaited<ReturnType<typeof getSaleOrderRequest>>>
 
@@ -7782,7 +7782,7 @@ export const getUpdateSalesOrderRequestUrl = (id: SalesOrderId,) => {
 
 
 
-  return `http://localhost:8080/api/v1/sales-orders/${id}`
+  return `https://ciclo.binarysails.com/api/v1/sales-orders/${id}`
 }
 
 export const updateSalesOrderRequest = async (id: SalesOrderId,
@@ -7813,7 +7813,7 @@ export const getUpdateSalesOrderRequestMutationFetcher = (id: SalesOrderId, opti
     return updateSalesOrderRequest(id, arg, options);
   }
 }
-export const getUpdateSalesOrderRequestMutationKey = (id: SalesOrderId,) => [`http://localhost:8080/api/v1/sales-orders/${id}`] as const;
+export const getUpdateSalesOrderRequestMutationKey = (id: SalesOrderId,) => [`https://ciclo.binarysails.com/api/v1/sales-orders/${id}`] as const;
 
 export type UpdateSalesOrderRequestMutationResult = NonNullable<Awaited<ReturnType<typeof updateSalesOrderRequest>>>
 
@@ -7868,7 +7868,7 @@ export const getUpdateSalesOrderStatusRequestUrl = (id: SalesOrderId,) => {
 
 
 
-  return `http://localhost:8080/api/v1/sales-orders/${id}/advance`
+  return `https://ciclo.binarysails.com/api/v1/sales-orders/${id}/advance`
 }
 
 export const updateSalesOrderStatusRequest = async (id: SalesOrderId, options?: RequestInit): Promise<updateSalesOrderStatusRequestResponse> => {
@@ -7898,7 +7898,7 @@ export const getUpdateSalesOrderStatusRequestMutationFetcher = (id: SalesOrderId
     return updateSalesOrderStatusRequest(id, options);
   }
 }
-export const getUpdateSalesOrderStatusRequestMutationKey = (id: SalesOrderId,) => [`http://localhost:8080/api/v1/sales-orders/${id}/advance`] as const;
+export const getUpdateSalesOrderStatusRequestMutationKey = (id: SalesOrderId,) => [`https://ciclo.binarysails.com/api/v1/sales-orders/${id}/advance`] as const;
 
 export type UpdateSalesOrderStatusRequestMutationResult = NonNullable<Awaited<ReturnType<typeof updateSalesOrderStatusRequest>>>
 
@@ -7958,7 +7958,7 @@ export const getApplyPromotionsRequestUrl = (id: SalesOrderId,) => {
 
 
 
-  return `http://localhost:8080/api/v1/sales-orders/${id}/apply-promotions`
+  return `https://ciclo.binarysails.com/api/v1/sales-orders/${id}/apply-promotions`
 }
 
 export const applyPromotionsRequest = async (id: SalesOrderId,
@@ -7989,7 +7989,7 @@ export const getApplyPromotionsRequestMutationFetcher = (id: SalesOrderId, optio
     return applyPromotionsRequest(id, arg, options);
   }
 }
-export const getApplyPromotionsRequestMutationKey = (id: SalesOrderId,) => [`http://localhost:8080/api/v1/sales-orders/${id}/apply-promotions`] as const;
+export const getApplyPromotionsRequestMutationKey = (id: SalesOrderId,) => [`https://ciclo.binarysails.com/api/v1/sales-orders/${id}/apply-promotions`] as const;
 
 export type ApplyPromotionsRequestMutationResult = NonNullable<Awaited<ReturnType<typeof applyPromotionsRequest>>>
 
@@ -8047,7 +8047,7 @@ export const getListSalesOrderAuditLogRequestUrl = (id: SalesOrderId,
 
   const stringifiedParams = normalizedParams.toString();
 
-  return stringifiedParams.length > 0 ? `http://localhost:8080/api/v1/sales-orders/${id}/audit-log?${stringifiedParams}` : `http://localhost:8080/api/v1/sales-orders/${id}/audit-log`
+  return stringifiedParams.length > 0 ? `https://ciclo.binarysails.com/api/v1/sales-orders/${id}/audit-log?${stringifiedParams}` : `https://ciclo.binarysails.com/api/v1/sales-orders/${id}/audit-log`
 }
 
 export const listSalesOrderAuditLogRequest = async (id: SalesOrderId,
@@ -8074,7 +8074,7 @@ export const listSalesOrderAuditLogRequest = async (id: SalesOrderId,
 
 
 export const getListSalesOrderAuditLogRequestKey = (id: SalesOrderId,
-    params?: ListSalesOrderAuditLogRequestParams,) => [`http://localhost:8080/api/v1/sales-orders/${id}/audit-log`, ...(params ? [params]: [])] as const;
+    params?: ListSalesOrderAuditLogRequestParams,) => [`https://ciclo.binarysails.com/api/v1/sales-orders/${id}/audit-log`, ...(params ? [params]: [])] as const;
 
 export type ListSalesOrderAuditLogRequestQueryResult = NonNullable<Awaited<ReturnType<typeof listSalesOrderAuditLogRequest>>>
 
@@ -8130,7 +8130,7 @@ export const getCancelSalesOrderRequestUrl = (id: SalesOrderId,) => {
 
 
 
-  return `http://localhost:8080/api/v1/sales-orders/${id}/cancel`
+  return `https://ciclo.binarysails.com/api/v1/sales-orders/${id}/cancel`
 }
 
 export const cancelSalesOrderRequest = async (id: SalesOrderId, options?: RequestInit): Promise<cancelSalesOrderRequestResponse> => {
@@ -8160,7 +8160,7 @@ export const getCancelSalesOrderRequestMutationFetcher = (id: SalesOrderId, opti
     return cancelSalesOrderRequest(id, options);
   }
 }
-export const getCancelSalesOrderRequestMutationKey = (id: SalesOrderId,) => [`http://localhost:8080/api/v1/sales-orders/${id}/cancel`] as const;
+export const getCancelSalesOrderRequestMutationKey = (id: SalesOrderId,) => [`https://ciclo.binarysails.com/api/v1/sales-orders/${id}/cancel`] as const;
 
 export type CancelSalesOrderRequestMutationResult = NonNullable<Awaited<ReturnType<typeof cancelSalesOrderRequest>>>
 
@@ -8220,7 +8220,7 @@ export const getAddSalesOrderCommentRequestUrl = (id: SalesOrderId,) => {
 
 
 
-  return `http://localhost:8080/api/v1/sales-orders/${id}/comments`
+  return `https://ciclo.binarysails.com/api/v1/sales-orders/${id}/comments`
 }
 
 export const addSalesOrderCommentRequest = async (id: SalesOrderId,
@@ -8251,7 +8251,7 @@ export const getAddSalesOrderCommentRequestMutationFetcher = (id: SalesOrderId, 
     return addSalesOrderCommentRequest(id, arg, options);
   }
 }
-export const getAddSalesOrderCommentRequestMutationKey = (id: SalesOrderId,) => [`http://localhost:8080/api/v1/sales-orders/${id}/comments`] as const;
+export const getAddSalesOrderCommentRequestMutationKey = (id: SalesOrderId,) => [`https://ciclo.binarysails.com/api/v1/sales-orders/${id}/comments`] as const;
 
 export type AddSalesOrderCommentRequestMutationResult = NonNullable<Awaited<ReturnType<typeof addSalesOrderCommentRequest>>>
 
@@ -8306,7 +8306,7 @@ export const getConfirmSalesOrderRequestUrl = (id: SalesOrderId,) => {
 
 
 
-  return `http://localhost:8080/api/v1/sales-orders/${id}/confirm`
+  return `https://ciclo.binarysails.com/api/v1/sales-orders/${id}/confirm`
 }
 
 export const confirmSalesOrderRequest = async (id: SalesOrderId, options?: RequestInit): Promise<confirmSalesOrderRequestResponse> => {
@@ -8336,7 +8336,7 @@ export const getConfirmSalesOrderRequestMutationFetcher = (id: SalesOrderId, opt
     return confirmSalesOrderRequest(id, options);
   }
 }
-export const getConfirmSalesOrderRequestMutationKey = (id: SalesOrderId,) => [`http://localhost:8080/api/v1/sales-orders/${id}/confirm`] as const;
+export const getConfirmSalesOrderRequestMutationKey = (id: SalesOrderId,) => [`https://ciclo.binarysails.com/api/v1/sales-orders/${id}/confirm`] as const;
 
 export type ConfirmSalesOrderRequestMutationResult = NonNullable<Awaited<ReturnType<typeof confirmSalesOrderRequest>>>
 
@@ -8397,7 +8397,7 @@ export const getDispatchSalesOrderLineRequestUrl = (id: SalesOrderId,
 
 
 
-  return `http://localhost:8080/api/v1/sales-orders/${id}/lines/${lineId}/dispatch`
+  return `https://ciclo.binarysails.com/api/v1/sales-orders/${id}/lines/${lineId}/dispatch`
 }
 
 export const dispatchSalesOrderLineRequest = async (id: SalesOrderId,
@@ -8431,7 +8431,7 @@ export const getDispatchSalesOrderLineRequestMutationFetcher = (id: SalesOrderId
   }
 }
 export const getDispatchSalesOrderLineRequestMutationKey = (id: SalesOrderId,
-    lineId: SalesOrderLineId,) => [`http://localhost:8080/api/v1/sales-orders/${id}/lines/${lineId}/dispatch`] as const;
+    lineId: SalesOrderLineId,) => [`https://ciclo.binarysails.com/api/v1/sales-orders/${id}/lines/${lineId}/dispatch`] as const;
 
 export type DispatchSalesOrderLineRequestMutationResult = NonNullable<Awaited<ReturnType<typeof dispatchSalesOrderLineRequest>>>
 
@@ -8487,7 +8487,7 @@ export const getUpdateSalesOrderTagsRequestUrl = (id: SalesOrderId,) => {
 
 
 
-  return `http://localhost:8080/api/v1/sales-orders/${id}/tags`
+  return `https://ciclo.binarysails.com/api/v1/sales-orders/${id}/tags`
 }
 
 export const updateSalesOrderTagsRequest = async (id: SalesOrderId,
@@ -8518,7 +8518,7 @@ export const getUpdateSalesOrderTagsRequestMutationFetcher = (id: SalesOrderId, 
     return updateSalesOrderTagsRequest(id, arg, options);
   }
 }
-export const getUpdateSalesOrderTagsRequestMutationKey = (id: SalesOrderId,) => [`http://localhost:8080/api/v1/sales-orders/${id}/tags`] as const;
+export const getUpdateSalesOrderTagsRequestMutationKey = (id: SalesOrderId,) => [`https://ciclo.binarysails.com/api/v1/sales-orders/${id}/tags`] as const;
 
 export type UpdateSalesOrderTagsRequestMutationResult = NonNullable<Awaited<ReturnType<typeof updateSalesOrderTagsRequest>>>
 
@@ -8575,7 +8575,7 @@ export const getGetSalesSummaryRequestUrl = (params?: GetSalesSummaryRequestPara
 
   const stringifiedParams = normalizedParams.toString();
 
-  return stringifiedParams.length > 0 ? `http://localhost:8080/api/v1/statistics/sales-summary?${stringifiedParams}` : `http://localhost:8080/api/v1/statistics/sales-summary`
+  return stringifiedParams.length > 0 ? `https://ciclo.binarysails.com/api/v1/statistics/sales-summary?${stringifiedParams}` : `https://ciclo.binarysails.com/api/v1/statistics/sales-summary`
 }
 
 export const getSalesSummaryRequest = async (params?: GetSalesSummaryRequestParams, options?: RequestInit): Promise<getSalesSummaryRequestResponse> => {
@@ -8600,7 +8600,7 @@ export const getSalesSummaryRequest = async (params?: GetSalesSummaryRequestPara
 
 
 
-export const getGetSalesSummaryRequestKey = (params?: GetSalesSummaryRequestParams,) => [`http://localhost:8080/api/v1/statistics/sales-summary`, ...(params ? [params]: [])] as const;
+export const getGetSalesSummaryRequestKey = (params?: GetSalesSummaryRequestParams,) => [`https://ciclo.binarysails.com/api/v1/statistics/sales-summary`, ...(params ? [params]: [])] as const;
 
 export type GetSalesSummaryRequestQueryResult = NonNullable<Awaited<ReturnType<typeof getSalesSummaryRequest>>>
 
@@ -8652,7 +8652,7 @@ export const getListUsersRequestUrl = (params: ListUsersRequestParams,) => {
 
   const stringifiedParams = normalizedParams.toString();
 
-  return stringifiedParams.length > 0 ? `http://localhost:8080/api/v1/user?${stringifiedParams}` : `http://localhost:8080/api/v1/user`
+  return stringifiedParams.length > 0 ? `https://ciclo.binarysails.com/api/v1/user?${stringifiedParams}` : `https://ciclo.binarysails.com/api/v1/user`
 }
 
 export const listUsersRequest = async (params: ListUsersRequestParams, options?: RequestInit): Promise<listUsersRequestResponse> => {
@@ -8677,7 +8677,7 @@ export const listUsersRequest = async (params: ListUsersRequestParams, options?:
 
 
 
-export const getListUsersRequestKey = (params: ListUsersRequestParams,) => [`http://localhost:8080/api/v1/user`, ...(params ? [params]: [])] as const;
+export const getListUsersRequestKey = (params: ListUsersRequestParams,) => [`https://ciclo.binarysails.com/api/v1/user`, ...(params ? [params]: [])] as const;
 
 export type ListUsersRequestQueryResult = NonNullable<Awaited<ReturnType<typeof listUsersRequest>>>
 
@@ -8727,7 +8727,7 @@ export const getCreateUserRequestUrl = () => {
 
 
 
-  return `http://localhost:8080/api/v1/user`
+  return `https://ciclo.binarysails.com/api/v1/user`
 }
 
 export const createUserRequest = async (createUserRequest: CreateUserRequest, options?: RequestInit): Promise<createUserRequestResponse> => {
@@ -8757,7 +8757,7 @@ export const getCreateUserRequestMutationFetcher = ( options?: RequestInit) => {
     return createUserRequest(arg, options);
   }
 }
-export const getCreateUserRequestMutationKey = () => [`http://localhost:8080/api/v1/user`] as const;
+export const getCreateUserRequestMutationKey = () => [`https://ciclo.binarysails.com/api/v1/user`] as const;
 
 export type CreateUserRequestMutationResult = NonNullable<Awaited<ReturnType<typeof createUserRequest>>>
 
@@ -8807,7 +8807,7 @@ export const getGetUserRequestUrl = (id: UserId,) => {
 
 
 
-  return `http://localhost:8080/api/v1/user/${id}`
+  return `https://ciclo.binarysails.com/api/v1/user/${id}`
 }
 
 export const getUserRequest = async (id: UserId, options?: RequestInit): Promise<getUserRequestResponse> => {
@@ -8832,7 +8832,7 @@ export const getUserRequest = async (id: UserId, options?: RequestInit): Promise
 
 
 
-export const getGetUserRequestKey = (id: UserId,) => [`http://localhost:8080/api/v1/user/${id}`] as const;
+export const getGetUserRequestKey = (id: UserId,) => [`https://ciclo.binarysails.com/api/v1/user/${id}`] as const;
 
 export type GetUserRequestQueryResult = NonNullable<Awaited<ReturnType<typeof getUserRequest>>>
 
@@ -8892,7 +8892,7 @@ export const getUpdateUserRequestUrl = (id: UserId,) => {
 
 
 
-  return `http://localhost:8080/api/v1/user/${id}`
+  return `https://ciclo.binarysails.com/api/v1/user/${id}`
 }
 
 export const updateUserRequest = async (id: UserId,
@@ -8923,7 +8923,7 @@ export const getUpdateUserRequestMutationFetcher = (id: UserId, options?: Reques
     return updateUserRequest(id, arg, options);
   }
 }
-export const getUpdateUserRequestMutationKey = (id: UserId,) => [`http://localhost:8080/api/v1/user/${id}`] as const;
+export const getUpdateUserRequestMutationKey = (id: UserId,) => [`https://ciclo.binarysails.com/api/v1/user/${id}`] as const;
 
 export type UpdateUserRequestMutationResult = NonNullable<Awaited<ReturnType<typeof updateUserRequest>>>
 
@@ -8983,7 +8983,7 @@ export const getUpdateUserProfileRequestUrl = (id: UserId,) => {
 
 
 
-  return `http://localhost:8080/api/v1/user/${id}/profile`
+  return `https://ciclo.binarysails.com/api/v1/user/${id}/profile`
 }
 
 export const updateUserProfileRequest = async (id: UserId,
@@ -9014,7 +9014,7 @@ export const getUpdateUserProfileRequestMutationFetcher = (id: UserId, options?:
     return updateUserProfileRequest(id, arg, options);
   }
 }
-export const getUpdateUserProfileRequestMutationKey = (id: UserId,) => [`http://localhost:8080/api/v1/user/${id}/profile`] as const;
+export const getUpdateUserProfileRequestMutationKey = (id: UserId,) => [`https://ciclo.binarysails.com/api/v1/user/${id}/profile`] as const;
 
 export type UpdateUserProfileRequestMutationResult = NonNullable<Awaited<ReturnType<typeof updateUserProfileRequest>>>
 
@@ -9066,7 +9066,7 @@ export const getListWarehousesRequestUrl = (params?: ListWarehousesRequestParams
 
   const stringifiedParams = normalizedParams.toString();
 
-  return stringifiedParams.length > 0 ? `http://localhost:8080/api/v1/warehouse?${stringifiedParams}` : `http://localhost:8080/api/v1/warehouse`
+  return stringifiedParams.length > 0 ? `https://ciclo.binarysails.com/api/v1/warehouse?${stringifiedParams}` : `https://ciclo.binarysails.com/api/v1/warehouse`
 }
 
 export const listWarehousesRequest = async (params?: ListWarehousesRequestParams, options?: RequestInit): Promise<listWarehousesRequestResponse> => {
@@ -9091,7 +9091,7 @@ export const listWarehousesRequest = async (params?: ListWarehousesRequestParams
 
 
 
-export const getListWarehousesRequestKey = (params?: ListWarehousesRequestParams,) => [`http://localhost:8080/api/v1/warehouse`, ...(params ? [params]: [])] as const;
+export const getListWarehousesRequestKey = (params?: ListWarehousesRequestParams,) => [`https://ciclo.binarysails.com/api/v1/warehouse`, ...(params ? [params]: [])] as const;
 
 export type ListWarehousesRequestQueryResult = NonNullable<Awaited<ReturnType<typeof listWarehousesRequest>>>
 
@@ -9141,7 +9141,7 @@ export const getCreateWarehouseRequestUrl = () => {
 
 
 
-  return `http://localhost:8080/api/v1/warehouse`
+  return `https://ciclo.binarysails.com/api/v1/warehouse`
 }
 
 export const createWarehouseRequest = async (createWarehouseRequest: CreateWarehouseRequest, options?: RequestInit): Promise<createWarehouseRequestResponse> => {
@@ -9171,7 +9171,7 @@ export const getCreateWarehouseRequestMutationFetcher = ( options?: RequestInit)
     return createWarehouseRequest(arg, options);
   }
 }
-export const getCreateWarehouseRequestMutationKey = () => [`http://localhost:8080/api/v1/warehouse`] as const;
+export const getCreateWarehouseRequestMutationKey = () => [`https://ciclo.binarysails.com/api/v1/warehouse`] as const;
 
 export type CreateWarehouseRequestMutationResult = NonNullable<Awaited<ReturnType<typeof createWarehouseRequest>>>
 
@@ -9221,7 +9221,7 @@ export const getGetWarehouseRequestUrl = (id: WarehouseId,) => {
 
 
 
-  return `http://localhost:8080/api/v1/warehouse/${id}`
+  return `https://ciclo.binarysails.com/api/v1/warehouse/${id}`
 }
 
 export const getWarehouseRequest = async (id: WarehouseId, options?: RequestInit): Promise<getWarehouseRequestResponse> => {
@@ -9246,7 +9246,7 @@ export const getWarehouseRequest = async (id: WarehouseId, options?: RequestInit
 
 
 
-export const getGetWarehouseRequestKey = (id: WarehouseId,) => [`http://localhost:8080/api/v1/warehouse/${id}`] as const;
+export const getGetWarehouseRequestKey = (id: WarehouseId,) => [`https://ciclo.binarysails.com/api/v1/warehouse/${id}`] as const;
 
 export type GetWarehouseRequestQueryResult = NonNullable<Awaited<ReturnType<typeof getWarehouseRequest>>>
 
@@ -9301,7 +9301,7 @@ export const getUpdateWarehouseRequestUrl = (id: WarehouseId,) => {
 
 
 
-  return `http://localhost:8080/api/v1/warehouse/${id}`
+  return `https://ciclo.binarysails.com/api/v1/warehouse/${id}`
 }
 
 export const updateWarehouseRequest = async (id: WarehouseId,
@@ -9332,7 +9332,7 @@ export const getUpdateWarehouseRequestMutationFetcher = (id: WarehouseId, option
     return updateWarehouseRequest(id, arg, options);
   }
 }
-export const getUpdateWarehouseRequestMutationKey = (id: WarehouseId,) => [`http://localhost:8080/api/v1/warehouse/${id}`] as const;
+export const getUpdateWarehouseRequestMutationKey = (id: WarehouseId,) => [`https://ciclo.binarysails.com/api/v1/warehouse/${id}`] as const;
 
 export type UpdateWarehouseRequestMutationResult = NonNullable<Awaited<ReturnType<typeof updateWarehouseRequest>>>
 
@@ -9387,7 +9387,7 @@ export const getUpdateWarehouseStatusRequestUrl = (id: WarehouseId,) => {
 
 
 
-  return `http://localhost:8080/api/v1/warehouse/${id}/status`
+  return `https://ciclo.binarysails.com/api/v1/warehouse/${id}/status`
 }
 
 export const updateWarehouseStatusRequest = async (id: WarehouseId,
@@ -9418,7 +9418,7 @@ export const getUpdateWarehouseStatusRequestMutationFetcher = (id: WarehouseId, 
     return updateWarehouseStatusRequest(id, arg, options);
   }
 }
-export const getUpdateWarehouseStatusRequestMutationKey = (id: WarehouseId,) => [`http://localhost:8080/api/v1/warehouse/${id}/status`] as const;
+export const getUpdateWarehouseStatusRequestMutationKey = (id: WarehouseId,) => [`https://ciclo.binarysails.com/api/v1/warehouse/${id}/status`] as const;
 
 export type UpdateWarehouseStatusRequestMutationResult = NonNullable<Awaited<ReturnType<typeof updateWarehouseStatusRequest>>>
 
