@@ -193,6 +193,9 @@ export const CheckoutCartHandlerResponse = zod.object({
   "name": zod.string()
 }),
   "discount_total": zod.int(),
+  "fulfill_state": zod.union([zod.null(),zod.enum(['picked'])]).optional(),
+  "fulfill_state_changed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "fulfilling_user_id": zod.union([zod.null(),zod.uuid()]).optional(),
   "grand_total": zod.int(),
   "id": zod.uuid(),
   "lines": zod.array(zod.object({
@@ -2594,6 +2597,9 @@ export const ListSalesOrdersRequestResponse = zod.object({
   "name": zod.string()
 }),
   "discount_total": zod.int(),
+  "fulfill_state": zod.union([zod.null(),zod.enum(['picked'])]).optional(),
+  "fulfill_state_changed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "fulfilling_user_id": zod.union([zod.null(),zod.uuid()]).optional(),
   "grand_total": zod.int(),
   "id": zod.uuid(),
   "order_date": zod.iso.datetime({"offset":true}),
@@ -2685,6 +2691,9 @@ export const CreateSalesOrderRequestResponse = zod.object({
   "name": zod.string()
 }),
   "discount_total": zod.int(),
+  "fulfill_state": zod.union([zod.null(),zod.enum(['picked'])]).optional(),
+  "fulfill_state_changed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "fulfilling_user_id": zod.union([zod.null(),zod.uuid()]).optional(),
   "grand_total": zod.int(),
   "id": zod.uuid(),
   "lines": zod.array(zod.object({
@@ -2779,6 +2788,9 @@ export const ListMySalesOrdersRequestResponse = zod.object({
   "name": zod.string()
 }),
   "discount_total": zod.int(),
+  "fulfill_state": zod.union([zod.null(),zod.enum(['picked'])]).optional(),
+  "fulfill_state_changed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "fulfilling_user_id": zod.union([zod.null(),zod.uuid()]).optional(),
   "grand_total": zod.int(),
   "id": zod.uuid(),
   "order_date": zod.iso.datetime({"offset":true}),
@@ -2819,6 +2831,61 @@ export const ListMySalesOrdersRequestResponse = zod.object({
 })
 
 
+export const GetMyPickedOrderRequestResponse = zod.object({
+  "billing_address": zod.object({
+  "address": zod.string(),
+  "city": zod.string(),
+  "country": zod.string(),
+  "postal_code": zod.string(),
+  "state": zod.string()
+}),
+  "comments": zod.string().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "created_by": zod.union([zod.null(),zod.uuid()]).optional(),
+  "customer": zod.object({
+  "customer_id": zod.uuid(),
+  "name": zod.string()
+}),
+  "discount_total": zod.int(),
+  "fulfill_state": zod.union([zod.null(),zod.enum(['picked'])]).optional(),
+  "fulfill_state_changed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "fulfilling_user_id": zod.union([zod.null(),zod.uuid()]).optional(),
+  "grand_total": zod.int(),
+  "id": zod.uuid(),
+  "order_date": zod.iso.datetime({"offset":true}),
+  "order_number": zod.string(),
+  "payment_term": zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "days_until_due": zod.int().nullish(),
+  "description": zod.string().nullish(),
+  "id": zod.uuid(),
+  "is_active": zod.boolean(),
+  "name": zod.string(),
+  "type": zod.enum(['net', 'due_on_receipt']),
+  "updated_at": zod.iso.datetime({"offset":true})
+}),
+  "shipping_address": zod.object({
+  "address": zod.string(),
+  "city": zod.string(),
+  "country": zod.string(),
+  "postal_code": zod.string(),
+  "state": zod.string()
+}),
+  "status": zod.enum(['draft', 'quote', 'confirmed', 'partially_fulfilled', 'fulfilled', 'cancelled', 'closed']),
+  "subtotal": zod.int(),
+  "tags": zod.array(zod.object({
+  "color": zod.string().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "slug": zod.string(),
+  "status": zod.enum(['enable', 'disable', 'archive'])
+})),
+  "tax_total": zod.int(),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+
+
 export const GetMySaleOrderRequestParams = zod.object({
   "id": zod.uuid().describe('Sales order ID')
 })
@@ -2839,6 +2906,102 @@ export const GetMySaleOrderRequestResponse = zod.object({
   "name": zod.string()
 }),
   "discount_total": zod.int(),
+  "fulfill_state": zod.union([zod.null(),zod.enum(['picked'])]).optional(),
+  "fulfill_state_changed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "fulfilling_user_id": zod.union([zod.null(),zod.uuid()]).optional(),
+  "grand_total": zod.int(),
+  "id": zod.uuid(),
+  "lines": zod.array(zod.object({
+  "adjustments": zod.array(zod.object({
+  "amount": zod.int(),
+  "description": zod.string().nullish(),
+  "id": zod.uuid(),
+  "source": zod.union([zod.object({
+  "Promotion": zod.object({
+  "code": zod.string(),
+  "promotion_id": zod.uuid()
+})
+}),zod.object({
+  "Manual": zod.object({
+  "created_by": zod.uuid()
+})
+})])
+})),
+  "description": zod.string(),
+  "discount_amount": zod.int(),
+  "dispatched_quantity": zod.int(),
+  "id": zod.uuid(),
+  "line_number": zod.int(),
+  "line_total": zod.int(),
+  "product_id": zod.uuid(),
+  "quantity": zod.int(),
+  "tax_amount": zod.int(),
+  "tax_rate": zod.int(),
+  "unit_price": zod.int(),
+  "variant_id": zod.uuid(),
+  "warehouse_allocations": zod.array(zod.object({
+  "dispatched_quantity": zod.int(),
+  "quantity": zod.int(),
+  "warehouse_id": zod.uuid()
+}))
+})),
+  "order_date": zod.iso.datetime({"offset":true}),
+  "order_number": zod.string(),
+  "payment_term": zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "days_until_due": zod.int().nullish(),
+  "description": zod.string().nullish(),
+  "id": zod.uuid(),
+  "is_active": zod.boolean(),
+  "name": zod.string(),
+  "type": zod.enum(['net', 'due_on_receipt']),
+  "updated_at": zod.iso.datetime({"offset":true})
+}),
+  "shipping_address": zod.object({
+  "address": zod.string(),
+  "city": zod.string(),
+  "country": zod.string(),
+  "postal_code": zod.string(),
+  "state": zod.string()
+}),
+  "status": zod.enum(['draft', 'quote', 'confirmed', 'partially_fulfilled', 'fulfilled', 'cancelled', 'closed']),
+  "subtotal": zod.int(),
+  "tags": zod.array(zod.object({
+  "color": zod.string().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "slug": zod.string(),
+  "status": zod.enum(['enable', 'disable', 'archive'])
+})),
+  "tax_total": zod.int(),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+
+
+export const PickFulfillmentOrderRequestBody = zod.object({
+  "order_id": zod.union([zod.null(),zod.uuid()]).optional()
+})
+
+export const PickFulfillmentOrderRequestResponse = zod.object({
+  "billing_address": zod.object({
+  "address": zod.string(),
+  "city": zod.string(),
+  "country": zod.string(),
+  "postal_code": zod.string(),
+  "state": zod.string()
+}),
+  "comments": zod.string().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "created_by": zod.union([zod.null(),zod.uuid()]).optional(),
+  "customer": zod.object({
+  "customer_id": zod.uuid(),
+  "name": zod.string()
+}),
+  "discount_total": zod.int(),
+  "fulfill_state": zod.union([zod.null(),zod.enum(['picked'])]).optional(),
+  "fulfill_state_changed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "fulfilling_user_id": zod.union([zod.null(),zod.uuid()]).optional(),
   "grand_total": zod.int(),
   "id": zod.uuid(),
   "lines": zod.array(zod.object({
@@ -2929,6 +3092,9 @@ export const GetSaleOrderRequestResponse = zod.object({
   "name": zod.string()
 }),
   "discount_total": zod.int(),
+  "fulfill_state": zod.union([zod.null(),zod.enum(['picked'])]).optional(),
+  "fulfill_state_changed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "fulfilling_user_id": zod.union([zod.null(),zod.uuid()]).optional(),
   "grand_total": zod.int(),
   "id": zod.uuid(),
   "lines": zod.array(zod.object({
@@ -3054,6 +3220,9 @@ export const UpdateSalesOrderRequestResponse = zod.object({
   "name": zod.string()
 }),
   "discount_total": zod.int(),
+  "fulfill_state": zod.union([zod.null(),zod.enum(['picked'])]).optional(),
+  "fulfill_state_changed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "fulfilling_user_id": zod.union([zod.null(),zod.uuid()]).optional(),
   "grand_total": zod.int(),
   "id": zod.uuid(),
   "lines": zod.array(zod.object({
@@ -3144,6 +3313,9 @@ export const UpdateSalesOrderStatusRequestResponse = zod.object({
   "name": zod.string()
 }),
   "discount_total": zod.int(),
+  "fulfill_state": zod.union([zod.null(),zod.enum(['picked'])]).optional(),
+  "fulfill_state_changed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "fulfilling_user_id": zod.union([zod.null(),zod.uuid()]).optional(),
   "grand_total": zod.int(),
   "id": zod.uuid(),
   "lines": zod.array(zod.object({
@@ -3238,6 +3410,9 @@ export const ApplyPromotionsRequestResponse = zod.object({
   "name": zod.string()
 }),
   "discount_total": zod.int(),
+  "fulfill_state": zod.union([zod.null(),zod.enum(['picked'])]).optional(),
+  "fulfill_state_changed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "fulfilling_user_id": zod.union([zod.null(),zod.uuid()]).optional(),
   "grand_total": zod.int(),
   "id": zod.uuid(),
   "lines": zod.array(zod.object({
@@ -3360,6 +3535,9 @@ export const CancelSalesOrderRequestResponse = zod.object({
   "name": zod.string()
 }),
   "discount_total": zod.int(),
+  "fulfill_state": zod.union([zod.null(),zod.enum(['picked'])]).optional(),
+  "fulfill_state_changed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "fulfilling_user_id": zod.union([zod.null(),zod.uuid()]).optional(),
   "grand_total": zod.int(),
   "id": zod.uuid(),
   "lines": zod.array(zod.object({
@@ -3454,6 +3632,9 @@ export const AddSalesOrderCommentRequestResponse = zod.object({
   "name": zod.string()
 }),
   "discount_total": zod.int(),
+  "fulfill_state": zod.union([zod.null(),zod.enum(['picked'])]).optional(),
+  "fulfill_state_changed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "fulfilling_user_id": zod.union([zod.null(),zod.uuid()]).optional(),
   "grand_total": zod.int(),
   "id": zod.uuid(),
   "lines": zod.array(zod.object({
@@ -3544,6 +3725,102 @@ export const ConfirmSalesOrderRequestResponse = zod.object({
   "name": zod.string()
 }),
   "discount_total": zod.int(),
+  "fulfill_state": zod.union([zod.null(),zod.enum(['picked'])]).optional(),
+  "fulfill_state_changed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "fulfilling_user_id": zod.union([zod.null(),zod.uuid()]).optional(),
+  "grand_total": zod.int(),
+  "id": zod.uuid(),
+  "lines": zod.array(zod.object({
+  "adjustments": zod.array(zod.object({
+  "amount": zod.int(),
+  "description": zod.string().nullish(),
+  "id": zod.uuid(),
+  "source": zod.union([zod.object({
+  "Promotion": zod.object({
+  "code": zod.string(),
+  "promotion_id": zod.uuid()
+})
+}),zod.object({
+  "Manual": zod.object({
+  "created_by": zod.uuid()
+})
+})])
+})),
+  "description": zod.string(),
+  "discount_amount": zod.int(),
+  "dispatched_quantity": zod.int(),
+  "id": zod.uuid(),
+  "line_number": zod.int(),
+  "line_total": zod.int(),
+  "product_id": zod.uuid(),
+  "quantity": zod.int(),
+  "tax_amount": zod.int(),
+  "tax_rate": zod.int(),
+  "unit_price": zod.int(),
+  "variant_id": zod.uuid(),
+  "warehouse_allocations": zod.array(zod.object({
+  "dispatched_quantity": zod.int(),
+  "quantity": zod.int(),
+  "warehouse_id": zod.uuid()
+}))
+})),
+  "order_date": zod.iso.datetime({"offset":true}),
+  "order_number": zod.string(),
+  "payment_term": zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "days_until_due": zod.int().nullish(),
+  "description": zod.string().nullish(),
+  "id": zod.uuid(),
+  "is_active": zod.boolean(),
+  "name": zod.string(),
+  "type": zod.enum(['net', 'due_on_receipt']),
+  "updated_at": zod.iso.datetime({"offset":true})
+}),
+  "shipping_address": zod.object({
+  "address": zod.string(),
+  "city": zod.string(),
+  "country": zod.string(),
+  "postal_code": zod.string(),
+  "state": zod.string()
+}),
+  "status": zod.enum(['draft', 'quote', 'confirmed', 'partially_fulfilled', 'fulfilled', 'cancelled', 'closed']),
+  "subtotal": zod.int(),
+  "tags": zod.array(zod.object({
+  "color": zod.string().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "slug": zod.string(),
+  "status": zod.enum(['enable', 'disable', 'archive'])
+})),
+  "tax_total": zod.int(),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+
+
+export const FulfillOrderRequestParams = zod.object({
+  "id": zod.uuid().describe('Sales order ID')
+})
+
+export const FulfillOrderRequestResponse = zod.object({
+  "billing_address": zod.object({
+  "address": zod.string(),
+  "city": zod.string(),
+  "country": zod.string(),
+  "postal_code": zod.string(),
+  "state": zod.string()
+}),
+  "comments": zod.string().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "created_by": zod.union([zod.null(),zod.uuid()]).optional(),
+  "customer": zod.object({
+  "customer_id": zod.uuid(),
+  "name": zod.string()
+}),
+  "discount_total": zod.int(),
+  "fulfill_state": zod.union([zod.null(),zod.enum(['picked'])]).optional(),
+  "fulfill_state_changed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "fulfilling_user_id": zod.union([zod.null(),zod.uuid()]).optional(),
   "grand_total": zod.int(),
   "id": zod.uuid(),
   "lines": zod.array(zod.object({
@@ -3636,6 +3913,99 @@ export const DispatchSalesOrderLineRequestResponse = zod.object({
 })
 
 
+export const ReleaseFulfillmentRequestParams = zod.object({
+  "id": zod.uuid().describe('Sales order ID')
+})
+
+export const ReleaseFulfillmentRequestResponse = zod.object({
+  "billing_address": zod.object({
+  "address": zod.string(),
+  "city": zod.string(),
+  "country": zod.string(),
+  "postal_code": zod.string(),
+  "state": zod.string()
+}),
+  "comments": zod.string().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "created_by": zod.union([zod.null(),zod.uuid()]).optional(),
+  "customer": zod.object({
+  "customer_id": zod.uuid(),
+  "name": zod.string()
+}),
+  "discount_total": zod.int(),
+  "fulfill_state": zod.union([zod.null(),zod.enum(['picked'])]).optional(),
+  "fulfill_state_changed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "fulfilling_user_id": zod.union([zod.null(),zod.uuid()]).optional(),
+  "grand_total": zod.int(),
+  "id": zod.uuid(),
+  "lines": zod.array(zod.object({
+  "adjustments": zod.array(zod.object({
+  "amount": zod.int(),
+  "description": zod.string().nullish(),
+  "id": zod.uuid(),
+  "source": zod.union([zod.object({
+  "Promotion": zod.object({
+  "code": zod.string(),
+  "promotion_id": zod.uuid()
+})
+}),zod.object({
+  "Manual": zod.object({
+  "created_by": zod.uuid()
+})
+})])
+})),
+  "description": zod.string(),
+  "discount_amount": zod.int(),
+  "dispatched_quantity": zod.int(),
+  "id": zod.uuid(),
+  "line_number": zod.int(),
+  "line_total": zod.int(),
+  "product_id": zod.uuid(),
+  "quantity": zod.int(),
+  "tax_amount": zod.int(),
+  "tax_rate": zod.int(),
+  "unit_price": zod.int(),
+  "variant_id": zod.uuid(),
+  "warehouse_allocations": zod.array(zod.object({
+  "dispatched_quantity": zod.int(),
+  "quantity": zod.int(),
+  "warehouse_id": zod.uuid()
+}))
+})),
+  "order_date": zod.iso.datetime({"offset":true}),
+  "order_number": zod.string(),
+  "payment_term": zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "days_until_due": zod.int().nullish(),
+  "description": zod.string().nullish(),
+  "id": zod.uuid(),
+  "is_active": zod.boolean(),
+  "name": zod.string(),
+  "type": zod.enum(['net', 'due_on_receipt']),
+  "updated_at": zod.iso.datetime({"offset":true})
+}),
+  "shipping_address": zod.object({
+  "address": zod.string(),
+  "city": zod.string(),
+  "country": zod.string(),
+  "postal_code": zod.string(),
+  "state": zod.string()
+}),
+  "status": zod.enum(['draft', 'quote', 'confirmed', 'partially_fulfilled', 'fulfilled', 'cancelled', 'closed']),
+  "subtotal": zod.int(),
+  "tags": zod.array(zod.object({
+  "color": zod.string().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "slug": zod.string(),
+  "status": zod.enum(['enable', 'disable', 'archive'])
+})),
+  "tax_total": zod.int(),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+
+
 export const UpdateSalesOrderTagsRequestParams = zod.object({
   "id": zod.uuid().describe('Sales order ID')
 })
@@ -3660,6 +4030,9 @@ export const UpdateSalesOrderTagsRequestResponse = zod.object({
   "name": zod.string()
 }),
   "discount_total": zod.int(),
+  "fulfill_state": zod.union([zod.null(),zod.enum(['picked'])]).optional(),
+  "fulfill_state_changed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "fulfilling_user_id": zod.union([zod.null(),zod.uuid()]).optional(),
   "grand_total": zod.int(),
   "id": zod.uuid(),
   "lines": zod.array(zod.object({
