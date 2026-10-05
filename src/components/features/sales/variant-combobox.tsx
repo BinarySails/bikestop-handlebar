@@ -137,7 +137,14 @@ export function VariantCombobox({
                       <span className="font-medium">
                         {variant.display_name}
                       </span>
-                      <span className="text-xs text-muted-foreground">
+                      <span
+                        className={cn(
+                          "text-sm font-semibold",
+                          variant.total_inventory > 0
+                            ? "text-green-600"
+                            : "text-destructive"
+                        )}
+                      >
                         C.: {variant.total_inventory}
                       </span>
                       <span className="text-xs text-muted-foreground">

@@ -21,12 +21,36 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useCreateVariantRequest } from "@/lib/api/api";
 import { pesosToCents } from "@/lib/money";
 import { CreateVariantRequestBody } from "@/lib/api/zods";
 
 const MAX_PRICE_DECIMALS = 2;
+
+const PROPERTY_NAME_OPTIONS = [
+  "Color",
+  "Talla",
+  "Material",
+  "Tipo",
+  "Rueda",
+  "Velocidad",
+  "Freno",
+  "Suspensión",
+  "Género",
+  "Año/Modelo",
+  "Peso",
+  "Capacidad",
+  "Voltaje",
+  "Potencia",
+] as const;
 
 function validateImageUrl(value: string): string | undefined {
   if (!value.trim()) return "La URL de la imagen es obligatoria.";
@@ -366,14 +390,26 @@ export function CreateVariantDialog({
                           <Label htmlFor={subField.name} className="text-xs">
                             Nombre
                           </Label>
-                          <Input
-                            id={subField.name}
+                          <Select
                             value={subField.state.value}
-                            onChange={(e) =>
-                              subField.handleChange(e.target.value)
-                            }
-                            placeholder="color"
-                          />
+                            onValueChange={(value) => {
+                              if (value) subField.handleChange(value);
+                            }}
+                          >
+                            <SelectTrigger
+                              id={subField.name}
+                              className="w-full"
+                            >
+                              <SelectValue placeholder="Selecciona una propiedad" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {PROPERTY_NAME_OPTIONS.map((option) => (
+                                <SelectItem key={option} value={option}>
+                                  {option}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </div>
                       )}
                     </form.Field>
