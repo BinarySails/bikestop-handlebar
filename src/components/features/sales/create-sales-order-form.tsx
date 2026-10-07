@@ -72,6 +72,7 @@ import { centsToPesosString, pesosToCents } from "@/lib/money";
 import { computeDueDate, formatDueDate } from "@/lib/dates";
 import { PaymentTermSelect } from "@/components/features/sales/payment-term-select";
 import { CreateSalesOrderRequestBody } from "@/lib/api/zods";
+import { PERMISSIONS, useHasPolicy } from "@/lib/auth/permissions";
 
 const MAX_PRICE_DECIMALS = 2;
 const DEFAULT_TAX_PERCENT = "16";
@@ -468,14 +469,25 @@ export function CreateSalesOrderForm({
   const navigate = useNavigate();
   const { trigger } = useCreateSalesOrderRequest();
   const isDetail = Boolean(order);
+
+  // Every mutating control in this form maps to `sales-order:create` while the
+  // order does not exist yet, and to `sales-order:update` once it does.
+  const canCreateOrder = useHasPolicy(PERMISSIONS.salesOrderCreate);
+  const canUpdateOrder = useHasPolicy(PERMISSIONS.salesOrderUpdate);
+  const canApplyPromotions = useHasPolicy(PERMISSIONS.salesOrderUpdate);
+  const canWrite = order ? canUpdateOrder : canCreateOrder;
+
   const editable =
-    !order || order.status === "draft" || order.status === "quote";
-  const canAdvance = order?.status === "draft" || order?.status === "quote";
-  const canConfirm = order?.status === "draft";
+    canWrite &&
+    (!order || order.status === "draft" || order.status === "quote");
+  const canAdvance =
+    canWrite && (order?.status === "draft" || order?.status === "quote");
+  const canConfirm = canWrite && order?.status === "draft";
   const canCancel =
-    order?.status === "draft" ||
-    order?.status === "quote" ||
-    order?.status === "confirmed";
+    canWrite &&
+    (order?.status === "draft" ||
+      order?.status === "quote" ||
+      order?.status === "confirmed");
   const canAddComment =
     Boolean(order) &&
     [
@@ -1360,12 +1372,15 @@ export function CreateSalesOrderForm({
           </Button>
         )}
 
-        {isDetail && order?.status === "draft" && onApplyPromotions && (
-          <Button type="button" variant="outline" onClick={onApplyPromotions}>
-            <Tag className="size-4" />
-            Aplicar promoción
-          </Button>
-        )}
+        {isDetail &&
+          order?.status === "draft" &&
+          onApplyPromotions &&
+          canApplyPromotions && (
+            <Button type="button" variant="outline" onClick={onApplyPromotions}>
+              <Tag className="size-4" />
+              Aplicar promoción
+            </Button>
+          )}
 
         {isDetail && order && (
           <Button
@@ -1808,7 +1823,7 @@ export function CreateSalesOrderForm({
             </DialogClose>
             <Button
               type="button"
-              disabled={dispatchingLineId !== null}
+              disabled={dispatchingLineId !== null || !canUpdateOrder}
               onClick={() => void dispatchLine()}
             >
               {dispatchingLineId !== null

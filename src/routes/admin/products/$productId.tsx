@@ -48,6 +48,8 @@ import type {
   Variant,
   WarehouseResponse,
 } from "@/lib/api/schemas";
+import { PERMISSIONS, useHasPolicy } from "@/lib/auth/permissions";
+import { requirePolicy } from "@/lib/auth/require-auth";
 
 const statusLabels: Record<ProductStatus, string> = {
   enable: "Activo",
@@ -56,6 +58,12 @@ const statusLabels: Record<ProductStatus, string> = {
 };
 
 export const Route = createFileRoute("/admin/products/$productId")({
+  beforeLoad: async ({ location }) => {
+    await requirePolicy(PERMISSIONS.productView, {
+      from: location.href,
+      navigateTo: "/login",
+    });
+  },
   component: ProductDetailPage,
 });
 
@@ -147,6 +155,7 @@ function ProductDetailView({
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deletePending, setDeletePending] = useState(false);
+  const canUpdateProduct = useHasPolicy(PERMISSIONS.productUpdate);
 
   const isArchived = product.status === "archive";
 
@@ -227,185 +236,196 @@ function ProductDetailView({
 
   return (
     <main className="flex flex-1 flex-col gap-6 p-6">
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          form.handleSubmit();
-        }}
-        className="space-y-8"
-      >
-        <form.Subscribe
-          selector={(state) => [state.isSubmitting, state.isDirty]}
+      {/* `contents` keeps the flex layout of <main> intact while the fieldset
+          makes every control inert when the actor cannot edit products. */}
+      <fieldset disabled={!canUpdateProduct} className="contents">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            form.handleSubmit();
+          }}
+          className="space-y-8"
         >
-          {([isSubmitting, isDirty]) => (
-            <EntityDetailHeader
-              backTo="/admin/products"
-              backLabel="Volver a todos los productos"
-              title="Producto"
-              badge={
-                <Badge variant="outline">{statusLabels[product.status]}</Badge>
-              }
-              isDirty={isDirty}
-              isSubmitting={isSubmitting}
-              onSave={() => form.handleSubmit()}
-              onDelete={() => setDeleteOpen(true)}
-              showDelete={product.status !== "archive"}
-            />
-          )}
-        </form.Subscribe>
+          <form.Subscribe
+            selector={(state) => [state.isSubmitting, state.isDirty]}
+          >
+            {([isSubmitting, isDirty]) => (
+              <EntityDetailHeader
+                backTo="/admin/products"
+                backLabel="Volver a todos los productos"
+                title="Producto"
+                badge={
+                  <Badge variant="outline">
+                    {statusLabels[product.status]}
+                  </Badge>
+                }
+                isDirty={isDirty}
+                isSubmitting={isSubmitting}
+                onSave={() => form.handleSubmit()}
+                onDelete={() => setDeleteOpen(true)}
+                showDelete={product.status !== "archive"}
+              />
+            )}
+          </form.Subscribe>
 
-        <Separator />
+          <Separator />
 
-        <section id="information" className="scroll-mt-4 space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base font-semibold">
-                <Package className="size-4" />
-                Información del producto
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <form.Field name="display_name">
-                {(field) => (
-                  <div className="grid gap-2">
-                    <Label htmlFor={field.name}>Nombre del producto</Label>
-                    <Input
-                      id={field.name}
-                      name={field.name}
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      placeholder="Bicicleta de montaña"
-                      disabled={isArchived}
-                    />
-                  </div>
-                )}
-              </form.Field>
+          <section id="information" className="scroll-mt-4 space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                  <Package className="size-4" />
+                  Información del producto
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <form.Field name="display_name">
+                  {(field) => (
+                    <div className="grid gap-2">
+                      <Label htmlFor={field.name}>Nombre del producto</Label>
+                      <Input
+                        id={field.name}
+                        name={field.name}
+                        value={field.state.value}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        placeholder="Bicicleta de montaña"
+                        disabled={isArchived}
+                      />
+                    </div>
+                  )}
+                </form.Field>
 
-              <form.Field name="brand_id">
-                {(field) => (
-                  <div className="grid gap-2">
-                    <Label htmlFor={field.name}>Marca</Label>
-                    <Select
-                      value={field.state.value}
-                      onValueChange={(value) => field.handleChange(value ?? "")}
-                      disabled={isArchived || brandsLoading}
-                    >
-                      <SelectTrigger id={field.name} className="w-full">
-                        <SelectValue
-                          placeholder="Selecciona una marca"
-                          render={() => (
-                            <span>
-                              {brands.find(
-                                (brand) => brand.id === field.state.value
-                              )?.display_name ?? "Selecciona una marca"}
-                            </span>
-                          )}
-                        />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {brands.map((brand) => (
-                          <SelectItem key={brand.id} value={brand.id}>
-                            {brand.display_name}
+                <form.Field name="brand_id">
+                  {(field) => (
+                    <div className="grid gap-2">
+                      <Label htmlFor={field.name}>Marca</Label>
+                      <Select
+                        value={field.state.value}
+                        onValueChange={(value) =>
+                          field.handleChange(value ?? "")
+                        }
+                        disabled={isArchived || brandsLoading}
+                      >
+                        <SelectTrigger id={field.name} className="w-full">
+                          <SelectValue
+                            placeholder="Selecciona una marca"
+                            render={() => (
+                              <span>
+                                {brands.find(
+                                  (brand) => brand.id === field.state.value
+                                )?.display_name ?? "Selecciona una marca"}
+                              </span>
+                            )}
+                          />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {brands.map((brand) => (
+                            <SelectItem key={brand.id} value={brand.id}>
+                              {brand.display_name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                </form.Field>
+
+                <form.Field name="category_id">
+                  {(field) => (
+                    <div className="grid gap-2">
+                      <Label htmlFor={field.name}>Categoría</Label>
+                      <Select
+                        value={field.state.value}
+                        onValueChange={(value) =>
+                          field.handleChange(value ?? "")
+                        }
+                        disabled={isArchived || categoriesLoading}
+                      >
+                        <SelectTrigger id={field.name} className="w-full">
+                          <SelectValue
+                            placeholder="Selecciona una categoría"
+                            render={() => (
+                              <span>
+                                {categories.find(
+                                  (category) =>
+                                    category.id === field.state.value
+                                )?.display_name ??
+                                  (product.category.id === field.state.value
+                                    ? product.category.display_name
+                                    : "Selecciona una categoría")}
+                              </span>
+                            )}
+                          />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {categories.map((category) => (
+                            <SelectItem key={category.id} value={category.id}>
+                              {category.display_name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                </form.Field>
+
+                <form.Field name="description">
+                  {(field) => (
+                    <div className="grid gap-2">
+                      <Label htmlFor={field.name}>Descripción</Label>
+                      <Textarea
+                        id={field.name}
+                        name={field.name}
+                        value={field.state.value}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        placeholder="Descripción del producto"
+                        disabled={isArchived}
+                      />
+                    </div>
+                  )}
+                </form.Field>
+
+                <form.Field name="status">
+                  {(field) => (
+                    <div className="grid gap-2">
+                      <Label htmlFor={field.name}>Estado</Label>
+                      <Select
+                        value={field.state.value}
+                        onValueChange={(value) =>
+                          field.handleChange(value as ProductStatus)
+                        }
+                      >
+                        <SelectTrigger id={field.name} className="w-full">
+                          <SelectValue
+                            render={() => (
+                              <span>
+                                {statusLabels[field.state.value] ??
+                                  field.state.value}
+                              </span>
+                            )}
+                          />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="enable">
+                            {statusLabels.enable}
                           </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-              </form.Field>
-
-              <form.Field name="category_id">
-                {(field) => (
-                  <div className="grid gap-2">
-                    <Label htmlFor={field.name}>Categoría</Label>
-                    <Select
-                      value={field.state.value}
-                      onValueChange={(value) => field.handleChange(value ?? "")}
-                      disabled={isArchived || categoriesLoading}
-                    >
-                      <SelectTrigger id={field.name} className="w-full">
-                        <SelectValue
-                          placeholder="Selecciona una categoría"
-                          render={() => (
-                            <span>
-                              {categories.find(
-                                (category) => category.id === field.state.value
-                              )?.display_name ??
-                                (product.category.id === field.state.value
-                                  ? product.category.display_name
-                                  : "Selecciona una categoría")}
-                            </span>
-                          )}
-                        />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.map((category) => (
-                          <SelectItem key={category.id} value={category.id}>
-                            {category.display_name}
+                          <SelectItem value="disable">
+                            {statusLabels.disable}
                           </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-              </form.Field>
-
-              <form.Field name="description">
-                {(field) => (
-                  <div className="grid gap-2">
-                    <Label htmlFor={field.name}>Descripción</Label>
-                    <Textarea
-                      id={field.name}
-                      name={field.name}
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      placeholder="Descripción del producto"
-                      disabled={isArchived}
-                    />
-                  </div>
-                )}
-              </form.Field>
-
-              <form.Field name="status">
-                {(field) => (
-                  <div className="grid gap-2">
-                    <Label htmlFor={field.name}>Estado</Label>
-                    <Select
-                      value={field.state.value}
-                      onValueChange={(value) =>
-                        field.handleChange(value as ProductStatus)
-                      }
-                    >
-                      <SelectTrigger id={field.name} className="w-full">
-                        <SelectValue
-                          render={() => (
-                            <span>
-                              {statusLabels[field.state.value] ??
-                                field.state.value}
-                            </span>
-                          )}
-                        />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="enable">
-                          {statusLabels.enable}
-                        </SelectItem>
-                        <SelectItem value="disable">
-                          {statusLabels.disable}
-                        </SelectItem>
-                        <SelectItem value="archive">
-                          {statusLabels.archive}
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-              </form.Field>
-            </CardContent>
-          </Card>
-        </section>
-      </form>
+                          <SelectItem value="archive">
+                            {statusLabels.archive}
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                </form.Field>
+              </CardContent>
+            </Card>
+          </section>
+        </form>
+      </fieldset>
 
       <section id="inventory" className="scroll-mt-4 space-y-6">
         <ProductInventoryTable

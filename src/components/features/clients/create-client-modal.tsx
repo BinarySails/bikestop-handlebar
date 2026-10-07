@@ -30,6 +30,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { PERMISSIONS } from "@/lib/auth/permissions";
 
 export function CreateClientDialog({ onCreated }: { onCreated?: () => void }) {
   const [open, setOpen] = useState(false);
@@ -117,7 +118,11 @@ export function CreateClientDialog({ onCreated }: { onCreated?: () => void }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger
-        render={<EntityCreateButton>Crear Cliente</EntityCreateButton>}
+        render={
+          <EntityCreateButton policy={PERMISSIONS.customerCreate}>
+            Crear Cliente
+          </EntityCreateButton>
+        }
       />
 
       <DialogContent className="sm:max-w-lg">

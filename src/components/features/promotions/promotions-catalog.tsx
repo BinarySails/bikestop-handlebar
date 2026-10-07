@@ -15,6 +15,7 @@ import type { Promotion } from "@/lib/api/schemas";
 
 import { CreatePromotionDialog } from "./create-promotion-dialog";
 import { discountValueLabel, promotionKind } from "./promotion-labels";
+import { PERMISSIONS } from "@/lib/auth/permissions";
 
 const dateFormatter = new Intl.DateTimeFormat("es-MX", {
   dateStyle: "medium",
@@ -103,7 +104,10 @@ export function PromotionsCatalog() {
         title="Promociones"
         description="Crea descuentos para aplicar a tus órdenes de venta."
         actions={
-          <EntityCreateButton onClick={() => setCreateOpen(true)}>
+          <EntityCreateButton
+            policy={PERMISSIONS.promotionCreate}
+            onClick={() => setCreateOpen(true)}
+          >
             Nueva promoción
           </EntityCreateButton>
         }

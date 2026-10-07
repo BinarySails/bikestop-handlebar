@@ -47,6 +47,8 @@ import { Textarea } from "@/components/ui/textarea";
 
 import { centsToPesosString, pesosToCents } from "@/lib/money";
 import { UpdateVariantRequestBody } from "@/lib/api/zods";
+import { PERMISSIONS, useHasPolicy } from "@/lib/auth/permissions";
+import { requirePolicy } from "@/lib/auth/require-auth";
 
 const statusLabels: Record<VariantStatus, string> = {
   enable: "Activo",
@@ -83,6 +85,12 @@ function normalizePropertyInput(value: string): string {
 export const Route = createFileRoute(
   "/admin/products/$productId_/variants_/$variantId"
 )({
+  beforeLoad: async ({ location }) => {
+    await requirePolicy(PERMISSIONS.productView, {
+      from: location.href,
+      navigateTo: "/login",
+    });
+  },
   component: VariantDetailPage,
 });
 
@@ -161,6 +169,7 @@ function VariantDetailView({
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deletePending, setDeletePending] = useState(false);
+  const canUpdateVariant = useHasPolicy(PERMISSIONS.productUpdate);
 
   const isArchived = variant.status === "archive";
 
@@ -308,470 +317,484 @@ function VariantDetailView({
 
   return (
     <main className="flex flex-1 flex-col gap-6 p-6">
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          form.handleSubmit();
-        }}
-        className="space-y-8"
-      >
-        <form.Subscribe
-          selector={(state) => [state.isSubmitting, state.isDirty]}
+      {/* `contents` keeps the flex layout of <main> intact while the fieldset
+          makes every control inert when the actor cannot edit products. */}
+      <fieldset disabled={!canUpdateVariant} className="contents">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            form.handleSubmit();
+          }}
+          className="space-y-8"
         >
-          {([isSubmitting, isDirty]) => (
-            <EntityDetailHeader
-              backTo="/admin/products/$productId"
-              backParams={{ productId }}
-              backLabel="Volver al producto"
-              title="Variante"
-              badge={
-                <Badge variant="outline">{statusLabels[variant.status]}</Badge>
-              }
-              isDirty={isDirty}
-              isSubmitting={isSubmitting}
-              onSave={() => form.handleSubmit()}
-              onDelete={() => setDeleteOpen(true)}
-              showDelete={variant.status !== "archive"}
-            />
-          )}
-        </form.Subscribe>
+          <form.Subscribe
+            selector={(state) => [state.isSubmitting, state.isDirty]}
+          >
+            {([isSubmitting, isDirty]) => (
+              <EntityDetailHeader
+                backTo="/admin/products/$productId"
+                backParams={{ productId }}
+                backLabel="Volver al producto"
+                title="Variante"
+                badge={
+                  <Badge variant="outline">
+                    {statusLabels[variant.status]}
+                  </Badge>
+                }
+                isDirty={isDirty}
+                isSubmitting={isSubmitting}
+                onSave={() => form.handleSubmit()}
+                onDelete={() => setDeleteOpen(true)}
+                showDelete={variant.status !== "archive"}
+              />
+            )}
+          </form.Subscribe>
 
-        <Separator />
+          <Separator />
 
-        <section id="information" className="scroll-mt-4 space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base font-semibold">
-                <Package className="size-4" />
-                Información de la variante
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <form.Field
-                  name="sku"
-                  validators={{
-                    onChange: ({ value }) =>
-                      !value.trim() ? "El SKU es obligatorio." : undefined,
-                    onSubmit: ({ value }) =>
-                      !value.trim() ? "El SKU es obligatorio." : undefined,
-                  }}
-                >
+          <section id="information" className="scroll-mt-4 space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                  <Package className="size-4" />
+                  Información de la variante
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <form.Field
+                    name="sku"
+                    validators={{
+                      onChange: ({ value }) =>
+                        !value.trim() ? "El SKU es obligatorio." : undefined,
+                      onSubmit: ({ value }) =>
+                        !value.trim() ? "El SKU es obligatorio." : undefined,
+                    }}
+                  >
+                    {(field) => (
+                      <div className="grid gap-2">
+                        <Label htmlFor={field.name}>SKU</Label>
+                        <Input
+                          id={field.name}
+                          name={field.name}
+                          value={field.state.value}
+                          onChange={(e) =>
+                            field.handleChange(e.target.value.toUpperCase())
+                          }
+                          placeholder="SKU-123"
+                          disabled={isArchived}
+                          aria-invalid={
+                            field.state.meta.isTouched &&
+                            field.state.meta.errors.length > 0
+                          }
+                        />
+                        {field.state.meta.errors?.[0] && (
+                          <p className="text-sm text-destructive">
+                            {field.state.meta.errors[0]}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </form.Field>
+
+                  <form.Field
+                    name="display_name"
+                    validators={{
+                      onChange: ({ value }) =>
+                        value.trim().length < 3
+                          ? "El nombre debe tener al menos 3 caracteres."
+                          : undefined,
+                      onSubmit: ({ value }) =>
+                        value.trim().length < 3
+                          ? "El nombre debe tener al menos 3 caracteres."
+                          : undefined,
+                    }}
+                  >
+                    {(field) => (
+                      <div className="grid gap-2">
+                        <Label htmlFor={field.name}>Nombre visible</Label>
+                        <Input
+                          id={field.name}
+                          name={field.name}
+                          value={field.state.value}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                          placeholder="Bicicleta roja"
+                          disabled={isArchived}
+                          aria-invalid={
+                            field.state.meta.isTouched &&
+                            field.state.meta.errors.length > 0
+                          }
+                        />
+                        {field.state.meta.errors?.[0] && (
+                          <p className="text-sm text-destructive">
+                            {field.state.meta.errors[0]}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </form.Field>
+                </div>
+
+                <form.Field name="description">
                   {(field) => (
                     <div className="grid gap-2">
-                      <Label htmlFor={field.name}>SKU</Label>
-                      <Input
-                        id={field.name}
-                        name={field.name}
-                        value={field.state.value}
-                        onChange={(e) =>
-                          field.handleChange(e.target.value.toUpperCase())
-                        }
-                        placeholder="SKU-123"
-                        disabled={isArchived}
-                        aria-invalid={
-                          field.state.meta.isTouched &&
-                          field.state.meta.errors.length > 0
-                        }
-                      />
-                      {field.state.meta.errors?.[0] && (
-                        <p className="text-sm text-destructive">
-                          {field.state.meta.errors[0]}
-                        </p>
-                      )}
-                    </div>
-                  )}
-                </form.Field>
-
-                <form.Field
-                  name="display_name"
-                  validators={{
-                    onChange: ({ value }) =>
-                      value.trim().length < 3
-                        ? "El nombre debe tener al menos 3 caracteres."
-                        : undefined,
-                    onSubmit: ({ value }) =>
-                      value.trim().length < 3
-                        ? "El nombre debe tener al menos 3 caracteres."
-                        : undefined,
-                  }}
-                >
-                  {(field) => (
-                    <div className="grid gap-2">
-                      <Label htmlFor={field.name}>Nombre visible</Label>
-                      <Input
+                      <Label htmlFor={field.name}>Descripción</Label>
+                      <Textarea
                         id={field.name}
                         name={field.name}
                         value={field.state.value}
                         onChange={(e) => field.handleChange(e.target.value)}
-                        placeholder="Bicicleta roja"
+                        placeholder="Descripción de la variante"
                         disabled={isArchived}
-                        aria-invalid={
-                          field.state.meta.isTouched &&
-                          field.state.meta.errors.length > 0
-                        }
                       />
-                      {field.state.meta.errors?.[0] && (
-                        <p className="text-sm text-destructive">
-                          {field.state.meta.errors[0]}
-                        </p>
-                      )}
                     </div>
                   )}
                 </form.Field>
-              </div>
 
-              <form.Field name="description">
-                {(field) => (
-                  <div className="grid gap-2">
-                    <Label htmlFor={field.name}>Descripción</Label>
-                    <Textarea
-                      id={field.name}
-                      name={field.name}
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      placeholder="Descripción de la variante"
+                <form.Field
+                  name="images"
+                  validators={{
+                    onChange: ({ value }) => validateImages(value),
+                    onSubmit: ({ value }) => validateImages(value),
+                  }}
+                >
+                  {(field) => (
+                    <VariantImageManager
+                      images={field.state.value}
+                      onChange={(images) => field.handleChange(images)}
                       disabled={isArchived}
                     />
-                  </div>
-                )}
-              </form.Field>
+                  )}
+                </form.Field>
 
-              <form.Field
-                name="images"
-                validators={{
-                  onChange: ({ value }) => validateImages(value),
-                  onSubmit: ({ value }) => validateImages(value),
-                }}
-              >
-                {(field) => (
-                  <VariantImageManager
-                    images={field.state.value}
-                    onChange={(images) => field.handleChange(images)}
-                    disabled={isArchived}
-                  />
-                )}
-              </form.Field>
-
-              <form.Field name="status">
-                {(field) => (
-                  <div className="grid gap-2">
-                    <Label htmlFor={field.name}>Estado</Label>
-                    <Select
-                      value={field.state.value}
-                      onValueChange={(value) =>
-                        field.handleChange(value as VariantStatus)
-                      }
-                    >
-                      <SelectTrigger id={field.name} className="w-full">
-                        <SelectValue
-                          render={() => (
-                            <span>
-                              {statusLabels[field.state.value] ??
-                                field.state.value}
-                            </span>
-                          )}
-                        />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="enable">
-                          {statusLabels.enable}
-                        </SelectItem>
-                        <SelectItem value="disable">
-                          {statusLabels.disable}
-                        </SelectItem>
-                        <SelectItem value="archive">
-                          {statusLabels.archive}
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-              </form.Field>
-            </CardContent>
-          </Card>
-        </section>
-
-        <section id="properties" className="scroll-mt-4 space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base font-semibold">
-                Propiedades
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <form.Field name="properties">
-                {(field) => (
-                  <div className="grid gap-4">
-                    {field.state.value.length === 0 && (
-                      <p className="text-sm text-muted-foreground">
-                        No hay propiedades.
-                      </p>
-                    )}
-
-                    {field.state.value.map((_, index) => (
-                      <div key={index} className="flex items-start gap-3">
-                        <form.Field name={`properties[${index}].property_name`}>
-                          {(subField) => (
-                            <div className="grid flex-1 gap-1.5">
-                              <Label
-                                htmlFor={subField.name}
-                                className="text-xs"
-                              >
-                                Nombre
-                              </Label>
-                              <Input
-                                id={subField.name}
-                                value={subField.state.value}
-                                onChange={(e) =>
-                                  subField.handleChange(e.target.value)
-                                }
-                                placeholder="color"
-                                disabled={isArchived}
-                              />
-                            </div>
-                          )}
-                        </form.Field>
-
-                        <form.Field
-                          name={`properties[${index}].property_value`}
-                        >
-                          {(subField) => (
-                            <div className="grid flex-1 gap-1.5">
-                              <Label
-                                htmlFor={subField.name}
-                                className="text-xs"
-                              >
-                                Valor
-                              </Label>
-                              <Input
-                                id={subField.name}
-                                value={subField.state.value}
-                                onChange={(e) =>
-                                  subField.handleChange(e.target.value)
-                                }
-                                placeholder="rojo"
-                                disabled={isArchived}
-                              />
-                            </div>
-                          )}
-                        </form.Field>
-
-                        <form.Field name={`properties[${index}].status`}>
-                          {(subField) => (
-                            <div className="grid flex-1 gap-1.5">
-                              <Label
-                                htmlFor={subField.name}
-                                className="text-xs"
-                              >
-                                Estado
-                              </Label>
-                              <Select
-                                value={subField.state.value}
-                                onValueChange={(value) =>
-                                  subField.handleChange(value as VariantStatus)
-                                }
-                                disabled={isArchived}
-                              >
-                                <SelectTrigger id={subField.name}>
-                                  <SelectValue
-                                    render={() => (
-                                      <span>
-                                        {statusLabels[subField.state.value] ??
-                                          subField.state.value}
-                                      </span>
-                                    )}
-                                  />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="enable">
-                                    {statusLabels.enable}
-                                  </SelectItem>
-                                  <SelectItem value="disable">
-                                    {statusLabels.disable}
-                                  </SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          )}
-                        </form.Field>
-
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="mt-5 size-8 text-destructive"
-                          onClick={() => field.removeValue(index)}
-                          disabled={isArchived}
-                          aria-label="Eliminar propiedad"
-                        >
-                          <Trash2 className="size-4" />
-                        </Button>
-                      </div>
-                    ))}
-
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="w-fit"
-                      onClick={() =>
-                        field.pushValue({
-                          property_name: "",
-                          property_value: "",
-                          status: "enable",
-                        })
-                      }
-                      disabled={isArchived}
-                    >
-                      <Plus className="size-4" />
-                      Agregar propiedad
-                    </Button>
-                  </div>
-                )}
-              </form.Field>
-            </CardContent>
-          </Card>
-        </section>
-
-        <section id="prices" className="scroll-mt-4 space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base font-semibold">Precios</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <form.Field name="prices">
-                {(field) => (
-                  <div className="grid gap-4">
-                    {field.state.value.length === 0 && (
-                      <p className="text-sm text-muted-foreground">
-                        No hay precios.
-                      </p>
-                    )}
-
-                    {field.state.value.map((_, index) => (
-                      <div key={index} className="flex items-start gap-3">
-                        <form.Field name={`prices[${index}].amount`}>
-                          {(subField) => (
-                            <div className="grid flex-1 gap-1.5">
-                              <Label
-                                htmlFor={subField.name}
-                                className="text-xs"
-                              >
-                                Monto (MXN)
-                              </Label>
-                              <Input
-                                id={subField.name}
-                                type="number"
-                                step="0.01"
-                                min="0"
-                                value={subField.state.value}
-                                onChange={(e) =>
-                                  subField.handleChange(e.target.value)
-                                }
-                                placeholder="199.99"
-                                disabled={isArchived}
-                                className="[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                              />
-                            </div>
-                          )}
-                        </form.Field>
-
-                        <div className="grid flex-1 gap-1.5">
-                          <Label className="text-xs">Tipo</Label>
-                          <Input
-                            value={field.state.value[index].price_type}
-                            disabled
+                <form.Field name="status">
+                  {(field) => (
+                    <div className="grid gap-2">
+                      <Label htmlFor={field.name}>Estado</Label>
+                      <Select
+                        value={field.state.value}
+                        onValueChange={(value) =>
+                          field.handleChange(value as VariantStatus)
+                        }
+                      >
+                        <SelectTrigger id={field.name} className="w-full">
+                          <SelectValue
+                            render={() => (
+                              <span>
+                                {statusLabels[field.state.value] ??
+                                  field.state.value}
+                              </span>
+                            )}
                           />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="enable">
+                            {statusLabels.enable}
+                          </SelectItem>
+                          <SelectItem value="disable">
+                            {statusLabels.disable}
+                          </SelectItem>
+                          <SelectItem value="archive">
+                            {statusLabels.archive}
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                </form.Field>
+              </CardContent>
+            </Card>
+          </section>
+
+          <section id="properties" className="scroll-mt-4 space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base font-semibold">
+                  Propiedades
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <form.Field name="properties">
+                  {(field) => (
+                    <div className="grid gap-4">
+                      {field.state.value.length === 0 && (
+                        <p className="text-sm text-muted-foreground">
+                          No hay propiedades.
+                        </p>
+                      )}
+
+                      {field.state.value.map((_, index) => (
+                        <div key={index} className="flex items-start gap-3">
+                          <form.Field
+                            name={`properties[${index}].property_name`}
+                          >
+                            {(subField) => (
+                              <div className="grid flex-1 gap-1.5">
+                                <Label
+                                  htmlFor={subField.name}
+                                  className="text-xs"
+                                >
+                                  Nombre
+                                </Label>
+                                <Input
+                                  id={subField.name}
+                                  value={subField.state.value}
+                                  onChange={(e) =>
+                                    subField.handleChange(e.target.value)
+                                  }
+                                  placeholder="color"
+                                  disabled={isArchived}
+                                />
+                              </div>
+                            )}
+                          </form.Field>
+
+                          <form.Field
+                            name={`properties[${index}].property_value`}
+                          >
+                            {(subField) => (
+                              <div className="grid flex-1 gap-1.5">
+                                <Label
+                                  htmlFor={subField.name}
+                                  className="text-xs"
+                                >
+                                  Valor
+                                </Label>
+                                <Input
+                                  id={subField.name}
+                                  value={subField.state.value}
+                                  onChange={(e) =>
+                                    subField.handleChange(e.target.value)
+                                  }
+                                  placeholder="rojo"
+                                  disabled={isArchived}
+                                />
+                              </div>
+                            )}
+                          </form.Field>
+
+                          <form.Field name={`properties[${index}].status`}>
+                            {(subField) => (
+                              <div className="grid flex-1 gap-1.5">
+                                <Label
+                                  htmlFor={subField.name}
+                                  className="text-xs"
+                                >
+                                  Estado
+                                </Label>
+                                <Select
+                                  value={subField.state.value}
+                                  onValueChange={(value) =>
+                                    subField.handleChange(
+                                      value as VariantStatus
+                                    )
+                                  }
+                                  disabled={isArchived}
+                                >
+                                  <SelectTrigger id={subField.name}>
+                                    <SelectValue
+                                      render={() => (
+                                        <span>
+                                          {statusLabels[subField.state.value] ??
+                                            subField.state.value}
+                                        </span>
+                                      )}
+                                    />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="enable">
+                                      {statusLabels.enable}
+                                    </SelectItem>
+                                    <SelectItem value="disable">
+                                      {statusLabels.disable}
+                                    </SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            )}
+                          </form.Field>
+
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="mt-5 size-8 text-destructive"
+                            onClick={() => field.removeValue(index)}
+                            disabled={isArchived}
+                            aria-label="Eliminar propiedad"
+                          >
+                            <Trash2 className="size-4" />
+                          </Button>
                         </div>
+                      ))}
 
-                        <div className="grid flex-1 gap-1.5">
-                          <Label className="text-xs">Moneda</Label>
-                          <Input
-                            value={field.state.value[index].currency}
-                            disabled
-                          />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="w-fit"
+                        onClick={() =>
+                          field.pushValue({
+                            property_name: "",
+                            property_value: "",
+                            status: "enable",
+                          })
+                        }
+                        disabled={isArchived}
+                      >
+                        <Plus className="size-4" />
+                        Agregar propiedad
+                      </Button>
+                    </div>
+                  )}
+                </form.Field>
+              </CardContent>
+            </Card>
+          </section>
+
+          <section id="prices" className="scroll-mt-4 space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base font-semibold">
+                  Precios
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <form.Field name="prices">
+                  {(field) => (
+                    <div className="grid gap-4">
+                      {field.state.value.length === 0 && (
+                        <p className="text-sm text-muted-foreground">
+                          No hay precios.
+                        </p>
+                      )}
+
+                      {field.state.value.map((_, index) => (
+                        <div key={index} className="flex items-start gap-3">
+                          <form.Field name={`prices[${index}].amount`}>
+                            {(subField) => (
+                              <div className="grid flex-1 gap-1.5">
+                                <Label
+                                  htmlFor={subField.name}
+                                  className="text-xs"
+                                >
+                                  Monto (MXN)
+                                </Label>
+                                <Input
+                                  id={subField.name}
+                                  type="number"
+                                  step="0.01"
+                                  min="0"
+                                  value={subField.state.value}
+                                  onChange={(e) =>
+                                    subField.handleChange(e.target.value)
+                                  }
+                                  placeholder="199.99"
+                                  disabled={isArchived}
+                                  className="[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                                />
+                              </div>
+                            )}
+                          </form.Field>
+
+                          <div className="grid flex-1 gap-1.5">
+                            <Label className="text-xs">Tipo</Label>
+                            <Input
+                              value={field.state.value[index].price_type}
+                              disabled
+                            />
+                          </div>
+
+                          <div className="grid flex-1 gap-1.5">
+                            <Label className="text-xs">Moneda</Label>
+                            <Input
+                              value={field.state.value[index].currency}
+                              disabled
+                            />
+                          </div>
+
+                          <form.Field name={`prices[${index}].status`}>
+                            {(subField) => (
+                              <div className="grid flex-1 gap-1.5">
+                                <Label
+                                  htmlFor={subField.name}
+                                  className="text-xs"
+                                >
+                                  Estado
+                                </Label>
+                                <Select
+                                  value={subField.state.value}
+                                  onValueChange={(value) =>
+                                    subField.handleChange(
+                                      value as VariantStatus
+                                    )
+                                  }
+                                  disabled={isArchived}
+                                >
+                                  <SelectTrigger id={subField.name}>
+                                    <SelectValue
+                                      render={() => (
+                                        <span>
+                                          {statusLabels[subField.state.value] ??
+                                            subField.state.value}
+                                        </span>
+                                      )}
+                                    />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="enable">
+                                      {statusLabels.enable}
+                                    </SelectItem>
+                                    <SelectItem value="disable">
+                                      {statusLabels.disable}
+                                    </SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            )}
+                          </form.Field>
+
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="mt-5 size-8 text-destructive"
+                            onClick={() => field.removeValue(index)}
+                            disabled={isArchived}
+                            aria-label="Eliminar precio"
+                          >
+                            <Trash2 className="size-4" />
+                          </Button>
                         </div>
+                      ))}
 
-                        <form.Field name={`prices[${index}].status`}>
-                          {(subField) => (
-                            <div className="grid flex-1 gap-1.5">
-                              <Label
-                                htmlFor={subField.name}
-                                className="text-xs"
-                              >
-                                Estado
-                              </Label>
-                              <Select
-                                value={subField.state.value}
-                                onValueChange={(value) =>
-                                  subField.handleChange(value as VariantStatus)
-                                }
-                                disabled={isArchived}
-                              >
-                                <SelectTrigger id={subField.name}>
-                                  <SelectValue
-                                    render={() => (
-                                      <span>
-                                        {statusLabels[subField.state.value] ??
-                                          subField.state.value}
-                                      </span>
-                                    )}
-                                  />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="enable">
-                                    {statusLabels.enable}
-                                  </SelectItem>
-                                  <SelectItem value="disable">
-                                    {statusLabels.disable}
-                                  </SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          )}
-                        </form.Field>
-
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="mt-5 size-8 text-destructive"
-                          onClick={() => field.removeValue(index)}
-                          disabled={isArchived}
-                          aria-label="Eliminar precio"
-                        >
-                          <Trash2 className="size-4" />
-                        </Button>
-                      </div>
-                    ))}
-
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="w-fit"
-                      onClick={() =>
-                        field.pushValue({
-                          price_type: "regular",
-                          amount: "",
-                          currency: "MXN",
-                          status: "enable",
-                        })
-                      }
-                      disabled={isArchived}
-                    >
-                      <Plus className="size-4" />
-                      Agregar precio
-                    </Button>
-                  </div>
-                )}
-              </form.Field>
-            </CardContent>
-          </Card>
-        </section>
-      </form>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="w-fit"
+                        onClick={() =>
+                          field.pushValue({
+                            price_type: "regular",
+                            amount: "",
+                            currency: "MXN",
+                            status: "enable",
+                          })
+                        }
+                        disabled={isArchived}
+                      >
+                        <Plus className="size-4" />
+                        Agregar precio
+                      </Button>
+                    </div>
+                  )}
+                </form.Field>
+              </CardContent>
+            </Card>
+          </section>
+        </form>
+      </fieldset>
 
       <section id="inventory" className="scroll-mt-4 space-y-6">
         <VariantInventoryTable

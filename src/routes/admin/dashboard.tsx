@@ -2,6 +2,8 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
 
 import { Dashboard } from "@/components/features/dashboard/dashboard";
+import { PERMISSIONS } from "@/lib/auth/permissions";
+import { requirePolicy } from "@/lib/auth/require-auth";
 
 const datePattern = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -15,6 +17,12 @@ const dashboardSearchSchema = z
   );
 
 export const Route = createFileRoute("/admin/dashboard")({
+  beforeLoad: async ({ location }) => {
+    await requirePolicy(PERMISSIONS.panelView, {
+      from: location.href,
+      navigateTo: "/login",
+    });
+  },
   validateSearch: dashboardSearchSchema,
   component: DashboardPage,
 });

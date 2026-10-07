@@ -35,8 +35,17 @@ import {
 } from "@/components/ui/select";
 import { useListProductsRequest, useUpdateProductRequest } from "@/lib/api/api";
 import type { Product } from "@/lib/api/schemas";
+import { PERMISSIONS } from "@/lib/auth/permissions";
+import { Can } from "@/components/features/entity/can";
+import { requirePolicy } from "@/lib/auth/require-auth";
 
 export const Route = createFileRoute("/admin/products/")({
+  beforeLoad: async ({ location }) => {
+    await requirePolicy(PERMISSIONS.productView, {
+      from: location.href,
+      navigateTo: "/login",
+    });
+  },
   component: ProductsListPage,
 });
 
@@ -115,13 +124,15 @@ function ArchiveProductMenuItem({
   }
 
   return (
-    <DropdownMenuItem
-      variant="destructive"
-      onClick={handleArchive}
-      disabled={pending || product.status === "archive"}
-    >
-      <span>Eliminar</span>
-    </DropdownMenuItem>
+    <Can policy={PERMISSIONS.productUpdate}>
+      <DropdownMenuItem
+        variant="destructive"
+        onClick={handleArchive}
+        disabled={pending || product.status === "archive"}
+      >
+        <span>Eliminar</span>
+      </DropdownMenuItem>
+    </Can>
   );
 }
 
@@ -218,8 +229,12 @@ function ProductsListPage() {
           />
           <DropdownMenuContent align="end">
             <ViewProductMenuItem productId={product.id} />
-            <DropdownMenuSeparator />
-            <ArchiveProductMenuItem product={product} onSuccess={mutate} />
+            <Can policy={PERMISSIONS.productUpdate}>
+              <>
+                <DropdownMenuSeparator />
+                <ArchiveProductMenuItem product={product} onSuccess={mutate} />
+              </>
+            </Can>
           </DropdownMenuContent>
         </DropdownMenu>
       ),

@@ -6,9 +6,18 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Can } from "@/components/features/entity/can";
 import { useGetCategoriesRequest, useGetCategoryRequest } from "@/lib/api/api";
+import { PERMISSIONS } from "@/lib/auth/permissions";
+import { requirePolicy } from "@/lib/auth/require-auth";
 
 export const Route = createFileRoute("/admin/categories/$categoryId")({
+  beforeLoad: async ({ location }) => {
+    await requirePolicy(PERMISSIONS.categoryView, {
+      from: location.href,
+      navigateTo: "/login",
+    });
+  },
   component: CategoryDetailPage,
 });
 
@@ -84,16 +93,18 @@ function CategoryDetailPage() {
           </Badge>
         }
         extraActions={
-          <Button
-            render={
-              <Link
-                to="/admin/categories/$categoryId/edit"
-                params={{ categoryId }}
-              />
-            }
-          >
-            <Pencil className="size-4" /> Editar categoría
-          </Button>
+          <Can policy={PERMISSIONS.categoryUpdate}>
+            <Button
+              render={
+                <Link
+                  to="/admin/categories/$categoryId/edit"
+                  params={{ categoryId }}
+                />
+              }
+            >
+              <Pencil className="size-4" /> Editar categoría
+            </Button>
+          </Can>
         }
       />
 

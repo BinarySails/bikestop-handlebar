@@ -4,12 +4,21 @@ import { z } from "zod";
 
 import { UserPermissionsTable } from "@/components/features/auth/consult-user-permissions-dialog";
 import { UserEditForm } from "@/components/features/users/user-edit-form";
+import { Can } from "@/components/features/entity/can";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGetUserRequest, useListRolesHandler } from "@/lib/api/api";
 import { UserViewParam } from "@/lib/api/schemas";
+import { PERMISSIONS } from "@/lib/auth/permissions";
+import { requirePolicy } from "@/lib/auth/require-auth";
 
 export const Route = createFileRoute("/admin/users/$userId")({
+  beforeLoad: async ({ location }) => {
+    await requirePolicy(PERMISSIONS.userView, {
+      from: location.href,
+      navigateTo: "/login",
+    });
+  },
   validateSearch: z.object({
     roles: z.array(z.string()).catch([]),
   }),
@@ -85,13 +94,15 @@ function UserDetailPage() {
         </div>
       </div>
 
-      <UserEditForm
-        key={user.id}
-        user={{ ...user, roles: selectedRoles }}
-        roles={editableRoles}
-        onCancel={goBack}
-        onSaved={goBack}
-      />
+      <Can policy={PERMISSIONS.userUpdate}>
+        <UserEditForm
+          key={user.id}
+          user={{ ...user, roles: selectedRoles }}
+          roles={editableRoles}
+          onCancel={goBack}
+          onSaved={goBack}
+        />
+      </Can>
 
       <UserPermissionsTable userId={user.id} />
     </main>

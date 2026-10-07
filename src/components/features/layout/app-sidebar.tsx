@@ -36,21 +36,82 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuthStore } from "@/lib/auth/use-auth-store";
 import { useLogout } from "@/lib/auth/use-logout";
+import { hasPolicy, PERMISSIONS } from "@/lib/auth/permissions";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 const navigationItems = [
-  { label: "Dashboard", icon: LayoutDashboard, to: "/admin/dashboard" },
-  { label: "Productos", icon: Package, to: "/admin/products" },
-  { label: "Ventas", icon: ShoppingCart, to: "/admin/sales" },
-  { label: "Inventario", icon: Package, to: "/admin/inventory" },
-  { label: "Categorías", icon: Shapes, to: "/admin/categories" },
-  { label: "Marcas", icon: Tags, to: "/admin/brands" },
-  { label: "Promociones", icon: BadgePercent, to: "/admin/promotions" },
-  { label: "Locaciones", icon: MapPin, to: "/admin/locations" },
-  { label: "Usuarios", icon: Users, to: "/admin/users" },
-  { label: "Clientes", icon: Contact, to: "/admin/clients" },
-  { label: "Roles", icon: Shield, to: "/admin/roles" },
-  { label: "Almacenes", icon: Warehouse, to: "/admin/warehouses" },
+  {
+    label: "Dashboard",
+    icon: LayoutDashboard,
+    to: "/admin/dashboard",
+    policy: PERMISSIONS.panelView,
+  },
+  {
+    label: "Productos",
+    icon: Package,
+    to: "/admin/products",
+    policy: PERMISSIONS.productView,
+  },
+  {
+    label: "Ventas",
+    icon: ShoppingCart,
+    to: "/admin/sales",
+    policy: PERMISSIONS.salesOrderView,
+  },
+  {
+    label: "Inventario",
+    icon: Package,
+    to: "/admin/inventory",
+    policy: PERMISSIONS.inventoryView,
+  },
+  {
+    label: "Categorías",
+    icon: Shapes,
+    to: "/admin/categories",
+    policy: PERMISSIONS.categoryView,
+  },
+  {
+    label: "Marcas",
+    icon: Tags,
+    to: "/admin/brands",
+    policy: PERMISSIONS.brandView,
+  },
+  {
+    label: "Promociones",
+    icon: BadgePercent,
+    to: "/admin/promotions",
+    policy: PERMISSIONS.promotionView,
+  },
+  {
+    label: "Locaciones",
+    icon: MapPin,
+    to: "/admin/locations",
+    policy: PERMISSIONS.locationView,
+  },
+  {
+    label: "Usuarios",
+    icon: Users,
+    to: "/admin/users",
+    policy: PERMISSIONS.userView,
+  },
+  {
+    label: "Clientes",
+    icon: Contact,
+    to: "/admin/clients",
+    policy: PERMISSIONS.customerView,
+  },
+  {
+    label: "Roles",
+    icon: Shield,
+    to: "/admin/roles",
+    policy: PERMISSIONS.roleView,
+  },
+  {
+    label: "Almacenes",
+    icon: Warehouse,
+    to: "/admin/warehouses",
+    policy: PERMISSIONS.warehouseView,
+  },
 ] as const;
 
 function getInitials(name: string): string {
@@ -66,6 +127,7 @@ export function AppSidebar() {
   const navigate = useNavigate();
   const pathname = useLocation({ select: (location) => location.pathname });
   const actor = useAuthStore((state) => state.actor);
+  const isInDev = useAuthStore((state) => state.isInDev);
   const { logout: handleLogout } = useLogout();
 
   const displayName =
@@ -97,18 +159,22 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {navigationItems.map(({ label, icon: Icon, to }) => (
-                <SidebarMenuItem key={label}>
-                  <SidebarMenuButton
-                    render={<Link to={to} />}
-                    isActive={pathname === to}
-                    tooltip={label}
-                  >
-                    <Icon aria-hidden="true" />
-                    <span>{label}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              {navigationItems
+                .filter(
+                  ({ policy }) => isInDev || hasPolicy(actor?.policies, policy)
+                )
+                .map(({ label, icon: Icon, to }) => (
+                  <SidebarMenuItem key={label}>
+                    <SidebarMenuButton
+                      render={<Link to={to} />}
+                      isActive={pathname === to}
+                      tooltip={label}
+                    >
+                      <Icon aria-hidden="true" />
+                      <span>{label}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

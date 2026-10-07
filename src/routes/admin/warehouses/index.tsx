@@ -38,8 +38,16 @@ import {
 } from "@/components/ui/select";
 import { useListWarehousesRequest } from "@/lib/api/api";
 import type { WarehouseResponse, WarehouseStatus } from "@/lib/api/schemas";
+import { PERMISSIONS } from "@/lib/auth/permissions";
+import { requirePolicy } from "@/lib/auth/require-auth";
 
 export const Route = createFileRoute("/admin/warehouses/")({
+  beforeLoad: async ({ location }) => {
+    await requirePolicy(PERMISSIONS.warehouseView, {
+      from: location.href,
+      navigateTo: "/login",
+    });
+  },
   component: WarehousesIndexPage,
 });
 

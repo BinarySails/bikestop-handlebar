@@ -25,6 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { PERMISSIONS } from "@/lib/auth/permissions";
 
 const DEFAULT_COUNTRY = "México";
 
@@ -92,7 +93,11 @@ export function CreateWarehouseDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger
-        render={<EntityCreateButton>Crear Almacén</EntityCreateButton>}
+        render={
+          <EntityCreateButton policy={PERMISSIONS.warehouseCreate}>
+            Crear Almacén
+          </EntityCreateButton>
+        }
       />
 
       <DialogContent className="sm:max-w-lg">
