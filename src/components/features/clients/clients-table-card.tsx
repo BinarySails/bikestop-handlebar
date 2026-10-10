@@ -1,10 +1,10 @@
 /* oxlint-disable react/no-unstable-nested-components -- column cells are render callbacks, not components */
 import { useEffect, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { SearchIcon, ContactIcon, MoreVerticalIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { CreateClientDialog } from "@/components/features/clients/create-client-modal";
-import { EditClientDialog } from "@/components/features/clients/edit-client-dialog";
 import { AssignUserDialog } from "@/components/features/clients/assign-user-dialog";
 import { useVendorOptions } from "@/components/features/clients/vendor-lookup";
 import { SiteHeader } from "@/components/features/layout/site-header";
@@ -104,8 +104,8 @@ export function ClientsTableCard({
     setPrevSearch(search ?? "");
     setSearchInput(search ?? "");
   }
+  const navigate = useNavigate();
   const [assignCustomerId, setAssignCustomerId] = useState<string | null>(null);
-  const [editCustomerId, setEditCustomerId] = useState<string | null>(null);
   const [statusCustomerId, setStatusCustomerId] = useState<string | null>(null);
   const { trigger: updateStatus, isMutating: isUpdatingStatus } =
     useUpdateCustomerStatusRequest(statusCustomerId ?? "");
@@ -292,7 +292,14 @@ export function ClientsTableCard({
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <Can policy={PERMISSIONS.customerUpdate}>
-              <DropdownMenuItem onClick={() => setEditCustomerId(client.id)}>
+              <DropdownMenuItem
+                onClick={() =>
+                  navigate({
+                    to: "/admin/clients/$clientId/edit",
+                    params: { clientId: client.id },
+                  })
+                }
+              >
                 Editar
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setStatusCustomerId(client.id)}>
@@ -326,20 +333,6 @@ export function ClientsTableCard({
           }}
           onAssigned={() => {
             setAssignCustomerId(null);
-            query.mutate();
-          }}
-        />
-      )}
-
-      {editCustomerId && (
-        <EditClientDialog
-          customerId={editCustomerId}
-          open={editCustomerId !== null}
-          onOpenChange={(nextOpen) => {
-            if (!nextOpen) setEditCustomerId(null);
-          }}
-          onUpdated={() => {
-            setEditCustomerId(null);
             query.mutate();
           }}
         />
