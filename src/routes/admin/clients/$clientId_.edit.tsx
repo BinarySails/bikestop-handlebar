@@ -4,9 +4,18 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 
 import { useVendorOptions } from "@/components/features/clients/vendor-lookup";
+import { CustomerAddressFormDialog } from "@/components/features/customer/customer-address-form-dialog";
+import { CustomerAddressList } from "@/components/features/customer/customer-address-list";
+import { EntityCreateButton } from "@/components/features/entity/entity-create-button";
 import { EntityDetailHeader } from "@/components/features/entity/entity-detail-header";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -17,7 +26,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useGetCustomerRequest, useUpdateCustomerRequest } from "@/lib/api/api";
+import {
+  useGetCustomerRequest,
+  useListCustomerAddressesRequest,
+  useUpdateCustomerRequest,
+} from "@/lib/api/api";
 import type { Customer } from "@/lib/api/schemas";
 import { PERMISSIONS } from "@/lib/auth/permissions";
 import { requirePolicy } from "@/lib/auth/require-auth";
@@ -270,6 +283,52 @@ function ClientEditForm({
           </form>
         </CardContent>
       </Card>
+
+      <ClientAddressesSection userId={customer.user_id ?? ""} />
     </main>
+  );
+}
+
+function ClientAddressesSection({ userId }: { userId: string }) {
+  const { data, mutate } = useListCustomerAddressesRequest(userId, {
+    swr: { enabled: Boolean(userId) },
+  });
+  const addresses = data?.status === 200 ? data.data : [];
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Direcciones</CardTitle>
+        {userId && (
+          <CardAction>
+            <CustomerAddressFormDialog
+              userId={userId}
+              mode="create"
+              onSuccess={() => mutate()}
+              trigger={
+                <EntityCreateButton policy={PERMISSIONS.customerUpdate}>
+                  Agregar dirección
+                </EntityCreateButton>
+              }
+            />
+          </CardAction>
+        )}
+      </CardHeader>
+      <CardContent>
+        {userId ? (
+          <CustomerAddressList
+            userId={userId}
+            addresses={addresses}
+            onChanged={() => mutate()}
+            emptyMessage="Este cliente aún no tiene direcciones registradas."
+          />
+        ) : (
+          <p className="rounded-2xl border border-dashed p-6 text-center text-sm text-muted-foreground">
+            Este cliente no tiene un usuario asociado. Asígnale un usuario para
+            gestionar sus direcciones.
+          </p>
+        )}
+      </CardContent>
+    </Card>
   );
 }
