@@ -1,15 +1,19 @@
 /* oxlint-disable react/no-unstable-nested-components -- column cells are render callbacks, not components */
 import { useEffect, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { SearchIcon, ContactIcon, MoreVerticalIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { CreateClientDialog } from "@/components/features/clients/create-client-modal";
-import { EditClientDialog } from "@/components/features/clients/edit-client-dialog";
 import { AssignUserDialog } from "@/components/features/clients/assign-user-dialog";
 import { useVendorOptions } from "@/components/features/clients/vendor-lookup";
 import { SiteHeader } from "@/components/features/layout/site-header";
 import { Can } from "@/components/features/entity/can";
 import { EntityCardTitle } from "@/components/features/entity/entity-card-title";
+import {
+  EntityFilterBar,
+  type FilterDefinition,
+} from "@/components/features/entity/entity-filter-bar";
 import {
   EntityIndexPage,
   type EntityColumn,
@@ -42,24 +46,60 @@ import {
   useUpdateCustomerStatusRequest,
 } from "@/lib/api/api";
 import {
+  CustomerStatus,
   type PaginatedCustomerSummaryDataItem,
   UserStatus,
 } from "@/lib/api/schemas";
 import { PERMISSIONS } from "@/lib/auth/permissions";
+import { centsToPesos } from "@/lib/money";
+
+const currencyFormatter = new Intl.NumberFormat("es-MX", {
+  style: "currency",
+  currency: "MXN",
+});
 
 type ClientsTableCardProps = {
   search: string | undefined;
+  status: string | undefined;
   page: number;
   limit: number;
   onParamsChange: (updates: {
     search?: string;
+    status?: string;
     page?: number;
     limit?: number;
   }) => void;
 };
 
+const statusFilterLabel: Partial<Record<CustomerStatus, string>> = {
+  [CustomerStatus.enable]: "Activo",
+  [CustomerStatus.disable]: "Inactivo",
+  [CustomerStatus.archive]: "Inactivo",
+};
+
+const filterDefinitions: FilterDefinition[] = [
+  {
+    key: "status",
+    label: "Estado",
+    type: "select",
+    options: [
+      { value: CustomerStatus.enable, label: "Activo" },
+      { value: CustomerStatus.disable, label: "Inactivo" },
+    ],
+    valueFormatter: (value) =>
+      value
+        .split(",")
+        .map(
+          (item) =>
+            statusFilterLabel[item.trim() as CustomerStatus] ?? item.trim()
+        )
+        .join(", "),
+  },
+];
+
 export function ClientsTableCard({
   search,
+  status,
   page,
   limit,
   onParamsChange,
@@ -70,15 +110,21 @@ export function ClientsTableCard({
     setPrevSearch(search ?? "");
     setSearchInput(search ?? "");
   }
+  const navigate = useNavigate();
   const [assignCustomerId, setAssignCustomerId] = useState<string | null>(null);
-  const [editCustomerId, setEditCustomerId] = useState<string | null>(null);
   const [statusCustomerId, setStatusCustomerId] = useState<string | null>(null);
   const { trigger: updateStatus, isMutating: isUpdatingStatus } =
     useUpdateCustomerStatusRequest(statusCustomerId ?? "");
 
+  const statusParam =
+    status === CustomerStatus.disable
+      ? `${CustomerStatus.disable},${CustomerStatus.archive}`
+      : status?.trim() || undefined;
+
   const query = useListCustomersRequest(
     {
       search: search?.trim() || undefined,
+      status: statusParam,
       page,
       limit,
     },
@@ -98,6 +144,14 @@ export function ClientsTableCard({
     }, 300);
     return () => window.clearTimeout(timeout);
   }, [onParamsChange, search, searchInput]);
+
+  function handleFilterChange(_key: string, value: string | undefined) {
+    onParamsChange({ status: value || undefined, page: 0 });
+  }
+
+  function handleClearFilters() {
+    onParamsChange({ status: undefined, page: 0 });
+  }
 
   const response = query.data?.status === 200 ? query.data.data : undefined;
   const clients = response?.data ?? [];
@@ -218,6 +272,20 @@ export function ClientsTableCard({
       },
     },
     {
+      header: "Carro",
+      className: "w-44",
+      cell: (client) =>
+        client.cart_item_count > 0 ? (
+          <span className="text-gray-600">
+            {client.cart_item_count}{" "}
+            {client.cart_item_count === 1 ? "artículo" : "artículos"} ·{" "}
+            {currencyFormatter.format(centsToPesos(client.cart_grand_total))}
+          </span>
+        ) : (
+          <span className="text-xs text-muted-foreground">Sin carro</span>
+        ),
+    },
+    {
       header: "Estado",
       className: "w-24",
       cell: (client) => (
@@ -244,8 +312,15 @@ export function ClientsTableCard({
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <Can policy={PERMISSIONS.customerUpdate}>
-              <DropdownMenuItem onClick={() => setEditCustomerId(client.id)}>
-                Editar
+              <DropdownMenuItem
+                onClick={() =>
+                  navigate({
+                    to: "/admin/clients/$clientId/edit",
+                    params: { clientId: client.id },
+                  })
+                }
+              >
+                Ver
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setStatusCustomerId(client.id)}>
                 {client.status === "enable" ? "Desactivar" : "Activar"}
@@ -262,9 +337,10 @@ export function ClientsTableCard({
     },
   ];
 
-  const emptyMessage = search
-    ? "No hay clientes que coincidan con los filtros."
-    : "No se encontraron clientes.";
+  const emptyMessage =
+    search || status
+      ? "No hay clientes que coincidan con los filtros."
+      : "No se encontraron clientes.";
 
   return (
     <>
@@ -277,20 +353,6 @@ export function ClientsTableCard({
           }}
           onAssigned={() => {
             setAssignCustomerId(null);
-            query.mutate();
-          }}
-        />
-      )}
-
-      {editCustomerId && (
-        <EditClientDialog
-          customerId={editCustomerId}
-          open={editCustomerId !== null}
-          onOpenChange={(nextOpen) => {
-            if (!nextOpen) setEditCustomerId(null);
-          }}
-          onUpdated={() => {
-            setEditCustomerId(null);
             query.mutate();
           }}
         />
@@ -361,18 +423,27 @@ export function ClientsTableCard({
           </EntityCardTitle>
         }
         cardHeaderExtras={
-          <InputGroup className="w-full max-w-xl">
-            <InputGroupAddon>
-              <SearchIcon />
-            </InputGroupAddon>
-            <InputGroupInput
-              type="search"
-              value={searchInput}
-              onChange={(event) => setSearchInput(event.target.value)}
-              placeholder="Buscar por empresa, RFC, email, usuario o vendedor"
-              aria-label="Buscar por empresa, RFC, email, usuario o vendedor"
+          <div className="flex flex-col gap-3">
+            <InputGroup className="w-full max-w-xl">
+              <InputGroupAddon>
+                <SearchIcon />
+              </InputGroupAddon>
+              <InputGroupInput
+                type="search"
+                value={searchInput}
+                onChange={(event) => setSearchInput(event.target.value)}
+                placeholder="Buscar por empresa, RFC, email, usuario o vendedor"
+                aria-label="Buscar por empresa, RFC, email, usuario o vendedor"
+              />
+            </InputGroup>
+            <EntityFilterBar
+              filters={filterDefinitions}
+              values={{ status }}
+              pinned={["status"]}
+              onChange={handleFilterChange}
+              onClear={handleClearFilters}
             />
-          </InputGroup>
+          </div>
         }
         columns={columns}
         rows={clients}

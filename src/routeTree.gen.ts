@@ -46,6 +46,7 @@ import { Route as B2bOrdersIndexRouteImport } from './routes/b2b/orders/index'
 import { Route as B2bOrdersOrderIdRouteImport } from './routes/b2b/orders/$orderId'
 import { Route as AdminBrandsBrandIdEditRouteImport } from './routes/admin/brands/$brandId.edit'
 import { Route as AdminCategoriesCategoryIdEditRouteImport } from './routes/admin/categories/$categoryId_.edit'
+import { Route as AdminClientsClientIdEditRouteImport } from './routes/admin/clients/$clientId_.edit'
 import { Route as AdminSalesOrderIdIndexRouteImport } from './routes/admin/sales/$orderId/index'
 import { Route as AdminSalesOrderIdPaymentsInvoicesRouteImport } from './routes/admin/sales/$orderId/payments-invoices'
 import { Route as AdminSalesOrderIdPrintRouteImport } from './routes/admin/sales/$orderId/print'
@@ -240,6 +241,12 @@ const AdminCategoriesCategoryIdEditRoute =
     path: '/categories/$categoryId/edit',
     getParentRoute: () => AdminRoute,
   } as any)
+const AdminClientsClientIdEditRoute =
+  AdminClientsClientIdEditRouteImport.update({
+    id: '/clients/$clientId_/edit',
+    path: '/clients/$clientId/edit',
+    getParentRoute: () => AdminRoute,
+  } as any)
 const AdminSalesOrderIdIndexRoute = AdminSalesOrderIdIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -306,6 +313,7 @@ export interface FileRoutesByFullPath {
   '/b2b/orders/': typeof B2bOrdersIndexRoute
   '/admin/brands/$brandId/edit': typeof AdminBrandsBrandIdEditRoute
   '/admin/categories/$categoryId/edit': typeof AdminCategoriesCategoryIdEditRoute
+  '/admin/clients/$clientId/edit': typeof AdminClientsClientIdEditRoute
   '/admin/sales/$orderId/payments-invoices': typeof AdminSalesOrderIdPaymentsInvoicesRoute
   '/admin/sales/$orderId/print': typeof AdminSalesOrderIdPrintRoute
   '/b2b/orders/$orderId/print': typeof B2bOrdersOrderIdPrintRoute
@@ -346,6 +354,7 @@ export interface FileRoutesByTo {
   '/b2b/orders': typeof B2bOrdersIndexRoute
   '/admin/brands/$brandId/edit': typeof AdminBrandsBrandIdEditRoute
   '/admin/categories/$categoryId/edit': typeof AdminCategoriesCategoryIdEditRoute
+  '/admin/clients/$clientId/edit': typeof AdminClientsClientIdEditRoute
   '/admin/sales/$orderId/payments-invoices': typeof AdminSalesOrderIdPaymentsInvoicesRoute
   '/admin/sales/$orderId/print': typeof AdminSalesOrderIdPrintRoute
   '/b2b/orders/$orderId/print': typeof B2bOrdersOrderIdPrintRoute
@@ -391,6 +400,7 @@ export interface FileRoutesById {
   '/b2b/orders/': typeof B2bOrdersIndexRoute
   '/admin/brands/$brandId/edit': typeof AdminBrandsBrandIdEditRoute
   '/admin/categories/$categoryId_/edit': typeof AdminCategoriesCategoryIdEditRoute
+  '/admin/clients/$clientId_/edit': typeof AdminClientsClientIdEditRoute
   '/admin/sales/$orderId/payments-invoices': typeof AdminSalesOrderIdPaymentsInvoicesRoute
   '/admin/sales/$orderId/print': typeof AdminSalesOrderIdPrintRoute
   '/b2b/orders/$orderId_/print': typeof B2bOrdersOrderIdPrintRoute
@@ -437,6 +447,7 @@ export interface FileRouteTypes {
     | '/b2b/orders/'
     | '/admin/brands/$brandId/edit'
     | '/admin/categories/$categoryId/edit'
+    | '/admin/clients/$clientId/edit'
     | '/admin/sales/$orderId/payments-invoices'
     | '/admin/sales/$orderId/print'
     | '/b2b/orders/$orderId/print'
@@ -477,6 +488,7 @@ export interface FileRouteTypes {
     | '/b2b/orders'
     | '/admin/brands/$brandId/edit'
     | '/admin/categories/$categoryId/edit'
+    | '/admin/clients/$clientId/edit'
     | '/admin/sales/$orderId/payments-invoices'
     | '/admin/sales/$orderId/print'
     | '/b2b/orders/$orderId/print'
@@ -521,6 +533,7 @@ export interface FileRouteTypes {
     | '/b2b/orders/'
     | '/admin/brands/$brandId/edit'
     | '/admin/categories/$categoryId_/edit'
+    | '/admin/clients/$clientId_/edit'
     | '/admin/sales/$orderId/payments-invoices'
     | '/admin/sales/$orderId/print'
     | '/b2b/orders/$orderId_/print'
@@ -797,6 +810,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCategoriesCategoryIdEditRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/clients/$clientId_/edit': {
+      id: '/admin/clients/$clientId_/edit'
+      path: '/clients/$clientId/edit'
+      fullPath: '/admin/clients/$clientId/edit'
+      preLoaderRoute: typeof AdminClientsClientIdEditRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/sales/$orderId/': {
       id: '/admin/sales/$orderId/'
       path: '/'
@@ -907,6 +927,7 @@ interface AdminRouteChildren {
   AdminUsersIndexRoute: typeof AdminUsersIndexRoute
   AdminBrandsBrandIdEditRoute: typeof AdminBrandsBrandIdEditRoute
   AdminCategoriesCategoryIdEditRoute: typeof AdminCategoriesCategoryIdEditRoute
+  AdminClientsClientIdEditRoute: typeof AdminClientsClientIdEditRoute
   AdminProductsProductIdVariantsVariantIdRoute: typeof AdminProductsProductIdVariantsVariantIdRoute
 }
 
@@ -931,6 +952,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminUsersIndexRoute: AdminUsersIndexRoute,
   AdminBrandsBrandIdEditRoute: AdminBrandsBrandIdEditRoute,
   AdminCategoriesCategoryIdEditRoute: AdminCategoriesCategoryIdEditRoute,
+  AdminClientsClientIdEditRoute: AdminClientsClientIdEditRoute,
   AdminProductsProductIdVariantsVariantIdRoute:
     AdminProductsProductIdVariantsVariantIdRoute,
 }
