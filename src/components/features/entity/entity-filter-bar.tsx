@@ -95,6 +95,7 @@ function FilterEditor({
       <div className="flex flex-col gap-2.5">
         <Select
           value={draft || null}
+          items={definition.options}
           onValueChange={(value) => setDraft(value ?? "")}
         >
           <SelectTrigger className="w-full">

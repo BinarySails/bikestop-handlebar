@@ -11,6 +11,10 @@ import { SiteHeader } from "@/components/features/layout/site-header";
 import { Can } from "@/components/features/entity/can";
 import { EntityCardTitle } from "@/components/features/entity/entity-card-title";
 import {
+  EntityFilterBar,
+  type FilterDefinition,
+} from "@/components/features/entity/entity-filter-bar";
+import {
   EntityIndexPage,
   type EntityColumn,
 } from "@/components/features/entity/entity-index-page";
@@ -42,6 +46,7 @@ import {
   useUpdateCustomerStatusRequest,
 } from "@/lib/api/api";
 import {
+  CustomerStatus,
   type PaginatedCustomerSummaryDataItem,
   UserStatus,
 } from "@/lib/api/schemas";
@@ -49,17 +54,46 @@ import { PERMISSIONS } from "@/lib/auth/permissions";
 
 type ClientsTableCardProps = {
   search: string | undefined;
+  status: string | undefined;
   page: number;
   limit: number;
   onParamsChange: (updates: {
     search?: string;
+    status?: string;
     page?: number;
     limit?: number;
   }) => void;
 };
 
+const statusFilterLabel: Partial<Record<CustomerStatus, string>> = {
+  [CustomerStatus.enable]: "Activo",
+  [CustomerStatus.disable]: "Inactivo",
+  [CustomerStatus.archive]: "Inactivo",
+};
+
+const filterDefinitions: FilterDefinition[] = [
+  {
+    key: "status",
+    label: "Estado",
+    type: "select",
+    options: [
+      { value: CustomerStatus.enable, label: "Activo" },
+      { value: CustomerStatus.disable, label: "Inactivo" },
+    ],
+    valueFormatter: (value) =>
+      value
+        .split(",")
+        .map(
+          (item) =>
+            statusFilterLabel[item.trim() as CustomerStatus] ?? item.trim()
+        )
+        .join(", "),
+  },
+];
+
 export function ClientsTableCard({
   search,
+  status,
   page,
   limit,
   onParamsChange,
@@ -76,9 +110,15 @@ export function ClientsTableCard({
   const { trigger: updateStatus, isMutating: isUpdatingStatus } =
     useUpdateCustomerStatusRequest(statusCustomerId ?? "");
 
+  const statusParam =
+    status === CustomerStatus.disable
+      ? `${CustomerStatus.disable},${CustomerStatus.archive}`
+      : status?.trim() || undefined;
+
   const query = useListCustomersRequest(
     {
       search: search?.trim() || undefined,
+      status: statusParam,
       page,
       limit,
     },
@@ -98,6 +138,14 @@ export function ClientsTableCard({
     }, 300);
     return () => window.clearTimeout(timeout);
   }, [onParamsChange, search, searchInput]);
+
+  function handleFilterChange(_key: string, value: string | undefined) {
+    onParamsChange({ status: value || undefined, page: 0 });
+  }
+
+  function handleClearFilters() {
+    onParamsChange({ status: undefined, page: 0 });
+  }
 
   const response = query.data?.status === 200 ? query.data.data : undefined;
   const clients = response?.data ?? [];
@@ -262,9 +310,10 @@ export function ClientsTableCard({
     },
   ];
 
-  const emptyMessage = search
-    ? "No hay clientes que coincidan con los filtros."
-    : "No se encontraron clientes.";
+  const emptyMessage =
+    search || status
+      ? "No hay clientes que coincidan con los filtros."
+      : "No se encontraron clientes.";
 
   return (
     <>
@@ -361,18 +410,27 @@ export function ClientsTableCard({
           </EntityCardTitle>
         }
         cardHeaderExtras={
-          <InputGroup className="w-full max-w-xl">
-            <InputGroupAddon>
-              <SearchIcon />
-            </InputGroupAddon>
-            <InputGroupInput
-              type="search"
-              value={searchInput}
-              onChange={(event) => setSearchInput(event.target.value)}
-              placeholder="Buscar por empresa, RFC, email, usuario o vendedor"
-              aria-label="Buscar por empresa, RFC, email, usuario o vendedor"
+          <div className="flex flex-col gap-3">
+            <InputGroup className="w-full max-w-xl">
+              <InputGroupAddon>
+                <SearchIcon />
+              </InputGroupAddon>
+              <InputGroupInput
+                type="search"
+                value={searchInput}
+                onChange={(event) => setSearchInput(event.target.value)}
+                placeholder="Buscar por empresa, RFC, email, usuario o vendedor"
+                aria-label="Buscar por empresa, RFC, email, usuario o vendedor"
+              />
+            </InputGroup>
+            <EntityFilterBar
+              filters={filterDefinitions}
+              values={{ status }}
+              pinned={["status"]}
+              onChange={handleFilterChange}
+              onClear={handleClearFilters}
             />
-          </InputGroup>
+          </div>
         }
         columns={columns}
         rows={clients}

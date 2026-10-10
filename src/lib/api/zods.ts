@@ -465,6 +465,7 @@ export const GetCatalogProductRequestResponse = zod.object({
 
 export const ListCustomersRequestQueryParams = zod.object({
   "search": zod.string().optional(),
+  "status": zod.string().optional(),
   "page": zod.int().optional(),
   "limit": zod.int().optional()
 })
