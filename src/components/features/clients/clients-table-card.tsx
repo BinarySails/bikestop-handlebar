@@ -51,6 +51,12 @@ import {
   UserStatus,
 } from "@/lib/api/schemas";
 import { PERMISSIONS } from "@/lib/auth/permissions";
+import { centsToPesos } from "@/lib/money";
+
+const currencyFormatter = new Intl.NumberFormat("es-MX", {
+  style: "currency",
+  currency: "MXN",
+});
 
 type ClientsTableCardProps = {
   search: string | undefined;
@@ -266,6 +272,20 @@ export function ClientsTableCard({
       },
     },
     {
+      header: "Carro",
+      className: "w-44",
+      cell: (client) =>
+        client.cart_item_count > 0 ? (
+          <span className="text-gray-600">
+            {client.cart_item_count}{" "}
+            {client.cart_item_count === 1 ? "artículo" : "artículos"} ·{" "}
+            {currencyFormatter.format(centsToPesos(client.cart_grand_total))}
+          </span>
+        ) : (
+          <span className="text-xs text-muted-foreground">Sin carro</span>
+        ),
+    },
+    {
       header: "Estado",
       className: "w-24",
       cell: (client) => (
@@ -300,7 +320,7 @@ export function ClientsTableCard({
                   })
                 }
               >
-                Editar
+                Ver
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setStatusCustomerId(client.id)}>
                 {client.status === "enable" ? "Desactivar" : "Activar"}

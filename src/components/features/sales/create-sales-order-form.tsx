@@ -392,6 +392,9 @@ function valuesFromOrder(order: SalesOrder): SalesOrderFormValues {
       // The order snapshot carries no status; a persisted order implies an
       // active customer. Replaced wholesale when the combobox selection changes.
       status: "enable",
+      // The order snapshot carries no cart summary either.
+      cart_item_count: 0,
+      cart_grand_total: 0,
     },
     billing: addressValues(order.billing_address),
     shipping_same_as_billing: sameAddress(

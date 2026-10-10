@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { ImageOff } from "lucide-react";
 import { toast } from "sonner";
 
 import { useVendorOptions } from "@/components/features/clients/vendor-lookup";
@@ -32,10 +33,17 @@ import {
   useUpdateCustomerRequest,
 } from "@/lib/api/api";
 import type { Customer } from "@/lib/api/schemas";
+import { useCustomerCart } from "@/lib/api/use-customer-cart";
 import { PERMISSIONS } from "@/lib/auth/permissions";
 import { requirePolicy } from "@/lib/auth/require-auth";
+import { centsToPesos } from "@/lib/money";
 
 const UNASSIGNED_VALUE = "__unassigned__";
+
+const currencyFormatter = new Intl.NumberFormat("es-MX", {
+  style: "currency",
+  currency: "MXN",
+});
 
 const clientsListSearch = {
   search: undefined,
@@ -285,7 +293,113 @@ function ClientEditForm({
       </Card>
 
       <ClientAddressesSection userId={customer.user_id ?? ""} />
+
+      <ClientCartSection customerId={customer.id} />
     </main>
+  );
+}
+
+function ClientCartSection({ customerId }: { customerId: string }) {
+  const { cart, isLoading, error } = useCustomerCart(customerId);
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Carro</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <div className="space-y-3">
+            <Skeleton className="h-16 w-full rounded-lg" />
+            <Skeleton className="h-16 w-full rounded-lg" />
+          </div>
+        ) : error ? (
+          <p className="rounded-2xl border border-dashed p-6 text-center text-sm text-muted-foreground">
+            No se pudo cargar el carro del cliente.
+          </p>
+        ) : !cart || cart.items.length === 0 ? (
+          <p className="rounded-2xl border border-dashed p-6 text-center text-sm text-muted-foreground">
+            Este cliente no tiene artículos en el carro.
+          </p>
+        ) : (
+          <div className="space-y-4">
+            <ul className="divide-y">
+              {cart.items.map((item) => {
+                const mainImage = item.images[0];
+                return (
+                  <li
+                    key={item.id}
+                    className="flex gap-4 py-4 first:pt-0 last:pb-0"
+                  >
+                    <div className="relative size-16 shrink-0 overflow-hidden rounded-lg bg-muted">
+                      {mainImage ? (
+                        <img
+                          src={mainImage.image_url}
+                          alt={item.display_name}
+                          className="size-full object-cover"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="flex size-full items-center justify-center text-muted-foreground">
+                          <ImageOff className="size-5" />
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold">
+                        {item.display_name}
+                      </p>
+                      {item.properties.length > 0 && (
+                        <p className="text-xs text-muted-foreground">
+                          {item.properties
+                            .map((property) => property.property_value)
+                            .join(", ")}
+                        </p>
+                      )}
+                      <p className="text-xs text-muted-foreground">
+                        SKU: {item.sku}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {item.quantity} ×{" "}
+                        {currencyFormatter.format(
+                          centsToPesos(item.unit_price)
+                        )}
+                      </p>
+                    </div>
+
+                    <p className="text-sm font-semibold">
+                      {currencyFormatter.format(centsToPesos(item.line_total))}
+                    </p>
+                  </li>
+                );
+              })}
+            </ul>
+
+            <div className="space-y-1 border-t pt-4 text-sm">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Subtotal</span>
+                <span>
+                  {currencyFormatter.format(centsToPesos(cart.subtotal))}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">IVA</span>
+                <span>
+                  {currencyFormatter.format(centsToPesos(cart.tax_total))}
+                </span>
+              </div>
+              <div className="flex justify-between font-semibold">
+                <span>Total</span>
+                <span>
+                  {currencyFormatter.format(centsToPesos(cart.grand_total))}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
