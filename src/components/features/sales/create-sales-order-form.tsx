@@ -58,6 +58,7 @@ import {
   useGetCustomerRequest,
   useListCustomerAddressesRequest,
   useListInventoryRequest,
+  useListPromotionsRequest,
 } from "@/lib/api/api";
 import {
   type CustomerAddressWithAddressRow,
@@ -65,8 +66,10 @@ import {
   type PaginatedCustomerSummaryDataItem,
   type CreateSalesOrderRequest,
   type Product,
+  type Promotion,
   ProductStatus,
   type SalesOrder,
+  type SalesOrderLine,
   type SalesOrderLineId,
   type Variant,
   VariantStatus,
@@ -79,6 +82,7 @@ import { centsToPesos, centsToPesosString, pesosToCents } from "@/lib/money";
 import { computeDueDate, formatDueDate } from "@/lib/dates";
 import { PaymentTermSelect } from "@/components/features/sales/payment-term-select";
 import { CreateSalesOrderRequestBody } from "@/lib/api/zods";
+import { calculateAutomaticPromotionPreview } from "./automatic-promotion-preview";
 
 const MAX_PRICE_DECIMALS = 2;
 const DEFAULT_TAX_PERCENT = "16";
@@ -261,6 +265,41 @@ function computeLineTotals(line: LineFormValues) {
     tax,
     total: gross + tax,
   };
+}
+
+function formLineMatchesOrderLine(
+  formLine: LineFormValues,
+  orderLine: SalesOrderLine
+): boolean {
+  return (
+    formLine.id === orderLine.id &&
+    formLine.variant?.id === orderLine.variant_id &&
+    Number(formLine.quantity) === orderLine.quantity &&
+    pesosToCents(Number(formLine.unit_price)) === orderLine.unit_price &&
+    percentToBasisPoints(formLine.tax_rate) === orderLine.tax_rate
+  );
+}
+
+function persistedDiscountLabels(
+  line: SalesOrderLine,
+  promotions: Promotion[]
+): string[] {
+  const labels = line.adjustments
+    .filter((adjustment) => adjustment.amount > 0)
+    .map((adjustment) => {
+      if (!("Promotion" in adjustment.source)) return "Monto fijo";
+      const promotionCode = adjustment.source.Promotion.code;
+      const promotion = promotions.find((item) => item.code === promotionCode);
+      if (!promotion) return "Monto fijo";
+      const value =
+        "Standard" in promotion.application_method
+          ? promotion.application_method.Standard.value
+          : promotion.application_method.BuyGet.value;
+      return "percentage" in value
+        ? `${(value.percentage / 100).toFixed(2).replace(/\.?(0+)$/, "")}%`
+        : "Monto fijo";
+    });
+  return [...new Set(labels.length > 0 ? labels : ["Monto fijo"])];
 }
 
 export function validateWarehouseAllocations(
@@ -467,6 +506,12 @@ export function CreateSalesOrderForm({
   const isDetail = Boolean(order);
   const editable =
     !order || order.status === "draft" || order.status === "quote";
+  const { data: promotionsResponse } = useListPromotionsRequest();
+  const promotions =
+    promotionsResponse?.status === 200 ? promotionsResponse.data : [];
+  const automaticPromotions = promotions.filter(
+    (promotion) => promotion.status === "active" && promotion.is_automatic
+  );
   const canAdvance = order?.status === "draft" || order?.status === "quote";
   const canConfirm = order?.status === "draft";
   const canCancel =
@@ -967,8 +1012,7 @@ export function CreateSalesOrderForm({
       const selection = selections[0];
       if (!selection) return;
       const lineIndex = editingLineIndex;
-      const quantity =
-        form.state.values.lines[lineIndex]?.quantity ?? "1";
+      const quantity = form.state.values.lines[lineIndex]?.quantity ?? "1";
       applyVisualSelectionToLine(lineIndex, selection);
       void assignDefaultWarehouse(lineIndex, selection.variant.id, quantity);
       setEditingLineIndex(null);
@@ -1003,10 +1047,7 @@ export function CreateSalesOrderForm({
         warehouse_error: undefined as string | undefined,
       };
     });
-    form.setFieldValue("lines", [
-      ...form.state.values.lines,
-      ...newLines,
-    ]);
+    form.setFieldValue("lines", [...form.state.values.lines, ...newLines]);
     fresh.forEach((selection, offset) => {
       void assignDefaultWarehouse(
         baseIndex + offset,
@@ -2175,390 +2216,466 @@ export function CreateSalesOrderForm({
           </CardHeader>
           <CardContent className="space-y-4">
             <form.Field name="lines">
-              {(field) => (
-                <>
-                  {field.state.value.length === 0 && (
-                    <p className="text-sm text-muted-foreground">
-                      No hay líneas agregadas. Presiona "Agregar productos" para
-                      elegir visualmente.
-                    </p>
-                  )}
+              {(field) => {
+                const automaticPreview = calculateAutomaticPromotionPreview(
+                  automaticPromotions,
+                  field.state.value,
+                  form.state.values.customer?.id ?? null,
+                  form.state.values.order_date
+                );
+                return (
+                  <>
+                    {field.state.value.length === 0 && (
+                      <p className="text-sm text-muted-foreground">
+                        No hay líneas agregadas. Presiona "Agregar productos"
+                        para elegir visualmente.
+                      </p>
+                    )}
 
-                  {field.state.value.map((_, index) => {
-                    const line = field.state.value[index];
-                    const totals = computeLineTotals(line);
-                    const warehouseError = line.variant
-                      ? (line.warehouse_error ??
-                        validateWarehouseAllocations(
-                          line.quantity,
-                          line.warehouse_allocations
-                        ))
-                      : undefined;
+                    {field.state.value.map((_, index) => {
+                      const line = field.state.value[index];
+                      const totals = computeLineTotals(line);
+                      const persistedLine = order?.lines.find(
+                        (orderLine) =>
+                          orderLine.id === line.id &&
+                          formLineMatchesOrderLine(line, orderLine)
+                      );
+                      const automaticDiscount =
+                        persistedLine?.discount_amount ??
+                        automaticPreview.lineDiscounts[index] ??
+                        0;
+                      const automaticDiscountLabels = persistedLine
+                        ? persistedDiscountLabels(persistedLine, promotions)
+                        : (automaticPreview.lineDiscountLabels[index] ?? []);
+                      const lineTotal =
+                        persistedLine?.line_total ??
+                        Math.max(0, totals.total - automaticDiscount);
+                      const warehouseError = line.variant
+                        ? (line.warehouse_error ??
+                          validateWarehouseAllocations(
+                            line.quantity,
+                            line.warehouse_allocations
+                          ))
+                        : undefined;
 
-                    return (
-                      <div
-                        key={index}
-                        className="space-y-3 rounded-lg border p-4"
-                      >
-                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
-                          <ProductLineThumbnail
-                            productId={line.product?.id ?? null}
-                            variantId={line.variant?.id ?? null}
-                            embeddedImages={line.variant?.images}
-                            alt={line.description || "Producto"}
-                            className="size-20"
-                          />
+                      return (
+                        <div
+                          key={index}
+                          className="space-y-3 rounded-lg border p-4"
+                        >
+                          <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+                            <ProductLineThumbnail
+                              productId={line.product?.id ?? null}
+                              variantId={line.variant?.id ?? null}
+                              embeddedImages={line.variant?.images}
+                              alt={line.description || "Producto"}
+                              className="size-20"
+                            />
 
-                          <form.Field
-                            name={`lines[${index}].variant`}
-                            validators={{
-                              onSubmit: ({ value }) => {
-                                if (!value) return "Selecciona una variante.";
-                                return undefined;
-                              },
-                            }}
-                          >
-                            {(subField) => {
-                              const variantPrice = line.variant
-                                ? findActiveRegularPrice(line.variant)
-                                : undefined;
-                              return (
-                                <div className="grid flex-1 gap-1.5">
-                                  <Label>Producto</Label>
-                                  {line.variant && line.product ? (
-                                    <div className="flex flex-1 items-start justify-between gap-3 rounded-lg border bg-muted/20 p-3">
-                                      <div className="min-w-0">
-                                        <p className="truncate text-sm font-semibold">
-                                          {line.product.display_name}
-                                        </p>
-                                        <p className="truncate text-sm text-muted-foreground">
-                                          {line.variant.display_name}
-                                        </p>
-                                        <p className="mt-1 text-xs text-muted-foreground">
-                                          SKU: {line.variant.sku} · Stock:{" "}
-                                          {line.variant.total_inventory}
-                                          {variantPrice
-                                            ? ` · $${centsToPesos(variantPrice.amount).toFixed(2)}`
-                                            : ""}
-                                        </p>
+                            <form.Field
+                              name={`lines[${index}].variant`}
+                              validators={{
+                                onSubmit: ({ value }) => {
+                                  if (!value) return "Selecciona una variante.";
+                                  return undefined;
+                                },
+                              }}
+                            >
+                              {(subField) => {
+                                const variantPrice = line.variant
+                                  ? findActiveRegularPrice(line.variant)
+                                  : undefined;
+                                return (
+                                  <div className="grid flex-1 gap-1.5">
+                                    <Label>Producto</Label>
+                                    {line.variant && line.product ? (
+                                      <div className="flex flex-1 items-start justify-between gap-3 rounded-lg border bg-muted/20 p-3">
+                                        <div className="min-w-0">
+                                          <p className="truncate text-sm font-semibold">
+                                            {line.product.display_name}
+                                          </p>
+                                          <p className="truncate text-sm text-muted-foreground">
+                                            {line.variant.display_name}
+                                          </p>
+                                          <p className="mt-1 text-xs text-muted-foreground">
+                                            SKU: {line.variant.sku} · Stock:{" "}
+                                            {line.variant.total_inventory}
+                                            {variantPrice
+                                              ? ` · $${centsToPesos(variantPrice.amount).toFixed(2)}`
+                                              : ""}
+                                          </p>
+                                        </div>
+                                        {editable && (
+                                          <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            className="shrink-0"
+                                            onClick={() => {
+                                              setEditingLineIndex(index);
+                                              setPickerOpen(true);
+                                            }}
+                                          >
+                                            <Images className="size-4" />
+                                            Cambiar
+                                          </Button>
+                                        )}
                                       </div>
-                                      {editable && (
-                                        <Button
-                                          type="button"
-                                          variant="outline"
-                                          size="sm"
-                                          className="shrink-0"
-                                          onClick={() => {
-                                            setEditingLineIndex(index);
-                                            setPickerOpen(true);
-                                          }}
-                                        >
-                                          <Images className="size-4" />
-                                          Cambiar
-                                        </Button>
-                                      )}
-                                    </div>
-                                  ) : (
+                                    ) : (
+                                      <Button
+                                        type="button"
+                                        variant="outline"
+                                        disabled={!editable}
+                                        className="h-auto justify-start gap-3 border-dashed p-3 text-left"
+                                        onClick={() => {
+                                          setEditingLineIndex(index);
+                                          setPickerOpen(true);
+                                        }}
+                                      >
+                                        <Images className="size-5 shrink-0 text-muted-foreground" />
+                                        <span>
+                                          <span className="block text-sm font-medium">
+                                            Seleccionar producto
+                                          </span>
+                                          <span className="block text-xs text-muted-foreground">
+                                            Ver imágenes grandes y elegir
+                                            variante
+                                          </span>
+                                        </span>
+                                      </Button>
+                                    )}
+                                    {subField.state.meta.errors[0] && (
+                                      <p className="text-xs text-destructive">
+                                        {subField.state.meta.errors[0]}
+                                      </p>
+                                    )}
+                                  </div>
+                                );
+                              }}
+                            </form.Field>
+
+                            <div className="flex items-end gap-1">
+                              <Tooltip>
+                                <TooltipTrigger
+                                  render={
                                     <Button
                                       type="button"
-                                      variant="outline"
-                                      disabled={!editable}
-                                      className="h-auto justify-start gap-3 border-dashed p-3 text-left"
-                                      onClick={() => {
-                                        setEditingLineIndex(index);
-                                        setPickerOpen(true);
-                                      }}
-                                    >
-                                      <Images className="size-5 shrink-0 text-muted-foreground" />
-                                      <span>
-                                        <span className="block text-sm font-medium">
-                                          Seleccionar producto
-                                        </span>
-                                        <span className="block text-xs text-muted-foreground">
-                                          Ver imágenes grandes y elegir variante
-                                        </span>
-                                      </span>
-                                    </Button>
+                                      variant="ghost"
+                                      size="icon"
+                                      className="relative size-9"
+                                      disabled={!line.variant}
+                                      aria-invalid={Boolean(warehouseError)}
+                                      aria-label={
+                                        editable
+                                          ? `Asignar almacenes para la línea ${index + 1}`
+                                          : `Ver distribución por almacén de la línea ${index + 1}`
+                                      }
+                                      onClick={() =>
+                                        openWarehouseDistribution(index, line)
+                                      }
+                                    />
+                                  }
+                                >
+                                  <WarehouseIcon className="size-4" />
+                                  {warehouseError && (
+                                    <Badge
+                                      variant="destructive"
+                                      className="absolute -top-1 -right-1 size-3 p-0"
+                                      aria-hidden="true"
+                                    />
                                   )}
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  {line.variant
+                                    ? editable
+                                      ? "Asignar almacenes"
+                                      : "Ver distribución por almacén"
+                                    : "Selecciona una variante primero"}
+                                </TooltipContent>
+                              </Tooltip>
+                              {editable && (
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  className="size-9 text-destructive"
+                                  onClick={() => field.removeValue(index)}
+                                  aria-label="Eliminar línea"
+                                >
+                                  <Trash2 className="size-4" />
+                                </Button>
+                              )}
+                            </div>
+
+                            {(order?.status === "confirmed" ||
+                              order?.status === "partially_fulfilled" ||
+                              order?.status === "fulfilled") &&
+                              line.id && (
+                                <div className="flex flex-col items-end gap-1">
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    disabled={
+                                      order.status === "fulfilled" ||
+                                      remainingQuantityForLine(line.id) === 0 ||
+                                      dispatchingLineId !== null
+                                    }
+                                    onClick={() => {
+                                      const firstAllocation = order.lines
+                                        .find((item) => item.id === line.id)
+                                        ?.warehouse_allocations.find(
+                                          (allocation) =>
+                                            allocation.quantity >
+                                            allocation.dispatched_quantity
+                                        );
+                                      setDispatchLineId(line.id!);
+                                      setDispatchWarehouseId(
+                                        firstAllocation?.warehouse_id ?? null
+                                      );
+                                      setDispatchQuantity(
+                                        firstAllocation
+                                          ? String(
+                                              firstAllocation.quantity -
+                                                firstAllocation.dispatched_quantity
+                                            )
+                                          : ""
+                                      );
+                                    }}
+                                  >
+                                    {dispatchingLineId === line.id
+                                      ? "Despachando..."
+                                      : order.status === "fulfilled" ||
+                                          remainingQuantityForLine(line.id) ===
+                                            0
+                                        ? "Despachada"
+                                        : "Despachar"}
+                                  </Button>
+                                </div>
+                              )}
+                          </div>
+
+                          <form.Field
+                            name={`lines[${index}].description`}
+                            validators={{
+                              onSubmit: ({ value }) =>
+                                validateRequired(value, "La descripción", 1),
+                            }}
+                          >
+                            {(subField) => (
+                              <div className="grid gap-1.5">
+                                <Label htmlFor={subField.name}>
+                                  Descripción
+                                </Label>
+                                <Input
+                                  id={subField.name}
+                                  value={subField.state.value}
+                                  disabled
+                                  onChange={(event) =>
+                                    subField.handleChange(event.target.value)
+                                  }
+                                  onBlur={subField.handleBlur}
+                                  placeholder="Descripción del producto"
+                                  aria-invalid={
+                                    subField.state.meta.errors.length > 0
+                                  }
+                                />
+                                {subField.state.meta.errors[0] && (
+                                  <p className="text-xs text-destructive">
+                                    {subField.state.meta.errors[0]}
+                                  </p>
+                                )}
+                              </div>
+                            )}
+                          </form.Field>
+
+                          <div className="grid grid-cols-2 gap-3 sm:flex sm:items-end sm:gap-3">
+                            <form.Field
+                              name={`lines[${index}].quantity`}
+                              validators={{
+                                onSubmit: ({ value }) =>
+                                  validateQuantity(value),
+                              }}
+                            >
+                              {(subField) => (
+                                <div className="grid flex-1 gap-1.5 sm:max-w-[6rem]">
+                                  <Label htmlFor={subField.name}>
+                                    Cantidad
+                                  </Label>
+                                  <Input
+                                    id={subField.name}
+                                    type="number"
+                                    min={1}
+                                    step={1}
+                                    value={subField.state.value}
+                                    disabled={!editable}
+                                    onChange={(event) => {
+                                      const quantity = event.target.value;
+                                      subField.handleChange(quantity);
+                                      if (
+                                        line.variant &&
+                                        !line.warehouse_allocation_manual
+                                      ) {
+                                        form.setFieldValue(
+                                          `lines[${index}].warehouse_allocations`,
+                                          []
+                                        );
+                                        form.setFieldValue(
+                                          `lines[${index}].warehouse_error`,
+                                          undefined
+                                        );
+                                        void assignDefaultWarehouse(
+                                          index,
+                                          line.variant.id,
+                                          quantity
+                                        );
+                                      }
+                                    }}
+                                    onBlur={subField.handleBlur}
+                                    aria-invalid={
+                                      subField.state.meta.errors.length > 0
+                                    }
+                                  />
                                   {subField.state.meta.errors[0] && (
                                     <p className="text-xs text-destructive">
                                       {subField.state.meta.errors[0]}
                                     </p>
                                   )}
                                 </div>
-                              );
-                            }}
-                          </form.Field>
-
-                          <div className="flex items-end gap-1">
-                            <Tooltip>
-                              <TooltipTrigger
-                                render={
-                                  <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="icon"
-                                    className="relative size-9"
-                                    disabled={!line.variant}
-                                    aria-invalid={Boolean(warehouseError)}
-                                    aria-label={
-                                      editable
-                                        ? `Asignar almacenes para la línea ${index + 1}`
-                                        : `Ver distribución por almacén de la línea ${index + 1}`
-                                    }
-                                    onClick={() =>
-                                      openWarehouseDistribution(index, line)
-                                    }
-                                  />
-                                }
-                              >
-                                <WarehouseIcon className="size-4" />
-                                {warehouseError && (
-                                  <Badge
-                                    variant="destructive"
-                                    className="absolute -top-1 -right-1 size-3 p-0"
-                                    aria-hidden="true"
-                                  />
-                                )}
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                {line.variant
-                                  ? editable
-                                    ? "Asignar almacenes"
-                                    : "Ver distribución por almacén"
-                                  : "Selecciona una variante primero"}
-                              </TooltipContent>
-                            </Tooltip>
-                            {editable && (
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                className="size-9 text-destructive"
-                                onClick={() => field.removeValue(index)}
-                                aria-label="Eliminar línea"
-                              >
-                                <Trash2 className="size-4" />
-                              </Button>
-                            )}
-                          </div>
-
-                          {(order?.status === "confirmed" ||
-                            order?.status === "partially_fulfilled" ||
-                            order?.status === "fulfilled") &&
-                            line.id && (
-                              <div className="flex flex-col items-end gap-1">
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  disabled={
-                                    order.status === "fulfilled" ||
-                                    remainingQuantityForLine(line.id) === 0 ||
-                                    dispatchingLineId !== null
-                                  }
-                                  onClick={() => {
-                                    const firstAllocation = order.lines
-                                      .find((item) => item.id === line.id)
-                                      ?.warehouse_allocations.find(
-                                        (allocation) =>
-                                          allocation.quantity >
-                                          allocation.dispatched_quantity
-                                      );
-                                    setDispatchLineId(line.id!);
-                                    setDispatchWarehouseId(
-                                      firstAllocation?.warehouse_id ?? null
-                                    );
-                                    setDispatchQuantity(
-                                      firstAllocation
-                                        ? String(
-                                            firstAllocation.quantity -
-                                              firstAllocation.dispatched_quantity
-                                          )
-                                        : ""
-                                    );
-                                  }}
-                                >
-                                  {dispatchingLineId === line.id
-                                    ? "Despachando..."
-                                    : order.status === "fulfilled" ||
-                                        remainingQuantityForLine(line.id) === 0
-                                      ? "Despachada"
-                                      : "Despachar"}
-                                </Button>
-                              </div>
-                            )}
-                        </div>
-
-                        <form.Field
-                          name={`lines[${index}].description`}
-                          validators={{
-                            onSubmit: ({ value }) =>
-                              validateRequired(value, "La descripción", 1),
-                          }}
-                        >
-                          {(subField) => (
-                            <div className="grid gap-1.5">
-                              <Label htmlFor={subField.name}>Descripción</Label>
-                              <Input
-                                id={subField.name}
-                                value={subField.state.value}
-                                disabled
-                                onChange={(event) =>
-                                  subField.handleChange(event.target.value)
-                                }
-                                onBlur={subField.handleBlur}
-                                placeholder="Descripción del producto"
-                                aria-invalid={
-                                  subField.state.meta.errors.length > 0
-                                }
-                              />
-                              {subField.state.meta.errors[0] && (
-                                <p className="text-xs text-destructive">
-                                  {subField.state.meta.errors[0]}
-                                </p>
                               )}
-                            </div>
-                          )}
-                        </form.Field>
+                            </form.Field>
 
-                        <div className="grid grid-cols-2 gap-3 sm:flex sm:items-end sm:gap-3">
-                          <form.Field
-                            name={`lines[${index}].quantity`}
-                            validators={{
-                              onSubmit: ({ value }) => validateQuantity(value),
-                            }}
-                          >
-                            {(subField) => (
-                              <div className="grid flex-1 gap-1.5 sm:max-w-[6rem]">
-                                <Label htmlFor={subField.name}>Cantidad</Label>
-                                <Input
-                                  id={subField.name}
-                                  type="number"
-                                  min={1}
-                                  step={1}
-                                  value={subField.state.value}
-                                  disabled={!editable}
-                                  onChange={(event) => {
-                                    const quantity = event.target.value;
-                                    subField.handleChange(quantity);
-                                    if (
-                                      line.variant &&
-                                      !line.warehouse_allocation_manual
-                                    ) {
-                                      form.setFieldValue(
-                                        `lines[${index}].warehouse_allocations`,
-                                        []
-                                      );
-                                      form.setFieldValue(
-                                        `lines[${index}].warehouse_error`,
-                                        undefined
-                                      );
-                                      void assignDefaultWarehouse(
-                                        index,
-                                        line.variant.id,
-                                        quantity
-                                      );
+                            <form.Field
+                              name={`lines[${index}].unit_price`}
+                              validators={{
+                                onSubmit: ({ value }) =>
+                                  validateUnitPrice(value),
+                              }}
+                            >
+                              {(subField) => (
+                                <div className="grid flex-1 gap-1.5 sm:max-w-[8rem]">
+                                  <Label htmlFor={subField.name}>
+                                    Precio unit.
+                                  </Label>
+                                  <Input
+                                    id={subField.name}
+                                    type="number"
+                                    min={0}
+                                    step="0.01"
+                                    value={subField.state.value}
+                                    disabled
+                                    onChange={(event) =>
+                                      subField.handleChange(event.target.value)
                                     }
-                                  }}
-                                  onBlur={subField.handleBlur}
-                                  aria-invalid={
-                                    subField.state.meta.errors.length > 0
-                                  }
-                                />
-                                {subField.state.meta.errors[0] && (
-                                  <p className="text-xs text-destructive">
-                                    {subField.state.meta.errors[0]}
-                                  </p>
-                                )}
-                              </div>
-                            )}
-                          </form.Field>
+                                    onBlur={subField.handleBlur}
+                                    aria-invalid={
+                                      subField.state.meta.errors.length > 0
+                                    }
+                                    className="[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                                  />
+                                  {subField.state.meta.errors[0] && (
+                                    <p className="text-xs text-destructive">
+                                      {subField.state.meta.errors[0]}
+                                    </p>
+                                  )}
+                                </div>
+                              )}
+                            </form.Field>
 
-                          <form.Field
-                            name={`lines[${index}].unit_price`}
-                            validators={{
-                              onSubmit: ({ value }) => validateUnitPrice(value),
-                            }}
-                          >
-                            {(subField) => (
-                              <div className="grid flex-1 gap-1.5 sm:max-w-[8rem]">
-                                <Label htmlFor={subField.name}>
-                                  Precio unit.
-                                </Label>
-                                <Input
-                                  id={subField.name}
-                                  type="number"
-                                  min={0}
-                                  step="0.01"
-                                  value={subField.state.value}
-                                  disabled
-                                  onChange={(event) =>
-                                    subField.handleChange(event.target.value)
-                                  }
-                                  onBlur={subField.handleBlur}
-                                  aria-invalid={
-                                    subField.state.meta.errors.length > 0
-                                  }
-                                  className="[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                                />
-                                {subField.state.meta.errors[0] && (
-                                  <p className="text-xs text-destructive">
-                                    {subField.state.meta.errors[0]}
-                                  </p>
-                                )}
-                              </div>
-                            )}
-                          </form.Field>
+                            <form.Field
+                              name={`lines[${index}].tax_rate`}
+                              validators={{
+                                onSubmit: ({ value }) =>
+                                  validatePercent(value, "El impuesto"),
+                              }}
+                            >
+                              {(subField) => (
+                                <div className="grid flex-1 gap-1.5 sm:max-w-[6rem]">
+                                  <Label htmlFor={subField.name}>IVA %</Label>
+                                  <Input
+                                    id={subField.name}
+                                    type="number"
+                                    min={0}
+                                    max={100}
+                                    step="0.01"
+                                    value={subField.state.value}
+                                    disabled
+                                    onChange={(event) =>
+                                      subField.handleChange(event.target.value)
+                                    }
+                                    onBlur={subField.handleBlur}
+                                    aria-invalid={
+                                      subField.state.meta.errors.length > 0
+                                    }
+                                  />
+                                  {subField.state.meta.errors[0] && (
+                                    <p className="text-xs text-destructive">
+                                      {subField.state.meta.errors[0]}
+                                    </p>
+                                  )}
+                                </div>
+                              )}
+                            </form.Field>
 
-                          <form.Field
-                            name={`lines[${index}].tax_rate`}
-                            validators={{
-                              onSubmit: ({ value }) =>
-                                validatePercent(value, "El impuesto"),
-                            }}
-                          >
-                            {(subField) => (
-                              <div className="grid flex-1 gap-1.5 sm:max-w-[6rem]">
-                                <Label htmlFor={subField.name}>IVA %</Label>
-                                <Input
-                                  id={subField.name}
-                                  type="number"
-                                  min={0}
-                                  max={100}
-                                  step="0.01"
-                                  value={subField.state.value}
-                                  disabled
-                                  onChange={(event) =>
-                                    subField.handleChange(event.target.value)
-                                  }
-                                  onBlur={subField.handleBlur}
-                                  aria-invalid={
-                                    subField.state.meta.errors.length > 0
-                                  }
-                                />
-                                {subField.state.meta.errors[0] && (
-                                  <p className="text-xs text-destructive">
-                                    {subField.state.meta.errors[0]}
-                                  </p>
-                                )}
-                              </div>
-                            )}
-                          </form.Field>
+                            <div className="grid flex-1 gap-1.5 sm:max-w-[7rem]">
+                              <Label htmlFor={`lines[${index}].discount`}>
+                                Descuento
+                              </Label>
+                              <Input
+                                id={`lines[${index}].discount`}
+                                value={
+                                  automaticDiscount > 0
+                                    ? [...new Set(automaticDiscountLabels)]
+                                        .map((label) =>
+                                          label === "Monto fijo"
+                                            ? currencyFormatter.format(
+                                                automaticDiscount / 100
+                                              )
+                                            : label
+                                        )
+                                        .join(" + ")
+                                    : "—"
+                                }
+                                disabled
+                                readOnly
+                                aria-label={`Descuento de la línea ${index + 1}`}
+                              />
+                            </div>
 
-                          <div className="col-span-2 flex items-center justify-between gap-2 sm:ml-auto sm:flex-col sm:items-end sm:justify-end">
-                            <span className="text-xs text-muted-foreground">
-                              Total línea
-                            </span>
-                            <span className="text-sm font-medium">
-                              {currencyFormatter.format(totals.total / 100)}
-                            </span>
+                            <div className="col-span-2 flex items-center justify-between gap-2 sm:ml-auto sm:flex-col sm:items-end sm:justify-end">
+                              <span className="text-xs text-muted-foreground">
+                                Total línea
+                              </span>
+                              <span className="text-right">
+                                {automaticDiscount > 0 && (
+                                  <span className="block text-xs text-muted-foreground line-through">
+                                    {currencyFormatter.format(
+                                      totals.total / 100
+                                    )}
+                                  </span>
+                                )}
+                                <span className="text-sm font-medium">
+                                  {currencyFormatter.format(lineTotal / 100)}
+                                </span>
+                                {automaticDiscount > 0 && (
+                                  <span className="block text-xs font-medium text-emerald-700">
+                                    −
+                                    {currencyFormatter.format(
+                                      automaticDiscount / 100
+                                    )}{" "}
+                                    {persistedLine
+                                      ? "descuento aplicado"
+                                      : "descuento automático"}
+                                  </span>
+                                )}
+                              </span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })}
-                </>
-              )}
+                      );
+                    })}
+                  </>
+                );
+              }}
             </form.Field>
           </CardContent>
         </Card>
@@ -2577,9 +2694,15 @@ export function CreateSalesOrderForm({
         </Card>
       )}
 
-      <form.Subscribe selector={(state) => state.values.lines}>
-        {(lines) => {
-          const { gross, tax, total } = lines.reduce(
+      <form.Subscribe
+        selector={(state) => ({
+          lines: state.values.lines,
+          customerId: state.values.customer?.id ?? null,
+          orderDate: state.values.order_date,
+        })}
+      >
+        {({ lines, customerId, orderDate }) => {
+          const calculated = lines.reduce(
             (acc, line) => {
               const totals = computeLineTotals(line);
               return {
@@ -2590,6 +2713,34 @@ export function CreateSalesOrderForm({
             },
             { gross: 0, tax: 0, total: 0 }
           );
+          const orderLinesUnchanged = Boolean(
+            order &&
+            lines.length === order.lines.length &&
+            lines.every((line) => {
+              const persistedLine = order.lines.find(
+                (item) => item.id === line.id
+              );
+              return (
+                persistedLine && formLineMatchesOrderLine(line, persistedLine)
+              );
+            })
+          );
+          const gross = orderLinesUnchanged
+            ? order!.subtotal
+            : calculated.gross;
+          const tax = orderLinesUnchanged ? order!.tax_total : calculated.tax;
+          const automaticPreview = calculateAutomaticPromotionPreview(
+            automaticPromotions,
+            lines,
+            customerId,
+            orderDate
+          );
+          const discountTotal = orderLinesUnchanged
+            ? order!.discount_total
+            : automaticPreview.totalDiscount;
+          const grandTotal = orderLinesUnchanged
+            ? order!.grand_total
+            : Math.max(0, calculated.total - automaticPreview.totalDiscount);
 
           return (
             <Card>
@@ -2606,10 +2757,32 @@ export function CreateSalesOrderForm({
                     <span className="text-muted-foreground">Impuestos</span>
                     <span>{currencyFormatter.format(tax / 100)}</span>
                   </div>
+                  {discountTotal > 0 && (
+                    <div className="flex justify-between text-emerald-700">
+                      <span>
+                        {orderLinesUnchanged
+                          ? "Descuento aplicado"
+                          : "Descuento automático"}
+                      </span>
+                      <span>
+                        −{currencyFormatter.format(discountTotal / 100)}
+                      </span>
+                    </div>
+                  )}
                   <div className="flex justify-between border-t pt-2 text-base font-semibold">
                     <span>Total</span>
-                    <span>{currencyFormatter.format(total / 100)}</span>
+                    <span>{currencyFormatter.format(grandTotal / 100)}</span>
                   </div>
+                  {!orderLinesUnchanged &&
+                    automaticPreview.promotionCodes.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {automaticPreview.promotionCodes.map((code) => (
+                          <Badge key={code} variant="outline">
+                            {code}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
                   {isDetail && appliedPromotionCodes.length > 0 && (
                     <div className="border-t pt-2">
                       <span className="text-xs text-muted-foreground">

@@ -83,11 +83,24 @@ export function ProductCombobox({
         <ComboboxList>
           {(product: Product) => (
             <ComboboxItem key={product.id} value={product}>
-              <div className="flex flex-col">
-                <span className="font-medium">{product.display_name}</span>
-                <span className="text-xs text-muted-foreground">
-                  {product.brand.display_name} · {product.category.display_name}
-                </span>
+              <div className="flex min-w-0 items-center gap-2">
+                {product.brand.image_url && (
+                  <img
+                    src={product.brand.image_url}
+                    alt=""
+                    className="size-9 shrink-0 rounded object-cover"
+                    loading="lazy"
+                  />
+                )}
+                <div className="flex min-w-0 flex-col">
+                  <span className="truncate font-medium">
+                    {product.display_name}
+                  </span>
+                  <span className="truncate text-xs text-muted-foreground">
+                    {product.brand.display_name} ·{" "}
+                    {product.category.display_name}
+                  </span>
+                </div>
               </div>
             </ComboboxItem>
           )}

@@ -222,6 +222,7 @@ export * from './updateMyAddressRequest.ts';
 export * from './updatePermissionRequest.ts';
 export * from './updatePermissionResponse.ts';
 export * from './updateProductRequest.ts';
+export * from './updatePromotionStatusRequest.ts';
 export * from './updateRoleRequest.ts';
 export * from './updateRoleResponse.ts';
 export * from './updateSalesOrderTagsRequest.ts';
