@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import type { InventoryItemResponse } from "@/lib/api/schemas";
 
 import {
+  collectNewCustomerAddresses,
   selectDefaultWarehouse,
   validateWarehouseAllocations,
 } from "./create-sales-order-form";
@@ -65,6 +66,60 @@ describe("validateWarehouseAllocations", () => {
     ).toBe(
       "La cantidad asignada (3) debe coincidir con la cantidad de la línea (5)."
     );
+  });
+});
+
+const billing = {
+  country: "México",
+  state: "Jalisco",
+  city: "Guadalajara",
+  postal_code: "44100",
+  address: "Av. Vallarta 1234",
+};
+
+const shipping = {
+  country: "México",
+  state: "Jalisco",
+  city: "Zapopan",
+  postal_code: "45010",
+  address: "Av. Patria 500",
+};
+
+describe("collectNewCustomerAddresses", () => {
+  it("collects the billing address when it is new", () => {
+    expect(
+      collectNewCustomerAddresses(billing, shipping, true, true, false)
+    ).toEqual([billing]);
+  });
+
+  it("collects the shipping address only when it differs from billing", () => {
+    expect(
+      collectNewCustomerAddresses(billing, shipping, false, false, true)
+    ).toEqual([shipping]);
+  });
+
+  it("collects both new and distinct addresses", () => {
+    expect(
+      collectNewCustomerAddresses(billing, shipping, false, true, true)
+    ).toEqual([billing, shipping]);
+  });
+
+  it("dedupes shipping when it matches billing", () => {
+    expect(
+      collectNewCustomerAddresses(billing, { ...billing }, false, true, true)
+    ).toEqual([billing]);
+  });
+
+  it("ignores shipping when it is the same as billing", () => {
+    expect(
+      collectNewCustomerAddresses(billing, billing, true, true, true)
+    ).toEqual([billing]);
+  });
+
+  it("returns no addresses when both selections are existing", () => {
+    expect(
+      collectNewCustomerAddresses(billing, shipping, false, false, false)
+    ).toEqual([]);
   });
 });
 
