@@ -113,7 +113,7 @@ export function ApplyPromotionsDialog({
         <DialogHeader>
           <DialogTitle>Promociones de {order?.order_number}</DialogTitle>
           <DialogDescription>
-            Selecciona las promociones que quieres aplicar a la orden de venta.
+            Selecciona las promociones que quieres aplicar al pedido.
           </DialogDescription>
         </DialogHeader>
 

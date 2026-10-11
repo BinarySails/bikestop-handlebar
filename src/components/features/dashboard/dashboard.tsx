@@ -55,7 +55,7 @@ const numberFormatter = new Intl.NumberFormat("es-MX", {
   maximumFractionDigits: 2,
 });
 const salesChartConfig = {
-  sales: { label: "Ventas", color: "var(--chart-1)" },
+  sales: { label: "Pedidos", color: "var(--chart-1)" },
 } satisfies ChartConfig;
 
 function formatCurrency(value: number) {
@@ -82,7 +82,7 @@ export function Dashboard({ from, to, onRangeChange }: DashboardProps) {
         <DateRangeFilter from={from} to={to} onChange={onRangeChange} />
 
         <DataSection
-          title="Resumen de ventas"
+          title="Resumen de pedidos"
           description="Resultados de pedidos cerrados en el periodo seleccionado."
           isLoading={summaryQuery.isLoading}
           hasError={responseError(summaryQuery.data, summaryQuery.error)}
@@ -261,7 +261,7 @@ function SalesSummarySection({ data }: { data: SalesSummary }) {
     <div className="space-y-4">
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard
-          label="Ventas totales"
+          label="Importe total de pedidos"
           value={formatCurrency(data.sales_total)}
           icon={<Banknote />}
         />
@@ -271,7 +271,7 @@ function SalesSummarySection({ data }: { data: SalesSummary }) {
           icon={<ReceiptText />}
         />
         <MetricCard
-          label="Unidades vendidas"
+          label="Unidades en pedidos"
           value={numberFormatter.format(data.units_sold)}
           icon={<Boxes />}
         />
@@ -300,8 +300,8 @@ function SalesSummarySection({ data }: { data: SalesSummary }) {
       </div>
       <div className="grid gap-4 xl:grid-cols-2">
         <RankingChart
-          title="Productos más vendidos"
-          description="Por importe de venta"
+          title="Productos más pedidos"
+          description="Por importe de pedidos"
           data={data.products.map((item) => ({
             name: item.name,
             sales: item.sales_total,
@@ -309,8 +309,8 @@ function SalesSummarySection({ data }: { data: SalesSummary }) {
           }))}
         />
         <RankingChart
-          title="Categorías más vendidas"
-          description="Por importe de venta"
+          title="Categorías más pedidas"
+          description="Por importe de pedidos"
           data={data.categories.map((item) => ({
             name: item.name,
             sales: item.sales_total,
@@ -318,13 +318,13 @@ function SalesSummarySection({ data }: { data: SalesSummary }) {
           }))}
         />
         <RankingChart
-          title="Ventas por vendedor"
+          title="Pedidos por vendedor"
           description="Incluye pedidos sin vendedor asignado"
           data={sellers}
         />
         <RankingChart
-          title="Ventas por cliente"
-          description="Por importe de venta"
+          title="Pedidos por cliente"
+          description="Por importe de pedidos"
           data={customers}
         />
       </div>

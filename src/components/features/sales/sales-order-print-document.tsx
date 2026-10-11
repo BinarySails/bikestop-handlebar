@@ -39,7 +39,7 @@ export function SalesOrderPrintDocument({ order }: { order: SalesOrder }) {
       <header className="flex flex-wrap items-start justify-between gap-4 border-b pb-6">
         <div>
           <p className="text-lg font-bold tracking-tight">BikeStop</p>
-          <p className="text-sm text-muted-foreground">Pedido de venta</p>
+          <p className="text-sm text-muted-foreground">Pedido</p>
         </div>
         <div className="text-right">
           <p className="text-xl font-bold tracking-tight">

@@ -101,7 +101,7 @@ export function PromotionsCatalog() {
     <>
       <SiteHeader
         title="Promociones"
-        description="Crea descuentos para aplicar a tus órdenes de venta."
+        description="Crea descuentos para aplicar a tus pedidos."
         actions={
           <EntityCreateButton onClick={() => setCreateOpen(true)}>
             Nueva promoción

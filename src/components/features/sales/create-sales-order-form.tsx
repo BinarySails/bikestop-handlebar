@@ -2,18 +2,25 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
-import { Plus, Printer, Tag, Trash2, WarehouseIcon } from "lucide-react";
+import {
+  Images,
+  Plus,
+  Printer,
+  Tag,
+  Trash2,
+  WarehouseIcon,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { CustomerCombobox } from "@/components/features/sales/customer-combobox";
-import { ProductCombobox } from "@/components/features/sales/product-combobox";
 import { ProductLineThumbnail } from "@/components/features/sales/product-line-thumbnail";
+import {
+  ProductVariantPickerDialog,
+  type ProductVariantSelection,
+} from "@/components/features/sales/product-variant-picker-dialog";
 import { SalesOrderPrintDocument } from "@/components/features/sales/sales-order-print-document";
 import { OrderTagsSelect } from "@/components/features/sales/tags/order-tags-select";
-import {
-  VariantCombobox,
-  findActiveRegularPrice,
-} from "@/components/features/sales/variant-combobox";
+import { findActiveRegularPrice } from "@/components/features/sales/variant-combobox";
 import { CountrySelect } from "@/components/features/locations/country-select";
 import { StateSelect } from "@/components/features/locations/state-select";
 import { Button } from "@/components/ui/button";
@@ -68,7 +75,7 @@ import {
   type WarehouseId,
 } from "@/lib/api/schemas";
 import { DEFAULT_COUNTRY } from "@/components/features/locations/country-select";
-import { centsToPesosString, pesosToCents } from "@/lib/money";
+import { centsToPesos, centsToPesosString, pesosToCents } from "@/lib/money";
 import { computeDueDate, formatDueDate } from "@/lib/dates";
 import { PaymentTermSelect } from "@/components/features/sales/payment-term-select";
 import { CreateSalesOrderRequestBody } from "@/lib/api/zods";
@@ -511,6 +518,8 @@ export function CreateSalesOrderForm({
   const [allocationDraft, setAllocationDraft] = useState<
     WarehouseAllocationFormValues[]
   >([]);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [editingLineIndex, setEditingLineIndex] = useState<number | null>(null);
   const { data: inventoryResponse, isLoading: isLoadingInventory } =
     useListInventoryRequest(
       allocationVariantId ? { variant_id: allocationVariantId } : undefined,
@@ -924,6 +933,92 @@ export function CreateSalesOrderForm({
         ? INSUFFICIENT_STOCK_MESSAGE
         : undefined
     );
+  }
+
+  function applyVisualSelectionToLine(
+    lineIndex: number,
+    selection: ProductVariantSelection
+  ) {
+    form.setFieldValue(`lines[${lineIndex}].product`, selection.product);
+    form.setFieldValue(`lines[${lineIndex}].variant`, selection.variant);
+    form.setFieldValue(
+      `lines[${lineIndex}].description`,
+      selection.variant.display_name
+    );
+    const price = findActiveRegularPrice(selection.variant);
+    if (price) {
+      form.setFieldValue(
+        `lines[${lineIndex}].unit_price`,
+        centsToPesosString(price.amount)
+      );
+    }
+    form.setFieldValue(`lines[${lineIndex}].warehouse_allocations`, []);
+    form.setFieldValue(
+      `lines[${lineIndex}].warehouse_allocation_manual`,
+      false
+    );
+    form.setFieldValue(`lines[${lineIndex}].warehouse_error`, undefined);
+  }
+
+  function handleVisualPick(selections: ProductVariantSelection[]) {
+    if (selections.length === 0) return;
+
+    if (editingLineIndex !== null) {
+      const selection = selections[0];
+      if (!selection) return;
+      const lineIndex = editingLineIndex;
+      const quantity =
+        form.state.values.lines[lineIndex]?.quantity ?? "1";
+      applyVisualSelectionToLine(lineIndex, selection);
+      void assignDefaultWarehouse(lineIndex, selection.variant.id, quantity);
+      setEditingLineIndex(null);
+      return;
+    }
+
+    const existingVariantIds = new Set(
+      form.state.values.lines
+        .map((line) => line.variant?.id)
+        .filter((id): id is string => Boolean(id))
+    );
+    const fresh = selections.filter(
+      (selection) => !existingVariantIds.has(selection.variant.id)
+    );
+    if (fresh.length === 0) {
+      toast.info("Esas variantes ya están en la orden.");
+      return;
+    }
+
+    const baseIndex = form.state.values.lines.length;
+    const newLines = fresh.map((selection) => {
+      const price = findActiveRegularPrice(selection.variant);
+      return {
+        product: selection.product,
+        variant: selection.variant,
+        description: selection.variant.display_name,
+        quantity: "1",
+        unit_price: price ? centsToPesosString(price.amount) : "",
+        tax_rate: DEFAULT_TAX_PERCENT,
+        warehouse_allocations: [] as WarehouseAllocationFormValues[],
+        warehouse_allocation_manual: false,
+        warehouse_error: undefined as string | undefined,
+      };
+    });
+    form.setFieldValue("lines", [
+      ...form.state.values.lines,
+      ...newLines,
+    ]);
+    fresh.forEach((selection, offset) => {
+      void assignDefaultWarehouse(
+        baseIndex + offset,
+        selection.variant.id,
+        "1"
+      );
+    });
+    if (fresh.length < selections.length) {
+      toast.info(
+        `${selections.length - fresh.length} variante(s) ya estaban en la orden y se omitieron.`
+      );
+    }
   }
 
   async function saveQuote() {
@@ -2060,27 +2155,20 @@ export function CreateSalesOrderForm({
                   },
                 }}
               >
-                {(field) => (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() =>
-                      field.pushValue({
-                        product: null,
-                        variant: null,
-                        description: "",
-                        quantity: "1",
-                        unit_price: "",
-                        tax_rate: DEFAULT_TAX_PERCENT,
-                        warehouse_allocations: [],
-                        warehouse_allocation_manual: false,
-                      })
-                    }
-                  >
-                    <Plus className="size-4" />
-                    Agregar línea
-                  </Button>
+                {() => (
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={() => {
+                        setEditingLineIndex(null);
+                        setPickerOpen(true);
+                      }}
+                    >
+                      <Images className="size-4" />
+                      Agregar productos
+                    </Button>
+                  </div>
                 )}
               </form.Field>
             )}
@@ -2091,36 +2179,12 @@ export function CreateSalesOrderForm({
                 <>
                   {field.state.value.length === 0 && (
                     <p className="text-sm text-muted-foreground">
-                      No hay líneas agregadas. Presiona "Agregar línea" para
-                      empezar.
+                      No hay líneas agregadas. Presiona "Agregar productos" para
+                      elegir visualmente.
                     </p>
                   )}
 
                   {field.state.value.map((_, index) => {
-                    function clearProductLine() {
-                      form.setFieldValue(`lines[${index}].product`, null);
-                      form.setFieldValue(`lines[${index}].variant`, null);
-                      form.setFieldValue(`lines[${index}].description`, "");
-                      form.setFieldValue(`lines[${index}].quantity`, "1");
-                      form.setFieldValue(`lines[${index}].unit_price`, "");
-                      form.setFieldValue(
-                        `lines[${index}].tax_rate`,
-                        DEFAULT_TAX_PERCENT
-                      );
-                      form.setFieldValue(
-                        `lines[${index}].warehouse_allocations`,
-                        []
-                      );
-                      form.setFieldValue(
-                        `lines[${index}].warehouse_allocation_manual`,
-                        false
-                      );
-                      form.setFieldValue(
-                        `lines[${index}].warehouse_error`,
-                        undefined
-                      );
-                    }
-
                     const line = field.state.value[index];
                     const totals = computeLineTotals(line);
                     const warehouseError = line.variant
@@ -2142,40 +2206,8 @@ export function CreateSalesOrderForm({
                             variantId={line.variant?.id ?? null}
                             embeddedImages={line.variant?.images}
                             alt={line.description || "Producto"}
+                            className="size-20"
                           />
-
-                          <form.Field name={`lines[${index}].product`}>
-                            {(subField) => (
-                              <div className="grid flex-1 gap-1.5">
-                                <Label htmlFor={subField.name}>Producto</Label>
-                                <ProductCombobox
-                                  id={subField.name}
-                                  value={subField.state.value}
-                                  disabled={!editable}
-                                  onClear={clearProductLine}
-                                  onChange={(product) => {
-                                    subField.handleChange(product);
-                                    form.setFieldValue(
-                                      `lines[${index}].variant`,
-                                      null
-                                    );
-                                    form.setFieldValue(
-                                      `lines[${index}].warehouse_allocations`,
-                                      []
-                                    );
-                                    form.setFieldValue(
-                                      `lines[${index}].warehouse_allocation_manual`,
-                                      false
-                                    );
-                                    form.setFieldValue(
-                                      `lines[${index}].warehouse_error`,
-                                      undefined
-                                    );
-                                  }}
-                                />
-                              </div>
-                            )}
-                          </form.Field>
 
                           <form.Field
                             name={`lines[${index}].variant`}
@@ -2186,57 +2218,76 @@ export function CreateSalesOrderForm({
                               },
                             }}
                           >
-                            {(subField) => (
-                              <div className="grid flex-1 gap-1.5">
-                                <Label htmlFor={subField.name}>Variante</Label>
-                                <VariantCombobox
-                                  id={subField.name}
-                                  productId={line.product?.id ?? null}
-                                  value={subField.state.value}
-                                  onChange={(variant) => {
-                                    subField.handleChange(variant);
-                                    form.setFieldValue(
-                                      `lines[${index}].warehouse_allocations`,
-                                      []
-                                    );
-                                    form.setFieldValue(
-                                      `lines[${index}].warehouse_allocation_manual`,
-                                      false
-                                    );
-                                    form.setFieldValue(
-                                      `lines[${index}].warehouse_error`,
-                                      undefined
-                                    );
-                                    if (variant) {
-                                      form.setFieldValue(
-                                        `lines[${index}].description`,
-                                        variant.display_name
-                                      );
-                                      const price =
-                                        findActiveRegularPrice(variant);
-                                      if (price) {
-                                        form.setFieldValue(
-                                          `lines[${index}].unit_price`,
-                                          centsToPesosString(price.amount)
-                                        );
-                                      }
-                                      void assignDefaultWarehouse(
-                                        index,
-                                        variant.id,
-                                        line.quantity
-                                      );
-                                    }
-                                  }}
-                                  onClear={clearProductLine}
-                                  disabled={!editable || !line.product}
-                                />
-                                {subField.state.meta.errors[0] && (
-                                  <p className="text-xs text-destructive">
-                                    {subField.state.meta.errors[0]}
-                                  </p>
-                                )}
-                              </div>
-                            )}
+                            {(subField) => {
+                              const variantPrice = line.variant
+                                ? findActiveRegularPrice(line.variant)
+                                : undefined;
+                              return (
+                                <div className="grid flex-1 gap-1.5">
+                                  <Label>Producto</Label>
+                                  {line.variant && line.product ? (
+                                    <div className="flex flex-1 items-start justify-between gap-3 rounded-lg border bg-muted/20 p-3">
+                                      <div className="min-w-0">
+                                        <p className="truncate text-sm font-semibold">
+                                          {line.product.display_name}
+                                        </p>
+                                        <p className="truncate text-sm text-muted-foreground">
+                                          {line.variant.display_name}
+                                        </p>
+                                        <p className="mt-1 text-xs text-muted-foreground">
+                                          SKU: {line.variant.sku} · Stock:{" "}
+                                          {line.variant.total_inventory}
+                                          {variantPrice
+                                            ? ` · $${centsToPesos(variantPrice.amount).toFixed(2)}`
+                                            : ""}
+                                        </p>
+                                      </div>
+                                      {editable && (
+                                        <Button
+                                          type="button"
+                                          variant="outline"
+                                          size="sm"
+                                          className="shrink-0"
+                                          onClick={() => {
+                                            setEditingLineIndex(index);
+                                            setPickerOpen(true);
+                                          }}
+                                        >
+                                          <Images className="size-4" />
+                                          Cambiar
+                                        </Button>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      disabled={!editable}
+                                      className="h-auto justify-start gap-3 border-dashed p-3 text-left"
+                                      onClick={() => {
+                                        setEditingLineIndex(index);
+                                        setPickerOpen(true);
+                                      }}
+                                    >
+                                      <Images className="size-5 shrink-0 text-muted-foreground" />
+                                      <span>
+                                        <span className="block text-sm font-medium">
+                                          Seleccionar producto
+                                        </span>
+                                        <span className="block text-xs text-muted-foreground">
+                                          Ver imágenes grandes y elegir variante
+                                        </span>
+                                      </span>
+                                    </Button>
+                                  )}
+                                  {subField.state.meta.errors[0] && (
+                                    <p className="text-xs text-destructive">
+                                      {subField.state.meta.errors[0]}
+                                    </p>
+                                  )}
+                                </div>
+                              );
+                            }}
                           </form.Field>
 
                           <div className="flex items-end gap-1">
@@ -2578,6 +2629,26 @@ export function CreateSalesOrderForm({
             </Card>
           );
         }}
+      </form.Subscribe>
+
+      <form.Subscribe selector={(state) => state.values.lines}>
+        {(lines) => (
+          <ProductVariantPickerDialog
+            open={pickerOpen}
+            excludeVariantIds={
+              editingLineIndex !== null
+                ? []
+                : lines
+                    .map((line) => line.variant?.id)
+                    .filter((id): id is string => Boolean(id))
+            }
+            onOpenChange={(next) => {
+              setPickerOpen(next);
+              if (!next) setEditingLineIndex(null);
+            }}
+            onPick={handleVisualPick}
+          />
+        )}
       </form.Subscribe>
     </form>
   );

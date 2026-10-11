@@ -101,7 +101,7 @@ function OrderDetailPage() {
     return (
       <main className="flex min-h-[50vh] items-center justify-center p-6 text-center">
         <p className="text-sm text-muted-foreground">
-          No se encontró la orden de venta o ocurrió un error al cargarla.
+          No se encontró el pedido o ocurrió un error al cargarlo.
         </p>
       </main>
     );
@@ -165,7 +165,7 @@ function OrderDetailPage() {
         <div>
           <div className="flex flex-wrap items-center gap-3">
             <h1 className="text-2xl font-semibold tracking-tight">
-              {order.status === "quote" ? "Cotización" : "Orden de venta"}{" "}
+              {order.status === "quote" ? "Cotización" : "Pedido"}{" "}
               {order.order_number}
             </h1>
             <Badge variant={statusVariant[order.status]}>

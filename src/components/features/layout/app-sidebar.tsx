@@ -41,7 +41,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 const navigationItems = [
   { label: "Dashboard", icon: LayoutDashboard, to: "/admin/dashboard" },
   { label: "Productos", icon: Package, to: "/admin/products" },
-  { label: "Ventas", icon: ShoppingCart, to: "/admin/sales" },
+  { label: "Pedidos", icon: ShoppingCart, to: "/admin/sales" },
   { label: "Inventario", icon: Package, to: "/admin/inventory" },
   { label: "Categorías", icon: Shapes, to: "/admin/categories" },
   { label: "Marcas", icon: Tags, to: "/admin/brands" },

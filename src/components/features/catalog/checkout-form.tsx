@@ -795,8 +795,7 @@ export function CheckoutDialog({
         <DialogHeader>
           <DialogTitle>Completar pedido</DialogTitle>
           <DialogDescription>
-            Confirma los datos de facturación y envío para crear tu orden de
-            venta.
+            Confirma los datos de facturación y envío para crear tu pedido.
           </DialogDescription>
         </DialogHeader>
         <CheckoutForm key={openCount} onDone={() => onOpenChange(false)} />

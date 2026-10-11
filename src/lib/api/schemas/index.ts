@@ -250,6 +250,7 @@ export * from './variantPrice.ts';
 export * from './variantPriceId.ts';
 export * from './variantProperty.ts';
 export * from './variantPropertyId.ts';
+export * from './variantSkuLookup.ts';
 export * from './variantStatus.ts';
 export * from './warehouseId.ts';
 export * from './warehouseResponse.ts';

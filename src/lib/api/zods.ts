@@ -4302,6 +4302,16 @@ export const UpdateUserProfileRequestResponse = zod.object({
 })
 
 
+export const GetVariantBySkuRequestParams = zod.object({
+  "sku": zod.string().describe('Exact variant SKU')
+})
+
+export const GetVariantBySkuRequestResponse = zod.object({
+  "product_id": zod.uuid(),
+  "variant_id": zod.uuid()
+})
+
+
 export const ListWarehousesRequestQueryParams = zod.object({
   "status": zod.enum(['enable', 'disable', 'archive']).optional()
 })

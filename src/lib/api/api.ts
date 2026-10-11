@@ -164,6 +164,7 @@ import type {
   UserWithRolesResponse,
   Variant,
   VariantId,
+  VariantSkuLookup,
   WarehouseId,
   WarehouseResponse
 } from './schemas';
@@ -9390,6 +9391,81 @@ export const useUpdateUserProfileRequest = <TError = Promise<ErrorResponse>>(
   const swrFn = getUpdateUserProfileRequestMutationFetcher(id, fetchOptions);
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type getVariantBySkuRequestResponse200 = {
+  data: VariantSkuLookup
+  status: 200
+}
+
+export type getVariantBySkuRequestResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type getVariantBySkuRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type getVariantBySkuRequestResponseSuccess = (getVariantBySkuRequestResponse200) & {
+  headers: Headers;
+};
+export type getVariantBySkuRequestResponseError = (getVariantBySkuRequestResponse404 | getVariantBySkuRequestResponse500) & {
+  headers: Headers;
+};
+
+export type getVariantBySkuRequestResponse = (getVariantBySkuRequestResponseSuccess | getVariantBySkuRequestResponseError)
+
+export const getGetVariantBySkuRequestUrl = (sku: string,) => {
+
+
+
+
+  return `http://localhost:8080/api/v1/variants/by-sku/${sku}`
+}
+
+export const getVariantBySkuRequest = async (sku: string, options?: RequestInit): Promise<getVariantBySkuRequestResponse> => {
+
+  const res = await fetch(getGetVariantBySkuRequestUrl(sku),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'GET'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: getVariantBySkuRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as getVariantBySkuRequestResponse
+}
+
+
+
+
+export const getGetVariantBySkuRequestKey = (sku: string,) => [`http://localhost:8080/api/v1/variants/by-sku/${sku}`] as const;
+
+export type GetVariantBySkuRequestQueryResult = NonNullable<Awaited<ReturnType<typeof getVariantBySkuRequest>>>
+
+export const useGetVariantBySkuRequest = <TError = Promise<ErrorResponse>>(
+  sku: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getVariantBySkuRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, fetch?: RequestInit }
+) => {
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false && sku !== null && sku !== undefined
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetVariantBySkuRequestKey(sku) : null);
+  const swrFn = () => getVariantBySkuRequest(sku, fetchOptions)
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,

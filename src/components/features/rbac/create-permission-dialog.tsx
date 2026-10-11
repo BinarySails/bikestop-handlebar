@@ -159,7 +159,7 @@ export function CreatePermissionDialog({
                   name={field.name}
                   value={field.state.value ?? ""}
                   onChange={(e) => field.handleChange(e.target.value)}
-                  placeholder="Permite crear ventas"
+                  placeholder="Permite crear pedidos"
                 />
               </div>
             )}

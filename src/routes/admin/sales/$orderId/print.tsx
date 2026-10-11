@@ -68,7 +68,7 @@ function OrderPrintPage() {
           className="-ml-2"
         >
           <ArrowLeft />
-          Volver a ventas
+          Volver a pedidos
         </Button>
         <p className="mt-4 text-sm text-muted-foreground">
           No se encontró el pedido.
