@@ -4,6 +4,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
 import {
   Images,
+  MoreHorizontal,
   Plus,
   Printer,
   RotateCcw,
@@ -26,6 +27,12 @@ import { CountrySelect } from "@/components/features/locations/country-select";
 import { StateSelect } from "@/components/features/locations/state-select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -1435,7 +1442,7 @@ export function CreateSalesOrderForm({
       <form.Subscribe selector={(state) => [state.isSubmitting, state.isDirty]}>
         {([isSubmitting, isDirty]) =>
           isDirty && (!isDetail || canEditLines) ? (
-            <div className="pointer-events-none fixed inset-x-4 bottom-4 z-40 flex justify-end gap-2 sm:inset-x-auto sm:right-6 sm:bottom-6">
+            <div className="pointer-events-none fixed inset-x-4 bottom-4 z-40 flex justify-end gap-2 rounded-xl border bg-background/95 p-2 shadow-xl backdrop-blur sm:inset-x-auto sm:right-6 sm:bottom-6">
               <Button
                 type="button"
                 variant="outline"
@@ -1468,7 +1475,7 @@ export function CreateSalesOrderForm({
         }
       </form.Subscribe>
 
-      <div className="flex flex-wrap justify-end gap-3">
+      <div className="flex flex-wrap items-center justify-end gap-2">
         {!isDetail && (
           <form.Subscribe selector={(state) => state.isSubmitting}>
             {(isSubmitting) => (
@@ -1479,78 +1486,77 @@ export function CreateSalesOrderForm({
           </form.Subscribe>
         )}
 
-        {isDetail && canEditLines && (
+        {isDetail && (
           <form.Subscribe
             selector={(state) => [state.isSubmitting, state.isDirty]}
           >
             {([isSubmitting, isDirty]) => (
-              <Button
-                type="button"
-                disabled={isSubmitting || !isDirty}
-                onClick={() => {
-                  if (order?.status === "quote") {
-                    setConfirmation("save-quote");
-                    return;
-                  }
-                  void form.handleSubmit();
-                }}
-              >
-                {isSubmitting ? "Guardando..." : "Guardar"}
-              </Button>
+              <>
+                {canAdvance && (
+                  <Button
+                    type="button"
+                    variant={isDirty ? "outline" : "default"}
+                    disabled={isChangingStatus || isSubmitting || isDirty}
+                    onClick={() => setConfirmation("advance")}
+                  >
+                    {order?.status === "draft"
+                      ? "Pasar a cotización"
+                      : "Confirmar cotización"}
+                  </Button>
+                )}
+
+                {canConfirm && (
+                  <Button
+                    type="button"
+                    variant={isDirty ? "outline" : "default"}
+                    disabled={isChangingStatus || isSubmitting || isDirty}
+                    onClick={() => setConfirmation("confirm")}
+                  >
+                    Confirmar orden
+                  </Button>
+                )}
+
+                {canCancel && (
+                  <div className="ml-1 border-l pl-2">
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      disabled={isChangingStatus || isSubmitting || isDirty}
+                      onClick={() => setConfirmation("cancel")}
+                    >
+                      Cancelar
+                    </Button>
+                  </div>
+                )}
+              </>
             )}
           </form.Subscribe>
         )}
 
-        {canAdvance && (
-          <Button
-            type="button"
-            disabled={isChangingStatus}
-            onClick={() => setConfirmation("advance")}
-          >
-            {order?.status === "draft"
-              ? "Pasar a cotización"
-              : "Confirmar cotización"}
-          </Button>
-        )}
-
-        {canConfirm && (
-          <Button
-            type="button"
-            variant="default"
-            disabled={isChangingStatus}
-            onClick={() => setConfirmation("confirm")}
-          >
-            Confirmar orden
-          </Button>
-        )}
-
-        {canCancel && (
-          <Button
-            type="button"
-            variant="destructive"
-            disabled={isChangingStatus}
-            onClick={() => setConfirmation("cancel")}
-          >
-            {order?.status === "quote" ? "Cancelar cotización" : "Cancelar"}
-          </Button>
-        )}
-
-        {isDetail && order?.status === "draft" && onApplyPromotions && (
-          <Button type="button" variant="outline" onClick={onApplyPromotions}>
-            <Tag className="size-4" />
-            Aplicar promoción
-          </Button>
-        )}
-
         {isDetail && order && (
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => window.print()}
-          >
-            <Printer className="size-4" />
-            Imprimir
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <Button type="button" variant="outline">
+                  <MoreHorizontal className="size-4" />
+                  <span className="hidden sm:inline">Más acciones</span>
+                </Button>
+              }
+              aria-label="Más acciones"
+            />
+            <DropdownMenuContent align="end" className="w-48">
+              {order.status === "draft" && onApplyPromotions && (
+                <DropdownMenuItem onClick={onApplyPromotions}>
+                  <Tag className="size-4" />
+                  Aplicar promoción
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem onClick={() => window.print()}>
+                <Printer className="size-4" />
+                Imprimir
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         )}
       </div>
 
