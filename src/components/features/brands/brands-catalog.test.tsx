@@ -39,6 +39,15 @@ vi.mock("@/lib/api/api", () => ({
   }),
 }));
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
+
+// The create trigger and the archive action are policy-gated; grant both.
+vi.mock("@/lib/auth/use-auth-store", () => ({
+  useAuthStore: (selector: (state: unknown) => unknown) =>
+    selector({
+      actor: { policies: ["brand:create", "brand:delete"] },
+      isInDev: false,
+    }),
+}));
 vi.mock("@/components/features/layout/site-header", () => ({
   SiteHeader: ({
     title,

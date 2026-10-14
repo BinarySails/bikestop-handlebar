@@ -7,8 +7,16 @@ import {
   UserSortByParam,
   UserViewParam,
 } from "@/lib/api/schemas";
+import { PERMISSIONS } from "@/lib/auth/permissions";
+import { requirePolicy } from "@/lib/auth/require-auth";
 
 export const Route = createFileRoute("/admin/users/")({
+  beforeLoad: async ({ location }) => {
+    await requirePolicy(PERMISSIONS.userView, {
+      from: location.href,
+      navigateTo: "/login",
+    });
+  },
   validateSearch: z.object({
     view: z.enum(UserViewParam).catch(UserViewParam.staff),
     search: z.string().optional(),

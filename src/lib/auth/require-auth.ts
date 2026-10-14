@@ -1,6 +1,7 @@
 import { redirect } from "@tanstack/react-router";
 import { meHandler } from "@/lib/api/api";
 import { policiesFromAuthUser, rolesFromAuthUser } from "./derive-policies";
+import { denyAccess, hasPolicy } from "./permissions";
 import { useAuthStore, type ValidationResult } from "./use-auth-store";
 
 function isCacheFresh(expiresAt: string | null): boolean {
@@ -98,19 +99,40 @@ export async function requireAuth({
 
 /**
  * Policy guard to be used in TanStack Router's `beforeLoad` hook.
+ *
+ * Validates the session first so `actor` is guaranteed to be populated before
+ * the check — callers no longer need to have awaited `requireAuth` on the
+ * preceding line. Pass an array to require **any** of the listed policies.
+ *
+ * On denial it shows a toast and redirects to `/forbidden`.
+ *
+ * @example
+ * export const Route = createFileRoute('/admin/products/')({
+ *   beforeLoad: async () => {
+ *     await requireAuth({ location: ctx.location, navigateTo: '/login' });
+ *     await requirePolicy(PERMISSIONS.productView);
+ *   },
+ * })
  */
-export function requirePolicy(requiredPolicy: string) {
-  const { actor, isInDev } = useAuthStore.getState();
+export async function requirePolicy(
+  requiredPolicy: string | readonly string[],
+  { from, navigateTo = "/login" }: { from?: string; navigateTo?: string } = {}
+) {
+  const { isInDev } = useAuthStore.getState();
 
   if (isInDev) return;
 
-  if (actor?.policies.includes("*")) {
-    return;
+  const { ok } = await validateSession();
+
+  // An invalid session is an authentication problem, not an authorization one:
+  // send the user to the login screen instead of blaming their role.
+  if (!ok) {
+    throw redirect({ to: navigateTo, search: { next: from } });
   }
 
-  if (!actor?.policies?.includes(requiredPolicy)) {
-    throw redirect({
-      to: "/",
-    });
+  const { actor } = useAuthStore.getState();
+
+  if (!hasPolicy(actor?.policies, requiredPolicy)) {
+    denyAccess({ policy: requiredPolicy, from });
   }
 }

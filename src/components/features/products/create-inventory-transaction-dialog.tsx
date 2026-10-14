@@ -3,6 +3,7 @@ import { Plus } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { Can } from "@/components/features/entity/can";
 import { ProductCombobox } from "@/components/features/sales/product-combobox";
 import { VariantCombobox } from "@/components/features/sales/variant-combobox";
 import { WarehouseCombobox } from "@/components/features/warehouses/warehouse-combobox";
@@ -30,6 +31,7 @@ import {
   useListVariantsRequest,
 } from "@/lib/api/api";
 import type { Product, WarehouseResponse } from "@/lib/api/schemas";
+import { PERMISSIONS } from "@/lib/auth/permissions";
 
 type CreateInventoryTransactionDialogProps = {
   warehouses: WarehouseResponse[];
@@ -279,14 +281,16 @@ export function CreateInventoryTransactionDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger
-        render={
-          <Button size="sm">
-            <Plus className="size-4" />
-            Crear transacción
-          </Button>
-        }
-      />
+      <Can policy={PERMISSIONS.inventoryCreate}>
+        <DialogTrigger
+          render={
+            <Button size="sm">
+              <Plus className="size-4" />
+              Crear transacción
+            </Button>
+          }
+        />
+      </Can>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Crear transacción</DialogTitle>

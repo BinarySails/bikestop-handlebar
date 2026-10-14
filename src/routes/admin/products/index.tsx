@@ -11,6 +11,7 @@ import {
   type EntityColumn,
 } from "@/components/features/entity/entity-index-page";
 import { CreateProductDialog } from "@/components/features/products/create-product-modal";
+import { ProductThumbnail } from "@/components/features/products/product-thumbnail";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -38,8 +39,17 @@ import {
   useUpdateProductRequest,
 } from "@/lib/api/api";
 import type { Product } from "@/lib/api/schemas";
+import { PERMISSIONS } from "@/lib/auth/permissions";
+import { Can } from "@/components/features/entity/can";
+import { requirePolicy } from "@/lib/auth/require-auth";
 
 export const Route = createFileRoute("/admin/products/")({
+  beforeLoad: async ({ location }) => {
+    await requirePolicy(PERMISSIONS.productView, {
+      from: location.href,
+      navigateTo: "/login",
+    });
+  },
   component: ProductsListPage,
 });
 
@@ -118,13 +128,15 @@ function ArchiveProductMenuItem({
   }
 
   return (
-    <DropdownMenuItem
-      variant="destructive"
-      onClick={handleArchive}
-      disabled={pending || product.status === "archive"}
-    >
-      <span>Eliminar</span>
-    </DropdownMenuItem>
+    <Can policy={PERMISSIONS.productUpdate}>
+      <DropdownMenuItem
+        variant="destructive"
+        onClick={handleArchive}
+        disabled={pending || product.status === "archive"}
+      >
+        <span>Eliminar</span>
+      </DropdownMenuItem>
+    </Can>
   );
 }
 
@@ -214,7 +226,10 @@ function ProductsListPage() {
     {
       header: "Nombre",
       cell: (product) => (
-        <span className="font-medium">{product.display_name}</span>
+        <div className="flex items-center gap-3">
+          <ProductThumbnail productId={product.id} alt={product.display_name} />
+          <span className="font-medium">{product.display_name}</span>
+        </div>
       ),
     },
     {
@@ -244,8 +259,12 @@ function ProductsListPage() {
           />
           <DropdownMenuContent align="end">
             <ViewProductMenuItem productId={product.id} />
-            <DropdownMenuSeparator />
-            <ArchiveProductMenuItem product={product} onSuccess={mutate} />
+            <Can policy={PERMISSIONS.productUpdate}>
+              <>
+                <DropdownMenuSeparator />
+                <ArchiveProductMenuItem product={product} onSuccess={mutate} />
+              </>
+            </Can>
           </DropdownMenuContent>
         </DropdownMenu>
       ),

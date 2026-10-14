@@ -48,8 +48,17 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { CreatePermissionDialog } from "@/components/features/rbac/create-permission-dialog";
 import { DeletePermissionDialog } from "@/components/features/rbac/delete-permission-dialog";
+import { PERMISSIONS } from "@/lib/auth/permissions";
+import { Can } from "@/components/features/entity/can";
+import { requirePolicy } from "@/lib/auth/require-auth";
 
 export const Route = createFileRoute("/admin/permissions")({
+  beforeLoad: async ({ location }) => {
+    await requirePolicy(PERMISSIONS.permissionView, {
+      from: location.href,
+      navigateTo: "/login",
+    });
+  },
   component: PermissionsPage,
 });
 
@@ -203,17 +212,21 @@ function PermissionsPage() {
             <MoreHorizontal className="size-4" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => handleEdit(permission)}>
-              <Pencil className="size-4" />
-              Editar
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              variant="destructive"
-              onClick={() => setDeletePermission(permission)}
-            >
-              <Trash2 className="size-4" />
-              Eliminar
-            </DropdownMenuItem>
+            <Can policy={PERMISSIONS.permissionManage}>
+              <>
+                <DropdownMenuItem onClick={() => handleEdit(permission)}>
+                  <Pencil className="size-4" />
+                  Editar
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  variant="destructive"
+                  onClick={() => setDeletePermission(permission)}
+                >
+                  <Trash2 className="size-4" />
+                  Eliminar
+                </DropdownMenuItem>
+              </>
+            </Can>
           </DropdownMenuContent>
         </DropdownMenu>
       ),
@@ -228,7 +241,10 @@ function PermissionsPage() {
         backTo="/roles"
         backLabel="Volver a roles"
         actions={
-          <EntityCreateButton onClick={handleCreate}>
+          <EntityCreateButton
+            policy={PERMISSIONS.permissionManage}
+            onClick={handleCreate}
+          >
             Crear permiso
           </EntityCreateButton>
         }

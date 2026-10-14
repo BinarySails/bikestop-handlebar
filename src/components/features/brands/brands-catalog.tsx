@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { SiteHeader } from "@/components/features/layout/site-header";
 import { EntityCardTitle } from "@/components/features/entity/entity-card-title";
 import { EntityCreateButton } from "@/components/features/entity/entity-create-button";
+import { Can } from "@/components/features/entity/can";
 import {
   EntityIndexPage,
   type EntityColumn,
@@ -39,6 +40,7 @@ import {
 } from "./brand-form-dialog";
 import { BrandImage } from "./brand-image";
 import { BrandStatusBadge } from "./brand-status-badge";
+import { PERMISSIONS } from "@/lib/auth/permissions";
 
 export type BrandCatalogFilters = {
   page?: number;
@@ -200,14 +202,18 @@ export function BrandsCatalog({
               >
                 <Eye /> Ver
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                variant="destructive"
-                disabled={archived}
-                onClick={() => setArchiveBrand(brand)}
-              >
-                <Archive /> {archived ? "Marca archivada" : "Archivar"}
-              </DropdownMenuItem>
+              <Can policy={PERMISSIONS.brandDelete}>
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    variant="destructive"
+                    disabled={archived}
+                    onClick={() => setArchiveBrand(brand)}
+                  >
+                    <Archive /> {archived ? "Marca archivada" : "Archivar"}
+                  </DropdownMenuItem>
+                </>
+              </Can>
             </DropdownMenuContent>
           </DropdownMenu>
         );
@@ -222,6 +228,7 @@ export function BrandsCatalog({
         description="Gestiona las marcas de productos disponibles en BikeStop."
         actions={
           <EntityCreateButton
+            policy={PERMISSIONS.brandCreate}
             onClick={() => {
               setCreateOpen(true);
             }}

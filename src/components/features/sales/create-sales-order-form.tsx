@@ -92,7 +92,7 @@ import { PaymentTermSelect } from "@/components/features/sales/payment-term-sele
 import { CreateSalesOrderRequestBody } from "@/lib/api/zods";
 import { buildSalesOrderLineOperations } from "@/lib/api/sales-order-line-operations";
 import { calculateAutomaticPromotionPreview } from "./automatic-promotion-preview";
-
+import { PERMISSIONS, useHasPolicy } from "@/lib/auth/permissions";
 const MAX_PRICE_DECIMALS = 2;
 const DEFAULT_TAX_PERCENT = "16";
 const currencyFormatter = new Intl.NumberFormat("es-MX", {
@@ -227,7 +227,7 @@ function PaymentTermField({
         </p>
       ) : selected?.type === "due_on_receipt" ? (
         <p className="text-xs text-muted-foreground">
-          Vencimiento inmediato al recibir la factura.
+          Pago de contado al recibir la factura.
         </p>
       ) : null}
     </div>
@@ -415,6 +415,16 @@ function sameAddress(
   );
 }
 
+function isSameAddress(a: AddressFormValues, b: AddressFormValues): boolean {
+  return (
+    a.country.trim().toLowerCase() === b.country.trim().toLowerCase() &&
+    a.state.trim().toLowerCase() === b.state.trim().toLowerCase() &&
+    a.city.trim().toLowerCase() === b.city.trim().toLowerCase() &&
+    a.postal_code.trim() === b.postal_code.trim() &&
+    a.address.trim().toLowerCase() === b.address.trim().toLowerCase()
+  );
+}
+
 function valuesFromOrder(order: SalesOrder): SalesOrderFormValues {
   return {
     customer: {
@@ -510,6 +520,14 @@ export function CreateSalesOrderForm({
   const navigate = useNavigate();
   const { trigger } = useCreateSalesOrderRequest();
   const isDetail = Boolean(order);
+
+  // Every mutating control in this form maps to `sales-order:create` while the
+  // order does not exist yet, and to `sales-order:update` once it does.
+  const canCreateOrder = useHasPolicy(PERMISSIONS.salesOrderCreate);
+  const canUpdateOrder = useHasPolicy(PERMISSIONS.salesOrderUpdate);
+  const canApplyPromotions = useHasPolicy(PERMISSIONS.salesOrderUpdate);
+  const canWrite = order ? canUpdateOrder : canCreateOrder;
+
   const editable =
     !order || order.status === "draft" || order.status === "quote";
   const canEditLines =
@@ -523,12 +541,14 @@ export function CreateSalesOrderForm({
   const automaticPromotions = promotions.filter(
     (promotion) => promotion.status === "active" && promotion.is_automatic
   );
-  const canAdvance = order?.status === "draft" || order?.status === "quote";
-  const canConfirm = order?.status === "draft";
+  const canAdvance =
+    canWrite && (order?.status === "draft" || order?.status === "quote");
+  const canConfirm = canWrite && order?.status === "draft";
   const canCancel =
-    order?.status === "draft" ||
-    order?.status === "quote" ||
-    order?.status === "confirmed";
+    canWrite &&
+    (order?.status === "draft" ||
+      order?.status === "quote" ||
+      order?.status === "confirmed");
   const canAddComment =
     Boolean(order) &&
     [
@@ -594,7 +614,9 @@ export function CreateSalesOrderForm({
     .map((comment) => comment.trim())
     .filter(Boolean);
 
-  const [customerIdForFetch, setCustomerIdForFetch] = useState<string>("");
+  const [customerIdForFetch, setCustomerIdForFetch] = useState<string>(
+    order ? order.customer.customer_id : ""
+  );
   const { data: customerRes } = useGetCustomerRequest(customerIdForFetch, {
     swr: { enabled: customerIdForFetch !== "" },
   });
@@ -626,13 +648,33 @@ export function CreateSalesOrderForm({
   >(defaultShippingAddr ? defaultShippingAddr.id : "new");
 
   useEffect(() => {
-    setSelectedBillingAddressId(
-      defaultBillingAddr ? defaultBillingAddr.id : "new"
+    if (!order) {
+      setSelectedBillingAddressId(
+        defaultBillingAddr ? defaultBillingAddr.id : "new"
+      );
+      setSelectedShippingAddressId(
+        defaultShippingAddr ? defaultShippingAddr.id : "new"
+      );
+    }
+  }, [customerIdForFetch, defaultBillingAddr, defaultShippingAddr, order]);
+
+  useEffect(() => {
+    if (!order || customerAddresses.length === 0) {
+      return;
+    }
+    const orderBilling = addressValues(order.billing_address);
+    const orderShipping = addressValues(order.shipping_address);
+    const matchingBilling = customerAddresses.find((addr) =>
+      isSameAddress(customerAddressToFormValues(addr), orderBilling)
     );
+    const matchingShipping = customerAddresses.find((addr) =>
+      isSameAddress(customerAddressToFormValues(addr), orderShipping)
+    );
+    setSelectedBillingAddressId(matchingBilling ? matchingBilling.id : "new");
     setSelectedShippingAddressId(
-      defaultShippingAddr ? defaultShippingAddr.id : "new"
+      matchingShipping ? matchingShipping.id : "new"
     );
-  }, [customerIdForFetch, defaultBillingAddr, defaultShippingAddr]);
+  }, [customerAddresses, order]);
 
   const selectedBillingAddress =
     selectedBillingAddressId !== "new"
@@ -1203,15 +1245,15 @@ export function CreateSalesOrderForm({
             >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Seleccionar dirección">
-                  {(value) =>
-                    value === "new"
-                      ? "Ingresar nueva dirección"
-                      : customerAddresses.find((a) => a.id === value)
-                        ? formatAddressRow(
-                            customerAddresses.find((a) => a.id === value)!
-                          )
-                        : "Seleccionar dirección"
-                  }
+                  {(value) => {
+                    if (value === "new") return "Ingresar nueva dirección";
+                    const matched = customerAddresses.find(
+                      (a) => a.id === value
+                    );
+                    return matched
+                      ? formatAddressRow(matched)
+                      : "Seleccionar dirección";
+                  }}
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
@@ -1222,17 +1264,6 @@ export function CreateSalesOrderForm({
                     label={formatAddressRow(addr)}
                   >
                     {formatAddressRow(addr)}
-                    {isBilling
-                      ? addr.is_default_billing && (
-                          <Badge className="ml-2 text-[10px]">
-                            Predeterminada
-                          </Badge>
-                        )
-                      : addr.is_default_shipping && (
-                          <Badge className="ml-2 text-[10px]">
-                            Predeterminada
-                          </Badge>
-                        )}
                   </SelectItem>
                 ))}
                 <SelectItem value="new" label="Ingresar nueva dirección">
@@ -1533,6 +1564,49 @@ export function CreateSalesOrderForm({
           </form.Subscribe>
         )}
 
+        {canAdvance && (
+          <Button
+            type="button"
+            disabled={isChangingStatus}
+            onClick={() => setConfirmation("advance")}
+          >
+            {order?.status === "draft"
+              ? "Pasar a cotización"
+              : "Confirmar cotización"}
+          </Button>
+        )}
+
+        {canConfirm && (
+          <Button
+            type="button"
+            variant="default"
+            disabled={isChangingStatus}
+            onClick={() => setConfirmation("confirm")}
+          >
+            Confirmar orden
+          </Button>
+        )}
+
+        {canCancel && (
+          <Button
+            type="button"
+            variant="destructive"
+            disabled={isChangingStatus}
+            onClick={() => setConfirmation("cancel")}
+          >
+            {order?.status === "quote" ? "Cancelar cotización" : "Cancelar"}
+          </Button>
+        )}
+
+        {isDetail &&
+          order?.status === "draft" &&
+          onApplyPromotions &&
+          canApplyPromotions && (
+            <Button type="button" variant="outline" onClick={onApplyPromotions}>
+              <Tag className="size-4" />
+              Aplicar promoción
+            </Button>
+          )}
         {isDetail && order && (
           <DropdownMenu>
             <DropdownMenuTrigger
@@ -2009,7 +2083,7 @@ export function CreateSalesOrderForm({
             </DialogClose>
             <Button
               type="button"
-              disabled={dispatchingLineId !== null}
+              disabled={dispatchingLineId !== null || !canUpdateOrder}
               onClick={() => void dispatchLine()}
             >
               {dispatchingLineId !== null

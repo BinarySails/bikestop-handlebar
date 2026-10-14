@@ -47,8 +47,17 @@ import { CreateRoleDialog } from "@/components/features/rbac/create-role-dialog"
 import { DeleteRoleDialog } from "@/components/features/rbac/delete-role-dialog";
 import { RolePermissionsDialog } from "@/components/features/rbac/role-permissions-dialog";
 import { AssignPermissionsDialog } from "@/components/features/rbac/assign-permissions-dialog";
+import { PERMISSIONS } from "@/lib/auth/permissions";
+import { Can } from "@/components/features/entity/can";
+import { requirePolicy } from "@/lib/auth/require-auth";
 
 export const Route = createFileRoute("/admin/roles")({
+  beforeLoad: async ({ location }) => {
+    await requirePolicy(PERMISSIONS.roleView, {
+      from: location.href,
+      navigateTo: "/login",
+    });
+  },
   component: RolesPage,
 });
 
@@ -210,17 +219,21 @@ function RolesPage() {
             <MoreHorizontal className="size-4" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => handleEdit(role)}>
-              <Pencil className="size-4" />
-              Editar
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              variant="destructive"
-              onClick={() => setDeleteRole(role)}
-            >
-              <Trash2 className="size-4" />
-              Eliminar
-            </DropdownMenuItem>
+            <Can policy={PERMISSIONS.roleManage}>
+              <>
+                <DropdownMenuItem onClick={() => handleEdit(role)}>
+                  <Pencil className="size-4" />
+                  Editar
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  variant="destructive"
+                  onClick={() => setDeleteRole(role)}
+                >
+                  <Trash2 className="size-4" />
+                  Eliminar
+                </DropdownMenuItem>
+              </>
+            </Can>
           </DropdownMenuContent>
         </DropdownMenu>
       ),
@@ -233,7 +246,10 @@ function RolesPage() {
         title="Roles"
         description="Administra los roles del sistema y sus niveles de acceso."
         actions={
-          <EntityCreateButton onClick={handleCreate}>
+          <EntityCreateButton
+            policy={PERMISSIONS.roleManage}
+            onClick={handleCreate}
+          >
             Crear Rol
           </EntityCreateButton>
         }

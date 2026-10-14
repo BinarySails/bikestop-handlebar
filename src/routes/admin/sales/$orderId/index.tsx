@@ -35,6 +35,8 @@ import {
   type WarehouseId,
 } from "@/lib/api/schemas";
 import { computeDueDate, formatDueDate } from "@/lib/dates";
+import { PERMISSIONS, useHasPolicy } from "@/lib/auth/permissions";
+import { requirePolicy } from "@/lib/auth/require-auth";
 
 const statusLabel: Record<SalesOrderStatus, string> = {
   draft: "Borrador",
@@ -84,6 +86,12 @@ function salesOrderSaveError(data: unknown, fallback: string): string {
 }
 
 export const Route = createFileRoute("/admin/sales/$orderId/")({
+  beforeLoad: async ({ location }) => {
+    await requirePolicy(PERMISSIONS.salesOrderView, {
+      from: location.href,
+      navigateTo: "/login",
+    });
+  },
   component: OrderDetailPage,
 });
 
@@ -91,6 +99,7 @@ function OrderDetailPage() {
   const { orderId } = Route.useParams();
   const navigate = useNavigate();
   const [applyPromotionsOpen, setApplyPromotionsOpen] = useState(false);
+  const canUpdateOrder = useHasPolicy(PERMISSIONS.salesOrderUpdate);
   const { data: sessionResponse } = useMeHandler();
   const {
     data: response,
@@ -200,7 +209,7 @@ function OrderDetailPage() {
           </div>
           <PaymentTermSummary order={order} />
         </div>
-        {isOrderPicked && isPickedByCurrentUser && (
+        {isOrderPicked && isPickedByCurrentUser && canUpdateOrder && (
           <>
             <Badge className="border-yellow-300 bg-yellow-100 text-yellow-800">
               <Package className="mr-1 size-3" />
@@ -216,7 +225,7 @@ function OrderDetailPage() {
             </Button>
           </>
         )}
-        {!isOrderPicked && canPickOrder && (
+        {!isOrderPicked && canPickOrder && canUpdateOrder && (
           <Button
             size="sm"
             onClick={handlePickOrder}

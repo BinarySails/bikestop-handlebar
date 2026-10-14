@@ -22,6 +22,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { BrandCombobox } from "@/components/features/brands/brand-combobox";
 import { CategoryCombobox } from "@/components/features/categories/category-combobox";
 import type { Brand, Category } from "@/lib/api/schemas";
+import { PERMISSIONS } from "@/lib/auth/permissions";
 
 export function CreateProductDialog({
   onSuccess,
@@ -72,7 +73,11 @@ export function CreateProductDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger
-        render={<EntityCreateButton>Crear Producto</EntityCreateButton>}
+        render={
+          <EntityCreateButton policy={PERMISSIONS.productCreate}>
+            Crear Producto
+          </EntityCreateButton>
+        }
       />
 
       <DialogContent className="sm:max-w-lg">

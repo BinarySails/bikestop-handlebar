@@ -45,8 +45,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { PERMISSIONS } from "@/lib/auth/permissions";
+import { requirePolicy } from "@/lib/auth/require-auth";
 
 export const Route = createFileRoute("/admin/sales/tags")({
+  beforeLoad: async ({ location }) => {
+    await requirePolicy(PERMISSIONS.orderTagManage, {
+      from: location.href,
+      navigateTo: "/login",
+    });
+  },
   component: TagsPage,
 });
 
@@ -220,7 +228,10 @@ function TagsPage() {
               <ArrowLeft className="size-4" />
               Volver
             </Button>
-            <EntityCreateButton onClick={handleCreate}>
+            <EntityCreateButton
+              policy={PERMISSIONS.orderTagManage}
+              onClick={handleCreate}
+            >
               Crear Etiqueta
             </EntityCreateButton>
           </>

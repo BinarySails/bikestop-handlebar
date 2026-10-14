@@ -17,18 +17,22 @@ import {
   useUpdateUserProfileRequest,
 } from "@/lib/api/api";
 import { useAuthStore } from "@/lib/auth/use-auth-store";
+import { denyAccess, PERMISSIONS } from "@/lib/auth/permissions";
 import type { UpdateUserProfileRequest, UserResponse } from "@/lib/api/schemas";
 
 export const Route = createFileRoute("/b2b/account")({
-  beforeLoad: () => {
+  beforeLoad: ({ location }) => {
     const { actor, isInDev } = useAuthStore.getState();
     if (isInDev) return;
 
     const isAdmin = actor?.roles?.some(
-      (role) => role.slug === "admin" || role.slug === "super_admin"
+      (role) => role.slug === "admin" || role.slug === "super-admin"
     );
     if (isAdmin) {
-      throw new Error("Admin users cannot access customer account pages.");
+      denyAccess({
+        policy: PERMISSIONS.b2bShop,
+        from: location.href,
+      });
     }
   },
   component: AccountPage,

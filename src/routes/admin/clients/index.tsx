@@ -2,8 +2,16 @@ import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 
 import { ClientsTableCard } from "@/components/features/clients/clients-table-card";
+import { PERMISSIONS } from "@/lib/auth/permissions";
+import { requirePolicy } from "@/lib/auth/require-auth";
 
 export const Route = createFileRoute("/admin/clients/")({
+  beforeLoad: async ({ location }) => {
+    await requirePolicy(PERMISSIONS.customerView, {
+      from: location.href,
+      navigateTo: "/login",
+    });
+  },
   validateSearch: z.object({
     search: z.string().optional(),
     page: z.coerce.number().int().min(0).catch(0),

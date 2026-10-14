@@ -1,9 +1,11 @@
 import { useListRolePermissionsHandler } from "@/lib/api/api";
 import type { Role } from "@/lib/api/schemas";
 
+import { Can } from "@/components/features/entity/can";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PERMISSIONS } from "@/lib/auth/permissions";
 import {
   Dialog,
   DialogContent,
@@ -86,7 +88,9 @@ export function RolePermissionsDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cerrar
           </Button>
-          <Button onClick={onOpenAssign}>+ Agregar</Button>
+          <Can policy={PERMISSIONS.permissionManage}>
+            <Button onClick={onOpenAssign}>+ Agregar</Button>
+          </Can>
         </DialogFooter>
       </DialogContent>
     </Dialog>

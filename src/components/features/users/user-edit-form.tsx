@@ -3,6 +3,7 @@ import { ArchiveIcon, RotateCcwIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { Can } from "@/components/features/entity/can";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -20,6 +21,7 @@ import type {
   UpdateUserRequest,
   UserWithRolesResponse,
 } from "@/lib/api/schemas";
+import { PERMISSIONS } from "@/lib/auth/permissions";
 
 type UserEditFormProps = {
   user: UserWithRolesResponse;
@@ -179,29 +181,31 @@ export function UserEditForm({
               </Select>
             </div>
             {!isClient && (
-              <div className="grid gap-2 sm:col-span-2">
-                <Label>Roles</Label>
-                <div className="grid gap-2 rounded-lg border p-3 sm:grid-cols-2">
-                  {roles.map((role) => (
-                    <label
-                      key={role.id}
-                      className="flex items-center gap-2 text-sm"
-                    >
-                      <Checkbox
-                        checked={roleIds.includes(role.id)}
-                        onCheckedChange={(checked) =>
-                          setRoleIds((current) =>
-                            checked
-                              ? [...current, role.id]
-                              : current.filter((id) => id !== role.id)
-                          )
-                        }
-                      />
-                      {role.display_name}
-                    </label>
-                  ))}
+              <Can policy={PERMISSIONS.roleManage}>
+                <div className="grid gap-2 sm:col-span-2">
+                  <Label>Roles</Label>
+                  <div className="grid gap-2 rounded-lg border p-3 sm:grid-cols-2">
+                    {roles.map((role) => (
+                      <label
+                        key={role.id}
+                        className="flex items-center gap-2 text-sm"
+                      >
+                        <Checkbox
+                          checked={roleIds.includes(role.id)}
+                          onCheckedChange={(checked) =>
+                            setRoleIds((current) =>
+                              checked
+                                ? [...current, role.id]
+                                : current.filter((id) => id !== role.id)
+                            )
+                          }
+                        />
+                        {role.display_name}
+                      </label>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              </Can>
             )}
           </div>
 

@@ -34,7 +34,7 @@ import {
   OPERATOR_OPTIONS,
   ORDER_RULE_ATTRIBUTES,
 } from "./promotion-form";
-
+import { PERMISSIONS } from "@/lib/auth/permissions";
 const dateFormatter = new Intl.DateTimeFormat("es-MX", {
   dateStyle: "medium",
 });
@@ -418,7 +418,10 @@ export function PromotionsCatalog() {
         title="Promociones"
         description="Crea descuentos para aplicar a tus pedidos."
         actions={
-          <EntityCreateButton onClick={() => setCreateOpen(true)}>
+          <EntityCreateButton
+            policy={PERMISSIONS.promotionCreate}
+            onClick={() => setCreateOpen(true)}
+          >
             Nueva promoción
           </EntityCreateButton>
         }

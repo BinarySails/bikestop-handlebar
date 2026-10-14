@@ -2,8 +2,16 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { EntityDetailHeader } from "@/components/features/entity/entity-detail-header";
 import { CreateSalesOrderForm } from "@/components/features/sales/create-sales-order-form";
+import { PERMISSIONS } from "@/lib/auth/permissions";
+import { requirePolicy } from "@/lib/auth/require-auth";
 
 export const Route = createFileRoute("/admin/sales/new")({
+  beforeLoad: async ({ location }) => {
+    await requirePolicy(PERMISSIONS.salesOrderCreate, {
+      from: location.href,
+      navigateTo: "/login",
+    });
+  },
   component: NewSalesOrderPage,
 });
 

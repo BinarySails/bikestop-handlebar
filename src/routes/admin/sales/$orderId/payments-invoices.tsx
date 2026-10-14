@@ -4,9 +4,17 @@ import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGetSaleOrderRequest } from "@/lib/api/api";
+import { PERMISSIONS } from "@/lib/auth/permissions";
+import { requirePolicy } from "@/lib/auth/require-auth";
 
 export const Route = createFileRoute("/admin/sales/$orderId/payments-invoices")(
   {
+    beforeLoad: async ({ location }) => {
+      await requirePolicy(PERMISSIONS.salesOrderManagePayments, {
+        from: location.href,
+        navigateTo: "/login",
+      });
+    },
     component: PaymentsAndInvoicesPage,
   }
 );
