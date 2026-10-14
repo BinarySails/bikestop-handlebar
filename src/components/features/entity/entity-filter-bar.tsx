@@ -109,25 +109,24 @@ function FilterEditor({
     onApply(draft.trim() === "" ? undefined : draft);
   }
 
-  if (
-    definition.type === "select" ||
-    definition.type === "combobox"
-  ) {
+  if (definition.type === "select" || definition.type === "combobox") {
     return (
       <div className="flex flex-col gap-2.5">
         {definition.type === "combobox" ? (
           <Combobox
             items={definition.options}
-            value={
-              definition.options.find((o) => o.value === draft) ?? null
-            }
+            value={definition.options.find((o) => o.value === draft) ?? null}
             onValueChange={(item) => {
               setDraft(item?.value ?? "");
             }}
             itemToStringLabel={(item) => item.label}
             isItemEqualToValue={(a, b) => a.value === b.value}
           >
-            <ComboboxInput placeholder="Buscar..." showClear className="w-full" />
+            <ComboboxInput
+              placeholder="Buscar..."
+              showClear
+              className="w-full"
+            />
             <ComboboxContent>
               <ComboboxEmpty>Sin resultados.</ComboboxEmpty>
               <ComboboxList>

@@ -147,6 +147,7 @@ function WarehouseDetailView({
       code: warehouse.code ?? "",
       name: warehouse.name,
       description: warehouse.description ?? "",
+      picking_mode: warehouse.picking_mode,
       address: {
         country: warehouse.address.country,
         state: warehouse.address.state,
@@ -167,6 +168,7 @@ function WarehouseDetailView({
         value.code !== (warehouse.code ?? "") ||
         value.name !== warehouse.name ||
         value.description !== (warehouse.description ?? "") ||
+        value.picking_mode !== warehouse.picking_mode ||
         addressChanged;
 
       if (!detailsChanged) {
@@ -178,6 +180,7 @@ function WarehouseDetailView({
           code: value.code || null,
           name: value.name,
           description: value.description || null,
+          picking_mode: value.picking_mode,
           address: {
             country: value.address.country,
             state: value.address.state,
@@ -197,6 +200,7 @@ function WarehouseDetailView({
           code: value.code,
           name: value.name,
           description: value.description,
+          picking_mode: value.picking_mode,
           address: value.address,
         });
         await mutateWarehouse();
@@ -375,6 +379,45 @@ function WarehouseDetailView({
                         {field.state.meta.errors[0]}
                       </p>
                     )}
+                  </div>
+                )}
+              </form.Field>
+
+              <form.Field name="picking_mode">
+                {(field) => (
+                  <div className="grid gap-2">
+                    <Label htmlFor={field.name}>Modo de asignación</Label>
+                    <Select
+                      value={field.state.value}
+                      onValueChange={(value) => {
+                        if (value) {
+                          field.handleChange(
+                            value as "automatic" | "manual" | "restricted"
+                          );
+                        }
+                      }}
+                      disabled={isInactive}
+                    >
+                      <SelectTrigger id={field.name} className="w-full">
+                        <SelectValue>
+                          {field.state.value === "automatic"
+                            ? "Automático"
+                            : field.state.value === "manual"
+                              ? "Manual"
+                              : "Restringido"}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="automatic">Automático</SelectItem>
+                        <SelectItem value="manual">Manual</SelectItem>
+                        <SelectItem value="restricted">Restringido</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      Automático permite asignación automática en pedidos;
+                      Manual requiere selección explícita; Restringido no se
+                      puede asignar a pedidos.
+                    </p>
                   </div>
                 )}
               </form.Field>

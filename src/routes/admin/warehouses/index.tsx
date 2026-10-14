@@ -37,7 +37,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useListWarehousesRequest } from "@/lib/api/api";
-import type { WarehouseResponse, WarehouseStatus } from "@/lib/api/schemas";
+import type {
+  WarehousePickingMode,
+  WarehouseResponse,
+  WarehouseStatus,
+} from "@/lib/api/schemas";
 
 export const Route = createFileRoute("/admin/warehouses/")({
   component: WarehousesIndexPage,
@@ -62,6 +66,12 @@ const statusLabel: Record<WarehouseStatus, string> = {
   enable: "Activo",
   disable: "Inactivo",
   archive: "Archivado",
+};
+
+const pickingModeLabel: Record<WarehousePickingMode, string> = {
+  automatic: "Automático",
+  manual: "Manual",
+  restricted: "Restringido",
 };
 
 function matchesSearch(warehouse: WarehouseResponse, query: string) {
@@ -107,6 +117,14 @@ function WarehousesIndexPage() {
       header: "Código",
       cell: (warehouse) => (
         <span className="font-mono text-sm">{warehouse.code ?? "—"}</span>
+      ),
+    },
+    {
+      header: "Modo de asignación",
+      cell: (warehouse) => (
+        <Badge variant="outline">
+          {pickingModeLabel[warehouse.picking_mode]}
+        </Badge>
       ),
     },
     {

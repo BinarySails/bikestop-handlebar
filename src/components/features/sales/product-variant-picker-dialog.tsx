@@ -63,7 +63,9 @@ function CatalogCard({
       onClick={onAdd}
       className={cn(
         "group relative flex flex-col overflow-hidden rounded-xl border text-left transition-all",
-        !isExcluded && !isOutOfStock && "hover:border-primary/60 hover:shadow-sm",
+        !isExcluded &&
+          !isOutOfStock &&
+          "hover:border-primary/60 hover:shadow-sm",
         (isExcluded || isOutOfStock) && "cursor-not-allowed opacity-60"
       )}
     >
@@ -101,7 +103,7 @@ function CatalogCard({
         )}
       </div>
       <div className="flex flex-1 flex-col gap-1 p-3">
-        <span className="text-sm font-semibold leading-tight">
+        <span className="text-sm leading-tight font-semibold">
           {item.display_name}
         </span>
         <span className="text-xs text-muted-foreground">
@@ -145,7 +147,10 @@ export function ProductVariantPickerDialog({
   const debouncedSearch = useDebouncedValue(search.trim());
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  const excluded = useMemo(() => new Set(excludeVariantIds), [excludeVariantIds]);
+  const excluded = useMemo(
+    () => new Set(excludeVariantIds),
+    [excludeVariantIds]
+  );
 
   const { data: brandsRes } = useListBrandsRequest(undefined, {
     swr: { enabled: open },
@@ -287,7 +292,7 @@ export function ProductVariantPickerDialog({
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Buscar por nombre, SKU..."
-              className="pl-9 pr-9"
+              className="pr-9 pl-9"
               aria-label="Buscar variante"
             />
             {search && (

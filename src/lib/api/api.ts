@@ -72,6 +72,7 @@ import type {
   DeleteTagResponse,
   DispatchSalesOrderLineRequest,
   DispatchSalesOrderLineResult,
+  EditSalesOrderLinesRequest,
   ErrorResponse,
   FileId,
   GetCartResponse,
@@ -8774,6 +8775,97 @@ export const useFulfillOrderRequest = <TError = Promise<ErrorResponse>>(
 
   const swrKey = swrOptions?.swrKey ?? getFulfillOrderRequestMutationKey(id);
   const swrFn = getFulfillOrderRequestMutationFetcher(id, fetchOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export type editSalesOrderLinesRequestResponse200 = {
+  data: SalesOrder
+  status: 200
+}
+
+export type editSalesOrderLinesRequestResponse400 = {
+  data: ErrorResponse
+  status: 400
+}
+
+export type editSalesOrderLinesRequestResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+
+export type editSalesOrderLinesRequestResponse409 = {
+  data: ErrorResponse
+  status: 409
+}
+
+export type editSalesOrderLinesRequestResponse500 = {
+  data: ErrorResponse
+  status: 500
+}
+
+export type editSalesOrderLinesRequestResponseSuccess = (editSalesOrderLinesRequestResponse200) & {
+  headers: Headers;
+};
+export type editSalesOrderLinesRequestResponseError = (editSalesOrderLinesRequestResponse400 | editSalesOrderLinesRequestResponse404 | editSalesOrderLinesRequestResponse409 | editSalesOrderLinesRequestResponse500) & {
+  headers: Headers;
+};
+
+export type editSalesOrderLinesRequestResponse = (editSalesOrderLinesRequestResponseSuccess | editSalesOrderLinesRequestResponseError)
+
+export const getEditSalesOrderLinesRequestUrl = (id: SalesOrderId,) => {
+
+
+
+
+  return `http://localhost:8080/api/v1/sales-orders/${id}/lines`
+}
+
+export const editSalesOrderLinesRequest = async (id: SalesOrderId,
+    editSalesOrderLinesRequest: EditSalesOrderLinesRequest, options?: RequestInit): Promise<editSalesOrderLinesRequestResponse> => {
+
+  const res = await fetch(getEditSalesOrderLinesRequestUrl(id),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(editSalesOrderLinesRequest)
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: editSalesOrderLinesRequestResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as editSalesOrderLinesRequestResponse
+}
+
+
+
+
+export const getEditSalesOrderLinesRequestMutationFetcher = (id: SalesOrderId, options?: RequestInit) => {
+  return (_: Key, { arg }: { arg: EditSalesOrderLinesRequest }) => {
+    return editSalesOrderLinesRequest(id, arg, options);
+  }
+}
+export const getEditSalesOrderLinesRequestMutationKey = (id: SalesOrderId,) => [`http://localhost:8080/api/v1/sales-orders/${id}/lines`] as const;
+
+export type EditSalesOrderLinesRequestMutationResult = NonNullable<Awaited<ReturnType<typeof editSalesOrderLinesRequest>>>
+
+export const useEditSalesOrderLinesRequest = <TError = Promise<ErrorResponse>>(
+  id: SalesOrderId, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof editSalesOrderLinesRequest>>, TError, Key, EditSalesOrderLinesRequest, Awaited<ReturnType<typeof editSalesOrderLinesRequest>>> & { swrKey?: string }, fetch?: RequestInit}
+) => {
+
+  const {swr: swrOptions, fetch: fetchOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getEditSalesOrderLinesRequestMutationKey(id);
+  const swrFn = getEditSalesOrderLinesRequestMutationFetcher(id, fetchOptions);
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions)
 

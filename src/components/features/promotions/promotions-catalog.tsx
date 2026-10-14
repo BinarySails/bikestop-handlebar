@@ -38,6 +38,7 @@ import {
 const dateFormatter = new Intl.DateTimeFormat("es-MX", {
   dateStyle: "medium",
 });
+const EMPTY_PROMOTION_RULES: PromotionRule[] = [];
 
 function formatDate(value: string | null | undefined): string {
   if (!value) return "—";
@@ -142,7 +143,9 @@ function PromotionDetails({ promotion }: { promotion: Promotion }) {
       ? applicationMethod.Standard.target_rules
       : applicationMethod.BuyGet.target_rules;
   const buyRules =
-    "BuyGet" in applicationMethod ? applicationMethod.BuyGet.buy_rules : [];
+    "BuyGet" in applicationMethod
+      ? applicationMethod.BuyGet.buy_rules
+      : EMPTY_PROMOTION_RULES;
   const allRules = useMemo(
     () => [...promotion.rules, ...targetRules, ...buyRules],
     [promotion.rules, targetRules, buyRules]

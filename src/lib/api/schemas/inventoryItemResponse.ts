@@ -6,9 +6,11 @@
  */
 import type { VariantId } from './variantId.ts';
 import type { WarehouseId } from './warehouseId.ts';
+import type { WarehousePickingMode } from './warehousePickingMode.ts';
 
 export interface InventoryItemResponse {
   available_quantity: number;
+  picking_mode: WarehousePickingMode;
   reserved_quantity: number;
   total_quantity: number;
   variant_id: VariantId;

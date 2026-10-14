@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
+  editSalesOrderLinesRequest,
   getListSalesOrderAuditLogRequestKey,
   useAddSalesOrderCommentRequest,
   useGetSaleOrderRequest,
@@ -28,6 +29,7 @@ import { updateSalesOrderRequest } from "@/lib/api/update-sales-order";
 import {
   FulfillState,
   SalesOrderStatus,
+  type CreateSalesOrderLineRequest,
   type SalesOrder,
   type SalesOrderLineId,
   type WarehouseId,
@@ -56,6 +58,30 @@ const statusVariant: Record<
   cancelled: "destructive",
   closed: "secondary",
 };
+
+function orderLinesForPut(order: SalesOrder): CreateSalesOrderLineRequest[] {
+  return order.lines.map((line) => ({
+    line_id: line.id,
+    variant_id: line.variant_id,
+    description: line.description,
+    quantity: line.quantity,
+    unit_price: line.unit_price,
+    tax_rate: line.tax_rate,
+    warehouse_allocations: line.warehouse_allocations.map((allocation) => ({
+      warehouse_id: allocation.warehouse_id,
+      quantity: allocation.quantity,
+    })),
+  }));
+}
+
+function salesOrderSaveError(data: unknown, fallback: string): string {
+  if (typeof data !== "object" || data === null) return fallback;
+  const error = data as { message?: string | null; type?: string };
+  if (error.type?.includes("insufficient_stock")) {
+    return "Stock insuficiente para cubrir una o más líneas.";
+  }
+  return error.message ?? fallback;
+}
 
 export const Route = createFileRoute("/admin/sales/$orderId/")({
   component: OrderDetailPage,
@@ -214,37 +240,102 @@ function OrderDetailPage() {
           await mutate(updated, { revalidate: false });
           revalidateAudit();
         }}
-        onSaveOrder={async (payload) => {
-          const updated = await updateSalesOrderRequest(order.id, payload);
-          if (
-            (updated.status !== 200 && updated.status !== 201) ||
-            !("id" in updated.data)
-          ) {
-            const message =
-              "message" in updated.data ? updated.data.message : undefined;
-            throw new Error(
-              updated.status === 409 &&
-                "type" in updated.data &&
-                updated.data.type ===
-                  "create_sales_order_error_insufficient_stock"
-                ? "Stock insuficiente para una o más asignaciones de almacén."
-                : (message ?? "No se pudo actualizar la orden")
+        onSaveOrder={async (payload, changes) => {
+          if (order.status === "quote") {
+            const updated = await updateSalesOrderRequest(
+              order.id,
+              payload,
+              changes.expectedUpdatedAt
+            );
+            if (
+              (updated.status !== 200 && updated.status !== 201) ||
+              !("id" in updated.data)
+            ) {
+              throw new Error(
+                salesOrderSaveError(
+                  updated.data,
+                  updated.status === 409
+                    ? "La cotización cambió o el stock no está disponible. Recarga el pedido e inténtalo de nuevo."
+                    : "No se pudo actualizar la cotización."
+                )
+              );
+            }
+
+            if (updated.status === 201 || updated.data.id !== order.id) {
+              await navigate({
+                to: "/admin/sales/$orderId",
+                params: { orderId: updated.data.id },
+              });
+              return updated.data;
+            }
+            await mutate(
+              {
+                status: 200,
+                data: updated.data,
+                headers: new Headers(),
+              },
+              { revalidate: false }
+            );
+            revalidateAudit();
+            return updated.data;
+          }
+
+          let latestOrder = order;
+          if (order.status === "draft" && changes.metadataChanged) {
+            const metadataUpdate = await updateSalesOrderRequest(
+              order.id,
+              { ...payload, lines: orderLinesForPut(order) },
+              latestOrder.updated_at
+            );
+            if (
+              metadataUpdate.status !== 200 ||
+              !("id" in metadataUpdate.data)
+            ) {
+              throw new Error(
+                salesOrderSaveError(
+                  metadataUpdate.data,
+                  metadataUpdate.status === 409
+                    ? "El pedido cambió o el stock no está disponible. Recarga e inténtalo de nuevo."
+                    : "No se pudieron guardar los datos generales del pedido."
+                )
+              );
+            }
+            latestOrder = metadataUpdate.data;
+            await mutate(
+              {
+                status: 200,
+                data: latestOrder,
+                headers: new Headers(),
+              },
+              { revalidate: false }
             );
           }
 
-          if (updated.status === 201 || updated.data.id !== order.id) {
-            await navigate({
-              to: "/admin/sales/$orderId",
-              params: { orderId: updated.data.id },
+          if (changes.lineOperations.length > 0) {
+            const updatedLines = await editSalesOrderLinesRequest(order.id, {
+              expected_updated_at: latestOrder.updated_at,
+              operations: changes.lineOperations,
+              promotion_codes: [],
             });
-            return;
+            if (updatedLines.status !== 200 || !("id" in updatedLines.data)) {
+              throw new Error(
+                salesOrderSaveError(
+                  updatedLines.data,
+                  updatedLines.status === 409
+                    ? "El pedido cambió o el stock no está disponible. Recarga e inténtalo de nuevo."
+                    : "No se pudieron guardar los productos del pedido."
+                )
+              );
+            }
+            latestOrder = updatedLines.data;
           }
 
           await mutate(
-            { status: 200, data: updated.data, headers: new Headers() },
+            { status: 200, data: latestOrder, headers: new Headers() },
             { revalidate: false }
           );
           revalidateAudit();
+          return latestOrder;
         }}
         onAdvance={async () => {
           const updated = await updateSalesOrderStatusRequest(order.id);

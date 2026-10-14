@@ -5,6 +5,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { UpdateWarehouseAddressRequest } from './updateWarehouseAddressRequest.ts';
+import type { WarehousePickingMode } from './warehousePickingMode.ts';
 
 export interface UpdateWarehouseRequest {
   address: UpdateWarehouseAddressRequest;
@@ -13,4 +14,5 @@ export interface UpdateWarehouseRequest {
   /** @nullable */
   description?: string | null;
   name: string;
+  picking_mode: WarehousePickingMode;
 }

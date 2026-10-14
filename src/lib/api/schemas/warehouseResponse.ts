@@ -6,6 +6,7 @@
  */
 import type { Address } from './address.ts';
 import type { WarehouseId } from './warehouseId.ts';
+import type { WarehousePickingMode } from './warehousePickingMode.ts';
 import type { WarehouseStatus } from './warehouseStatus.ts';
 
 export interface WarehouseResponse {
@@ -17,6 +18,7 @@ export interface WarehouseResponse {
   description?: string | null;
   id: WarehouseId;
   name: string;
+  picking_mode: WarehousePickingMode;
   status: WarehouseStatus;
   updated_at: string;
 }

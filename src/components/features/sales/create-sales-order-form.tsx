@@ -6,6 +6,7 @@ import {
   Images,
   Plus,
   Printer,
+  RotateCcw,
   Tag,
   Trash2,
   WarehouseIcon,
@@ -53,7 +54,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import {
-  listInventoryRequest,
   useCreateSalesOrderRequest,
   useGetCustomerRequest,
   useListCustomerAddressesRequest,
@@ -70,6 +70,7 @@ import {
   ProductStatus,
   type SalesOrder,
   type SalesOrderLine,
+  type SalesOrderLineOperation,
   type SalesOrderLineId,
   type Variant,
   VariantStatus,
@@ -78,17 +79,15 @@ import {
   type WarehouseId,
 } from "@/lib/api/schemas";
 import { DEFAULT_COUNTRY } from "@/components/features/locations/country-select";
-import { centsToPesos, centsToPesosString, pesosToCents } from "@/lib/money";
+import { centsToPesosString, pesosToCents } from "@/lib/money";
 import { computeDueDate, formatDueDate } from "@/lib/dates";
 import { PaymentTermSelect } from "@/components/features/sales/payment-term-select";
 import { CreateSalesOrderRequestBody } from "@/lib/api/zods";
+import { buildSalesOrderLineOperations } from "@/lib/api/sales-order-line-operations";
 import { calculateAutomaticPromotionPreview } from "./automatic-promotion-preview";
 
 const MAX_PRICE_DECIMALS = 2;
 const DEFAULT_TAX_PERCENT = "16";
-const INSUFFICIENT_STOCK_MESSAGE =
-  "No hay stock suficiente de esta variante en ningún almacén registrado.";
-
 const currencyFormatter = new Intl.NumberFormat("es-MX", {
   style: "currency",
   currency: "MXN",
@@ -159,10 +158,13 @@ function validateRequired(
   return undefined;
 }
 
-function validateQuantity(value: string): string | undefined {
+function validateQuantity(value: string, minimum = 1): string | undefined {
   if (!value.trim()) return "La cantidad es obligatoria.";
   const number = Number(value);
-  if (!Number.isInteger(number) || number < 1) {
+  if (!Number.isInteger(number) || number < minimum) {
+    if (minimum > 1) {
+      return `La cantidad no puede ser menor a las ${minimum} unidades ya despachadas.`;
+    }
     return "La cantidad debe ser un entero mayor o igual a 1.";
   }
   return undefined;
@@ -338,20 +340,10 @@ export function validateWarehouseAllocations(
   return undefined;
 }
 
-export function selectDefaultWarehouse(
-  inventory: InventoryItemResponse[],
-  quantity: number
-): InventoryItemResponse | undefined {
-  return inventory.reduce<InventoryItemResponse | undefined>(
-    (selected, item) => {
-      if (item.available_quantity < quantity) return selected;
-      if (!selected || item.available_quantity > selected.available_quantity) {
-        return item;
-      }
-      return selected;
-    },
-    undefined
-  );
+export function selectManuallySelectableWarehouses(
+  inventory: InventoryItemResponse[]
+): InventoryItemResponse[] {
+  return inventory.filter((item) => item.picking_mode !== "restricted");
 }
 
 const defaultAddress: AddressFormValues = {
@@ -453,14 +445,14 @@ function valuesFromOrder(order: SalesOrder): SalesOrderFormValues {
         product_id: line.product_id,
         display_name: line.description,
         description: null,
-        sku: line.variant_id,
+        sku: line.sku,
         prices: [],
         properties: [],
         status: VariantStatus.enable,
         images: [],
         created_at: order.created_at,
         updated_at: order.updated_at,
-        total_inventory: 0,
+        total_inventory: -777,
       } as Variant,
       description: line.description,
       quantity: String(line.quantity),
@@ -490,7 +482,14 @@ export function CreateSalesOrderForm({
   order?: SalesOrder;
   commentAuthor?: string;
   onAddComment?: (comment: string) => Promise<void>;
-  onSaveOrder?: (payload: CreateSalesOrderRequest) => Promise<void>;
+  onSaveOrder?: (
+    payload: CreateSalesOrderRequest,
+    context: {
+      expectedUpdatedAt: string;
+      lineOperations: SalesOrderLineOperation[];
+      metadataChanged: boolean;
+    }
+  ) => Promise<SalesOrder | void>;
   onAdvance?: () => Promise<void>;
   onConfirm?: () => Promise<void>;
   onCancel?: () => Promise<void>;
@@ -506,6 +505,11 @@ export function CreateSalesOrderForm({
   const isDetail = Boolean(order);
   const editable =
     !order || order.status === "draft" || order.status === "quote";
+  const canEditLines =
+    !order ||
+    ["draft", "quote", "confirmed", "partially_fulfilled"].includes(
+      order.status
+    );
   const { data: promotionsResponse } = useListPromotionsRequest();
   const promotions =
     promotionsResponse?.status === 200 ? promotionsResponse.data : [];
@@ -572,6 +576,8 @@ export function CreateSalesOrderForm({
     );
   const allocationInventory =
     inventoryResponse?.status === 200 ? inventoryResponse.data : [];
+  const manuallySelectableInventory =
+    selectManuallySelectableWarehouses(allocationInventory);
   const remainingQuantityForLine = (lineId: SalesOrderLineId) => {
     const line = order?.lines.find((item) => item.id === lineId);
     return line ? line.quantity - line.dispatched_quantity : 0;
@@ -704,10 +710,12 @@ export function CreateSalesOrderForm({
       const invalidAllocation = completeLines
         .map((line, index) => ({
           index,
-          error: validateWarehouseAllocations(
-            line.quantity,
-            line.warehouse_allocations
-          ),
+          error: line.warehouse_allocation_manual
+            ? validateWarehouseAllocations(
+                line.quantity,
+                line.warehouse_allocations
+              )
+            : undefined,
         }))
         .find((item) => item.error);
       if (invalidAllocation) {
@@ -755,12 +763,12 @@ export function CreateSalesOrderForm({
           quantity: Number(line.quantity),
           unit_price: pesosToCents(Number(line.unit_price)),
           tax_rate: percentToBasisPoints(line.tax_rate),
-          warehouse_allocations: line.warehouse_allocations.map(
-            (allocation) => ({
-              warehouse_id: allocation.warehouse_id,
-              quantity: Number(allocation.quantity),
-            })
-          ),
+          warehouse_allocations: line.warehouse_allocation_manual
+            ? line.warehouse_allocations.map((allocation) => ({
+                warehouse_id: allocation.warehouse_id,
+                quantity: Number(allocation.quantity),
+              }))
+            : [],
         })),
       };
 
@@ -772,10 +780,7 @@ export function CreateSalesOrderForm({
       }
 
       if (order) {
-        if (
-          (order.status === "draft" || order.status === "quote") &&
-          onSaveOrder
-        ) {
+        if (canEditLines && onSaveOrder) {
           const originalBilling = addressValues(order.billing_address);
           const billingChanged =
             originalBilling.country !== billingAddress.country ||
@@ -862,9 +867,55 @@ export function CreateSalesOrderForm({
             !customerChanged &&
             !orderDateChanged;
 
+          const metadataChanged =
+            billingChanged ||
+            shippingChanged ||
+            paymentTermChanged ||
+            commentsChanged ||
+            tagsChanged ||
+            customerChanged ||
+            orderDateChanged;
+
           try {
-            await onSaveOrder(parseResult.data);
-            form.reset(value);
+            const savedOrder = await onSaveOrder(parseResult.data, {
+              expectedUpdatedAt: order.updated_at,
+              lineOperations: buildSalesOrderLineOperations(
+                order.lines,
+                parseResult.data.lines
+              ),
+              metadataChanged,
+            });
+            const resetValue = savedOrder
+              ? {
+                  ...value,
+                  lines: value.lines.map((line) => {
+                    const savedLine = savedOrder.lines.find(
+                      (item) => item.variant_id === line.variant?.id
+                    );
+                    return savedLine
+                      ? {
+                          ...line,
+                          id: savedLine.id,
+                          description: savedLine.description,
+                          quantity: String(savedLine.quantity),
+                          unit_price: centsToPesosString(savedLine.unit_price),
+                          tax_rate: String(savedLine.tax_rate / 100),
+                          warehouse_allocations:
+                            savedLine.warehouse_allocations.map(
+                              (allocation) => ({
+                                warehouse_id: allocation.warehouse_id,
+                                quantity: String(allocation.quantity),
+                                dispatched_quantity:
+                                  allocation.dispatched_quantity,
+                              })
+                            ),
+                          warehouse_allocation_manual: true,
+                        }
+                      : { ...line, id: undefined };
+                  }),
+                }
+              : value;
+            form.reset(resetValue);
             setConfirmation(null);
 
             if (onlyAddressOrPaymentChanged) {
@@ -921,8 +972,9 @@ export function CreateSalesOrderForm({
               : undefined;
           toast.error(
             result.status === 409 &&
-              errorType === "create_sales_order_error_insufficient_stock"
-              ? "Stock insuficiente para una o más asignaciones de almacén."
+              typeof errorType === "string" &&
+              errorType.includes("insufficient_stock")
+              ? "Stock insuficiente para cubrir una o más líneas."
               : (errorData ?? "Error al crear la orden.")
           );
         }
@@ -931,54 +983,6 @@ export function CreateSalesOrderForm({
       }
     },
   });
-
-  async function assignDefaultWarehouse(
-    lineIndex: number,
-    variantId: string,
-    quantityValue: string
-  ) {
-    const quantity = Number(quantityValue);
-    if (!Number.isInteger(quantity) || quantity < 1) return;
-
-    let response: Awaited<ReturnType<typeof listInventoryRequest>>;
-    try {
-      response = await listInventoryRequest({ variant_id: variantId });
-    } catch {
-      return;
-    }
-    const currentLine = form.state.values.lines[lineIndex];
-    if (
-      !currentLine ||
-      currentLine.variant?.id !== variantId ||
-      currentLine.quantity !== quantityValue ||
-      currentLine.warehouse_allocation_manual
-    ) {
-      return;
-    }
-
-    const warehouse =
-      response.status === 200
-        ? selectDefaultWarehouse(response.data, quantity)
-        : undefined;
-    form.setFieldValue(
-      `lines[${lineIndex}].warehouse_allocations`,
-      warehouse
-        ? [
-            {
-              warehouse_id: warehouse.warehouse_id,
-              warehouse_name: warehouse.warehouse_name,
-              quantity: quantityValue,
-            },
-          ]
-        : []
-    );
-    form.setFieldValue(
-      `lines[${lineIndex}].warehouse_error`,
-      response.status === 200 && !warehouse
-        ? INSUFFICIENT_STOCK_MESSAGE
-        : undefined
-    );
-  }
 
   function applyVisualSelectionToLine(
     lineIndex: number,
@@ -1012,9 +1016,7 @@ export function CreateSalesOrderForm({
       const selection = selections[0];
       if (!selection) return;
       const lineIndex = editingLineIndex;
-      const quantity = form.state.values.lines[lineIndex]?.quantity ?? "1";
       applyVisualSelectionToLine(lineIndex, selection);
-      void assignDefaultWarehouse(lineIndex, selection.variant.id, quantity);
       setEditingLineIndex(null);
       return;
     }
@@ -1032,7 +1034,6 @@ export function CreateSalesOrderForm({
       return;
     }
 
-    const baseIndex = form.state.values.lines.length;
     const newLines = fresh.map((selection) => {
       const price = findActiveRegularPrice(selection.variant);
       return {
@@ -1048,13 +1049,6 @@ export function CreateSalesOrderForm({
       };
     });
     form.setFieldValue("lines", [...form.state.values.lines, ...newLines]);
-    fresh.forEach((selection, offset) => {
-      void assignDefaultWarehouse(
-        baseIndex + offset,
-        selection.variant.id,
-        "1"
-      );
-    });
     if (fresh.length < selections.length) {
       toast.info(
         `${selections.length - fresh.length} variante(s) ya estaban en la orden y se omitieron.`
@@ -1110,6 +1104,17 @@ export function CreateSalesOrderForm({
   function saveWarehouseAllocations() {
     if (allocationLineIndex === null) return;
     const line = form.state.values.lines[allocationLineIndex];
+    if (
+      allocationDraft.some(
+        (allocation) =>
+          allocationInventory.find(
+            (item) => item.warehouse_id === allocation.warehouse_id
+          )?.picking_mode === "restricted"
+      )
+    ) {
+      toast.error("No se puede asignar inventario de un almacén restringido.");
+      return;
+    }
     const error = validateWarehouseAllocations(line.quantity, allocationDraft);
     if (error) {
       toast.error(error);
@@ -1132,6 +1137,25 @@ export function CreateSalesOrderForm({
     form.setFieldValue(
       `lines[${allocationLineIndex}].warehouse_allocation_manual`,
       true
+    );
+    form.setFieldValue(
+      `lines[${allocationLineIndex}].warehouse_error`,
+      undefined
+    );
+    setAllocationLineIndex(null);
+    setAllocationVariantId(null);
+    setAllocationDraft([]);
+  }
+
+  function useAutomaticWarehouseAllocation() {
+    if (allocationLineIndex === null) return;
+    form.setFieldValue(
+      `lines[${allocationLineIndex}].warehouse_allocations`,
+      []
+    );
+    form.setFieldValue(
+      `lines[${allocationLineIndex}].warehouse_allocation_manual`,
+      false
     );
     form.setFieldValue(
       `lines[${allocationLineIndex}].warehouse_error`,
@@ -1408,6 +1432,42 @@ export function CreateSalesOrderForm({
       }}
       className="space-y-6"
     >
+      <form.Subscribe selector={(state) => [state.isSubmitting, state.isDirty]}>
+        {([isSubmitting, isDirty]) =>
+          isDirty && (!isDetail || canEditLines) ? (
+            <div className="pointer-events-none fixed inset-x-4 bottom-4 z-40 flex justify-end gap-2 sm:inset-x-auto sm:right-6 sm:bottom-6">
+              <Button
+                type="button"
+                variant="outline"
+                className="pointer-events-auto shadow-lg"
+                disabled={isSubmitting}
+                onClick={() => {
+                  setConfirmation(null);
+                  form.reset();
+                }}
+              >
+                <RotateCcw className="size-4" />
+                Restablecer
+              </Button>
+              <Button
+                type="button"
+                className="pointer-events-auto min-w-40 shadow-lg"
+                disabled={isSubmitting}
+                onClick={() => {
+                  if (order?.status === "quote") {
+                    setConfirmation("save-quote");
+                    return;
+                  }
+                  void form.handleSubmit();
+                }}
+              >
+                {isSubmitting ? "Guardando..." : "Guardar"}
+              </Button>
+            </div>
+          ) : null
+        }
+      </form.Subscribe>
+
       <div className="flex flex-wrap justify-end gap-3">
         {!isDetail && (
           <form.Subscribe selector={(state) => state.isSubmitting}>
@@ -1419,7 +1479,7 @@ export function CreateSalesOrderForm({
           </form.Subscribe>
         )}
 
-        {isDetail && editable && (
+        {isDetail && canEditLines && (
           <form.Subscribe
             selector={(state) => [state.isSubmitting, state.isDirty]}
           >
@@ -1435,7 +1495,7 @@ export function CreateSalesOrderForm({
                   void form.handleSubmit();
                 }}
               >
-                {isSubmitting ? "Guardando..." : "Guardar cambios"}
+                {isSubmitting ? "Guardando..." : "Guardar"}
               </Button>
             )}
           </form.Subscribe>
@@ -1578,7 +1638,7 @@ export function CreateSalesOrderForm({
           <DialogHeader>
             <DialogTitle>Distribución por almacén</DialogTitle>
             <DialogDescription>
-              {editable
+              {canEditLines
                 ? "Distribuye toda la cantidad de la línea entre uno o más almacenes."
                 : "Consulta la distribución y el progreso de despacho de esta línea."}
             </DialogDescription>
@@ -1609,9 +1669,17 @@ export function CreateSalesOrderForm({
               </p>
             )}
             {allocationDraft.length === 0 &&
-              !allocationLine?.warehouse_error && (
+              !allocationLine?.warehouse_error &&
+              allocationLine?.warehouse_allocation_manual && (
                 <p className="text-sm text-destructive" role="alert">
                   Falta distribuir la cantidad de esta línea.
+                </p>
+              )}
+            {allocationDraft.length === 0 &&
+              !allocationLine?.warehouse_allocation_manual && (
+                <p className="text-sm text-muted-foreground">
+                  El servidor asignará automáticamente el inventario de
+                  almacenes en modo automático al guardar.
                 </p>
               )}
             {allocationDraft.map((allocation, allocationIndex) => {
@@ -1620,7 +1688,7 @@ export function CreateSalesOrderForm({
               );
               const quantity = Number(allocation.quantity);
               const dispatched = allocation.dispatched_quantity ?? 0;
-              return editable ? (
+              return canEditLines ? (
                 <div
                   key={`${allocation.warehouse_id}-${allocationIndex}`}
                   className="grid gap-3 rounded-lg border p-3 sm:grid-cols-[1fr_8rem_auto] sm:items-end"
@@ -1655,7 +1723,7 @@ export function CreateSalesOrderForm({
                         </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
-                        {allocationInventory.map((item) => (
+                        {manuallySelectableInventory.map((item) => (
                           <SelectItem
                             key={item.warehouse_id}
                             value={item.warehouse_id}
@@ -1666,7 +1734,10 @@ export function CreateSalesOrderForm({
                             )}
                           >
                             {item.warehouse_name} · {item.available_quantity}{" "}
-                            disponibles
+                            disponibles ·{" "}
+                            {item.picking_mode === "automatic"
+                              ? "Automático"
+                              : "Manual"}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -1736,14 +1807,14 @@ export function CreateSalesOrderForm({
                 </div>
               );
             })}
-            {editable &&
+            {canEditLines &&
               (isLoadingInventory ? (
                 <p className="text-sm text-muted-foreground">
                   Consultando inventario...
                 </p>
-              ) : allocationInventory.length === 0 ? (
+              ) : manuallySelectableInventory.length === 0 ? (
                 <p className="text-sm text-destructive">
-                  Esta variante no tiene inventario registrado por almacén.
+                  No hay almacenes manuales disponibles para esta variante.
                 </p>
               ) : (
                 <Button
@@ -1751,10 +1822,10 @@ export function CreateSalesOrderForm({
                   variant="outline"
                   size="sm"
                   disabled={
-                    allocationDraft.length >= allocationInventory.length
+                    allocationDraft.length >= manuallySelectableInventory.length
                   }
                   onClick={() => {
-                    const next = allocationInventory.find(
+                    const next = manuallySelectableInventory.find(
                       (item) =>
                         !allocationDraft.some(
                           (allocation) =>
@@ -1787,12 +1858,21 @@ export function CreateSalesOrderForm({
           </div>
           <DialogFooter>
             <DialogClose render={<Button type="button" variant="outline" />}>
-              {editable ? "Cancelar" : "Cerrar"}
+              {canEditLines ? "Cancelar" : "Cerrar"}
             </DialogClose>
-            {editable && (
-              <Button type="button" onClick={saveWarehouseAllocations}>
-                Guardar distribución
-              </Button>
+            {canEditLines && (
+              <>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={useAutomaticWarehouseAllocation}
+                >
+                  Asignar automáticamente
+                </Button>
+                <Button type="button" onClick={saveWarehouseAllocations}>
+                  Guardar distribución manual
+                </Button>
+              </>
             )}
           </DialogFooter>
         </DialogContent>
@@ -2184,7 +2264,7 @@ export function CreateSalesOrderForm({
         <Card>
           <CardHeader className="flex-row items-center justify-between">
             <CardTitle>Productos</CardTitle>
-            {editable && (
+            {canEditLines && (
               <form.Field
                 name="lines"
                 validators={{
@@ -2234,6 +2314,9 @@ export function CreateSalesOrderForm({
 
                     {field.state.value.map((_, index) => {
                       const line = field.state.value[index];
+                      const dispatchedQuantity =
+                        order?.lines.find((item) => item.id === line.id)
+                          ?.dispatched_quantity ?? 0;
                       const totals = computeLineTotals(line);
                       const persistedLine = order?.lines.find(
                         (orderLine) =>
@@ -2250,13 +2333,14 @@ export function CreateSalesOrderForm({
                       const lineTotal =
                         persistedLine?.line_total ??
                         Math.max(0, totals.total - automaticDiscount);
-                      const warehouseError = line.variant
-                        ? (line.warehouse_error ??
-                          validateWarehouseAllocations(
-                            line.quantity,
-                            line.warehouse_allocations
-                          ))
-                        : undefined;
+                      const warehouseError =
+                        line.variant && line.warehouse_allocation_manual
+                          ? (line.warehouse_error ??
+                            validateWarehouseAllocations(
+                              line.quantity,
+                              line.warehouse_allocations
+                            ))
+                          : undefined;
 
                       return (
                         <div
@@ -2281,77 +2365,80 @@ export function CreateSalesOrderForm({
                                 },
                               }}
                             >
-                              {(subField) => {
-                                const variantPrice = line.variant
-                                  ? findActiveRegularPrice(line.variant)
-                                  : undefined;
-                                return (
-                                  <div className="grid flex-1 gap-1.5">
-                                    <Label>Producto</Label>
-                                    {line.variant && line.product ? (
-                                      <div className="flex flex-1 items-start justify-between gap-3 rounded-lg border bg-muted/20 p-3">
-                                        <div className="min-w-0">
-                                          <p className="truncate text-sm font-semibold">
-                                            {line.product.display_name}
-                                          </p>
-                                          <p className="truncate text-sm text-muted-foreground">
-                                            {line.variant.display_name}
-                                          </p>
-                                          <p className="mt-1 text-xs text-muted-foreground">
-                                            SKU: {line.variant.sku} · Stock:{" "}
-                                            {line.variant.total_inventory}
-                                            {variantPrice
-                                              ? ` · $${centsToPesos(variantPrice.amount).toFixed(2)}`
-                                              : ""}
-                                          </p>
-                                        </div>
-                                        {editable && (
-                                          <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="sm"
-                                            className="shrink-0"
-                                            onClick={() => {
-                                              setEditingLineIndex(index);
-                                              setPickerOpen(true);
-                                            }}
-                                          >
-                                            <Images className="size-4" />
-                                            Cambiar
-                                          </Button>
-                                        )}
+                              {(subField) => (
+                                <div className="grid flex-1 gap-1.5">
+                                  <Label>Producto</Label>
+                                  {line.variant && line.product ? (
+                                    <div className="flex flex-1 items-start justify-between gap-3 rounded-lg border bg-muted/20 p-3">
+                                      <div className="min-w-0">
+                                        <p className="truncate text-sm font-semibold">
+                                          {line.product.display_name}
+                                        </p>
+                                        <p className="truncate text-sm text-muted-foreground">
+                                          {line.variant.display_name}
+                                        </p>
+                                        <p className="mt-1 text-xs text-muted-foreground">
+                                          SKU: {line.variant.sku}{" "}
+                                          {line.variant.total_inventory !==
+                                          -777 ? (
+                                            <>
+                                              · Stock:{" "}
+                                              {line.variant.total_inventory}
+                                            </>
+                                          ) : null}
+                                        </p>
                                       </div>
-                                    ) : (
-                                      <Button
-                                        type="button"
-                                        variant="outline"
-                                        disabled={!editable}
-                                        className="h-auto justify-start gap-3 border-dashed p-3 text-left"
-                                        onClick={() => {
-                                          setEditingLineIndex(index);
-                                          setPickerOpen(true);
-                                        }}
-                                      >
-                                        <Images className="size-5 shrink-0 text-muted-foreground" />
-                                        <span>
-                                          <span className="block text-sm font-medium">
-                                            Seleccionar producto
-                                          </span>
-                                          <span className="block text-xs text-muted-foreground">
-                                            Ver imágenes grandes y elegir
-                                            variante
-                                          </span>
+                                      {canEditLines && (
+                                        <Button
+                                          type="button"
+                                          variant="outline"
+                                          size="sm"
+                                          className="shrink-0"
+                                          disabled={dispatchedQuantity > 0}
+                                          title={
+                                            dispatchedQuantity > 0
+                                              ? "No se puede reemplazar una línea que ya fue despachada."
+                                              : undefined
+                                          }
+                                          onClick={() => {
+                                            setEditingLineIndex(index);
+                                            setPickerOpen(true);
+                                          }}
+                                        >
+                                          <Images className="size-4" />
+                                          Cambiar
+                                        </Button>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      disabled={!canEditLines}
+                                      className="h-auto justify-start gap-3 border-dashed p-3 text-left"
+                                      onClick={() => {
+                                        setEditingLineIndex(index);
+                                        setPickerOpen(true);
+                                      }}
+                                    >
+                                      <Images className="size-5 shrink-0 text-muted-foreground" />
+                                      <span>
+                                        <span className="block text-sm font-medium">
+                                          Seleccionar producto
                                         </span>
-                                      </Button>
-                                    )}
-                                    {subField.state.meta.errors[0] && (
-                                      <p className="text-xs text-destructive">
-                                        {subField.state.meta.errors[0]}
-                                      </p>
-                                    )}
-                                  </div>
-                                );
-                              }}
+                                        <span className="block text-xs text-muted-foreground">
+                                          Ver imágenes grandes y elegir variante
+                                        </span>
+                                      </span>
+                                    </Button>
+                                  )}
+                                  {subField.state.meta.errors[0] && (
+                                    <p className="text-xs text-destructive">
+                                      {subField.state.meta.errors[0]}
+                                    </p>
+                                  )}
+                                </div>
+                              )}
                             </form.Field>
 
                             <div className="flex items-end gap-1">
@@ -2387,18 +2474,24 @@ export function CreateSalesOrderForm({
                                 </TooltipTrigger>
                                 <TooltipContent>
                                   {line.variant
-                                    ? editable
+                                    ? canEditLines
                                       ? "Asignar almacenes"
                                       : "Ver distribución por almacén"
                                     : "Selecciona una variante primero"}
                                 </TooltipContent>
                               </Tooltip>
-                              {editable && (
+                              {canEditLines && (
                                 <Button
                                   type="button"
                                   variant="ghost"
                                   size="icon"
                                   className="size-9 text-destructive"
+                                  disabled={dispatchedQuantity > 0}
+                                  title={
+                                    dispatchedQuantity > 0
+                                      ? "No se puede eliminar una línea que ya fue despachada."
+                                      : undefined
+                                  }
                                   onClick={() => field.removeValue(index)}
                                   aria-label="Eliminar línea"
                                 >
@@ -2493,7 +2586,10 @@ export function CreateSalesOrderForm({
                               name={`lines[${index}].quantity`}
                               validators={{
                                 onSubmit: ({ value }) =>
-                                  validateQuantity(value),
+                                  validateQuantity(
+                                    value,
+                                    Math.max(1, dispatchedQuantity)
+                                  ),
                               }}
                             >
                               {(subField) => (
@@ -2504,30 +2600,24 @@ export function CreateSalesOrderForm({
                                   <Input
                                     id={subField.name}
                                     type="number"
-                                    min={1}
+                                    min={Math.max(1, dispatchedQuantity)}
                                     step={1}
                                     value={subField.state.value}
-                                    disabled={!editable}
+                                    disabled={!canEditLines}
                                     onChange={(event) => {
                                       const quantity = event.target.value;
                                       subField.handleChange(quantity);
-                                      if (
-                                        line.variant &&
-                                        !line.warehouse_allocation_manual
-                                      ) {
-                                        form.setFieldValue(
-                                          `lines[${index}].warehouse_allocations`,
-                                          []
-                                        );
+                                      if (line.variant) {
                                         form.setFieldValue(
                                           `lines[${index}].warehouse_error`,
                                           undefined
                                         );
-                                        void assignDefaultWarehouse(
-                                          index,
-                                          line.variant.id,
-                                          quantity
-                                        );
+                                        if (!line.warehouse_allocation_manual) {
+                                          form.setFieldValue(
+                                            `lines[${index}].warehouse_allocations`,
+                                            []
+                                          );
+                                        }
                                       }
                                     }}
                                     onBlur={subField.handleBlur}

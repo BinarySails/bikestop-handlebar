@@ -15,5 +15,5 @@ export interface CreateSalesOrderLineRequest {
   tax_rate: number;
   unit_price: number;
   variant_id: VariantId;
-  warehouse_allocations: CreateSalesOrderLineWarehouseAllocationRequest[];
+  warehouse_allocations?: CreateSalesOrderLineWarehouseAllocationRequest[];
 }
