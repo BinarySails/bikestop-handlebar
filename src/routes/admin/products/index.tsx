@@ -91,10 +91,9 @@ const promotionFilterDefinitions: FilterDefinition[] = [
     key: "has_active_promotion",
     label: "Promociones",
     type: "select",
-    options: (Object.keys(promotionFilterLabel) as Exclude<
-      PromotionFilter,
-      "all"
-    >[]).map((value) => ({
+    options: (
+      Object.keys(promotionFilterLabel) as Exclude<PromotionFilter, "all">[]
+    ).map((value) => ({
       value,
       label: promotionFilterLabel[value],
     })),
@@ -209,9 +208,7 @@ function ProductsListPage() {
     _key: string,
     value: string | undefined
   ) {
-    setPromoFilter(
-      value === "with" || value === "without" ? value : "all"
-    );
+    setPromoFilter(value === "with" || value === "without" ? value : "all");
     setPage(0);
   }
 
