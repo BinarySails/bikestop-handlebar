@@ -37,7 +37,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useListProductsRequest, useUpdateProductRequest } from "@/lib/api/api";
+import {
+  getVariantBySkuRequest,
+  useListProductsRequest,
+  useUpdateProductRequest,
+} from "@/lib/api/api";
 import type { Product } from "@/lib/api/schemas";
 import { PERMISSIONS } from "@/lib/auth/permissions";
 import { Can } from "@/components/features/entity/can";
@@ -169,6 +173,8 @@ function ProductsListPage() {
   const [appliedSearch, setAppliedSearch] = useState("");
   const [status, setStatus] = useState<ListStatusFilter>("all");
   const [promoFilter, setPromoFilter] = useState<PromotionFilter>("all");
+  const [isLookingUpSku, setIsLookingUpSku] = useState(false);
+  const navigate = useNavigate();
 
   const {
     data: res,
@@ -191,9 +197,33 @@ function ProductsListPage() {
   const total = res?.status === 200 ? res.data.total : 0;
   const hasError = Boolean(error) || Boolean(res && res.status !== 200);
 
-  function handleApplySearch() {
-    setAppliedSearch(search);
-    setPage(0);
+  async function handleSkuSearch() {
+    const sku = search.trim();
+    if (!sku || isLookingUpSku) return;
+
+    setIsLookingUpSku(true);
+    try {
+      // Encode the SKU as a single path segment (SKUs can contain URL characters).
+      const result = await getVariantBySkuRequest(encodeURIComponent(sku));
+
+      if (result.status === 200) {
+        navigate({
+          to: "/admin/products/$productId/variants/$variantId",
+          params: {
+            productId: result.data.product_id,
+            variantId: result.data.variant_id,
+          },
+        });
+      } else if (result.status === 404) {
+        toast.error(`No se encontró el SKU "${sku}".`);
+      } else {
+        toast.error("No se pudo buscar el SKU.");
+      }
+    } catch {
+      toast.error("No se pudo buscar el SKU.");
+    } finally {
+      setIsLookingUpSku(false);
+    }
   }
 
   function handleClearFilters() {
@@ -314,14 +344,17 @@ function ProductsListPage() {
               <InputGroupInput
                 type="search"
                 value={search}
+                disabled={isLookingUpSku}
                 onChange={(event) => setSearch(event.target.value)}
                 onKeyDown={(event) => {
                   if (event.key === "Enter") {
-                    handleApplySearch();
+                    event.preventDefault();
+                    void handleSkuSearch();
                   }
                 }}
-                placeholder="Buscar por nombre, marca o categoría"
-                aria-label="Buscar por nombre, marca o categoría"
+                placeholder="Buscar por nombre, marca o categoría; Enter para buscar por SKU"
+                aria-label="Buscar por nombre, marca o categoría; presiona Enter para buscar un SKU"
+                aria-busy={isLookingUpSku}
               />
             </InputGroup>
 

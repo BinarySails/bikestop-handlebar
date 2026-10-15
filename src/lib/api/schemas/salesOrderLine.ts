@@ -20,6 +20,7 @@ export interface SalesOrderLine {
   line_total: number;
   product_id: ProductId;
   quantity: number;
+  sku: string;
   tax_amount: number;
   tax_rate: number;
   unit_price: number;

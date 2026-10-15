@@ -35,7 +35,7 @@ export function CreatePromotionDialog({
           <DialogTitle>Crear promoción</DialogTitle>
           <DialogDescription>
             Define el tipo de descuento y las condiciones para aplicarlo a tus
-            órdenes de venta.
+            pedidos.
           </DialogDescription>
         </DialogHeader>
         <CreatePromotionForm

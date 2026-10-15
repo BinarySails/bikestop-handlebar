@@ -156,6 +156,7 @@ function WarehouseDetailView({
       code: warehouse.code ?? "",
       name: warehouse.name,
       description: warehouse.description ?? "",
+      picking_mode: warehouse.picking_mode,
       address: {
         country: warehouse.address.country,
         state: warehouse.address.state,
@@ -176,6 +177,7 @@ function WarehouseDetailView({
         value.code !== (warehouse.code ?? "") ||
         value.name !== warehouse.name ||
         value.description !== (warehouse.description ?? "") ||
+        value.picking_mode !== warehouse.picking_mode ||
         addressChanged;
 
       if (!detailsChanged) {
@@ -187,6 +189,7 @@ function WarehouseDetailView({
           code: value.code || null,
           name: value.name,
           description: value.description || null,
+          picking_mode: value.picking_mode,
           address: {
             country: value.address.country,
             state: value.address.state,
@@ -206,6 +209,7 @@ function WarehouseDetailView({
           code: value.code,
           name: value.name,
           description: value.description,
+          picking_mode: value.picking_mode,
           address: value.address,
         });
         await mutateWarehouse();

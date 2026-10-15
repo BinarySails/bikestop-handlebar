@@ -37,7 +37,7 @@ function PaymentsAndInvoicesPage() {
     return (
       <main className="flex min-h-[50vh] items-center justify-center p-6">
         <p className="text-sm text-muted-foreground">
-          No se encontró la orden de venta o ocurrió un error al cargarla.
+          No se encontró el pedido o ocurrió un error al cargarlo.
         </p>
       </main>
     );

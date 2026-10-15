@@ -35,7 +35,39 @@ type UuidSource = {
   id: string;
   label: string;
   sublabel?: string;
+  imageUrl?: string;
 };
+
+function ComboboxOption({
+  label,
+  sublabel,
+  imageUrl,
+}: {
+  label: string;
+  sublabel?: string;
+  imageUrl?: string;
+}) {
+  return (
+    <div className="flex min-w-0 items-center gap-2">
+      {imageUrl && (
+        <img
+          src={imageUrl}
+          alt=""
+          className="size-9 shrink-0 rounded object-cover"
+          loading="lazy"
+        />
+      )}
+      <div className="flex min-w-0 flex-col">
+        <span className="truncate font-medium">{label}</span>
+        {sublabel && (
+          <span className="truncate text-xs text-muted-foreground">
+            {sublabel}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
 
 function useUuidItems(
   attribute: RuleAttributeKey,
@@ -69,6 +101,7 @@ function useUuidItems(
       items: data.map((product) => ({
         id: product.id,
         label: product.display_name,
+        imageUrl: product.brand.image_url ?? undefined,
         sublabel: [product.brand?.display_name, product.category?.display_name]
           .filter(Boolean)
           .join(" · "),
@@ -93,6 +126,7 @@ function useUuidItems(
       items: data.map((brand) => ({
         id: brand.id,
         label: brand.display_name,
+        imageUrl: brand.image_url ?? undefined,
       })),
     };
   }
@@ -216,14 +250,11 @@ function UuidValueInput({
             <ComboboxList>
               {(item: UuidSource) => (
                 <ComboboxItem key={item.id} value={item}>
-                  <div className="flex flex-col">
-                    <span className="font-medium">{item.label}</span>
-                    {item.sublabel && (
-                      <span className="text-xs text-muted-foreground">
-                        {item.sublabel}
-                      </span>
-                    )}
-                  </div>
+                  <ComboboxOption
+                    label={item.label}
+                    sublabel={item.sublabel}
+                    imageUrl={item.imageUrl}
+                  />
                 </ComboboxItem>
               )}
             </ComboboxList>
@@ -262,14 +293,11 @@ function UuidValueInput({
         <ComboboxList>
           {(item: UuidSource) => (
             <ComboboxItem key={item.id} value={item}>
-              <div className="flex flex-col">
-                <span className="font-medium">{item.label}</span>
-                {item.sublabel && (
-                  <span className="text-xs text-muted-foreground">
-                    {item.sublabel}
-                  </span>
-                )}
-              </div>
+              <ComboboxOption
+                label={item.label}
+                sublabel={item.sublabel}
+                imageUrl={item.imageUrl}
+              />
             </ComboboxItem>
           )}
         </ComboboxList>
@@ -289,13 +317,26 @@ function findActiveRegularPrice(variant: Variant): VariantPrice | undefined {
 
 function VariantItem({ variant }: { variant: Variant }) {
   const price = findActiveRegularPrice(variant);
+  const imageUrl = [...variant.images].sort(
+    (a, b) => a.image_index - b.image_index
+  )[0]?.image_url;
   return (
-    <div className="flex w-full items-center justify-between gap-4">
-      <div className="flex flex-col">
-        <span className="font-medium">{variant.display_name}</span>
-        <span className="text-xs text-muted-foreground">
-          SKU: {variant.sku}
-        </span>
+    <div className="flex w-full min-w-0 items-center justify-between gap-4">
+      <div className="flex min-w-0 items-center gap-2">
+        {imageUrl && (
+          <img
+            src={imageUrl}
+            alt=""
+            className="size-9 shrink-0 rounded object-cover"
+            loading="lazy"
+          />
+        )}
+        <div className="flex min-w-0 flex-col">
+          <span className="truncate font-medium">{variant.display_name}</span>
+          <span className="truncate text-xs text-muted-foreground">
+            SKU: {variant.sku}
+          </span>
+        </div>
       </div>
       {price && (
         <span className="text-sm font-medium">

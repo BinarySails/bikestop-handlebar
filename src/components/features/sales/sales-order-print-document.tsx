@@ -1,5 +1,10 @@
+import { useEffect, useMemo, useState } from "react";
+
+import { getPromotionRequest } from "@/lib/api/api";
 import type {
   AddressSnapshot,
+  Promotion,
+  SalesOrderLineAdjustment,
   SalesOrder,
   SalesOrderStatus,
 } from "@/lib/api/schemas";
@@ -27,19 +32,139 @@ function formatMoney(cents: number) {
   return currencyFormatter.format(centsToPesos(cents));
 }
 
+function promotionDiscountLabel(promotion: Promotion): string {
+  const value =
+    "Standard" in promotion.application_method
+      ? promotion.application_method.Standard.value
+      : promotion.application_method.BuyGet.value;
+  if ("percentage" in value) {
+    const percentage = new Intl.NumberFormat("es-MX", {
+      maximumFractionDigits: 2,
+    }).format(value.percentage / 100);
+    return `${percentage}%`;
+  }
+
+  const [amount, currency] = value.fixed_amount as unknown as [number, string];
+  const formatter = new Intl.NumberFormat("es-MX", {
+    style: "currency",
+    currency: currency || "MXN",
+  });
+  return `Monto fijo ${formatter.format(centsToPesos(amount ?? 0))}`;
+}
+
+function adjustmentLabel(
+  adjustment: SalesOrderLineAdjustment,
+  promotions: Map<string, Promotion>
+): string {
+  if (!("Promotion" in adjustment.source)) {
+    return adjustment.description || "Descuento manual";
+  }
+  const { code, promotion_id: promotionId } = adjustment.source.Promotion;
+  const promotion = promotions.get(promotionId);
+  return promotion ? `${code} · ${promotionDiscountLabel(promotion)}` : code;
+}
+
+function orderDiscountBreakdown(
+  order: SalesOrder,
+  promotions: Map<string, Promotion>
+): { key: string; label: string; amount: number }[] {
+  const totals = new Map<string, { label: string; amount: number }>();
+  for (const line of order.lines) {
+    for (const adjustment of line.adjustments) {
+      if (adjustment.amount <= 0) continue;
+      const key =
+        "Promotion" in adjustment.source
+          ? `promotion:${adjustment.source.Promotion.promotion_id}`
+          : `manual:${adjustment.description ?? ""}`;
+      const label = adjustmentLabel(adjustment, promotions);
+      const current = totals.get(key);
+      totals.set(key, {
+        label: current?.label ?? label,
+        amount: (current?.amount ?? 0) + adjustment.amount,
+      });
+    }
+  }
+
+  const details = [...totals].map(([key, value]) => ({ key, ...value }));
+  const detailedDiscount = details.reduce((sum, item) => sum + item.amount, 0);
+  const unitemizedAmount = order.discount_total - detailedDiscount;
+  if (unitemizedAmount > 0) {
+    details.push({
+      key: "unitemized",
+      label: "Otros descuentos",
+      amount: unitemizedAmount,
+    });
+  }
+  return details;
+}
+
 export function SalesOrderPrintDocument({ order }: { order: SalesOrder }) {
+  const promotionIds = useMemo(
+    () => [
+      ...new Set(
+        order.lines.flatMap((line) =>
+          line.adjustments.flatMap((adjustment) =>
+            "Promotion" in adjustment.source
+              ? [adjustment.source.Promotion.promotion_id]
+              : []
+          )
+        )
+      ),
+    ],
+    [order.lines]
+  );
+  const promotionIdsKey = promotionIds.join(":");
+  const [promotions, setPromotions] = useState<Map<string, Promotion>>(
+    new Map()
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+    const ids = promotionIdsKey ? promotionIdsKey.split(":") : [];
+    if (ids.length === 0) {
+      setPromotions(new Map());
+      return;
+    }
+
+    void Promise.all(
+      ids.map(async (id) => {
+        try {
+          const response = await getPromotionRequest(id);
+          return response.status === 200
+            ? ([id, response.data] as const)
+            : null;
+        } catch {
+          return null;
+        }
+      })
+    ).then((results) => {
+      if (!cancelled) {
+        const loaded = new Map<string, Promotion>();
+        for (const result of results) {
+          if (result) loaded.set(result[0], result[1]);
+        }
+        setPromotions(loaded);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [promotionIdsKey]);
+
   const dueDate = computeDueDate(
     order.order_date,
     order.payment_term.days_until_due ?? null
   );
   const totalUnits = order.lines.reduce((sum, line) => sum + line.quantity, 0);
+  const discounts = orderDiscountBreakdown(order, promotions);
 
   return (
     <>
       <header className="flex flex-wrap items-start justify-between gap-4 border-b pb-6">
         <div>
           <p className="text-lg font-bold tracking-tight">BikeStop</p>
-          <p className="text-sm text-muted-foreground">Pedido de venta</p>
+          <p className="text-sm text-muted-foreground">Pedido</p>
         </div>
         <div className="text-right">
           <p className="text-xl font-bold tracking-tight">
@@ -103,9 +228,20 @@ export function SalesOrderPrintDocument({ order }: { order: SalesOrder }) {
               <td className="py-2 pr-2">
                 {line.description}
                 {line.discount_amount > 0 && (
-                  <span className="block text-xs text-muted-foreground">
-                    Descuento: −{formatMoney(line.discount_amount)}
-                  </span>
+                  <div className="mt-0.5 space-y-0.5 text-xs text-muted-foreground">
+                    {line.adjustments.some(
+                      (adjustment) => adjustment.amount > 0
+                    )
+                      ? line.adjustments
+                          .filter((adjustment) => adjustment.amount > 0)
+                          .map((adjustment) => (
+                            <span key={adjustment.id} className="block">
+                              {adjustmentLabel(adjustment, promotions)}: −
+                              {formatMoney(adjustment.amount)}
+                            </span>
+                          ))
+                      : `Descuento aplicado: −${formatMoney(line.discount_amount)}`}
+                  </div>
                 )}
               </td>
               <td className="py-2 pr-2 text-right">{line.quantity}</td>
@@ -128,10 +264,25 @@ export function SalesOrderPrintDocument({ order }: { order: SalesOrder }) {
             <span>{formatMoney(order.subtotal)}</span>
           </div>
           {order.discount_total > 0 && (
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Descuento</span>
-              <span>−{formatMoney(order.discount_total)}</span>
-            </div>
+            <>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">
+                  Descuentos aplicados
+                </span>
+                <span>−{formatMoney(order.discount_total)}</span>
+              </div>
+              {discounts.map((discount) => (
+                <div
+                  key={discount.key}
+                  className="flex justify-between gap-3 pl-3 text-xs text-muted-foreground"
+                >
+                  <span>{discount.label}</span>
+                  <span className="shrink-0">
+                    −{formatMoney(discount.amount)}
+                  </span>
+                </div>
+              ))}
+            </>
           )}
           <div className="flex justify-between">
             <span className="text-muted-foreground">Impuestos</span>

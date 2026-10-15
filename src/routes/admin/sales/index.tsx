@@ -71,9 +71,9 @@ const statusLabel: Record<keyof typeof SalesOrderStatus, string> = {
   quote: "Cotización",
   confirmed: "Confirmada",
   partially_fulfilled: "D. Parcial",
-  fulfilled: "Completo",
+  fulfilled: "Despachado",
   cancelled: "Cancelada",
-  closed: "Cerrada",
+  closed: "Terminado",
 };
 
 const statusBadgeVariant: Record<
@@ -452,8 +452,8 @@ function SalesOrdersPage() {
   return (
     <>
       <SiteHeader
-        title="Órdenes de venta"
-        description="Consulta todas tus ordenes de venta pedientes."
+        title="Pedidos"
+        description="Consulta todos tus pedidos pendientes."
         actions={
           <>
             <Can policy={PERMISSIONS.orderTagManage}>
@@ -478,16 +478,16 @@ function SalesOrdersPage() {
               policy={PERMISSIONS.salesOrderCreate}
               render={<Link to="/admin/sales/new" />}
             >
-              Crear orden
+              Crear orden{" "}
             </EntityCreateButton>
           </>
         }
       />
       <EntityIndexPage
-        ariaLabel="Órdenes de venta"
+        ariaLabel="Pedidos"
         cardTitle={
           <EntityCardTitle icon={ShoppingCart}>
-            Catálogo de órdenes de venta
+            Catálogo de pedidos
           </EntityCardTitle>
         }
         cardHeaderExtras={
@@ -531,9 +531,9 @@ function SalesOrdersPage() {
         loading={isLoading}
         validating={isValidating && Boolean(res)}
         hasError={hasError}
-        errorMessage="Error al cargar las órdenes de venta."
+        errorMessage="Error al cargar los pedidos."
         onRetry={() => mutate()}
-        emptyMessage="No hay órdenes de venta que coincidan con los filtros."
+        emptyMessage="No hay pedidos que coincidan con los filtros."
         pagination={{
           mode: "page",
           total,

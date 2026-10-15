@@ -5,6 +5,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { CreateWarehouseAddressRequest } from './createWarehouseAddressRequest.ts';
+import type { WarehousePickingMode } from './warehousePickingMode.ts';
 
 export interface CreateWarehouseRequest {
   address: CreateWarehouseAddressRequest;
@@ -13,4 +14,5 @@ export interface CreateWarehouseRequest {
   /** @nullable */
   description?: string | null;
   name: string;
+  picking_mode?: WarehousePickingMode;
 }

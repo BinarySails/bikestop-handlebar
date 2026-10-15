@@ -4,16 +4,18 @@ import type { InventoryItemResponse } from "@/lib/api/schemas";
 
 import {
   collectNewCustomerAddresses,
-  selectDefaultWarehouse,
+  selectManuallySelectableWarehouses,
   validateWarehouseAllocations,
 } from "./create-sales-order-form";
 
 function inventoryItem(
   warehouseId: string,
-  availableQuantity: number
+  availableQuantity: number,
+  pickingMode: InventoryItemResponse["picking_mode"] = "automatic"
 ): InventoryItemResponse {
   return {
     available_quantity: availableQuantity,
+    picking_mode: pickingMode,
     reserved_quantity: 0,
     total_quantity: availableQuantity,
     variant_id: "variant-a",
@@ -123,35 +125,14 @@ describe("collectNewCustomerAddresses", () => {
   });
 });
 
-describe("selectDefaultWarehouse", () => {
-  it("selects the sufficient warehouse with the most available units", () => {
+describe("selectManuallySelectableWarehouses", () => {
+  it("allows manual and automatic warehouses but excludes restricted ones", () => {
     expect(
-      selectDefaultWarehouse(
-        [
-          inventoryItem("warehouse-a", 3),
-          inventoryItem("warehouse-b", 8),
-          inventoryItem("warehouse-c", 6),
-        ],
-        5
-      )?.warehouse_id
-    ).toBe("warehouse-b");
-  });
-
-  it("returns no warehouse when none can cover the line quantity", () => {
-    expect(
-      selectDefaultWarehouse(
-        [inventoryItem("warehouse-a", 4), inventoryItem("warehouse-b", 9)],
-        10
-      )
-    ).toBeUndefined();
-  });
-
-  it("keeps the first sufficient warehouse on ties", () => {
-    expect(
-      selectDefaultWarehouse(
-        [inventoryItem("warehouse-a", 5), inventoryItem("warehouse-b", 5)],
-        5
-      )?.warehouse_id
-    ).toBe("warehouse-a");
+      selectManuallySelectableWarehouses([
+        inventoryItem("warehouse-a", 4, "automatic"),
+        inventoryItem("warehouse-b", 2, "manual"),
+        inventoryItem("warehouse-c", 10, "restricted"),
+      ]).map((warehouse) => warehouse.warehouse_id)
+    ).toEqual(["warehouse-a", "warehouse-b"]);
   });
 });

@@ -19,6 +19,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from "@/components/ui/combobox";
 
 export type FilterDefinition =
   | {
@@ -59,6 +67,13 @@ export type FilterDefinition =
       type: "number";
       placeholder?: string;
       valueFormatter?: (value: string) => string;
+    }
+  | {
+      key: string;
+      label: string;
+      type: "combobox";
+      options: { value: string; label: string }[];
+      valueFormatter?: (value: string) => string;
     };
 
 export type EntityFilterBarProps = {
@@ -70,7 +85,11 @@ export type EntityFilterBarProps = {
 };
 
 function displayValue(definition: FilterDefinition, value: string): string {
-  return definition.valueFormatter ? definition.valueFormatter(value) : value;
+  if (definition.valueFormatter) return definition.valueFormatter(value);
+  if (definition.type === "select" || definition.type === "combobox") {
+    return definition.options.find((o) => o.value === value)?.label ?? value;
+  }
+  return value;
 }
 
 function FilterEditor({
@@ -90,25 +109,52 @@ function FilterEditor({
     onApply(draft.trim() === "" ? undefined : draft);
   }
 
-  if (definition.type === "select") {
+  if (definition.type === "select" || definition.type === "combobox") {
     return (
       <div className="flex flex-col gap-2.5">
-        <Select
-          value={draft || null}
-          items={definition.options}
-          onValueChange={(value) => setDraft(value ?? "")}
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Seleccionar" />
-          </SelectTrigger>
-          <SelectContent>
-            {definition.options.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {definition.type === "combobox" ? (
+          <Combobox
+            items={definition.options}
+            value={definition.options.find((o) => o.value === draft) ?? null}
+            onValueChange={(item) => {
+              setDraft(item?.value ?? "");
+            }}
+            itemToStringLabel={(item) => item.label}
+            isItemEqualToValue={(a, b) => a.value === b.value}
+          >
+            <ComboboxInput
+              placeholder="Buscar..."
+              showClear
+              className="w-full"
+            />
+            <ComboboxContent>
+              <ComboboxEmpty>Sin resultados.</ComboboxEmpty>
+              <ComboboxList>
+                {(item) => (
+                  <ComboboxItem key={item.value} value={item}>
+                    {item.label}
+                  </ComboboxItem>
+                )}
+              </ComboboxList>
+            </ComboboxContent>
+          </Combobox>
+        ) : (
+          <Select
+            value={draft || null}
+            onValueChange={(value) => setDraft(value ?? "")}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Seleccionar" />
+            </SelectTrigger>
+            <SelectContent>
+              {definition.options.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
         <div className="flex justify-end gap-2">
           <Button variant="ghost" size="sm" onClick={onClose}>
             Cancelar

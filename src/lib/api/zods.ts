@@ -222,6 +222,7 @@ export const CheckoutCartHandlerResponse = zod.object({
   "line_total": zod.int(),
   "product_id": zod.uuid(),
   "quantity": zod.int(),
+  "sku": zod.string(),
   "tax_amount": zod.int(),
   "tax_rate": zod.int(),
   "unit_price": zod.int(),
@@ -1036,6 +1037,7 @@ export const ListInventoryRequestQueryParams = zod.object({
 
 export const ListInventoryRequestResponseItem = zod.object({
   "available_quantity": zod.int(),
+  "picking_mode": zod.enum(['automatic', 'manual', 'restricted']),
   "reserved_quantity": zod.int(),
   "total_quantity": zod.int(),
   "variant_id": zod.uuid(),
@@ -1750,6 +1752,120 @@ export const UpdateVariantRequestResponse = zod.object({
 })
 
 
+export const listPromotionsRequestResponseApplicationMethodOneStandardValueTwoFixedAmountMin = 2;
+export const listPromotionsRequestResponseApplicationMethodOneStandardValueTwoFixedAmountMax = 2;
+
+export const listPromotionsRequestResponseApplicationMethodTwoBuyGetValueTwoFixedAmountMin = 2;
+export const listPromotionsRequestResponseApplicationMethodTwoBuyGetValueTwoFixedAmountMax = 2;
+
+export const listPromotionsRequestResponseStackingTwoCombinablePriorityMin = 0;
+
+
+
+export const ListPromotionsRequestResponseItem = zod.object({
+  "application_method": zod.union([zod.object({
+  "Standard": zod.object({
+  "allocation": zod.union([zod.null(),zod.enum(['across', 'each'])]).optional(),
+  "id": zod.uuid().optional(),
+  "max_quantity": zod.int().nullish(),
+  "target": zod.enum(['items', 'order']),
+  "target_rules": zod.array(zod.object({
+  "attribute": zod.union([zod.enum(['customer_id']),zod.enum(['customer_group_id']),zod.enum(['order_subtotal']),zod.enum(['product_id']),zod.enum(['product_category_id']),zod.enum(['product_brand_id']),zod.enum(['variant_id']),zod.object({
+  "variant_property": zod.string()
+}),zod.enum(['line_quantity']),zod.enum(['line_unit_price'])]),
+  "id": zod.uuid().optional(),
+  "operator": zod.enum(['eq', 'ne', 'in', 'gt', 'gte', 'lt', 'lte']),
+  "values": zod.array(zod.union([zod.object({
+  "string": zod.string()
+}),zod.object({
+  "integer": zod.int()
+}),zod.object({
+  "uuid": zod.uuid()
+})]))
+})),
+  "value": zod.union([zod.object({
+  "percentage": zod.int()
+}),zod.object({
+  "fixed_amount": zod.array(zod.looseObject({
+
+})).min(listPromotionsRequestResponseApplicationMethodOneStandardValueTwoFixedAmountMin).max(listPromotionsRequestResponseApplicationMethodOneStandardValueTwoFixedAmountMax)
+})])
+})
+}),zod.object({
+  "BuyGet": zod.object({
+  "apply_to_quantity": zod.int(),
+  "buy_rules": zod.array(zod.object({
+  "attribute": zod.union([zod.enum(['customer_id']),zod.enum(['customer_group_id']),zod.enum(['order_subtotal']),zod.enum(['product_id']),zod.enum(['product_category_id']),zod.enum(['product_brand_id']),zod.enum(['variant_id']),zod.object({
+  "variant_property": zod.string()
+}),zod.enum(['line_quantity']),zod.enum(['line_unit_price'])]),
+  "id": zod.uuid().optional(),
+  "operator": zod.enum(['eq', 'ne', 'in', 'gt', 'gte', 'lt', 'lte']),
+  "values": zod.array(zod.union([zod.object({
+  "string": zod.string()
+}),zod.object({
+  "integer": zod.int()
+}),zod.object({
+  "uuid": zod.uuid()
+})]))
+})),
+  "buy_rules_min_quantity": zod.int(),
+  "id": zod.uuid().optional(),
+  "target_rules": zod.array(zod.object({
+  "attribute": zod.union([zod.enum(['customer_id']),zod.enum(['customer_group_id']),zod.enum(['order_subtotal']),zod.enum(['product_id']),zod.enum(['product_category_id']),zod.enum(['product_brand_id']),zod.enum(['variant_id']),zod.object({
+  "variant_property": zod.string()
+}),zod.enum(['line_quantity']),zod.enum(['line_unit_price'])]),
+  "id": zod.uuid().optional(),
+  "operator": zod.enum(['eq', 'ne', 'in', 'gt', 'gte', 'lt', 'lte']),
+  "values": zod.array(zod.union([zod.object({
+  "string": zod.string()
+}),zod.object({
+  "integer": zod.int()
+}),zod.object({
+  "uuid": zod.uuid()
+})]))
+})),
+  "value": zod.union([zod.object({
+  "percentage": zod.int()
+}),zod.object({
+  "fixed_amount": zod.array(zod.looseObject({
+
+})).min(listPromotionsRequestResponseApplicationMethodTwoBuyGetValueTwoFixedAmountMin).max(listPromotionsRequestResponseApplicationMethodTwoBuyGetValueTwoFixedAmountMax)
+})])
+})
+})]),
+  "code": zod.string(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "ends_at": zod.iso.datetime({"offset":true}).nullish(),
+  "id": zod.uuid(),
+  "is_automatic": zod.boolean(),
+  "rules": zod.array(zod.object({
+  "attribute": zod.union([zod.enum(['customer_id']),zod.enum(['customer_group_id']),zod.enum(['order_subtotal']),zod.enum(['product_id']),zod.enum(['product_category_id']),zod.enum(['product_brand_id']),zod.enum(['variant_id']),zod.object({
+  "variant_property": zod.string()
+}),zod.enum(['line_quantity']),zod.enum(['line_unit_price'])]),
+  "id": zod.uuid().optional(),
+  "operator": zod.enum(['eq', 'ne', 'in', 'gt', 'gte', 'lt', 'lte']),
+  "values": zod.array(zod.union([zod.object({
+  "string": zod.string()
+}),zod.object({
+  "integer": zod.int()
+}),zod.object({
+  "uuid": zod.uuid()
+})]))
+})),
+  "stacking": zod.union([zod.enum(['not_combinable']),zod.object({
+  "combinable": zod.object({
+  "priority": zod.int().min(listPromotionsRequestResponseStackingTwoCombinablePriorityMin)
+})
+})]),
+  "starts_at": zod.iso.datetime({"offset":true}).nullish(),
+  "status": zod.enum(['draft', 'active', 'inactive']),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "usage_limit": zod.int().nullish(),
+  "used_count": zod.int()
+})
+export const ListPromotionsRequestResponse = zod.array(ListPromotionsRequestResponseItem)
+
+
 export const createPromotionRequestBodyApplicationMethodOneStandardValueTwoFixedAmountMin = 2;
 export const createPromotionRequestBodyApplicationMethodOneStandardValueTwoFixedAmountMax = 2;
 
@@ -2192,6 +2308,127 @@ export const GetPromotionRequestResponse = zod.object({
   "stacking": zod.union([zod.enum(['not_combinable']),zod.object({
   "combinable": zod.object({
   "priority": zod.int().min(getPromotionRequestResponseStackingTwoCombinablePriorityMin)
+})
+})]),
+  "starts_at": zod.iso.datetime({"offset":true}).nullish(),
+  "status": zod.enum(['draft', 'active', 'inactive']),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "usage_limit": zod.int().nullish(),
+  "used_count": zod.int()
+})
+
+
+export const UpdatePromotionStatusRequestParams = zod.object({
+  "id": zod.uuid().describe('Promotion ID')
+})
+
+export const UpdatePromotionStatusRequestBody = zod.object({
+  "status": zod.enum(['draft', 'active', 'inactive'])
+})
+
+export const updatePromotionStatusRequestResponseApplicationMethodOneStandardValueTwoFixedAmountMin = 2;
+export const updatePromotionStatusRequestResponseApplicationMethodOneStandardValueTwoFixedAmountMax = 2;
+
+export const updatePromotionStatusRequestResponseApplicationMethodTwoBuyGetValueTwoFixedAmountMin = 2;
+export const updatePromotionStatusRequestResponseApplicationMethodTwoBuyGetValueTwoFixedAmountMax = 2;
+
+export const updatePromotionStatusRequestResponseStackingTwoCombinablePriorityMin = 0;
+
+
+
+export const UpdatePromotionStatusRequestResponse = zod.object({
+  "application_method": zod.union([zod.object({
+  "Standard": zod.object({
+  "allocation": zod.union([zod.null(),zod.enum(['across', 'each'])]).optional(),
+  "id": zod.uuid().optional(),
+  "max_quantity": zod.int().nullish(),
+  "target": zod.enum(['items', 'order']),
+  "target_rules": zod.array(zod.object({
+  "attribute": zod.union([zod.enum(['customer_id']),zod.enum(['customer_group_id']),zod.enum(['order_subtotal']),zod.enum(['product_id']),zod.enum(['product_category_id']),zod.enum(['product_brand_id']),zod.enum(['variant_id']),zod.object({
+  "variant_property": zod.string()
+}),zod.enum(['line_quantity']),zod.enum(['line_unit_price'])]),
+  "id": zod.uuid().optional(),
+  "operator": zod.enum(['eq', 'ne', 'in', 'gt', 'gte', 'lt', 'lte']),
+  "values": zod.array(zod.union([zod.object({
+  "string": zod.string()
+}),zod.object({
+  "integer": zod.int()
+}),zod.object({
+  "uuid": zod.uuid()
+})]))
+})),
+  "value": zod.union([zod.object({
+  "percentage": zod.int()
+}),zod.object({
+  "fixed_amount": zod.array(zod.looseObject({
+
+})).min(updatePromotionStatusRequestResponseApplicationMethodOneStandardValueTwoFixedAmountMin).max(updatePromotionStatusRequestResponseApplicationMethodOneStandardValueTwoFixedAmountMax)
+})])
+})
+}),zod.object({
+  "BuyGet": zod.object({
+  "apply_to_quantity": zod.int(),
+  "buy_rules": zod.array(zod.object({
+  "attribute": zod.union([zod.enum(['customer_id']),zod.enum(['customer_group_id']),zod.enum(['order_subtotal']),zod.enum(['product_id']),zod.enum(['product_category_id']),zod.enum(['product_brand_id']),zod.enum(['variant_id']),zod.object({
+  "variant_property": zod.string()
+}),zod.enum(['line_quantity']),zod.enum(['line_unit_price'])]),
+  "id": zod.uuid().optional(),
+  "operator": zod.enum(['eq', 'ne', 'in', 'gt', 'gte', 'lt', 'lte']),
+  "values": zod.array(zod.union([zod.object({
+  "string": zod.string()
+}),zod.object({
+  "integer": zod.int()
+}),zod.object({
+  "uuid": zod.uuid()
+})]))
+})),
+  "buy_rules_min_quantity": zod.int(),
+  "id": zod.uuid().optional(),
+  "target_rules": zod.array(zod.object({
+  "attribute": zod.union([zod.enum(['customer_id']),zod.enum(['customer_group_id']),zod.enum(['order_subtotal']),zod.enum(['product_id']),zod.enum(['product_category_id']),zod.enum(['product_brand_id']),zod.enum(['variant_id']),zod.object({
+  "variant_property": zod.string()
+}),zod.enum(['line_quantity']),zod.enum(['line_unit_price'])]),
+  "id": zod.uuid().optional(),
+  "operator": zod.enum(['eq', 'ne', 'in', 'gt', 'gte', 'lt', 'lte']),
+  "values": zod.array(zod.union([zod.object({
+  "string": zod.string()
+}),zod.object({
+  "integer": zod.int()
+}),zod.object({
+  "uuid": zod.uuid()
+})]))
+})),
+  "value": zod.union([zod.object({
+  "percentage": zod.int()
+}),zod.object({
+  "fixed_amount": zod.array(zod.looseObject({
+
+})).min(updatePromotionStatusRequestResponseApplicationMethodTwoBuyGetValueTwoFixedAmountMin).max(updatePromotionStatusRequestResponseApplicationMethodTwoBuyGetValueTwoFixedAmountMax)
+})])
+})
+})]),
+  "code": zod.string(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "ends_at": zod.iso.datetime({"offset":true}).nullish(),
+  "id": zod.uuid(),
+  "is_automatic": zod.boolean(),
+  "rules": zod.array(zod.object({
+  "attribute": zod.union([zod.enum(['customer_id']),zod.enum(['customer_group_id']),zod.enum(['order_subtotal']),zod.enum(['product_id']),zod.enum(['product_category_id']),zod.enum(['product_brand_id']),zod.enum(['variant_id']),zod.object({
+  "variant_property": zod.string()
+}),zod.enum(['line_quantity']),zod.enum(['line_unit_price'])]),
+  "id": zod.uuid().optional(),
+  "operator": zod.enum(['eq', 'ne', 'in', 'gt', 'gte', 'lt', 'lte']),
+  "values": zod.array(zod.union([zod.object({
+  "string": zod.string()
+}),zod.object({
+  "integer": zod.int()
+}),zod.object({
+  "uuid": zod.uuid()
+})]))
+})),
+  "stacking": zod.union([zod.enum(['not_combinable']),zod.object({
+  "combinable": zod.object({
+  "priority": zod.int().min(updatePromotionStatusRequestResponseStackingTwoCombinablePriorityMin)
 })
 })]),
   "starts_at": zod.iso.datetime({"offset":true}).nullish(),
@@ -2652,6 +2889,7 @@ export const CreateSalesOrderRequestBody = zod.object({
 }),
   "comments": zod.string().nullish(),
   "customer_id": zod.uuid(),
+  "expected_updated_at": zod.iso.datetime({"offset":true}).nullish().describe('The `updated_at` value from the latest order response; required for PUT updates.'),
   "initial_status": zod.union([zod.null(),zod.enum(['draft', 'quote', 'confirmed', 'partially_fulfilled', 'fulfilled', 'cancelled', 'closed'])]).optional(),
   "lines": zod.array(zod.object({
   "description": zod.string(),
@@ -2663,10 +2901,11 @@ export const CreateSalesOrderRequestBody = zod.object({
   "warehouse_allocations": zod.array(zod.object({
   "quantity": zod.int(),
   "warehouse_id": zod.uuid()
-}))
+})).optional()
 })),
   "order_date": zod.iso.datetime({"offset":true}),
   "payment_term_id": zod.union([zod.null(),zod.uuid()]).optional(),
+  "promotion_codes": zod.array(zod.string()).optional(),
   "shipping_address": zod.object({
   "address": zod.string(),
   "city": zod.string(),
@@ -2722,6 +2961,7 @@ export const CreateSalesOrderRequestResponse = zod.object({
   "line_total": zod.int(),
   "product_id": zod.uuid(),
   "quantity": zod.int(),
+  "sku": zod.string(),
   "tax_amount": zod.int(),
   "tax_rate": zod.int(),
   "unit_price": zod.int(),
@@ -2937,6 +3177,7 @@ export const GetMySaleOrderRequestResponse = zod.object({
   "line_total": zod.int(),
   "product_id": zod.uuid(),
   "quantity": zod.int(),
+  "sku": zod.string(),
   "tax_amount": zod.int(),
   "tax_rate": zod.int(),
   "unit_price": zod.int(),
@@ -3030,6 +3271,7 @@ export const PickFulfillmentOrderRequestResponse = zod.object({
   "line_total": zod.int(),
   "product_id": zod.uuid(),
   "quantity": zod.int(),
+  "sku": zod.string(),
   "tax_amount": zod.int(),
   "tax_rate": zod.int(),
   "unit_price": zod.int(),
@@ -3123,6 +3365,7 @@ export const GetSaleOrderRequestResponse = zod.object({
   "line_total": zod.int(),
   "product_id": zod.uuid(),
   "quantity": zod.int(),
+  "sku": zod.string(),
   "tax_amount": zod.int(),
   "tax_rate": zod.int(),
   "unit_price": zod.int(),
@@ -3181,6 +3424,7 @@ export const UpdateSalesOrderRequestBody = zod.object({
 }),
   "comments": zod.string().nullish(),
   "customer_id": zod.uuid(),
+  "expected_updated_at": zod.iso.datetime({"offset":true}).nullish().describe('The `updated_at` value from the latest order response; required for PUT updates.'),
   "initial_status": zod.union([zod.null(),zod.enum(['draft', 'quote', 'confirmed', 'partially_fulfilled', 'fulfilled', 'cancelled', 'closed'])]).optional(),
   "lines": zod.array(zod.object({
   "description": zod.string(),
@@ -3192,10 +3436,11 @@ export const UpdateSalesOrderRequestBody = zod.object({
   "warehouse_allocations": zod.array(zod.object({
   "quantity": zod.int(),
   "warehouse_id": zod.uuid()
-}))
+})).optional()
 })),
   "order_date": zod.iso.datetime({"offset":true}),
   "payment_term_id": zod.union([zod.null(),zod.uuid()]).optional(),
+  "promotion_codes": zod.array(zod.string()).optional(),
   "shipping_address": zod.object({
   "address": zod.string(),
   "city": zod.string(),
@@ -3251,6 +3496,7 @@ export const UpdateSalesOrderRequestResponse = zod.object({
   "line_total": zod.int(),
   "product_id": zod.uuid(),
   "quantity": zod.int(),
+  "sku": zod.string(),
   "tax_amount": zod.int(),
   "tax_rate": zod.int(),
   "unit_price": zod.int(),
@@ -3344,6 +3590,7 @@ export const UpdateSalesOrderStatusRequestResponse = zod.object({
   "line_total": zod.int(),
   "product_id": zod.uuid(),
   "quantity": zod.int(),
+  "sku": zod.string(),
   "tax_amount": zod.int(),
   "tax_rate": zod.int(),
   "unit_price": zod.int(),
@@ -3441,6 +3688,7 @@ export const ApplyPromotionsRequestResponse = zod.object({
   "line_total": zod.int(),
   "product_id": zod.uuid(),
   "quantity": zod.int(),
+  "sku": zod.string(),
   "tax_amount": zod.int(),
   "tax_rate": zod.int(),
   "unit_price": zod.int(),
@@ -3566,6 +3814,7 @@ export const CancelSalesOrderRequestResponse = zod.object({
   "line_total": zod.int(),
   "product_id": zod.uuid(),
   "quantity": zod.int(),
+  "sku": zod.string(),
   "tax_amount": zod.int(),
   "tax_rate": zod.int(),
   "unit_price": zod.int(),
@@ -3663,6 +3912,7 @@ export const AddSalesOrderCommentRequestResponse = zod.object({
   "line_total": zod.int(),
   "product_id": zod.uuid(),
   "quantity": zod.int(),
+  "sku": zod.string(),
   "tax_amount": zod.int(),
   "tax_rate": zod.int(),
   "unit_price": zod.int(),
@@ -3756,6 +4006,7 @@ export const ConfirmSalesOrderRequestResponse = zod.object({
   "line_total": zod.int(),
   "product_id": zod.uuid(),
   "quantity": zod.int(),
+  "sku": zod.string(),
   "tax_amount": zod.int(),
   "tax_rate": zod.int(),
   "unit_price": zod.int(),
@@ -3849,6 +4100,137 @@ export const FulfillOrderRequestResponse = zod.object({
   "line_total": zod.int(),
   "product_id": zod.uuid(),
   "quantity": zod.int(),
+  "sku": zod.string(),
+  "tax_amount": zod.int(),
+  "tax_rate": zod.int(),
+  "unit_price": zod.int(),
+  "variant_id": zod.uuid(),
+  "warehouse_allocations": zod.array(zod.object({
+  "dispatched_quantity": zod.int(),
+  "quantity": zod.int(),
+  "warehouse_id": zod.uuid()
+}))
+})),
+  "order_date": zod.iso.datetime({"offset":true}),
+  "order_number": zod.string(),
+  "payment_term": zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "days_until_due": zod.int().nullish(),
+  "description": zod.string().nullish(),
+  "id": zod.uuid(),
+  "is_active": zod.boolean(),
+  "name": zod.string(),
+  "type": zod.enum(['net', 'due_on_receipt']),
+  "updated_at": zod.iso.datetime({"offset":true})
+}),
+  "shipping_address": zod.object({
+  "address": zod.string(),
+  "city": zod.string(),
+  "country": zod.string(),
+  "postal_code": zod.string(),
+  "state": zod.string()
+}),
+  "status": zod.enum(['draft', 'quote', 'confirmed', 'partially_fulfilled', 'fulfilled', 'cancelled', 'closed']),
+  "subtotal": zod.int(),
+  "tags": zod.array(zod.object({
+  "color": zod.string().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "display_name": zod.string(),
+  "id": zod.uuid(),
+  "slug": zod.string(),
+  "status": zod.enum(['enable', 'disable', 'archive'])
+})),
+  "tax_total": zod.int(),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+
+
+export const EditSalesOrderLinesRequestParams = zod.object({
+  "id": zod.uuid().describe('Sales order ID')
+})
+
+export const EditSalesOrderLinesRequestBody = zod.object({
+  "expected_updated_at": zod.iso.datetime({"offset":true}).describe('The `updated_at` value from the latest GET\/response for this order.'),
+  "operations": zod.array(zod.union([zod.object({
+  "line": zod.object({
+  "description": zod.string(),
+  "quantity": zod.int(),
+  "tax_rate": zod.int(),
+  "unit_price": zod.int(),
+  "variant_id": zod.uuid(),
+  "warehouse_allocations": zod.array(zod.object({
+  "quantity": zod.int(),
+  "warehouse_id": zod.uuid()
+})).optional()
+}),
+  "operation": zod.enum(['add'])
+}),zod.object({
+  "line": zod.object({
+  "description": zod.string(),
+  "quantity": zod.int(),
+  "tax_rate": zod.int(),
+  "unit_price": zod.int(),
+  "variant_id": zod.uuid(),
+  "warehouse_allocations": zod.array(zod.object({
+  "quantity": zod.int(),
+  "warehouse_id": zod.uuid()
+})).optional()
+}),
+  "line_id": zod.uuid(),
+  "operation": zod.enum(['update'])
+}),zod.object({
+  "line_id": zod.uuid(),
+  "operation": zod.enum(['remove'])
+})])),
+  "promotion_codes": zod.array(zod.string()).optional()
+})
+
+export const EditSalesOrderLinesRequestResponse = zod.object({
+  "billing_address": zod.object({
+  "address": zod.string(),
+  "city": zod.string(),
+  "country": zod.string(),
+  "postal_code": zod.string(),
+  "state": zod.string()
+}),
+  "comments": zod.string().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "created_by": zod.union([zod.null(),zod.uuid()]).optional(),
+  "customer": zod.object({
+  "customer_id": zod.uuid(),
+  "name": zod.string()
+}),
+  "discount_total": zod.int(),
+  "fulfill_state": zod.union([zod.null(),zod.enum(['picked'])]).optional(),
+  "fulfill_state_changed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "fulfilling_user_id": zod.union([zod.null(),zod.uuid()]).optional(),
+  "grand_total": zod.int(),
+  "id": zod.uuid(),
+  "lines": zod.array(zod.object({
+  "adjustments": zod.array(zod.object({
+  "amount": zod.int(),
+  "description": zod.string().nullish(),
+  "id": zod.uuid(),
+  "source": zod.union([zod.object({
+  "Promotion": zod.object({
+  "code": zod.string(),
+  "promotion_id": zod.uuid()
+})
+}),zod.object({
+  "Manual": zod.object({
+  "created_by": zod.uuid()
+})
+})])
+})),
+  "description": zod.string(),
+  "discount_amount": zod.int(),
+  "dispatched_quantity": zod.int(),
+  "id": zod.uuid(),
+  "line_number": zod.int(),
+  "line_total": zod.int(),
+  "product_id": zod.uuid(),
+  "quantity": zod.int(),
+  "sku": zod.string(),
   "tax_amount": zod.int(),
   "tax_rate": zod.int(),
   "unit_price": zod.int(),
@@ -3964,6 +4346,7 @@ export const ReleaseFulfillmentRequestResponse = zod.object({
   "line_total": zod.int(),
   "product_id": zod.uuid(),
   "quantity": zod.int(),
+  "sku": zod.string(),
   "tax_amount": zod.int(),
   "tax_rate": zod.int(),
   "unit_price": zod.int(),
@@ -4061,6 +4444,7 @@ export const UpdateSalesOrderTagsRequestResponse = zod.object({
   "line_total": zod.int(),
   "product_id": zod.uuid(),
   "quantity": zod.int(),
+  "sku": zod.string(),
   "tax_amount": zod.int(),
   "tax_rate": zod.int(),
   "unit_price": zod.int(),
@@ -4304,6 +4688,16 @@ export const UpdateUserProfileRequestResponse = zod.object({
 })
 
 
+export const GetVariantBySkuRequestParams = zod.object({
+  "sku": zod.string().describe('Exact variant SKU')
+})
+
+export const GetVariantBySkuRequestResponse = zod.object({
+  "product_id": zod.uuid(),
+  "variant_id": zod.uuid()
+})
+
+
 export const ListWarehousesRequestQueryParams = zod.object({
   "status": zod.enum(['enable', 'disable', 'archive']).optional()
 })
@@ -4323,6 +4717,7 @@ export const ListWarehousesRequestResponseItem = zod.object({
   "description": zod.string().nullish(),
   "id": zod.uuid(),
   "name": zod.string(),
+  "picking_mode": zod.enum(['automatic', 'manual', 'restricted']),
   "status": zod.enum(['enable', 'disable', 'archive']),
   "updated_at": zod.iso.datetime({"offset":true})
 })
@@ -4339,7 +4734,8 @@ export const CreateWarehouseRequestBody = zod.object({
 }),
   "code": zod.string().nullish(),
   "description": zod.string().nullish(),
-  "name": zod.string()
+  "name": zod.string(),
+  "picking_mode": zod.enum(['automatic', 'manual', 'restricted']).optional()
 })
 
 export const CreateWarehouseRequestResponse = zod.object({
@@ -4357,6 +4753,7 @@ export const CreateWarehouseRequestResponse = zod.object({
   "description": zod.string().nullish(),
   "id": zod.uuid(),
   "name": zod.string(),
+  "picking_mode": zod.enum(['automatic', 'manual', 'restricted']),
   "status": zod.enum(['enable', 'disable', 'archive']),
   "updated_at": zod.iso.datetime({"offset":true})
 })
@@ -4381,6 +4778,7 @@ export const GetWarehouseRequestResponse = zod.object({
   "description": zod.string().nullish(),
   "id": zod.uuid(),
   "name": zod.string(),
+  "picking_mode": zod.enum(['automatic', 'manual', 'restricted']),
   "status": zod.enum(['enable', 'disable', 'archive']),
   "updated_at": zod.iso.datetime({"offset":true})
 })
@@ -4400,7 +4798,8 @@ export const UpdateWarehouseRequestBody = zod.object({
 }),
   "code": zod.string().nullish(),
   "description": zod.string().nullish(),
-  "name": zod.string()
+  "name": zod.string(),
+  "picking_mode": zod.enum(['automatic', 'manual', 'restricted'])
 })
 
 export const UpdateWarehouseRequestResponse = zod.object({
@@ -4418,6 +4817,7 @@ export const UpdateWarehouseRequestResponse = zod.object({
   "description": zod.string().nullish(),
   "id": zod.uuid(),
   "name": zod.string(),
+  "picking_mode": zod.enum(['automatic', 'manual', 'restricted']),
   "status": zod.enum(['enable', 'disable', 'archive']),
   "updated_at": zod.iso.datetime({"offset":true})
 })
@@ -4446,6 +4846,7 @@ export const UpdateWarehouseStatusRequestResponse = zod.object({
   "description": zod.string().nullish(),
   "id": zod.uuid(),
   "name": zod.string(),
+  "picking_mode": zod.enum(['automatic', 'manual', 'restricted']),
   "status": zod.enum(['enable', 'disable', 'archive']),
   "updated_at": zod.iso.datetime({"offset":true})
 })

@@ -218,7 +218,7 @@ function TagsPage() {
     <>
       <SiteHeader
         title="Etiquetas"
-        description="Administra las etiquetas de órdenes de venta."
+        description="Administra las etiquetas de pedidos."
         actions={
           <>
             <Button

@@ -94,7 +94,7 @@ export function AssignOrderTagsDialog({
         <DialogHeader>
           <DialogTitle>Etiquetas de {order?.order_number}</DialogTitle>
           <DialogDescription>
-            Marca las etiquetas que quieres asignar a la orden de venta.
+            Marca las etiquetas que quieres asignar al pedido.
           </DialogDescription>
         </DialogHeader>
 
