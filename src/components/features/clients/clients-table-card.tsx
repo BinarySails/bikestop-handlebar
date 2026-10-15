@@ -255,7 +255,10 @@ export function ClientsTableCard({
       className: "w-44",
       cell: (client) => {
         if (client.vendedor_user_id) {
-          const name = vendorNameById.get(client.vendedor_user_id);
+          const name =
+            client.vendedor_display_name ??
+            vendorNameById.get(client.vendedor_user_id) ??
+            client.vendedor_username;
           if (name) return <span className="text-gray-600">{name}</span>;
           return (
             <span
