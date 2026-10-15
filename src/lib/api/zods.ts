@@ -1191,6 +1191,7 @@ export const ListProductsRequestQueryParams = zod.object({
   "status": zod.enum(['enable', 'disable', 'archive']).optional(),
   "is_archived": zod.boolean().optional(),
   "search": zod.string().optional(),
+  "has_active_promotion": zod.boolean().optional(),
   "page": zod.int().min(listProductsRequestQueryPageMin).optional(),
   "limit": zod.int().min(listProductsRequestQueryLimitMin).optional()
 })
