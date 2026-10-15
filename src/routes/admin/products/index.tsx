@@ -5,6 +5,10 @@ import { MoreVertical, Package, RotateCcw, SearchIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { SiteHeader } from "@/components/features/layout/site-header";
+import {
+  EntityFilterBar,
+  type FilterDefinition,
+} from "@/components/features/entity/entity-filter-bar";
 import { EntityCardTitle } from "@/components/features/entity/entity-card-title";
 import {
   EntityIndexPage,
@@ -79,6 +83,29 @@ const statusFilterLabel: Record<ListStatusFilter, string> = {
   archive: "Archivado",
 };
 
+type PromotionFilter = "all" | "with" | "without";
+
+const promotionFilterLabel: Record<Exclude<PromotionFilter, "all">, string> = {
+  with: "Con promoción activa",
+  without: "Sin promoción activa",
+};
+
+const promotionFilterDefinitions: FilterDefinition[] = [
+  {
+    key: "has_active_promotion",
+    label: "Promociones",
+    type: "select",
+    options: (
+      Object.keys(promotionFilterLabel) as Exclude<PromotionFilter, "all">[]
+    ).map((value) => ({
+      value,
+      label: promotionFilterLabel[value],
+    })),
+    valueFormatter: (value) =>
+      promotionFilterLabel[value as Exclude<PromotionFilter, "all">],
+  },
+];
+
 function ViewProductMenuItem({ productId }: { productId: string }) {
   const navigate = useNavigate();
 
@@ -145,6 +172,7 @@ function ProductsListPage() {
   const [search, setSearch] = useState("");
   const [appliedSearch, setAppliedSearch] = useState("");
   const [status, setStatus] = useState<ListStatusFilter>("all");
+  const [promoFilter, setPromoFilter] = useState<PromotionFilter>("all");
   const [isLookingUpSku, setIsLookingUpSku] = useState(false);
   const navigate = useNavigate();
 
@@ -161,6 +189,8 @@ function ProductsListPage() {
     status:
       status === "all" ? undefined : status === "archive" ? undefined : status,
     search: appliedSearch || undefined,
+    has_active_promotion:
+      promoFilter === "all" ? undefined : promoFilter === "with",
   });
 
   const products = res?.status === 200 ? res.data.data : [];
@@ -200,6 +230,15 @@ function ProductsListPage() {
     setSearch("");
     setAppliedSearch("");
     setStatus("all");
+    setPromoFilter("all");
+    setPage(0);
+  }
+
+  function handlePromotionFilterChange(
+    _key: string,
+    value: string | undefined
+  ) {
+    setPromoFilter(value === "with" || value === "without" ? value : "all");
     setPage(0);
   }
 
@@ -338,16 +377,31 @@ function ProductsListPage() {
                   <SelectItem value="archive">Archivado</SelectItem>
                 </SelectContent>
               </Select>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-8"
-                onClick={handleClearFilters}
-              >
-                <RotateCcw />
-                Limpiar
-              </Button>
             </div>
+
+            <EntityFilterBar
+              filters={promotionFilterDefinitions}
+              values={{
+                has_active_promotion:
+                  promoFilter === "all" ? undefined : promoFilter,
+              }}
+              pinned={["has_active_promotion"]}
+              onChange={handlePromotionFilterChange}
+              onClear={() => {
+                setPromoFilter("all");
+                setPage(0);
+              }}
+            />
+
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8"
+              onClick={handleClearFilters}
+            >
+              <RotateCcw />
+              Limpiar
+            </Button>
           </div>
         }
         columns={columns}

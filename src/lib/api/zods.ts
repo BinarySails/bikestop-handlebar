@@ -466,6 +466,7 @@ export const GetCatalogProductRequestResponse = zod.object({
 
 export const ListCustomersRequestQueryParams = zod.object({
   "search": zod.string().optional(),
+  "status": zod.string().optional(),
   "page": zod.int().optional(),
   "limit": zod.int().optional()
 })
@@ -1192,6 +1193,7 @@ export const ListProductsRequestQueryParams = zod.object({
   "status": zod.enum(['enable', 'disable', 'archive']).optional(),
   "is_archived": zod.boolean().optional(),
   "search": zod.string().optional(),
+  "has_active_promotion": zod.boolean().optional(),
   "page": zod.int().min(listProductsRequestQueryPageMin).optional(),
   "limit": zod.int().min(listProductsRequestQueryLimitMin).optional()
 })

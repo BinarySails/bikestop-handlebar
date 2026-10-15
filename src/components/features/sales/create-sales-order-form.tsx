@@ -61,6 +61,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import {
+  useCreateCustomerAddressRequest,
   useCreateSalesOrderRequest,
   useGetCustomerRequest,
   useListCustomerAddressesRequest,
@@ -425,6 +426,25 @@ function isSameAddress(a: AddressFormValues, b: AddressFormValues): boolean {
   );
 }
 
+export function collectNewCustomerAddresses(
+  billing: AddressFormValues,
+  shipping: AddressFormValues,
+  shippingSameAsBilling: boolean,
+  billingIsNew: boolean,
+  shippingIsNew: boolean
+): AddressFormValues[] {
+  const addresses: AddressFormValues[] = [];
+  if (billingIsNew) addresses.push(billing);
+  if (
+    shippingIsNew &&
+    !shippingSameAsBilling &&
+    !addresses.some((address) => isSameAddress(address, shipping))
+  ) {
+    addresses.push(shipping);
+  }
+  return addresses;
+}
+
 function valuesFromOrder(order: SalesOrder): SalesOrderFormValues {
   return {
     customer: {
@@ -436,6 +456,9 @@ function valuesFromOrder(order: SalesOrder): SalesOrderFormValues {
       // The order snapshot carries no status; a persisted order implies an
       // active customer. Replaced wholesale when the combobox selection changes.
       status: "enable",
+      // The order snapshot carries no cart summary either.
+      cart_item_count: 0,
+      cart_grand_total: 0,
     },
     billing: addressValues(order.billing_address),
     shipping_same_as_billing: sameAddress(
@@ -624,6 +647,12 @@ export function CreateSalesOrderForm({
     customerRes?.status === 200 && customerRes.data.user_id
       ? customerRes.data.user_id
       : "";
+  const customerContactName =
+    customerRes?.status === 200 ? customerRes.data.company_name : "";
+  const customerPhone =
+    customerRes?.status === 200 ? (customerRes.data.phone ?? "") : "";
+  const { trigger: createCustomerAddress } =
+    useCreateCustomerAddressRequest(customerUserId);
   const { data: addressesRes } = useListCustomerAddressesRequest(
     customerUserId,
     { swr: { enabled: customerUserId !== "" } }
@@ -1000,6 +1029,40 @@ export function CreateSalesOrderForm({
 
         if (result.status === 201) {
           toast.success(`Orden ${result.data.order_number} creada.`);
+
+          const billingIsNew = selectedBillingAddress === null;
+          const shippingIsNew =
+            !value.shipping_same_as_billing && selectedShippingAddress === null;
+          const addressesToSave = collectNewCustomerAddresses(
+            billingAddress,
+            shippingAddress,
+            value.shipping_same_as_billing,
+            billingIsNew,
+            shippingIsNew
+          );
+
+          if (customerUserId && addressesToSave.length > 0) {
+            try {
+              await Promise.all(
+                addressesToSave.map((address) =>
+                  createCustomerAddress({
+                    country: address.country,
+                    state: address.state,
+                    city: address.city,
+                    postal_code: address.postal_code,
+                    address: address.address,
+                    contact_name: customerContactName,
+                    phone: customerPhone,
+                  })
+                )
+              );
+            } catch {
+              toast.warning(
+                "La orden se creó, pero no se pudo guardar la nueva dirección del cliente."
+              );
+            }
+          }
+
           navigate({
             to: "/admin/sales/$orderId",
             params: { orderId: result.data.id },

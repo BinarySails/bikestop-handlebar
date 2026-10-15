@@ -41,17 +41,19 @@ type CustomerAddressListProps = {
   userId: string;
   addresses: CustomerAddressWithAddressRow[];
   onChanged: () => void;
+  emptyMessage?: string;
 };
 
 export function CustomerAddressList({
   userId,
   addresses,
   onChanged,
+  emptyMessage = "Aún no tienes direcciones registradas.",
 }: CustomerAddressListProps) {
   if (addresses.length === 0) {
     return (
       <p className="rounded-2xl border border-dashed p-6 text-center text-sm text-muted-foreground">
-        Aún no tienes direcciones registradas.
+        {emptyMessage}
       </p>
     );
   }

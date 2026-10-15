@@ -10,6 +10,7 @@ export type ListProductsRequestParams = {
 status?: ProductStatus;
 is_archived?: boolean;
 search?: string;
+has_active_promotion?: boolean;
 /**
  * @minimum 0
  */

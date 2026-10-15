@@ -14,6 +14,7 @@ export const Route = createFileRoute("/admin/clients/")({
   },
   validateSearch: z.object({
     search: z.string().optional(),
+    status: z.string().trim().min(1).optional().catch(undefined),
     page: z.coerce.number().int().min(0).catch(0),
     limit: z.coerce.number().int().min(1).max(100).catch(20),
   }),
@@ -27,6 +28,7 @@ function ClientsPage() {
   return (
     <ClientsTableCard
       search={search.search}
+      status={search.status}
       page={search.page}
       limit={search.limit}
       onParamsChange={(updates) =>

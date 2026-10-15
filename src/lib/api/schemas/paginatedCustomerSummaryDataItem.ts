@@ -9,6 +9,8 @@ import type { CustomerStatus } from './customerStatus.ts';
 import type { UserId } from './userId.ts';
 
 export type PaginatedCustomerSummaryDataItem = {
+  cart_grand_total: number;
+  cart_item_count: number;
   company_name: string;
   /** @nullable */
   email?: string | null;
